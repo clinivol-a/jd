@@ -21,6 +21,7 @@ import {
 
 type TaskStatus = '未开始' | '进行中' | '待审核' | '审核退回' | '已完成'
 type TaskType = '三维重建' | 'CAD 设计'
+const taskStageOrder: Record<TaskType, number> = { 三维重建: 0, 'CAD 设计': 1 }
 type WorkspaceMode = 'file' | 'view' | 'image' | 'segment'
 type WorkspaceTool = { label: string; icon: typeof Eye; options?: string[]; persistent?: boolean }
 type ReviewCommentStatus = '待修改' | '已修改 · 待复核' | '审核通过'
@@ -562,7 +563,16 @@ function TaskDetail({ task, tasks, events, feedback, comments, onBack, onOpen, o
 
 function TaskFlow({ task, tasks, events, comments, onOpen }: { task: Task; tasks: Task[]; events: FlowEvent[]; comments?: ReviewComment[]; onOpen?: (id: string, options?: { openComments?: boolean; commentId?: string }) => void }) {
   const orderTasks = tasks.filter((item) => item.orderNo === task.orderNo)
-  const visible = [...new Map(events.filter((event) => event.orderNo === task.orderNo).map((event) => [event.id, event])).values()].sort((a, b) => b.at.localeCompare(a.at) || b.id.localeCompare(a.id))
+  const orderEvents = [...new Map(events.filter((event) => event.orderNo === task.orderNo).map((event) => [event.id, event])).values()]
+  const firstAssignments = new Map<string, string>()
+  orderEvents.filter((event) => event.type === 'assigned').sort((a, b) => a.at.localeCompare(b.at) || a.id.localeCompare(b.id)).forEach((event) => {
+    if (!firstAssignments.has(event.taskId)) firstAssignments.set(event.taskId, event.id)
+  })
+  const visible = orderEvents.filter((event) => {
+    const eventTask = orderTasks.find((item) => item.id === event.taskId)
+    if (!eventTask) return false
+    return event.type === 'created' || firstAssignments.get(event.taskId) === event.id || taskStageOrder[eventTask.taskType] <= taskStageOrder[task.taskType]
+  }).sort((a, b) => b.at.localeCompare(a.at) || b.id.localeCompare(a.id))
   return <InfoSection title="任务流转记录"><div className="timeline">{visible.map((event) => <div className="timeline-item" key={event.id}><i /><div><strong>{event.name}{event.version ? <span className="timeline-version">{event.version}</span> : null}{orderTasks.length > 1 && <span className="flow-source">{orderTasks.find((item) => item.id === event.taskId)?.taskType ?? '关联任务'}</span>}</strong><p><span className="timeline-meta">{displayEventTime(event.at)} · {event.actor}</span><span className="timeline-note">{event.description}</span>{event.commentCount && onOpen ? <Button variant="text" theme="primary" size="small" onClick={() => onOpen(event.taskId, { openComments: true, commentId: comments?.find((item) => item.taskId === event.taskId)?.id })}>查看{event.commentCount}条意见</Button> : null}</p></div></div>)}</div></InfoSection>
 }
 
