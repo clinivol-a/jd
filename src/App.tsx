@@ -19,7 +19,8 @@ import {
   Settings2, SlidersHorizontal, Split, Trash2, Unlock, Upload, WandSparkles, ZoomIn,
 } from 'lucide-react'
 
-type TaskStatus = '进行中' | '审核退回' | '待审核' | '已完成'
+type TaskStatus = '未开始' | '进行中' | '审核中' | '审核退回' | '待审核' | '已完成'
+type TaskType = '三维重建' | 'CAD 设计'
 type WorkspaceMode = 'file' | 'view' | 'image' | 'segment'
 type WorkspaceTool = { label: string; icon: typeof Eye; options?: string[]; persistent?: boolean }
 type ReviewCommentStatus = '待修改' | '已修改 · 待复核' | '审核通过'
@@ -37,16 +38,20 @@ type ImagingSeries = {
   slices: number; thickness: string; studyId: string; studyName: string; studyDate: string
   description: string; downloadUrl?: string
 }
+type ApprovedModel = {
+  id: string; name: string; version: string; format?: string; approvedAt: string; approvedBy: string
+}
 type Task = {
-  id: string; title: string; patient: string; orderNo: string; surgery: string
+  id: string; title: string; patient: string; orderNo: string; surgery: string; taskType: TaskType
   status: TaskStatus; owner: string; updated: string; deadline: string
   series: ImagingSeries[]; source: string
+  upstreamTaskId?: string; approvedModel?: ApprovedModel; cadRequirement?: string
   review: { time: string; actor: string; status: string; note: string; version?: string; round?: number; commentCount?: number }[]
 }
 type SettingsSection = 'profile' | 'security' | 'preferences'
 type ThemePreference = 'light' | 'dark' | 'system'
 type ResolvedTheme = 'light' | 'dark'
-type Screen = { kind: 'home' | 'tasks' | 'orders' | 'reviews' } | { kind: 'detail' | 'workspace'; taskId: string } | { kind: 'settings'; section: SettingsSection }
+type Screen = { kind: 'home' | 'tasks' | 'orders' | 'reviews' } | { kind: 'detail' | 'workspace' | 'cad-workspace'; taskId: string } | { kind: 'settings'; section: SettingsSection }
 type UserProfile = { name: string; employeeId: string; role: string; department: string; avatar: string; phone: string; email: string }
 type NotificationPreferences = { taskAssigned: boolean; reviewResult: boolean; doctorComments: boolean; systemMessages: boolean }
 type Notice = { id: number; title: string; detail: string; time: string; unread: boolean; dismissed?: boolean; taskId?: string; tone: 'info' | 'success' | 'warning' | 'neutral' }
@@ -57,9 +62,13 @@ type ProfessionalObject = {
 }
 
 const initialTasks: Task[] = [
-  { id: '001', title: '面部骨骼三维重建', patient: 'CV-P-2026-0184', orderNo: 'CV260910-0184', surgery: '颌面创伤术前评估；重建面中部骨性结构，供医生确认骨折范围。', status: '进行中', owner: '陈屿（三维重建设计师）', updated: '今天 14:32', deadline: '10 月 12 日 18:00', series: [{ id: '001-ct-thin', name: '头颌面薄层 CT', modality: 'CT', format: 'DICOM', slices: 742, thickness: '0.625 mm', studyId: 'ST-20261010-0184', studyName: '头颌面 CT 检查', studyDate: '2026-10-10', description: '原始薄层序列' }, { id: '001-ct-bone', name: '骨窗重建序列', modality: 'CT', format: 'DICOM', slices: 368, thickness: '0.625 mm', studyId: 'ST-20261010-0184', studyName: '头颌面 CT 检查', studyDate: '2026-10-10', description: '骨窗重建' }], source: '订单影像上传 / 原始 DICOM', review: [{ time: '10 月 10 日 09:20', actor: '系统', status: '已分配', note: '任务已分配给陈屿。' }] },
-  { id: '002', title: '下颌骨三维重建', patient: 'CV-P-2026-0172', orderNo: 'CV260908-0172', surgery: '下颌骨缺损修复术前规划；确认缺损边界与残余骨段。', status: '审核退回', owner: '陈屿（三维重建设计师）', updated: '昨天 17:48', deadline: '10 月 11 日 16:00', series: [{ id: '002-ct-mandible', name: '下颌骨薄层 CT', modality: 'CT', format: 'DICOM', slices: 816, thickness: '0.5 mm', studyId: 'ST-20261008-0172', studyName: '下颌骨 CT 检查', studyDate: '2026-10-08', description: '原始薄层序列' }], source: '订单影像上传 / 原始 DICOM', review: [{ time: '10 月 9 日 16:10', actor: '陈屿', status: '已提交审核', note: '版本 V03 已提交。', version: 'V03', round: 1 }, { time: '10 月 10 日 08:42', actor: '周医生', status: '审核退回', note: '请补充分离右侧髁突区域，并检查下颌角边缘连续性。', version: 'V03', round: 1, commentCount: 3 }] },
-  { id: '003', title: '颅骨三维重建', patient: 'CV-P-2026-0168', orderNo: 'CV260907-0168', surgery: '颅骨缺损修复术前评估；输出颅骨完整表面供医生审核。', status: '待审核', owner: '陈屿（三维重建设计师）', updated: '10 月 9 日 18:06', deadline: '10 月 13 日 12:00', series: [{ id: '003-ct-skull', name: '颅骨薄层 CT', modality: 'CT', format: 'DICOM', slices: 694, thickness: '0.625 mm', studyId: 'ST-20261007-0168', studyName: '颅骨 CT 检查', studyDate: '2026-10-07', description: '原始薄层序列' }], source: '订单影像上传 / 原始 DICOM', review: [{ time: '10 月 9 日 18:06', actor: '陈屿', status: '已提交审核', note: '版本 V02 已提交，等待医生审核。' }] },
+  { id: '001', title: '面部骨骼三维重建', patient: 'CV-P-2026-0184', orderNo: 'CV260910-0184', surgery: '颌面创伤术前评估；重建面中部骨性结构，供医生确认骨折范围。', taskType: '三维重建', status: '进行中', owner: '陈屿（三维重建设计师）', updated: '今天 14:32', deadline: '10 月 12 日 18:00', series: [{ id: '001-ct-thin', name: '头颌面薄层 CT', modality: 'CT', format: 'DICOM', slices: 742, thickness: '0.625 mm', studyId: 'ST-20261010-0184', studyName: '头颌面 CT 检查', studyDate: '2026-10-10', description: '原始薄层序列' }, { id: '001-ct-bone', name: '骨窗重建序列', modality: 'CT', format: 'DICOM', slices: 368, thickness: '0.625 mm', studyId: 'ST-20261010-0184', studyName: '头颌面 CT 检查', studyDate: '2026-10-10', description: '骨窗重建' }], source: '订单影像上传 / 原始 DICOM', review: [{ time: '10 月 10 日 09:20', actor: '系统', status: '已分配', note: '任务已分配给陈屿。' }] },
+  { id: '002', title: '下颌骨三维重建', patient: 'CV-P-2026-0172', orderNo: 'CV260908-0172', surgery: '下颌骨缺损修复术前规划；确认缺损边界与残余骨段。', taskType: '三维重建', status: '审核退回', owner: '陈屿（三维重建设计师）', updated: '昨天 17:48', deadline: '10 月 11 日 16:00', series: [{ id: '002-ct-mandible', name: '下颌骨薄层 CT', modality: 'CT', format: 'DICOM', slices: 816, thickness: '0.5 mm', studyId: 'ST-20261008-0172', studyName: '下颌骨 CT 检查', studyDate: '2026-10-08', description: '原始薄层序列' }], source: '订单影像上传 / 原始 DICOM', review: [{ time: '10 月 9 日 16:10', actor: '陈屿', status: '已提交审核', note: '版本 V03 已提交。', version: 'V03', round: 1 }, { time: '10 月 10 日 08:42', actor: '周医生', status: '审核退回', note: '请补充分离右侧髁突区域，并检查下颌角边缘连续性。', version: 'V03', round: 1, commentCount: 3 }] },
+  { id: '003', title: '颅骨三维重建', patient: 'CV-P-2026-0168', orderNo: 'CV260907-0168', surgery: '颅骨缺损修复术前评估；输出颅骨完整表面供医生审核。', taskType: '三维重建', status: '待审核', owner: '陈屿（三维重建设计师）', updated: '10 月 9 日 18:06', deadline: '10 月 13 日 12:00', series: [{ id: '003-ct-skull', name: '颅骨薄层 CT', modality: 'CT', format: 'DICOM', slices: 694, thickness: '0.625 mm', studyId: 'ST-20261007-0168', studyName: '颅骨 CT 检查', studyDate: '2026-10-07', description: '原始薄层序列' }], source: '订单影像上传 / 原始 DICOM', review: [{ time: '10 月 9 日 18:06', actor: '陈屿', status: '已提交审核', note: '版本 V02 已提交，等待医生审核。' }] },
+  { id: '004', title: '面部骨骼重建（项目 A）', patient: 'CV-P-2026-0211', orderNo: 'CV261019-0211', surgery: '面部骨骼修复术前设计；完成骨性结构重建并提交医生确认。', taskType: '三维重建', status: '审核中', owner: '陈屿（三维重建设计师）', updated: '今天 11:24', deadline: '10 月 24 日 18:00', series: [{ id: '004-ct-face', name: '头颌面薄层 CT', modality: 'CT', format: 'DICOM', slices: 782, thickness: '0.625 mm', studyId: 'ST-20261019-0211', studyName: '头颌面 CT 检查', studyDate: '2026-10-19', description: '原始薄层序列' }], source: '订单影像上传 / 原始 DICOM', review: [{ time: '10 月 23 日 11:24', actor: '陈屿', status: '已提交审核', note: '版本 V04 已提交，等待医生审核。', version: 'V04', round: 1 }] },
+  { id: '005', title: '面部骨骼修复 CAD 设计（项目 A）', patient: 'CV-P-2026-0211', orderNo: 'CV261019-0211', surgery: '基于审核通过的三维重建成果开展 CAD 修复设计。', taskType: 'CAD 设计', status: '未开始', owner: '陈屿（CAD 设计师）', updated: '等待上游成果', deadline: '10 月 28 日 18:00', series: [], source: '关联任务成果 / 自动加载', upstreamTaskId: '004', cadRequirement: '面部骨骼修复体与术前导板设计。', review: [] },
+  { id: '006', title: '下颌骨重建（项目 B）', patient: 'CV-P-2026-0226', orderNo: 'CV261020-0226', surgery: '下颌骨缺损修复术前设计；输出唯一审核通过模型供 CAD 使用。', taskType: '三维重建', status: '已完成', owner: '陈屿（三维重建设计师）', updated: '今天 09:36', deadline: '10 月 22 日 18:00', series: [{ id: '006-ct-mandible', name: '下颌骨薄层 CT', modality: 'CT', format: 'DICOM', slices: 824, thickness: '0.5 mm', studyId: 'ST-20261020-0226', studyName: '下颌骨 CT 检查', studyDate: '2026-10-20', description: '原始薄层序列' }], source: '订单影像上传 / 原始 DICOM', approvedModel: { id: 'MODEL-006-V05', name: '下颌骨审核通过模型', version: 'V05', format: 'STL', approvedAt: '10 月 23 日 09:36', approvedBy: '周医生' }, review: [{ time: '10 月 22 日 16:12', actor: '陈屿', status: '已提交审核', note: '版本 V05 已提交。', version: 'V05', round: 2 }, { time: '10 月 23 日 09:36', actor: '周医生', status: '审核通过', note: '模型已通过最终审核并锁定。', version: 'V05', round: 2 }] },
+  { id: '007', title: '下颌骨修复 CAD 设计（项目 B）', patient: 'CV-P-2026-0226', orderNo: 'CV261020-0226', surgery: '基于已审核通过的下颌骨模型完成修复体 CAD 设计。', taskType: 'CAD 设计', status: '进行中', owner: '陈屿（CAD 设计师）', updated: '今天 10:08', deadline: '10 月 29 日 18:00', series: [], source: '关联任务成果 / 自动加载', upstreamTaskId: '006', approvedModel: { id: 'MODEL-006-V05', name: '下颌骨审核通过模型', version: 'V05', format: 'STL', approvedAt: '10 月 23 日 09:36', approvedBy: '周医生' }, cadRequirement: '设计下颌骨修复体，并保留与残余骨段的装配关系。', review: [] },
 ]
 
 const initialReviewComments: ReviewComment[] = [
@@ -72,7 +81,7 @@ const initialNotices: Notice[] = [
   { id: 1, title: '收到新的三维重建任务', detail: '任务 001 已分配，请在截止时间前完成。', time: '09:20', unread: true, taskId: '001', tone: 'info' },
   { id: 2, title: '医生审核通过', detail: '任务 015 的成果已通过审核。', time: '昨天', unread: false, tone: 'success' },
   { id: 3, title: '医生审核退回', detail: '任务 002 有新的修改意见。', time: '08:42', unread: true, taskId: '002', tone: 'warning' },
-  { id: 4, title: 'CAD 任务已具备开始条件', detail: '上游三维重建成果已锁定。', time: '10 月 9 日', unread: false, tone: 'neutral' },
+  { id: 4, title: 'CAD 任务已具备开始条件', detail: '任务 007 已关联审核通过的上游模型。', time: '今天', unread: false, taskId: '007', tone: 'neutral' },
   { id: 5, title: '系统消息', detail: '当前没有需要处理的系统通知。', time: '10 月 8 日', unread: false, tone: 'neutral' },
 ]
 
@@ -121,7 +130,7 @@ const initialProfessionalObjects: ProfessionalObject[] = [
   { id: 'measure-distance', tab: 'measure', name: '距离测量 01', color: '#F0B429', meta: '32.6 mm', value: '32.6 mm', details: [['测量类型', '距离'], ['测量结果', '32.6 mm'], ['定位视图', 'Axial']] },
   { id: 'measure-angle', tab: 'measure', name: '角度测量 01', color: '#7B61D1', meta: '76.5°', value: '76.5°', details: [['测量类型', '角度'], ['测量结果', '76.5°'], ['定位视图', 'Coronal']] },
 ]
-const statusTheme: Record<TaskStatus, 'primary' | 'warning' | 'danger' | 'success'> = { 进行中: 'primary', 审核退回: 'danger', 待审核: 'warning', 已完成: 'success' }
+const statusTheme: Record<TaskStatus, 'default' | 'primary' | 'warning' | 'danger' | 'success'> = { 未开始: 'default', 进行中: 'primary', 审核中: 'warning', 审核退回: 'danger', 待审核: 'warning', 已完成: 'success' }
 const layout = { sidebar: 224, sidebarCollapsed: 64 } as const
 const initialUserProfile: UserProfile = { name: '陈屿', employeeId: 'CV-DS-028', role: '三维重建设计师', department: '数字医学设计中心', avatar: '/assets/avatar-chen-yu.png', phone: '', email: '' }
 const initialNotificationPreferences: NotificationPreferences = { taskAssigned: true, reviewResult: true, doctorComments: true, systemMessages: false }
@@ -152,14 +161,36 @@ function getDashboardDate(date = new Date()) {
   return `${date.getFullYear()} 年 ${date.getMonth() + 1} 月 ${date.getDate()} 日 · ${weekday}`
 }
 
+const CAD_LOCKED_REASON = '上游三维重建尚未完成，暂无法开始 CAD 设计。'
+
+function isCadTaskUnlocked(task: Task, tasks: Task[]) {
+  if (task.taskType !== 'CAD 设计' || !task.upstreamTaskId) return task.taskType !== 'CAD 设计'
+  const upstream = tasks.find((item) => item.id === task.upstreamTaskId)
+  return upstream?.status === '已完成' && Boolean(upstream.approvedModel)
+}
+
+function synchronizeCadTasks(tasks: Task[]): Task[] {
+  return tasks.map((task) => {
+    if (task.taskType !== 'CAD 设计' || !task.upstreamTaskId) return task
+    const upstream = tasks.find((item) => item.id === task.upstreamTaskId)
+    const unlocked = upstream?.status === '已完成' && Boolean(upstream.approvedModel)
+    const status: TaskStatus = unlocked ? (task.status === '未开始' ? '进行中' : task.status) : '未开始'
+    return {
+      ...task,
+      status,
+      approvedModel: unlocked ? upstream?.approvedModel : undefined,
+    }
+  })
+}
+
 function getStoredTasks() {
   try {
     const stored = localStorage.getItem('clinivol-prototype-tasks')
-    if (!stored) return initialTasks
+    if (!stored) return synchronizeCadTasks(initialTasks)
     const parsed = JSON.parse(stored) as Task[]
-    return initialTasks.map((task) => {
+    return synchronizeCadTasks(initialTasks.map((task) => {
       const storedTask = parsed.find((item) => item.id === task.id)
-      const merged = { ...task, ...storedTask, series: task.series }
+      const merged = { ...task, ...storedTask, taskType: task.taskType, series: task.series, upstreamTaskId: task.upstreamTaskId, approvedModel: task.approvedModel }
       if (merged.id === '003' && storedTask?.status === '审核退回' && task.status === '待审核') {
         merged.status = task.status
         merged.updated = task.updated
@@ -169,9 +200,9 @@ function getStoredTasks() {
         merged.review = merged.review.map((item, index) => index === merged.review.length - 1 ? { ...item, version: 'V03', round: 1, commentCount: 3 } : item)
       }
       return merged
-    })
+    }))
   }
-  catch { return initialTasks }
+  catch { return synchronizeCadTasks(initialTasks) }
 }
 
 function getStoredWorkspaceState(): { savedAt?: Record<string, string>; mode?: Record<string, WorkspaceMode>; activeSeries?: Record<string, string> } {
@@ -246,6 +277,13 @@ function App() {
   const reviewResetEnabled = useMemo(() => new URLSearchParams(window.location.search).has('build'), [])
   const resolvedTheme: ResolvedTheme = themePreference === 'system' ? (systemDark ? 'dark' : 'light') : themePreference
   useEffect(() => localStorage.setItem('clinivol-prototype-tasks', JSON.stringify(tasks)), [tasks])
+  useEffect(() => {
+    setTasks((current) => {
+      const synchronized = synchronizeCadTasks(current)
+      const changed = synchronized.some((task, index) => task.status !== current[index]?.status || task.approvedModel?.id !== current[index]?.approvedModel?.id)
+      return changed ? synchronized : current
+    })
+  }, [tasks])
   useEffect(() => localStorage.setItem('clinivol-workspace-state', JSON.stringify({ savedAt, mode: workspaceMode, activeSeries })), [savedAt, workspaceMode, activeSeries])
   useEffect(() => localStorage.setItem('clinivol-review-comments', JSON.stringify(reviewComments)), [reviewComments])
   useEffect(() => localStorage.setItem('clinivol-user-profile', JSON.stringify(userProfile)), [userProfile])
@@ -263,14 +301,35 @@ function App() {
     localStorage.setItem('clinivol-theme-preference', themePreference)
   }, [resolvedTheme, themePreference])
 
-  const currentWorkspaceId = screen.kind === 'workspace' ? screen.taskId : null
+  const currentWorkspaceId = screen.kind === 'workspace' || screen.kind === 'cad-workspace' ? screen.taskId : null
   const currentTask = currentWorkspaceId ? tasks.find((task) => task.id === currentWorkspaceId) : undefined
   const unreadCount = notices.filter((notice) => notice.unread).length
   const runWithGuard = (action: () => void) => { if (currentWorkspaceId && dirty[currentWorkspaceId]) setGuardAction(() => action); else action() }
   const goPlatform = (kind: 'home' | 'tasks' | 'orders' | 'reviews') => runWithGuard(() => setScreen({ kind }))
+  const openTaskDetail = (taskId: string) => {
+    const task = tasks.find((item) => item.id === taskId)
+    if (!task) return
+    if (task.taskType === 'CAD 设计' && !isCadTaskUnlocked(task, tasks)) {
+      void MessagePlugin.warning(CAD_LOCKED_REASON)
+      return
+    }
+    runWithGuard(() => setScreen({ kind: 'detail', taskId }))
+  }
   const openWorkspace = (taskId: string, options?: { openComments?: boolean; commentId?: string }) => {
     const action = () => {
       const task = tasks.find((item) => item.id === taskId)
+      if (!task) return
+      if (task.taskType === 'CAD 设计') {
+        if (!isCadTaskUnlocked(task, tasks)) {
+          void MessagePlugin.warning(CAD_LOCKED_REASON)
+          return
+        }
+        setOpenTabs((tabs) => tabs.includes(taskId) ? tabs : [...tabs, taskId])
+        setScreen({ kind: 'cad-workspace', taskId })
+        setNotificationsOpen(false)
+        void MessagePlugin.success(`任务 ${taskId}：已自动关联审核通过模型 ${task.approvedModel?.version ?? ''}`)
+        return
+      }
       if (task && !activeSeries[taskId]) setActiveSeries((value) => ({ ...value, [taskId]: task.series[0]?.id ?? '' }))
       setOpenTabs((tabs) => tabs.includes(taskId) ? tabs : [...tabs, taskId]); setScreen({ kind: 'workspace', taskId }); setNotificationsOpen(false)
       setReviewFocus(options?.openComments ? { taskId, commentId: options.commentId } : null)
@@ -280,8 +339,9 @@ function App() {
     if (currentWorkspaceId !== taskId) runWithGuard(action); else action()
   }
   const closeTab = (taskId: string) => {
-    const action = () => { setOpenTabs((tabs) => tabs.filter((id) => id !== taskId)); if (screen.kind === 'workspace' && screen.taskId === taskId) setScreen({ kind: 'home' }) }
-    if (screen.kind === 'workspace' && screen.taskId === taskId) runWithGuard(action); else action()
+    const activeWorkspace = (screen.kind === 'workspace' || screen.kind === 'cad-workspace') && screen.taskId === taskId
+    const action = () => { setOpenTabs((tabs) => tabs.filter((id) => id !== taskId)); if (activeWorkspace) setScreen({ kind: 'home' }) }
+    if (activeWorkspace) runWithGuard(action); else action()
   }
   const saveTask = (taskId: string, announce = true) => {
     const now = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false })
@@ -304,7 +364,7 @@ function App() {
     if (notice.taskId) {
       setNotificationsOpen(false)
       if (notice.tone === 'warning') openWorkspace(notice.taskId, { openComments: true })
-      else runWithGuard(() => setScreen({ kind: 'detail', taskId: notice.taskId! }))
+      else openTaskDetail(notice.taskId)
     }
   }
   const dismissNotice = (noticeId: number) => setNotices((items) => items.map((item) => item.id === noticeId ? { ...item, dismissed: true } : item))
@@ -334,13 +394,13 @@ function App() {
   return <div className="app" style={{ '--layout-sidebar-width': `${layout.sidebar}px`, '--layout-sidebar-collapsed-width': `${layout.sidebarCollapsed}px` } as React.CSSProperties}>
     <GlobalHeader screen={screen} openTabs={openTabs} tasks={tasks} user={userProfile} theme={resolvedTheme} goHome={() => goPlatform('home')} openWorkspace={openWorkspace} closeTab={closeTab} unreadCount={unreadCount} onThemeToggle={() => setThemePreference(resolvedTheme === 'light' ? 'dark' : 'light')} onNotifications={() => setNotificationsOpen(true)} onLock={() => setLocked(true)} onOpenSettings={openSettings} onLogout={requestLogout} />
     <div className="content-stage">
-      {screen.kind === 'workspace' && currentTask ? <Workspace task={currentTask} dirty={Boolean(dirty[currentTask.id])} savedAt={savedAt[currentTask.id]} mode={workspaceMode[currentTask.id] ?? 'view'} activeSeriesId={activeSeries[currentTask.id] ?? currentTask.series[0]?.id ?? ''} comments={reviewComments.filter((comment) => comment.taskId === currentTask.id)} reviewFocus={reviewFocus?.taskId === currentTask.id ? reviewFocus : null} reviewResetEnabled={reviewResetEnabled} onReviewFocusConsumed={() => setReviewFocus(null)} onUpdateComment={updateReviewComment} onResetReview={() => resetReviewDemo(currentTask.id)} onSeriesChange={(seriesId) => setActiveSeries((value) => ({ ...value, [currentTask.id]: seriesId }))} onModeChange={(mode) => setWorkspaceMode((value) => ({ ...value, [currentTask.id]: mode }))} onDirty={() => setDirty((value) => ({ ...value, [currentTask.id]: true }))} onSave={() => saveTask(currentTask.id)} onSubmit={() => { setSubmitTarget('doctor'); setSubmitTask(currentTask.id) }} onSubmitSalesperson={() => { setSubmitTarget('salesperson'); setSubmitTask(currentTask.id) }} /> :
+      {screen.kind === 'workspace' && currentTask ? <Workspace task={currentTask} dirty={Boolean(dirty[currentTask.id])} savedAt={savedAt[currentTask.id]} mode={workspaceMode[currentTask.id] ?? 'view'} activeSeriesId={activeSeries[currentTask.id] ?? currentTask.series[0]?.id ?? ''} comments={reviewComments.filter((comment) => comment.taskId === currentTask.id)} reviewFocus={reviewFocus?.taskId === currentTask.id ? reviewFocus : null} reviewResetEnabled={reviewResetEnabled} onReviewFocusConsumed={() => setReviewFocus(null)} onUpdateComment={updateReviewComment} onResetReview={() => resetReviewDemo(currentTask.id)} onSeriesChange={(seriesId) => setActiveSeries((value) => ({ ...value, [currentTask.id]: seriesId }))} onModeChange={(mode) => setWorkspaceMode((value) => ({ ...value, [currentTask.id]: mode }))} onDirty={() => setDirty((value) => ({ ...value, [currentTask.id]: true }))} onSave={() => saveTask(currentTask.id)} onSubmit={() => { setSubmitTarget('doctor'); setSubmitTask(currentTask.id) }} onSubmitSalesperson={() => { setSubmitTarget('salesperson'); setSubmitTask(currentTask.id) }} /> : screen.kind === 'cad-workspace' && currentTask ? <CadWorkspace task={currentTask} onBack={() => setScreen({ kind: 'detail', taskId: currentTask.id })} /> :
         <PlatformShell screen={screen} goPlatform={goPlatform} collapsed={navCollapsed} onCollapsedChange={setNavCollapsed}>
-          {screen.kind === 'home' && <HomeDashboard userName={userProfile.name} tasks={tasks} notices={notices} onNotice={openNotice} onDismissNotice={dismissNotice} onDetail={(taskId) => setScreen({ kind: 'detail', taskId })} onOpen={openWorkspace} onAll={() => goPlatform('tasks')} />}
-          {screen.kind === 'tasks' && <TaskList tasks={tasks} title="我的任务" onDetail={(taskId) => setScreen({ kind: 'detail', taskId })} onOpen={openWorkspace} />}
-          {screen.kind === 'orders' && <Orders tasks={tasks} onDetail={(taskId) => setScreen({ kind: 'detail', taskId })} />}
-          {screen.kind === 'reviews' && <Reviews tasks={tasks} onDetail={(taskId) => setScreen({ kind: 'detail', taskId })} />}
-          {screen.kind === 'detail' && <TaskDetail task={tasks.find((task) => task.id === screen.taskId)!} comments={reviewComments.filter((comment) => comment.taskId === screen.taskId)} onBack={() => setScreen({ kind: 'tasks' })} onOpen={(taskId, options) => openWorkspace(taskId, options)} />}
+          {screen.kind === 'home' && <HomeDashboard userName={userProfile.name} tasks={tasks} notices={notices} onNotice={openNotice} onDismissNotice={dismissNotice} onDetail={openTaskDetail} onOpen={openWorkspace} onAll={() => goPlatform('tasks')} />}
+          {screen.kind === 'tasks' && <TaskList tasks={tasks} title="我的任务" onDetail={openTaskDetail} onOpen={openWorkspace} />}
+          {screen.kind === 'orders' && <Orders tasks={tasks} onDetail={openTaskDetail} />}
+          {screen.kind === 'reviews' && <Reviews tasks={tasks} onDetail={openTaskDetail} />}
+          {screen.kind === 'detail' && <TaskDetail task={tasks.find((task) => task.id === screen.taskId)!} tasks={tasks} comments={reviewComments.filter((comment) => comment.taskId === screen.taskId)} onBack={() => setScreen({ kind: 'tasks' })} onOpen={(taskId, options) => openWorkspace(taskId, options)} />}
           {screen.kind === 'settings' && <SettingsPage section={screen.section} onSectionChange={(section) => setScreen({ kind: 'settings', section })} onBack={closeSettings} returnLabel={settingsReturnLabel} user={userProfile} onUserChange={setUserProfile} themePreference={themePreference} onThemePreferenceChange={setThemePreference} notificationPreferences={notificationPreferences} onNotificationPreferencesChange={setNotificationPreferences} onLogout={requestLogout} />}
         </PlatformShell>}
     </div>
@@ -376,14 +436,14 @@ function GlobalHeader({ screen, openTabs, tasks, user, theme, goHome, openWorksp
   ]
   return <header className="global-header">
     <BrandLogo />
-    <nav className="global-tabs" aria-label="打开的任务"><button className={screen.kind !== 'workspace' ? 'global-tab global-tab-active global-home' : 'global-tab global-home'} onClick={goHome}><HomeIcon size={16} /><span>Home</span></button><div className="task-tabs-scroll">{openTabs.map((id) => { const task = tasks.find((item) => item.id === id); const label = task ? `任务${task.id} · ${task.title}` : `任务${id}`; return <div className={screen.kind === 'workspace' && screen.taskId === id ? 'global-tab global-tab-active' : 'global-tab'} key={id}><Tooltip content={label}><button className="global-tab-main" onClick={() => openWorkspace(id)}>{label}</button></Tooltip><button className="global-tab-close" aria-label={`关闭任务 ${id} 标签`} onClick={() => closeTab(id)}><CloseIcon size={14} /></button></div> })}</div></nav>
+    <nav className="global-tabs" aria-label="打开的任务"><button className={screen.kind !== 'workspace' && screen.kind !== 'cad-workspace' ? 'global-tab global-tab-active global-home' : 'global-tab global-home'} onClick={goHome}><HomeIcon size={16} /><span>Home</span></button><div className="task-tabs-scroll">{openTabs.map((id) => { const task = tasks.find((item) => item.id === id); const label = task ? `任务${task.id} · ${task.title}` : `任务${id}`; const active = (screen.kind === 'workspace' || screen.kind === 'cad-workspace') && screen.taskId === id; return <div className={active ? 'global-tab global-tab-active' : 'global-tab'} key={id}><Tooltip content={label}><button className="global-tab-main" onClick={() => openWorkspace(id)}>{label}</button></Tooltip><button className="global-tab-close" aria-label={`关闭任务 ${id} 标签`} onClick={() => closeTab(id)}><CloseIcon size={14} /></button></div> })}</div></nav>
     <div className="global-actions"><Tooltip content={theme === 'light' ? '切换至深色模式' : '切换至浅色模式'}><button className="header-icon" aria-label={theme === 'light' ? '切换至深色模式' : '切换至浅色模式'} onClick={onThemeToggle}>{theme === 'light' ? <MoonIcon size={19} /> : <SunnyIcon size={19} />}</button></Tooltip><Tooltip content="通知中心"><button className="header-icon" aria-label={`通知中心，${unreadCount} 条未读`} onClick={onNotifications}><NotificationIcon size={19} />{unreadCount > 0 && <b>{unreadCount}</b>}</button></Tooltip><Dropdown options={helpOptions} trigger="click" placement="bottom-right" onClick={(item) => { const value = String(item.value); if (value === '账号管理') onOpenSettings('security'); else if (value === '账号切换') void MessagePlugin.info('账号切换为演示入口，统一身份服务待接入'); else void MessagePlugin.info(`${value}内容为演示入口，正式资料待接入`) }}><button className="header-icon" title="帮助" aria-label="帮助" aria-haspopup="menu"><HelpCircleIcon size={19} /></button></Dropdown><Tooltip content="锁定屏幕"><button className="header-icon" aria-label="锁定屏幕" onClick={onLock}><LockOnIcon size={18} /></button></Tooltip><Dropdown options={accountOptions} trigger="click" placement="bottom-right" minColumnWidth={240} panelTopContent={<div className="account-summary"><img className="avatar avatar-photo" src={user.avatar} alt={`${user.name}头像`} /><div className="account-summary-copy"><strong>{user.name}</strong><small>工号 {user.employeeId}</small><small>{user.role} · {user.department}</small></div></div>} onClick={(item) => { if (item.value === 'logout') onLogout(); else onOpenSettings(item.value as SettingsSection) }}><button className="account-trigger"><img className="avatar avatar-photo" src={user.avatar} alt={`${user.name}头像`} /><span><strong>{user.name}</strong><small>{user.role}</small></span><ChevronDownIcon size={14} /></button></Dropdown></div>
   </header>
 }
 
 function PlatformShell({ screen, goPlatform, collapsed, onCollapsedChange, children }: { screen: Screen; goPlatform: (kind: 'home' | 'tasks' | 'orders' | 'reviews') => void; collapsed: boolean; onCollapsedChange: (value: boolean) => void; children: React.ReactNode }) {
   const active = screen.kind === 'detail' ? 'tasks' : screen.kind === 'settings' ? '' : screen.kind
-  const routeKey = screen.kind === 'detail' || screen.kind === 'workspace' ? `${screen.kind}-${screen.taskId}` : screen.kind
+  const routeKey = screen.kind === 'detail' || screen.kind === 'workspace' || screen.kind === 'cad-workspace' ? `${screen.kind}-${screen.taskId}` : screen.kind
   const mainRef = useRef<HTMLElement>(null)
   useEffect(() => { mainRef.current?.scrollTo({ top: 0, left: 0 }) }, [routeKey])
   return <div className={collapsed ? 'platform-shell nav-collapsed' : 'platform-shell'}><aside className="business-nav"><TMenu value={active} collapsed={collapsed} width={[layout.sidebar, layout.sidebarCollapsed]} onChange={(value) => goPlatform(value as 'home' | 'tasks' | 'orders' | 'reviews')}>{navItems.map((item) => { const Icon = item.icon; const menuIcon = <span className="nav-menu-icon"><Icon size={18} /></span>; return <TMenu.MenuItem key={item.key} value={item.key} icon={collapsed ? <Tooltip content={item.label} placement="right">{menuIcon}</Tooltip> : menuIcon} content={item.label} /> })}</TMenu><Tooltip content={collapsed ? '展开导航' : '收起导航'} placement="right"><button className="nav-collapse" aria-label={collapsed ? '展开导航' : '收起导航'} onClick={() => onCollapsedChange(!collapsed)}>{collapsed ? <MenuUnfoldIcon size={18} /> : <MenuFoldIcon size={18} />}</button></Tooltip></aside><main ref={mainRef} className="platform-main">{children}</main></div>
@@ -395,14 +455,14 @@ function HomeDashboard({ userName, tasks, notices, onNotice, onDismissNotice, on
   const hour = new Date().getHours()
   const greeting = hour >= 5 && hour < 12 ? '上午好' : hour < 18 ? '下午好' : '晚上好'
   const actionableCount = tasks.filter((task) => task.status === '进行中' || task.status === '审核退回').length
-  const reviewCount = tasks.filter((task) => task.status === '待审核').length
+  const reviewCount = tasks.filter((task) => task.status === '待审核' || task.status === '审核中').length
   const stats = [
     { label: '待处理任务', value: actionableCount, note: '含退回修改', icon: TaskFilledIcon, tone: 'pending' }, { label: '进行中任务', value: tasks.filter((task) => task.status === '进行中').length, note: '当前工作项', icon: WorkFilledIcon, tone: 'progress' },
     { label: '待审核任务', value: reviewCount, note: '成果已锁定', icon: TimeFilledIcon, tone: 'review' }, { label: '审核退回任务', value: tasks.filter((task) => task.status === '审核退回').length, note: '需要修改', icon: AssignmentErrorFilledIcon, tone: 'returned' },
     { label: '已完成任务', value: tasks.filter((task) => task.status === '已完成').length + 12, note: '本月累计', icon: TaskCheckedFilledIcon, tone: 'complete' },
   ]
   const dashboardNotices = notices.filter((notice) => !notice.dismissed && (noticeFilter === '全部' || (noticeFilter === '未读' ? notice.unread : !notice.unread))).slice(0, 3)
-  return <div className="page dashboard-page"><section className="dashboard-welcome"><div className="dashboard-welcome-copy"><h1>{greeting}，{userName}</h1><p>今天有 {actionableCount} 项任务需要处理，{reviewCount} 项成果等待医生审核。</p></div><time className="dashboard-date-text" dateTime={new Date().toISOString()}>{todayText}</time></section><section className="stat-grid" aria-label="任务统计">{stats.map(({ label, value, note, icon: Icon, tone }) => <Card key={label} className={`stat-card stat-${tone}`} bordered={false}><div className="stat-card-head"><span>{label}</span><i><Icon size={20} /></i></div><strong>{value}</strong><small>{note}</small></Card>)}</section><section className="dashboard-grid"><Card className="dashboard-card task-card table-card" bordered={false}><div className="section-heading"><h2>我的任务</h2><Button className="view-all-button" variant="text" theme="primary" onClick={onAll}><span>查看全部</span><ChevronRightIcon size={15} /></Button></div><TaskTable tasks={tasks} onDetail={onDetail} onOpen={onOpen} /></Card><div className="dashboard-aside"><Card className="dashboard-card recent-card" bordered={false}><div className="section-heading"><h2>最近任务</h2></div><div className="recent-table" role="table" aria-label="最近任务"><div className="recent-table-head" role="row"><span>任务名称</span><span>任务编号</span><span>最近操作</span><span aria-hidden="true" /></div>{tasks.slice(0, 3).map((task) => <button className="recent-item" key={task.id} onClick={() => onOpen(task.id)} role="row"><strong>{task.title}</strong><span>任务 {task.id}</span><time>{task.updated}</time><ChevronRightIcon size={16} /></button>)}</div></Card><Card className="dashboard-card attention-card" bordered={false}><div className="section-heading notice-heading"><h2>重要通知</h2><div className="notice-filters" aria-label="通知筛选">{(['全部', '未读', '已读'] as const).map((filter) => <Button key={filter} size="small" variant="text" theme={noticeFilter === filter ? 'primary' : 'default'} className={noticeFilter === filter ? 'notice-filter-active' : ''} onClick={() => setNoticeFilter(filter)}>{filter}</Button>)}</div></div><div className="dashboard-notice-table" role="table" aria-label={`${noticeFilter}通知`}><div className="dashboard-notice-head" role="row"><span>通知类型</span><span>内容</span><span>时间</span><span>状态</span><span aria-hidden="true" /></div>{dashboardNotices.length > 0 ? dashboardNotices.map((notice) => { const Icon = notice.tone === 'warning' ? AssignmentErrorIcon : notice.tone === 'success' ? TaskCheckedIcon : notice.tone === 'info' ? NotificationIcon : ChatMessageIcon; return <div className={notice.unread ? 'dashboard-notice-row dashboard-notice-unread' : 'dashboard-notice-row'} key={notice.id} role="row"><button className="dashboard-notice-main" onClick={() => onNotice(notice)}><span className="notice-kind"><i><Icon size={16} /></i><strong>{notice.title}</strong></span><span className="notice-summary">{notice.tone === 'warning' ? '查看意见并修改' : notice.detail}</span><time>{notice.time}</time><em>{notice.unread ? '未读' : '已读'}</em><ChevronRightIcon size={16} /></button>{notice.tone === 'warning' && <Tooltip content="关闭通知"><button className="notice-dismiss" aria-label={`关闭${notice.title}`} onClick={() => onDismissNotice(notice.id)}><CloseIcon size={13} /></button></Tooltip>}</div> }) : <div className="notice-empty">暂无{noticeFilter}通知</div>}</div></Card></div></section></div>
+  return <div className="page dashboard-page"><section className="dashboard-welcome"><div className="dashboard-welcome-copy"><h1>{greeting}，{userName}</h1><p>今天有 {actionableCount} 项任务需要处理，{reviewCount} 项成果等待医生审核。</p></div><time className="dashboard-date-text" dateTime={new Date().toISOString()}>{todayText}</time></section><section className="stat-grid" aria-label="任务统计">{stats.map(({ label, value, note, icon: Icon, tone }) => <Card key={label} className={`stat-card stat-${tone}`} bordered={false}><div className="stat-card-head"><span>{label}</span><i><Icon size={20} /></i></div><strong>{value}</strong><small>{note}</small></Card>)}</section><section className="dashboard-grid"><Card className="dashboard-card task-card table-card" bordered={false}><div className="section-heading"><h2>我的任务</h2><Button className="view-all-button" variant="text" theme="primary" onClick={onAll}><span>查看全部</span><ChevronRightIcon size={15} /></Button></div><TaskTable tasks={tasks} onDetail={onDetail} onOpen={onOpen} /></Card><div className="dashboard-aside"><Card className="dashboard-card recent-card" bordered={false}><div className="section-heading"><h2>最近任务</h2></div><div className="recent-table" role="table" aria-label="最近任务"><div className="recent-table-head" role="row"><span>任务名称</span><span>任务编号</span><span>最近操作</span><span aria-hidden="true" /></div>{tasks.slice(-3).reverse().map((task) => <button className="recent-item" key={task.id} onClick={() => onDetail(task.id)} role="row"><strong>{task.title}</strong><span>任务 {task.id}</span><time>{task.updated}</time><ChevronRightIcon size={16} /></button>)}</div></Card><Card className="dashboard-card attention-card" bordered={false}><div className="section-heading notice-heading"><h2>重要通知</h2><div className="notice-filters" aria-label="通知筛选">{(['全部', '未读', '已读'] as const).map((filter) => <Button key={filter} size="small" variant="text" theme={noticeFilter === filter ? 'primary' : 'default'} className={noticeFilter === filter ? 'notice-filter-active' : ''} onClick={() => setNoticeFilter(filter)}>{filter}</Button>)}</div></div><div className="dashboard-notice-table" role="table" aria-label={`${noticeFilter}通知`}><div className="dashboard-notice-head" role="row"><span>通知类型</span><span>内容</span><span>时间</span><span>状态</span><span aria-hidden="true" /></div>{dashboardNotices.length > 0 ? dashboardNotices.map((notice) => { const Icon = notice.tone === 'warning' ? AssignmentErrorIcon : notice.tone === 'success' ? TaskCheckedIcon : notice.tone === 'info' ? NotificationIcon : ChatMessageIcon; return <div className={notice.unread ? 'dashboard-notice-row dashboard-notice-unread' : 'dashboard-notice-row'} key={notice.id} role="row"><button className="dashboard-notice-main" onClick={() => onNotice(notice)}><span className="notice-kind"><i><Icon size={16} /></i><strong>{notice.title}</strong></span><span className="notice-summary">{notice.tone === 'warning' ? '查看意见并修改' : notice.detail}</span><time>{notice.time}</time><em>{notice.unread ? '未读' : '已读'}</em><ChevronRightIcon size={16} /></button>{notice.tone === 'warning' && <Tooltip content="关闭通知"><button className="notice-dismiss" aria-label={`关闭${notice.title}`} onClick={() => onDismissNotice(notice.id)}><CloseIcon size={13} /></button></Tooltip>}</div> }) : <div className="notice-empty">暂无{noticeFilter}通知</div>}</div></Card></div></section></div>
 }
 
 function StatusTag({ status }: { status: TaskStatus }) { return <Tag theme={statusTheme[status]} variant="light" size="small">{status}</Tag> }
@@ -411,22 +471,23 @@ function ReturnedReviewAlert({ className = '', onClose }: { className?: string; 
   return <div className={`returned-banner ${className}`.trim()} role="alert"><AssignmentErrorIcon size={17} /><span>医生审核退回，请处理审核意见</span><Tooltip content="关闭提示"><button type="button" className="returned-banner-close" aria-label="关闭审核退回提示" onClick={onClose}><CloseIcon size={15} /></button></Tooltip></div>
 }
 
-function TaskTable({ tasks, onDetail, onOpen }: { tasks: Task[]; onDetail: (id: string) => void; onOpen: (id: string) => void }) {
+function TaskTable({ tasks, allTasks = tasks, onDetail, onOpen }: { tasks: Task[]; allTasks?: Task[]; onDetail: (id: string) => void; onOpen: (id: string) => void }) {
   const columns = useMemo<PrimaryTableCol<Task>[]>(() => [
-    { colKey: 'type', title: '任务类型', width: 105, cell: () => '三维重建' },
+    { colKey: 'relation', title: '', width: 30, cell: ({ row, rowIndex }) => { const previous = tasks[rowIndex - 1]; const next = tasks[rowIndex + 1]; const linkedUp = previous?.orderNo === row.orderNo && previous.taskType !== row.taskType; const linkedDown = next?.orderNo === row.orderNo && next.taskType !== row.taskType; return <span className={`task-relation ${linkedUp ? 'relation-up' : ''} ${linkedDown ? 'relation-down' : ''}`} aria-label={linkedUp || linkedDown ? '同订单关联任务' : undefined} /> } },
+    { colKey: 'type', title: '任务类型', width: 105, cell: ({ row }) => row.taskType },
     { colKey: 'id', title: '任务编号', width: 95, cell: ({ row }) => `任务 ${row.id}` },
     { colKey: 'title', title: '任务名称', ellipsis: true },
     { colKey: 'patient', title: '患者标识', width: 145 },
     { colKey: 'status', title: '状态', width: 95, cell: ({ row }) => <StatusTag status={row.status} /> }, { colKey: 'deadline', title: '截止时间', width: 145 }, { colKey: 'updated', title: '最后更新', width: 125 },
-    { colKey: 'operation', title: '操作', width: 170, cell: ({ row }) => <div className="table-actions"><Button size="small" variant="text" theme="primary" onClick={() => onDetail(row.id)}>查看详情</Button><Button size="small" theme="primary" variant="text" onClick={() => onOpen(row.id)}>{row.status === '审核退回' ? '进入修改' : row.status === '待审核' ? '查看成果' : '继续设计'}</Button></div> },
-  ], [onDetail, onOpen])
+    { colKey: 'operation', title: '操作', width: 190, cell: ({ row }) => { const lockedCad = row.taskType === 'CAD 设计' && !isCadTaskUnlocked(row, allTasks); if (lockedCad) return <div className="table-actions"><Tooltip content={CAD_LOCKED_REASON}><span className="disabled-action-wrap"><Button size="small" variant="text" disabled>查看详情</Button></span></Tooltip></div>; return <div className="table-actions"><Button size="small" variant="text" theme="primary" onClick={() => onDetail(row.id)}>查看详情</Button><Button size="small" theme="primary" variant="text" onClick={() => onOpen(row.id)}>{row.taskType === 'CAD 设计' ? '继续设计' : row.status === '审核退回' ? '进入修改' : row.status === '待审核' || row.status === '审核中' || row.status === '已完成' ? '查看成果' : '继续设计'}</Button></div> } },
+  ], [allTasks, onDetail, onOpen, tasks])
   return <Table className="app-table" rowKey="id" data={tasks} columns={columns} size="small" hover bordered={false} tableLayout="fixed" empty="当前筛选条件下没有任务" />
 }
 
 function TaskList({ tasks, title, onDetail, onOpen }: { tasks: Task[]; title: string; onDetail: (id: string) => void; onOpen: (id: string) => void }) {
-  const [filter, setFilter] = useState<TaskStatus | '全部'>('全部'); const [query, setQuery] = useState('')
-  const filtered = tasks.filter((task) => (filter === '全部' || task.status === filter) && `${task.id}${task.title}${task.patient}`.toLowerCase().includes(query.toLowerCase()))
-  return <div className="page"><Card className="dashboard-card list-card table-card unified-list-card" bordered={false}><section className="list-page-heading"><h1>{title}</h1><Input className="task-search" value={query} onChange={(value) => setQuery(String(value))} prefixIcon={<SearchIcon size={16} />} placeholder="搜索任务编号、患者标识" clearable /></section><div className="filter-bar">{(['全部', '进行中', '审核退回', '待审核', '已完成'] as const).map((item) => <Button key={item} size="small" theme={filter === item ? 'primary' : 'default'} variant={filter === item ? 'base' : 'text'} onClick={() => setFilter(item)}>{item}</Button>)}</div><TaskTable tasks={filtered} onDetail={onDetail} onOpen={onOpen} /></Card></div>
+  const [filter, setFilter] = useState<TaskStatus | '全部'>('全部'); const [typeFilter, setTypeFilter] = useState<TaskType | '全部'>('全部'); const [query, setQuery] = useState('')
+  const filtered = tasks.filter((task) => (filter === '全部' || task.status === filter) && (typeFilter === '全部' || task.taskType === typeFilter) && `${task.id}${task.title}${task.patient}${task.orderNo}${task.taskType}`.toLowerCase().includes(query.toLowerCase()))
+  return <div className="page"><Card className="dashboard-card list-card table-card unified-list-card" bordered={false}><section className="list-page-heading"><h1>{title}</h1><Input className="task-search" value={query} onChange={(value) => setQuery(String(value))} prefixIcon={<SearchIcon size={16} />} placeholder="搜索任务、患者或订单" clearable /></section><div className="filter-groups"><div className="filter-bar"><span>任务类型</span>{(['全部', '三维重建', 'CAD 设计'] as const).map((item) => <Button key={item} size="small" theme={typeFilter === item ? 'primary' : 'default'} variant={typeFilter === item ? 'base' : 'text'} onClick={() => setTypeFilter(item)}>{item}</Button>)}</div><div className="filter-bar"><span>任务状态</span>{(['全部', '未开始', '进行中', '审核中', '审核退回', '待审核', '已完成'] as const).map((item) => <Button key={item} size="small" theme={filter === item ? 'primary' : 'default'} variant={filter === item ? 'base' : 'text'} onClick={() => setFilter(item)}>{item}</Button>)}</div></div><TaskTable tasks={filtered} allTasks={tasks} onDetail={onDetail} onOpen={onOpen} /></Card></div>
 }
 
 function groupImagingStudies(seriesList: ImagingSeries[]) {
@@ -439,16 +500,21 @@ function groupImagingStudies(seriesList: ImagingSeries[]) {
   return [...studies.values()]
 }
 
-function TaskDetail({ task, comments, onBack, onOpen }: { task: Task; comments: ReviewComment[]; onBack: () => void; onOpen: (id: string, options?: { openComments?: boolean; commentId?: string }) => void }) {
+function TaskDetail({ task, tasks, comments, onBack, onOpen }: { task: Task; tasks: Task[]; comments: ReviewComment[]; onBack: () => void; onOpen: (id: string, options?: { openComments?: boolean; commentId?: string }) => void }) {
+  if (task.taskType === 'CAD 设计') return <CadTaskDetail task={task} upstreamTask={tasks.find((item) => item.id === task.upstreamTaskId)} onBack={onBack} onOpen={onOpen} />
+  return <ReconstructionTaskDetail task={task} comments={comments} onBack={onBack} onOpen={onOpen} />
+}
+
+function ReconstructionTaskDetail({ task, comments, onBack, onOpen }: { task: Task; comments: ReviewComment[]; onBack: () => void; onOpen: (id: string, options?: { openComments?: boolean; commentId?: string }) => void }) {
   const [metadataSeries, setMetadataSeries] = useState<ImagingSeries | null>(null)
   const imagingStudies = groupImagingStudies(task.series)
   const totalSlices = task.series.reduce((total, series) => total + series.slices, 0)
-  const primaryAction = task.status === '待审核' ? '查看已提交成果' : task.status === '审核退回' ? '查看意见并修改' : '继续设计'
+  const primaryAction = task.status === '待审核' || task.status === '审核中' || task.status === '已完成' ? '查看已提交成果' : task.status === '审核退回' ? '查看意见并修改' : '继续设计'
   return <div className="page detail-page">
     <Button variant="text" icon={<ChevronLeftIcon size={16} />} onClick={onBack}>返回我的任务</Button>
     <Card className="detail-title-card" bordered={false}><section className="detail-title"><div className="detail-title-copy"><div className="detail-title-line"><h1>{task.title}</h1><StatusTag status={task.status} /></div><p>三维重建 · 任务 {task.id} · {task.patient} · 订单 {task.orderNo}</p></div><div className="detail-actions"><Button theme="primary" onClick={() => onOpen(task.id, { openComments: task.status === '审核退回' })}>{primaryAction}</Button></div></section></Card>
     <section className="detail-grid"><div className="detail-main">
-      <InfoSection title="病例与任务信息"><dl className="info-grid"><div><dt>订单编号</dt><dd>{task.orderNo}</dd></div><div><dt>患者标识</dt><dd>{task.patient}</dd></div><div><dt>任务负责人</dt><dd>{task.owner}</dd></div><div><dt>任务类型</dt><dd>三维重建</dd></div><div><dt>当前任务状态</dt><dd><StatusTag status={task.status} /></dd></div><div><dt>最后更新</dt><dd>{task.updated}</dd></div><div className="info-wide"><dt>手术需求</dt><dd>{task.surgery}</dd></div></dl></InfoSection>
+      <InfoSection title="病例与任务信息"><dl className="info-grid"><div><dt>订单编号</dt><dd>{task.orderNo}</dd></div><div><dt>患者标识</dt><dd>{task.patient}</dd></div><div><dt>任务负责人</dt><dd>{task.owner}</dd></div><div><dt>任务类型</dt><dd>{task.taskType}</dd></div><div><dt>当前任务状态</dt><dd><StatusTag status={task.status} /></dd></div><div><dt>最后更新</dt><dd>{task.updated}</dd></div><div className="info-wide"><dt>手术需求</dt><dd>{task.surgery}</dd></div></dl></InfoSection>
       <InfoSection title="医学影像资料">
         <div className="imaging-studies">{imagingStudies.map((study) => <section className="imaging-study" key={study.id}>
           <header className="imaging-study-header"><FileIcon size={18} /><span className="imaging-study-name"><strong>{study.name}</strong><small>{study.date} · Study {study.id} · {study.series.length} 个 Series</small></span></header>
@@ -464,22 +530,54 @@ function TaskDetail({ task, comments, onBack, onOpen }: { task: Task; comments: 
     </Dialog>
   </div>
 }
+
+function CadTaskDetail({ task, upstreamTask, onBack, onOpen }: { task: Task; upstreamTask?: Task; onBack: () => void; onOpen: (id: string) => void }) {
+  const [feedback, setFeedback] = useState('')
+  const model = task.approvedModel
+  return <div className="page detail-page cad-detail-page">
+    <Button variant="text" icon={<ChevronLeftIcon size={16} />} onClick={onBack}>返回我的任务</Button>
+    <Card className="detail-title-card" bordered={false}><section className="detail-title"><div className="detail-title-copy"><div className="detail-title-line"><h1>{task.title}</h1><StatusTag status={task.status} /></div><p>CAD 设计 · 任务 {task.id} · {task.patient} · 订单 {task.orderNo}</p></div><div className="detail-actions"><Button theme="primary" onClick={() => onOpen(task.id)}>继续设计</Button></div></section></Card>
+    <section className="detail-grid"><div className="detail-main">
+      <InfoSection title="病例与任务信息"><dl className="info-grid"><div><dt>订单编号</dt><dd>{task.orderNo}</dd></div><div><dt>患者标识</dt><dd>{task.patient}</dd></div><div><dt>任务负责人</dt><dd>{task.owner}</dd></div><div><dt>任务类型</dt><dd>{task.taskType}</dd></div><div><dt>当前任务状态</dt><dd><StatusTag status={task.status} /></dd></div><div><dt>最后更新</dt><dd>{task.updated}</dd></div><div className="info-wide"><dt>设计需求</dt><dd>{task.cadRequirement}</dd></div></dl></InfoSection>
+      <InfoSection title="上游三维重建成果" action={<Tag theme="success" variant="light">已自动关联</Tag>}>
+        {model && upstreamTask ? <div className="approved-model-card"><div className="approved-model-icon"><Box size={24} /></div><dl><div><dt>模型名称</dt><dd>{model.name}</dd></div><div><dt>成果版本</dt><dd>{model.version}</dd></div><div><dt>文件格式</dt><dd>{model.format ?? '未提供'}</dd></div><div><dt>审核信息</dt><dd>{model.approvedAt} · {model.approvedBy}</dd></div><div><dt>关联任务</dt><dd>任务 {upstreamTask.id} · {upstreamTask.title}</dd></div></dl><Tooltip content="模型在线预览暂不可用"><span className="disabled-action-wrap"><Button variant="outline" disabled>只读查看模型</Button></span></Tooltip></div> : <div className="cad-empty-state"><Box size={28} /><strong>上游成果尚未就绪</strong><span>{CAD_LOCKED_REASON}</span></div>}
+        <div className="model-feedback"><label htmlFor={`model-feedback-${task.id}`}>模型反馈</label><Textarea id={`model-feedback-${task.id}`} value={feedback} onChange={(value) => setFeedback(String(value))} placeholder="记录对上游审核通过模型的反馈" maxlength={240} autosize={{ minRows: 2, maxRows: 4 }} /><div><span>反馈提交服务暂不可用，输入内容仅保留在当前页面。</span><Tooltip content="反馈提交服务暂不可用"><span className="disabled-action-wrap"><Button disabled theme="primary">提交反馈</Button></span></Tooltip></div></div>
+      </InfoSection>
+      <InfoSection title="CAD 设计资料"><div className="cad-empty-state"><FilePlus2 size={28} /><strong>暂无 CAD 设计资料</strong><span>进入专业工作区后创建的设计文件将显示在这里。</span></div></InfoSection>
+      <InfoSection title="审核记录"><div className="cad-empty-state compact"><TaskCheckedIcon size={26} /><strong>暂无审核记录</strong><span>CAD 成果提交审核后，将在此展示独立的审核记录。</span></div></InfoSection>
+    </div><aside className="detail-aside">
+      <Card className="source-guide-card" bordered={false}><h3>数据来源与使用说明</h3><dl className="source-summary"><div><dt>资料来源</dt><dd>{task.source}</dd></div><div><dt>关联模型</dt><dd>{model ? `${model.name} · ${model.version}` : '尚未就绪'}</dd></div><div><dt>数据就绪状态</dt><dd>{model ? <Tag theme="success" variant="light" size="small"><CloudIcon size={14} />已就绪</Tag> : <Tag theme="warning" variant="light" size="small">等待上游</Tag>}</dd></div></dl><div className="source-guide-instructions"><span>使用说明</span><ul><li>进入 CAD 工作区时自动加载唯一审核通过模型</li><li>上游模型以只读方式关联，不能在 CAD 任务中覆盖</li><li>CAD 设计成果和审核记录独立于三维重建任务管理</li></ul></div></Card>
+    </aside></section>
+  </div>
+}
 function InfoSection({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) { return <Card className="info-section" bordered={false}><div className="info-section-title"><h2>{title}</h2>{action}</div>{children}</Card> }
 
 function Orders({ tasks, onDetail }: { tasks: Task[]; onDetail: (id: string) => void }) {
-  const columns: PrimaryTableCol<Task>[] = [{ colKey: 'orderNo', title: '订单编号', width: 180 }, { colKey: 'id', title: '任务编号', width: 120, cell: ({ row }) => `任务 ${row.id}` }, { colKey: 'title', title: '任务名称', ellipsis: true }, { colKey: 'patient', title: '患者标识', width: 180 }, { colKey: 'source', title: '数据来源', ellipsis: true }, { colKey: 'operation', title: '操作', width: 120, cell: ({ row }) => <Button variant="text" theme="primary" onClick={() => onDetail(row.id)}>查看任务</Button> }]
+  const columns: PrimaryTableCol<Task>[] = [{ colKey: 'orderNo', title: '订单编号', width: 170 }, { colKey: 'type', title: '任务类型', width: 110, cell: ({ row }) => row.taskType }, { colKey: 'id', title: '任务编号', width: 110, cell: ({ row }) => `任务 ${row.id}` }, { colKey: 'title', title: '任务名称', ellipsis: true }, { colKey: 'patient', title: '患者标识', width: 170 }, { colKey: 'source', title: '数据来源', ellipsis: true }, { colKey: 'operation', title: '操作', width: 120, cell: ({ row }) => row.taskType === 'CAD 设计' && !isCadTaskUnlocked(row, tasks) ? <Tooltip content={CAD_LOCKED_REASON}><span className="disabled-action-wrap"><Button variant="text" disabled>查看任务</Button></span></Tooltip> : <Button variant="text" theme="primary" onClick={() => onDetail(row.id)}>查看任务</Button> }]
   return <div className="page"><Card className="dashboard-card list-card table-card order-table-card unified-list-card" bordered={false}><section className="list-page-heading"><h1>订单中心</h1></section><Table className="app-table" rowKey="id" data={tasks} columns={columns} size="small" hover bordered={false} tableLayout="fixed" /></Card></div>
 }
 function Reviews({ tasks, onDetail }: { tasks: Task[]; onDetail: (id: string) => void }) {
   const records = tasks.flatMap((task) => task.review.map((review, index) => ({ ...review, task, recordId: `${task.id}-${index}-${review.time}` }))).reverse()
   const columns: PrimaryTableCol<(typeof records)[number]>[] = [
-    { colKey: 'taskType', title: '任务类型', width: 105, cell: () => '三维重建' },
+    { colKey: 'taskType', title: '任务类型', width: 105, cell: ({ row }) => row.task.taskType },
     { colKey: 'taskId', title: '任务编号', width: 95, cell: ({ row }) => `任务 ${row.task.id}` },
     { colKey: 'taskName', title: '任务名称', ellipsis: true, cell: ({ row }) => row.task.title },
     { colKey: 'event', title: '审核记录', ellipsis: true, cell: ({ row }) => <div className="review-event"><strong><Tag theme={row.status.includes('退回') ? 'danger' : row.status.includes('提交') ? 'warning' : 'primary'} variant="light" size="small">{row.status}</Tag>{row.version ? <span>{row.version}</span> : null}</strong><small><span>{row.time} · {row.actor}</span><span>{row.note}{row.commentCount ? ` · ${row.commentCount} 条意见` : ''}</span></small></div> },
     { colKey: 'operation', title: '操作', width: 100, cell: ({ row }) => <Button variant="text" size="small" theme="primary" onClick={() => onDetail(row.task.id)}>查看任务</Button> },
   ]
   return <div className="page"><Card className="dashboard-card review-card table-card unified-list-card" bordered={false}><section className="list-page-heading"><h1>审核记录</h1></section><Table className="app-table" rowKey="recordId" data={records} columns={columns} size="small" hover bordered={false} tableLayout="fixed" /></Card></div>
+}
+
+function CadWorkspace({ task, onBack }: { task: Task; onBack: () => void }) {
+  const [loadState, setLoadState] = useState<'ready' | 'error'>(task.approvedModel ? 'ready' : 'error')
+  const model = task.approvedModel
+  return <div className="cad-workspace">
+    <header className="cad-workspace-toolbar"><div><Box size={18} /><strong>CAD 设计工作区</strong><span>任务 {task.id} · {task.title}</span></div><Button variant="outline" onClick={onBack}>返回任务详情</Button></header>
+    <main className="cad-workspace-body">
+      <aside className="cad-model-panel"><h2>关联模型</h2>{loadState === 'ready' && model ? <div className="cad-model-item"><span><Box size={20} /></span><div><strong>{model.name}</strong><small>{model.version} · {model.format ?? '格式未提供'}</small></div><Tag theme="success" variant="light">只读</Tag></div> : <div className="cad-load-error"><AssignmentErrorIcon size={28} /><strong>模型加载失败</strong><span>未找到可用的审核通过模型。</span><Button variant="outline" icon={<RefreshIcon size={16} />} onClick={() => setLoadState(task.approvedModel ? 'ready' : 'error')}>重试加载</Button></div>}</aside>
+      <section className="cad-canvas-placeholder"><div className="cad-placeholder-grid" aria-hidden="true" /><div className="cad-placeholder-copy"><Box size={44} /><h1>CAD 专业工作区</h1><p>已自动加载审核通过的上游模型。CAD 专业编辑功能暂未开放，当前可核对关联模型及版本信息。</p><dl><div><dt>模型</dt><dd>{model?.name ?? '未就绪'}</dd></div><div><dt>版本</dt><dd>{model?.version ?? '—'}</dd></div><div><dt>审核人</dt><dd>{model?.approvedBy ?? '—'}</dd></div></dl><Tooltip content="CAD 专业编辑功能暂未开放"><span className="disabled-action-wrap"><Button theme="primary" disabled>开始 CAD 编辑</Button></span></Tooltip></div></section>
+    </main>
+  </div>
 }
 
 function Workspace({ task, dirty, savedAt, mode, activeSeriesId, comments, reviewFocus, reviewResetEnabled, onReviewFocusConsumed, onUpdateComment, onResetReview, onSeriesChange, onModeChange, onDirty, onSave, onSubmit, onSubmitSalesperson }: { task: Task; dirty: boolean; savedAt?: string; mode: WorkspaceMode; activeSeriesId: string; comments: ReviewComment[]; reviewFocus: { taskId: string; commentId?: string } | null; reviewResetEnabled: boolean; onReviewFocusConsumed: () => void; onUpdateComment: (commentId: string, changes: Partial<Pick<ReviewComment, 'status' | 'replies' | 'unread' | 'submitted'>>) => void; onResetReview: () => void; onSeriesChange: (seriesId: string) => void; onModeChange: (mode: WorkspaceMode) => void; onDirty: () => void; onSave: () => void; onSubmit: () => void; onSubmitSalesperson: () => void }) {
@@ -496,8 +594,8 @@ function Workspace({ task, dirty, savedAt, mode, activeSeriesId, comments, revie
   const [reviewSyncedAt, setReviewSyncedAt] = useState(savedAt ?? '09:02')
   const reviewSyncTimer = useRef<number | null>(null)
   const panelStateBeforeFocus = useRef({ left: true, right: true })
-  const readOnly = task.status === '待审核' || task.status === '已完成'
-  const reviewPending = task.status === '待审核'
+  const readOnly = task.status === '待审核' || task.status === '审核中' || task.status === '已完成'
+  const reviewPending = task.status === '待审核' || task.status === '审核中'
   useEffect(() => {
     const defaultTool = toolsets[mode][0].label
     setTool(defaultTool)
