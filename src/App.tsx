@@ -556,16 +556,17 @@ function groupImagingStudies(seriesList: ImagingSeries[]) {
 }
 
 function TaskDetail({ task, tasks, events, feedback, comments, onBack, onOpen, onFeedback }: { task: Task; tasks: Task[]; events: FlowEvent[]; feedback: UpstreamFeedback[]; comments: ReviewComment[]; onBack: () => void; onOpen: (id: string, options?: { openComments?: boolean; commentId?: string }) => void; onFeedback: (task: Task, description: string) => boolean }) {
-  if (task.taskType === 'CAD 设计') return <CadTaskDetail task={task} upstreamTask={tasks.find((item) => item.id === task.upstreamTaskId)} events={events} feedback={feedback} onBack={onBack} onOpen={onOpen} onFeedback={onFeedback} />
-  return <ReconstructionTaskDetail task={task} events={events} comments={comments} onBack={onBack} onOpen={onOpen} />
+  if (task.taskType === 'CAD 设计') return <CadTaskDetail task={task} tasks={tasks} upstreamTask={tasks.find((item) => item.id === task.upstreamTaskId)} events={events} feedback={feedback} onBack={onBack} onOpen={onOpen} onFeedback={onFeedback} />
+  return <ReconstructionTaskDetail task={task} tasks={tasks} events={events} comments={comments} onBack={onBack} onOpen={onOpen} />
 }
 
-function TaskFlow({ task, events, upstreamTask, comments, onOpen }: { task: Task; events: FlowEvent[]; upstreamTask?: Task; comments?: ReviewComment[]; onOpen?: (id: string, options?: { openComments?: boolean; commentId?: string }) => void }) {
-  const visible = events.filter((event) => event.taskId === task.id || event.type === 'upstream-feedback' && event.relatedTaskId === task.id || (upstreamTask && event.taskId === upstreamTask.id)).sort((a, b) => b.at.localeCompare(a.at) || b.id.localeCompare(a.id))
-  return <InfoSection title="任务流转记录"><div className="timeline">{visible.map((event) => <div className="timeline-item" key={event.id}><i /><div><strong>{event.name}{event.version ? <span className="timeline-version">{event.version}</span> : null}{(upstreamTask || event.type === 'upstream-feedback') && <span className="flow-source">{upstreamTask && event.taskId === upstreamTask.id ? '三维重建' : 'CAD 设计'}</span>}</strong><p><span className="timeline-meta">{displayEventTime(event.at)} · {event.actor}</span><span className="timeline-note">{event.description}</span>{event.commentCount && onOpen ? <Button variant="text" theme="primary" size="small" onClick={() => onOpen(task.id, { openComments: true, commentId: comments?.[0]?.id })}>查看{event.commentCount}条意见</Button> : null}</p></div></div>)}</div></InfoSection>
+function TaskFlow({ task, tasks, events, comments, onOpen }: { task: Task; tasks: Task[]; events: FlowEvent[]; comments?: ReviewComment[]; onOpen?: (id: string, options?: { openComments?: boolean; commentId?: string }) => void }) {
+  const orderTasks = tasks.filter((item) => item.orderNo === task.orderNo)
+  const visible = [...new Map(events.filter((event) => event.orderNo === task.orderNo).map((event) => [event.id, event])).values()].sort((a, b) => b.at.localeCompare(a.at) || b.id.localeCompare(a.id))
+  return <InfoSection title="任务流转记录"><div className="timeline">{visible.map((event) => <div className="timeline-item" key={event.id}><i /><div><strong>{event.name}{event.version ? <span className="timeline-version">{event.version}</span> : null}{orderTasks.length > 1 && <span className="flow-source">{orderTasks.find((item) => item.id === event.taskId)?.taskType ?? '关联任务'}</span>}</strong><p><span className="timeline-meta">{displayEventTime(event.at)} · {event.actor}</span><span className="timeline-note">{event.description}</span>{event.commentCount && onOpen ? <Button variant="text" theme="primary" size="small" onClick={() => onOpen(event.taskId, { openComments: true, commentId: comments?.find((item) => item.taskId === event.taskId)?.id })}>查看{event.commentCount}条意见</Button> : null}</p></div></div>)}</div></InfoSection>
 }
 
-function ReconstructionTaskDetail({ task, events, comments, onBack, onOpen }: { task: Task; events: FlowEvent[]; comments: ReviewComment[]; onBack: () => void; onOpen: (id: string, options?: { openComments?: boolean; commentId?: string }) => void }) {
+function ReconstructionTaskDetail({ task, tasks, events, comments, onBack, onOpen }: { task: Task; tasks: Task[]; events: FlowEvent[]; comments: ReviewComment[]; onBack: () => void; onOpen: (id: string, options?: { openComments?: boolean; commentId?: string }) => void }) {
   const [metadataSeries, setMetadataSeries] = useState<ImagingSeries | null>(null)
   const imagingStudies = groupImagingStudies(task.series)
   const totalSlices = task.series.reduce((total, series) => total + series.slices, 0)
@@ -581,7 +582,7 @@ function ReconstructionTaskDetail({ task, events, comments, onBack, onOpen }: { 
           <div className="series-list">{study.series.map((series) => <div className="series-data-row" key={series.id}><TImageIcon size={18} /><span className="series-data-name"><strong>{series.name}</strong><small>{series.modality} · {series.format} · {series.slices} 张图像 · 层厚 {series.thickness}</small></span><div className="series-data-actions"><Button theme="primary" variant="text" size="small" icon={<BrowseIcon size={15} />} onClick={() => setMetadataSeries(series)}>查看资料</Button></div></div>)}</div>
         </section>)}</div>
       </InfoSection>
-      <TaskFlow task={task} events={events} comments={comments} onOpen={onOpen} />
+      <TaskFlow task={task} tasks={tasks} events={events} comments={comments} onOpen={onOpen} />
     </div><aside className="detail-aside">
       <Card className="source-guide-card" bordered={false}><h3>数据来源与使用说明</h3><dl className="source-summary"><div><dt>资料来源</dt><dd>{task.source}</dd></div><div><dt>关联资料数量</dt><dd>{imagingStudies.length} 项检查 · {task.series.length} 个序列 · {totalSlices.toLocaleString('zh-CN')} 张图像</dd></div><div><dt>数据就绪状态</dt><dd><Tag theme="success" variant="light" size="small"><CloudIcon size={14} />已就绪</Tag></dd></div></dl><div className="source-guide-instructions"><span>使用说明</span><ul><li>进入专业工作区时自动加载关联影像及已保存进度，无需提前下载导入</li><li>再次进入会恢复最近保存的工作状态和当前序列</li><li>提交审核后成果版本将被锁定</li></ul></div></Card>
     </aside></section>
@@ -591,7 +592,7 @@ function ReconstructionTaskDetail({ task, events, comments, onBack, onOpen }: { 
   </div>
 }
 
-function CadTaskDetail({ task, upstreamTask, events, feedback, onBack, onOpen, onFeedback }: { task: Task; upstreamTask?: Task; events: FlowEvent[]; feedback: UpstreamFeedback[]; onBack: () => void; onOpen: (id: string) => void; onFeedback: (task: Task, description: string) => boolean }) {
+function CadTaskDetail({ task, tasks, upstreamTask, events, feedback, onBack, onOpen, onFeedback }: { task: Task; tasks: Task[]; upstreamTask?: Task; events: FlowEvent[]; feedback: UpstreamFeedback[]; onBack: () => void; onOpen: (id: string, options?: { openComments?: boolean; commentId?: string }) => void; onFeedback: (task: Task, description: string) => boolean }) {
   const [feedbackVisible, setFeedbackVisible] = useState(false)
   const [description, setDescription] = useState('')
   const [feedbackError, setFeedbackError] = useState('')
@@ -606,7 +607,7 @@ function CadTaskDetail({ task, upstreamTask, events, feedback, onBack, onOpen, o
       <InfoSection title="上游三维重建成果">
         {model && upstreamTask ? <div className="approved-model-card"><dl><div><dt>模型名称</dt><dd>{model.name}</dd></div><div><dt>成果版本</dt><dd>{model.version}</dd></div><div><dt>文件格式</dt><dd>{model.format ?? '未提供'}</dd></div><div><dt>来源任务</dt><dd>任务 {upstreamTask.id} · 三维重建</dd></div><div><dt>审核医生</dt><dd>{model.approvedBy}</dd></div><div><dt>审核通过时间</dt><dd>{model.approvedAt}</dd></div></dl><Button variant="outline" onClick={() => setFeedbackVisible(true)}>反馈上游问题</Button></div> : <div className="cad-empty-state"><Box size={28} /><strong>上游成果尚未就绪</strong><span>{CAD_LOCKED_REASON}</span></div>}
       </InfoSection>
-      <TaskFlow task={task} upstreamTask={upstreamTask} events={events} />
+      <TaskFlow task={task} tasks={tasks} events={events} onOpen={onOpen} />
     </div><aside className="detail-aside">
       <Card className="source-guide-card" bordered={false}><h3>数据来源与使用说明</h3><dl className="source-summary"><div><dt>资料来源</dt><dd>{task.source}</dd></div><div><dt>关联模型</dt><dd>{model ? `${model.name} · ${model.version}` : '尚未就绪'}</dd></div><div><dt>数据就绪状态</dt><dd>{model ? <Tag theme="success" variant="light" size="small"><CloudIcon size={14} />已就绪</Tag> : <Tag theme="warning" variant="light" size="small">等待上游</Tag>}</dd></div></dl><div className="source-guide-instructions"><span>使用说明</span><ul><li>进入 CAD 工作区后自动加载医生最终批准的三维模型</li><li>上游原始成果保持锁定，不允许在 CAD 阶段直接修改</li></ul></div></Card>
     </aside></section>
