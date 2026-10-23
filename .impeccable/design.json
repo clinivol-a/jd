@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-12T00:00:00Z",
+  "title": "Design System: CliniVol",
+  "extensions": {
+    "colorMeta": {
+      "brand-primary": { "role": "primary", "displayName": "CliniVol Green", "canonical": "#0D7A5D", "tonalRamp": ["#043A2A", "#064D38", "#086348", "#0D7A5D", "#2F9D78", "#75C2A8", "#CCE9DF", "#E8F5F1"] },
+      "brand-secondary": { "role": "primary", "displayName": "CliniVol Secondary Green", "canonical": "#2F9D78", "tonalRamp": ["#064D38", "#086348", "#0D7A5D", "#2F9D78", "#47AA89", "#75C2A8", "#A4D8C6", "#E8F5F1"] },
+      "ink": { "role": "neutral", "displayName": "Interface Ink", "canonical": "#1D252D", "tonalRamp": ["#11171C", "#1D252D", "#354149", "#536068", "#7A858C", "#AAB3B8", "#DFE4E7", "#F8F9F9"] },
+      "canvas": { "role": "neutral", "displayName": "Light Canvas", "canonical": "#F3F5F6", "tonalRamp": ["#202629", "#485055", "#737C81", "#A2AAAE", "#CBD1D4", "#DFE4E7", "#EEF1F2", "#F8F9F9"] },
+      "viewport": { "role": "neutral", "displayName": "Imaging Viewport", "canonical": "#050708", "tonalRamp": ["#050708", "#101417", "#1C2225", "#3F484C", "#727C81", "#AEB5B8", "#DCE0E2", "#F6F7F7"] },
+      "warning": { "role": "secondary", "displayName": "Review Warning", "canonical": "#D79B2B", "tonalRamp": ["#3C2705", "#704B09", "#A66E08", "#D79B2B", "#E5B85C", "#F0D58E", "#FAEBC3", "#FFF7E1"] },
+      "returned": { "role": "secondary", "displayName": "Returned Review", "canonical": "#D6534C", "tonalRamp": ["#47100D", "#7C211D", "#A73934", "#D6534C", "#E57973", "#EEA6A2", "#F6D2CF", "#FFF1EF"] }
+    },
+    "typographyMeta": {
+      "heading": { "displayName": "Page Heading", "purpose": "Platform page titles." },
+      "title": { "displayName": "Section Title", "purpose": "Dashboard and evidence sections." },
+      "body": { "displayName": "Interface Body", "purpose": "Metadata, controls, explanations, and dialog copy." }
+    },
+    "shadows": [
+      { "name": "visible-focus", "value": "0 0 0 3px rgba(13, 122, 93, .22)", "purpose": "Keyboard focus." },
+      { "name": "temporary-overlay", "value": "0 12px 32px rgba(25, 49, 41, .15)", "purpose": "Task picker and transient overlays." }
+    ],
+    "motion": [
+      { "name": "shell-collapse", "value": "180ms ease", "purpose": "Business navigation collapse." },
+      { "name": "reduced-motion", "value": "0.01ms", "purpose": "Reduced-motion fallback." }
+    ],
+    "breakpoints": [
+      { "name": "compact-desktop", "value": "1380px" },
+      { "name": "minimum-supported", "value": "1120px" }
+    ]
+  },
+  "components": [],
+  "narrative": {
+    "northStar": "Light medical production console",
+    "overview": "A stable TDesign platform shell surrounds a purpose-built light professional workspace. Brand green carries selection and primary action; dark color is isolated to the medical image viewports.",
+    "keyCharacteristics": [
+      "Persistent 56px GlobalHeader with supplied PNG logo and fixed task-tab geometry.",
+      "TDesign platform surfaces with a centralized CliniVol green theme.",
+      "Light professional menus, tools, data panels, and properties around four dark image viewports.",
+      "Explicit saved, dirty, returned, pending-review, and locked states."
+    ],
+    "rules": [
+      { "name": "The Header Does Not Move", "body": "Page and task changes only replace content below the 56px GlobalHeader.", "section": "layout" },
+      { "name": "Dark Belongs to Images", "body": "Only medical image viewports use dark backgrounds; professional chrome remains light.", "section": "colors" },
+      { "name": "State Has Text", "body": "Every semantic color is paired with a readable status label.", "section": "colors" },
+      { "name": "Professional Is Not SaaS", "body": "The reconstruction workspace uses compact software menus, ribbons, trees, viewports, and property panels rather than dashboard cards.", "section": "components" }
+    ],
+    "sections": {
+      "layout": "A fixed 56px header sits above independently scrolling platform or professional content. The professional body uses a Series rail, flexible four-view grid, and object/property rail.",
+      "colors": "#0D7A5D and #2F9D78 override TDesign brand tokens; semantic warning, error, success, and information colors remain distinct.",
+      "typography": "Segoe UI Variable with Chinese Windows fallbacks keeps the application native to its primary environment.",
+      "components": "TDesign owns platform primitives. The professional workspace is purpose-built and only reuses basic buttons, tooltips, and dialogs.",
+      "doDont": "Use the supplied logo and light shell; do not invent clinical capabilities, redraw the logo, or restore a dark application frame."
+    }
+  }
+}
