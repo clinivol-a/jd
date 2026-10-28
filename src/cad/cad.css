@@ -5,6 +5,21 @@
 .cad-editor button:focus-visible { outline: 2px solid var(--td-brand-color-focus); outline-offset: 1px; }
 .cad-toolbar { min-width: 0; display: flex; align-items: center; gap: 12px; padding: 0 12px; border-bottom: 1px solid var(--td-border-level-1-color); background: var(--td-bg-color-container); }
 .cad-tools-scroll { min-width: 0; display: flex; align-items: center; flex: 1; gap: 3px; overflow-x: auto; scrollbar-width: thin; }
+.cad-tool-palette { gap: 0; overflow: visible; white-space: nowrap; }
+.cad-palette-group { display: flex; flex: 0 0 auto; align-items: center; gap: 2px; }
+.cad-palette-group + .cad-palette-group { margin-left: 6px; padding-left: 6px; border-left: 1px solid var(--td-border-level-1-color); }
+.cad-tool-entry, .cad-tool-hit { display: inline-flex; flex: 0 0 auto; align-items: center; }
+.cad-tool-palette .cad-tool { width: 36px; min-width: 36px; height: 36px; padding: 0; flex-direction: row; gap: 0; }
+.cad-tool-palette .cad-tool-group-trigger { width: 44px; }
+.cad-tool-palette .cad-tool-menu-arrow { width: 16px; min-width: 16px; border-radius: 0 4px 4px 0; }
+.cad-tool-split > .cad-tool-hit .cad-tool { border-radius: 4px 0 0 4px; }
+.cad-tool-palette .cad-tool > span, .cad-tool-palette .cad-tool .t-popup__reference { display: inline-flex; align-items: center; justify-content: center; gap: 3px; }
+.cad-tool-palette .cad-tool svg { display: block; }
+.cad-tool-menu .t-dropdown__item-text { width: 100%; min-width: 0; white-space: nowrap; text-overflow: clip; }
+.cad-menu-command { width: 100%; display: flex; align-items: center; gap: 8px; font-size: 14px; line-height: 22px; }
+.cad-menu-command > svg { flex: 0 0 auto; }
+.cad-menu-command > span { flex: 1; white-space: nowrap; }
+.cad-menu-command > small { flex: 0 0 auto; color: var(--td-text-color-disabled); font-size: 14px; line-height: 22px; }
 .cad-tools-scroll > span { display: inline-flex; flex: 0 0 auto; }
 .cad-tool { flex: 0 0 auto; min-width: 49px; height: 54px; padding: 5px 7px; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--td-text-color-secondary); background: transparent; border: 0; border-radius: 4px; white-space: nowrap; }
 .cad-tool > span { display: inline-flex; align-items: center; gap: 3px; }
@@ -64,11 +79,11 @@
 .cad-webgl-host canvas { width: 100%; height: 100%; display: block; touch-action: none; }
 .cad-view-tools { position: absolute; left: 12px; top: 14px; display: grid; gap: 3px; padding: 5px; background: #fff; border: 1px solid #e1e5e8; border-radius: 6px; }
 .cad-view-tools button { height: 32px; width: 32px; display: grid; place-items: center; color: #52606b; border: 0; border-radius: 4px; background: #fff; }
-.cad-view-tools button:hover { background: #f0f2f4; }
-.cad-view-tools .cad-view-active { background: #e6f4ef; color: #087f60; }
+.cad-view-tools button:hover { color: var(--td-text-color-primary); background: var(--td-bg-color-container-hover); }
+.cad-view-tools .cad-view-active, .cad-view-tools .cad-view-active:hover { background: #e6f4ef; color: #087f60; }
 .cad-view-cube { position: absolute; right: 18px; top: 18px; width: 110px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
 .cad-view-cube button { height: 25px; padding: 0 5px; color: #647480; border: 1px solid #d9e1e6; background: #fafcfd; border-radius: 3px; font-size: 12px; }
-.cad-view-cube button:hover { color: #087f60; border-color: #087f60; }
+.cad-view-cube button:hover { color: var(--td-text-color-primary); background: var(--td-bg-color-container-hover); border-color: var(--td-border-level-2-color); }
 .cad-cube-shape { width: 75px; height: 77px; position: relative; }
 .cad-view-cube .cad-cube-face { position: absolute; width: 38px; height: 38px; padding: 0; border-radius: 0; }
 .cad-cube-face-0 { left: 5px; top: 29px; transform: skewY(25deg); }

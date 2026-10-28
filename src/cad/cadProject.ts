@@ -67,7 +67,5 @@ export function snapshotCadSubmission(taskId: string): string {
 export function restoreCadSnapshot(snapshot: CadSnapshot, current: CadProject) {
   return saveCadProject({ ...structuredClone(snapshot.project), version: current.version })
 }
-export const cadTools = ['草图', '拉伸', '旋转', '扫掠', '放样', '孔', '圆角', '倒角', '布尔', '阵列', '镜像', '移动', '参考几何', '测量', '截面', '分析', '更多工具'] as const
-export type CadTool = typeof cadTools[number]
 export type CadMetrics = { bounds: [number, number, number]; area: number; volume: number | null; triangles: number }
 export type CadPreview = { tool: string; targetId: string; distance: number; diameter: number; depth: number; radius: number; direction: number; offset: number; sketch?: CadSketch }

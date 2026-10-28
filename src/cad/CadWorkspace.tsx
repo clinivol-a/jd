@@ -6,10 +6,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Button, Dropdown, Input, InputNumber, MessagePlugin, Select, Slider, Tooltip } from 'tdesign-react'
-import { BrowseIcon, BrowseOffIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CloseIcon, EditIcon, ListDemandIcon, LockOnIcon, Move1Icon, SearchIcon, ZoomInIcon } from 'tdesign-icons-react'
+import { BrowseIcon, BrowseOffIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CloseIcon, ListDemandIcon, LockOnIcon, SearchIcon } from 'tdesign-icons-react'
 import WorkspaceTaskActions from '../WorkspaceTaskActions'
 import { CadScene } from './CadScene'
-import { cadAsset, cadTools, newCadId, readCadProject, saveCadProject, cadProjectContent } from './cadProject'
+import { cadAsset, newCadId, readCadProject, saveCadProject, cadProjectContent } from './cadProject'
+import CadIcon from './CadIcon'
+import CadToolbarTools from './CadToolbarTools'
 import type { CadMetrics, CadObject, CadPreview, CadSketch } from './cadProject'
 import './cad.css'
 
@@ -18,40 +20,7 @@ type ReviewSummary = { id: string; title: string; unread: boolean; position: { x
 type ReviewBridge = { selectedId: string | null; onSelect: (id: string) => void; onClose: () => void; onSubmit: () => void; syncState: 'synced' | 'syncing' | 'failed'; syncedAt: string; onQueueSync: () => void }
 type Props = { task: CadTask; onBack: () => void; onSubmit: () => void; onSubmitSalesperson: () => void; comments: ReviewSummary[]; reviewFocus: { taskId: string; commentId?: string } | null; onReviewFocusConsumed: () => void; renderReviewPanel: (bridge: ReviewBridge) => ReactNode }
 const featureTools = new Set(['拉伸', '孔', '圆角', '移动'])
-const sketchTools = ['直线', '矩形', '圆', '圆弧', '样条', '尺寸', '约束']
 const formatTime = (at: string | null) => at ? new Date(at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false }) : ''
-function CadIcon({ name, size = 20 }: { name: string; size?: number }) {
-  if (name === '草图') return <EditIcon size={size} />
-  if (name === '移动' || name === '平移') return <Move1Icon size={size} />
-  if (name === '缩放') return <ZoomInIcon size={size} />
-  const paths: Record<string, ReactNode> = {
-    立方体: <><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9Z" /><path d="m4 7.5 8 4.5 8-4.5M12 12v9" /></>,
-    拉伸: <><path d="M5 9h10v12H5zM5 9l4-5h10l-4 5M15 9l4-5v12l-4 5M9 9v12" /></>,
-    旋转: <><path d="M7 17a8 8 0 1 1 13-6M20 5v6h-6M7 7v10h7V7z" /></>,
-    扫掠: <><path d="M4 19c2-8 5 1 9-7S20 8 20 3M3 16l5 1-1 5-5-1z" /></>,
-    放样: <><path d="m4 18 6 3 5-3-6-3ZM10 4l5-2 5 3-5 2ZM4 18l6-14M10 21l5-14M15 18l5-13" /></>,
-    孔: <><path d="M5 5h14v15H5zM5 5l4-3h14v15l-4 3" /><circle cx="12" cy="12" r="3" /></>,
-    圆角: <><path d="M4 20V4h8a8 8 0 0 1 8 8v8ZM12 4v8h8" /></>,
-    倒角: <><path d="M4 20V4h10l6 6v10ZM14 4v6h6" /></>,
-    布尔: <><path d="m3 7 6-3 6 3v7l-6 3-6-3ZM10 11l6-3 6 3v7l-6 3-6-3Z" /></>,
-    阵列: <>{[4, 12, 20].map((x) => [4, 12, 20].map((y) => <rect key={`${x}-${y}`} x={x - 2} y={y - 2} width="4" height="4" />))}</>,
-    镜像: <><path d="M12 2v20M8 5 3 19h5ZM16 5l5 14h-5Z" /></>,
-    参考几何: <><path d="m3 18 15-8 3 4-15 8ZM11 4v13M7 8l4-4 4 4" /></>,
-    测量: <><path d="M3 6v14h18M6 10v4m4-5v5m4-7v7m4-9v9" /></>,
-    截面: <><path d="M4 4h16v16H4zM4 20 20 4M2 14l8 8M10 2l12 12" /></>,
-    分析: <><path d="M3 19h18M6 16V9m6 7V4m6 12v-5" /></>,
-    更多工具: <><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></>,
-    直线: <><path d="m4 20 16-16" /><circle cx="4" cy="20" r="1" /><circle cx="20" cy="4" r="1" /></>,
-    矩形: <rect x="3" y="5" width="18" height="14" />,
-    圆: <circle cx="12" cy="12" r="8" />,
-    圆弧: <path d="M3 18C3 2 21 2 21 18M3 18h1m16 0h1" />,
-    样条: <path d="M3 19C20 21 2 2 21 5" />,
-    尺寸: <><path d="M3 5v14m18-14v14M3 12h18m-18 0 4-3m-4 3 4 3m14-3-4-3m4 3-4 3" /></>,
-    约束: <><path d="m4 8 5-5 4 4-5 5-4-4ZM11 17l5-5 4 4-5 5-4-4ZM8 12l4 4" /></>,
-    适应视窗: <><path d="M3 9V3h6m6 0h6v6m0 6v6h-6M9 21H3v-6" /><circle cx="12" cy="12" r="3" /></>,
-  }
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name] ?? paths.立方体}</svg>
-}
 function Field({ label, children }: { label: string; children: ReactNode }) { return <label className="cad-field"><span>{label}</span><div>{children}</div></label> }
 function PropertyGroup({ title, children }: { title: string; children: ReactNode }) { return <details className="cad-property-group" open><summary>{title}<ChevronDownIcon size={15} /></summary><div>{children}</div></details> }
 function CadCommandPanel({ title, onCancel, children, actions }: { title: string; onCancel: () => void; children: ReactNode; actions: ReactNode }) {
@@ -72,7 +41,6 @@ export default function CadWorkspace({ task, onBack, onSubmit, onSubmitSalespers
   const [collapsed, setCollapsed] = useState<string[]>([])
   const [search, setSearch] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
-  const [toolCount, setToolCount] = useState(16)
   const [commentsOpen, setCommentsOpen] = useState(false)
   const [selectedComment, setSelectedComment] = useState<string | null>(comments[0]?.id ?? null)
   const [sketchDraft, setSketchDraft] = useState<CadSketch | null>(null)
@@ -85,7 +53,6 @@ export default function CadWorkspace({ task, onBack, onSubmit, onSubmitSalespers
   const [metrics, setMetrics] = useState<CadMetrics | null>(null)
   const [scaleWidth, setScaleWidth] = useState(100)
   const viewportRef = useRef<HTMLDivElement>(null)
-  const toolbarRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<CadScene | null>(null)
   const projectRef = useRef(project)
   const savedContentRef = useRef(project.savedAt ? cadProjectContent(project) : null)
@@ -109,10 +76,6 @@ export default function CadWorkspace({ task, onBack, onSubmit, onSubmitSalespers
   useEffect(() => () => { if (savedContentRef.current !== cadProjectContent(projectRef.current)) { try { saveCadProject(projectRef.current) } catch { /* Preserve the previous successful save. */ } } }, [])
   useEffect(() => { if (readOnly) { const saved = readCadProject(task.id, task.approvedModel!.id, task.approvedModel!.version); savedContentRef.current = cadProjectContent(saved); setProject(saved) } }, [readOnly, task.id, task.approvedModel])
   useEffect(() => { if (reviewFocus) { setCommentsOpen(true); setSelectedComment(reviewFocus.commentId ?? comments[0]?.id ?? null); onReviewFocusConsumed() } }, [reviewFocus, comments, onReviewFocusConsumed])
-  useEffect(() => {
-    const element = toolbarRef.current; if (!element) return
-    const observer = new ResizeObserver(([entry]) => setToolCount(entry.contentRect.width >= 1800 ? 16 : entry.contentRect.width >= 1500 ? 13 : entry.contentRect.width >= 1250 ? 10 : 7)); observer.observe(element); return () => observer.disconnect()
-  }, [])
   useEffect(() => {
     if (!viewportRef.current) return
     setLoadState('loading'); setLoadError('')
@@ -189,10 +152,6 @@ export default function CadWorkspace({ task, onBack, onSubmit, onSubmitSalespers
     if (!persist()) { void MessagePlugin.error('工程保存失败，请重试后再提交'); return }
     onSubmit()
   }
-  const toolDisabled = (tool: string) => loadState !== 'ready' || (readOnly && !['测量', '截面', '分析', '参考几何', '更多工具'].includes(tool))
-  const toolbarButton = (tool: string) => <button key={tool} type="button" className={`cad-tool ${activeTool === tool ? 'cad-tool-active' : ''}`} disabled={toolDisabled(tool)} onClick={() => chooseTool(tool)}><CadIcon name={tool} /><span>{tool}</span></button>
-  const visibleTools = cadTools.slice(0, toolCount)
-  const overflowTools = cadTools.slice(toolCount, -1)
   const treeRows = (objects: CadObject[]) => objects.filter((object) => !search || object.name.includes(search)).map((object) => <div key={object.id} className={`cad-tree-row ${selectedId === object.id ? 'cad-tree-selected' : ''}`}>
     <button className="cad-tree-select" onClick={() => selectObject(object.id)}><CadIcon name="立方体" size={17} /><span>{object.name}</span></button>
     <span className="cad-tree-actions"><Tooltip content={object.visible ? '隐藏对象' : '显示对象'}><button className={!object.visible ? 'cad-persistent' : ''} aria-label={`${object.visible ? '隐藏' : '显示'}${object.name}`} onClick={() => changeObject(object.id, { visible: !object.visible })} disabled={readOnly}>{object.visible ? <BrowseIcon size={16} /> : <BrowseOffIcon size={16} />}</button></Tooltip><Tooltip content={object.kind === 'reference' ? '上游批准模型只读' : object.locked ? '解锁对象' : '锁定对象'}><button className={object.locked ? 'cad-persistent' : ''} aria-label={`${object.locked ? '解锁' : '锁定'}${object.name}`} onClick={() => changeObject(object.id, { locked: !object.locked })} disabled={readOnly || object.kind === 'reference'}><LockOnIcon size={15} /></button></Tooltip></span>
@@ -209,8 +168,8 @@ export default function CadWorkspace({ task, onBack, onSubmit, onSubmitSalespers
   const toolActions = activeTool && <>{featureTools.has(activeTool) ? <><Button variant="outline" onClick={cancelTool}>取消</Button><Button theme="primary" disabled={readOnly || (activeTool === '拉伸' && !params.sketchId)} onClick={confirmFeature}>确认{activeTool}</Button></> : activeTool === '草图' && sketchDraft ? <><Button variant="outline" onClick={cancelTool}>取消</Button><Button theme="primary" onClick={finishSketch}>完成草图</Button></> : <Button block variant="outline" onClick={cancelTool}>{activeTool === '测量' || activeTool === '截面' || activeTool === '分析' ? '退出' : '取消操作'}</Button>}</>
   const selectedReview = comments.find((comment) => comment.id === selectedComment)
   return <div className="cad-editor" data-task-id={task.id}>
-    <div className="cad-toolbar" ref={toolbarRef} aria-label="CAD 专业工具栏">
-      <div className="cad-tools-scroll">{sketchDraft ? <>{sketchTools.map((tool) => <button className={`cad-tool ${sketchTool === tool ? 'cad-tool-active' : ''}`} key={tool} onClick={() => { setSketchTool(tool); setPendingPoints([]) }}><CadIcon name={tool} /><span>{tool}</span></button>)}</> : <>{visibleTools.map((tool, index) => <span className={([1, 5, 9, 12, 13].includes(index) ? 'cad-tool-group-start' : '')} key={tool}>{['参考几何', '分析'].includes(tool) ? <Dropdown trigger="click" placement="bottom-left" minColumnWidth={170} options={(tool === '参考几何' ? ['基准平面', '基准轴', '基准点'] : ['几何信息', '网格信息']).map((name) => ({ content: name, value: name }))} onClick={(item) => { chooseTool(tool); if (tool === '参考几何') void MessagePlugin.info(`已选择${item.value}，请选择参考对象`) }}><button className={`cad-tool ${activeTool === tool ? 'cad-tool-active' : ''}`} disabled={toolDisabled(tool)}><CadIcon name={tool} /><span>{tool}<ChevronDownIcon size={11} /></span></button></Dropdown> : toolbarButton(tool)}</span>)}<Dropdown trigger="click" placement="bottom-right" minColumnWidth={180} options={[...overflowTools.map((tool) => ({ content: tool, value: tool, disabled: toolDisabled(tool), ...(['参考几何', '分析'].includes(tool) ? { children: (tool === '参考几何' ? ['基准平面', '基准轴', '基准点'] : ['几何信息', '网格信息']).map((name) => ({ content: name, value: `${tool}:${name}` })) } : {}) })), { content: '返回任务详情', value: 'back' }]} onClick={(item) => item.value === 'back' ? onBack() : chooseTool(String(item.value).split(':')[0])}><button className="cad-tool" aria-label="更多 CAD 工具"><CadIcon name="更多工具" /><span>更多工具<ChevronDownIcon size={11} /></span></button></Dropdown></> }</div>
+    <div className="cad-toolbar" aria-label="CAD 专业工具栏">
+      <CadToolbarTools ready={loadState === 'ready'} readOnly={readOnly} activeTool={activeTool} sketchMode={Boolean(sketchDraft)} sketchTool={sketchTool} onChoose={chooseTool} onSketchChoose={(tool) => { setSketchTool(tool); setPendingPoints([]) }} onBack={onBack} />
       <div className="cad-task-actions">{comments.length > 0 && <Button variant="text" theme="primary" onClick={() => setCommentsOpen((value) => !value)}><ListDemandIcon size={18} />审核意见 {comments.length}{comments.some((comment) => comment.unread) && <i className="cad-unread" />}</Button>}<WorkspaceTaskActions saveState={saveState} savedAt={formatTime(savedAt)} readOnly={readOnly} disabled={readOnly || loadState !== 'ready' || saveState !== 'saved' || Boolean(activeTool)} disabledReason={readOnly ? '当前成果已锁定' : saveState === 'failed' ? '工程保存失败，请重试' : ''} onSubmit={requestSubmit} onSubmitSalesperson={onSubmitSalesperson} /></div>
     </div>
     <div className={`cad-body ${!panelOpen ? 'cad-body-no-inspector' : ''} ${commentsOpen ? 'cad-body-review' : ''}`}>
