@@ -40,6 +40,7 @@
   --type-secondary-line-height: 22px;
   --type-toolbar-size: 12px;
   --type-toolbar-line-height: 20px;
+  --professional-toolbar-height: 58px;
   --td-brand-color-1: var(--brand-1);
   --td-brand-color-2: var(--brand-2);
   --td-brand-color-3: var(--brand-3);
@@ -467,7 +468,7 @@ html[data-theme="dark"] .status-in-progress.t-tag { color: #8bb7ff; background: 
 .cad-placeholder-copy dd { margin: 2px 0 0; overflow: hidden; color: var(--td-text-color-primary); font-size: var(--type-body-size); line-height: var(--type-body-line-height); white-space: nowrap; text-overflow: ellipsis; }
 
 /* Professional workspace */
-.workspace-shell { height: 100%; min-height: 0; display: grid; grid-template-rows: 58px auto minmax(0, 1fr) 30px; overflow: hidden; background: #e9edef; color: #23302a; }
+.workspace-shell { height: 100%; min-height: 0; display: grid; grid-template-rows: var(--professional-toolbar-height) auto minmax(0, 1fr) 30px; overflow: hidden; background: #e9edef; color: #23302a; }
 .save-state { min-width: 112px; display: flex; align-items: center; justify-content: flex-end; gap: 6px; color: var(--td-text-color-secondary); font-size: var(--type-secondary-size); line-height: var(--type-secondary-line-height); white-space: nowrap; }
 .save-state i { width: 7px; height: 7px; border-radius: 50%; background: #d69a27; }
 .professional-toolbar { min-width: 0; display: flex; align-items: stretch; gap: 4px; overflow: hidden; padding: 6px 8px; white-space: nowrap; background: #fff; border-bottom: 1px solid var(--td-border-level-1-color); }

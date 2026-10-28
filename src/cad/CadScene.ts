@@ -101,6 +101,7 @@ export class CadScene {
   private sketches = new THREE.Group()
   private raycaster = new THREE.Raycaster()
   private resizeObserver: ResizeObserver
+  private themeObserver: MutationObserver
   private clipPlane = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0)
   private down: [number, number] = [0, 0]
   private frame = 0
@@ -111,7 +112,9 @@ export class CadScene {
   private frustumHeight = 150
   constructor(private host: HTMLElement, private options: CadSceneOptions) {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true })
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75)); this.renderer.setClearColor(0xffffff)
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75)); this.syncTheme()
+    this.themeObserver = new MutationObserver(this.syncTheme)
+    this.themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
     this.renderer.localClippingEnabled = true; this.renderer.shadowMap.enabled = false
     this.renderer.domElement.setAttribute('aria-label', 'CAD 三维模型视窗'); this.renderer.domElement.setAttribute('tabindex', '0')
     this.host.appendChild(this.renderer.domElement)
@@ -137,6 +140,7 @@ export class CadScene {
       this.options.onLoad(meshMetrics(geometry))
     }).catch(() => { if (!this.disposed) this.options.onError('下颌骨模型加载失败，请检查连接后重试。') })
   }
+  private syncTheme = () => this.renderer.setClearColor(getComputedStyle(this.host).getPropertyValue('--cad-viewport-bg').trim() || '#ffffff')
   private preventContext = (event: Event) => event.preventDefault()
   private cameraChanged = () => this.options.onCamera({ position: this.camera.position.toArray() as [number, number, number], target: this.controls.target.toArray() as [number, number, number], zoom: this.camera.zoom })
   private pointerDown = (event: PointerEvent) => { this.down = [event.clientX, event.clientY] }
@@ -206,7 +210,7 @@ export class CadScene {
   }
   getScale() { return 20 * this.host.clientHeight / this.frustumHeight * this.camera.zoom }
   dispose() {
-    this.disposed = true; cancelAnimationFrame(this.frame); this.resizeObserver.disconnect(); this.controls.removeEventListener('end', this.cameraChanged); this.controls.dispose()
+    this.disposed = true; cancelAnimationFrame(this.frame); this.resizeObserver.disconnect(); this.themeObserver.disconnect(); this.controls.removeEventListener('end', this.cameraChanged); this.controls.dispose()
     this.renderer.domElement.removeEventListener('pointerdown', this.pointerDown); this.renderer.domElement.removeEventListener('pointerup', this.pointerUp); this.renderer.domElement.removeEventListener('contextmenu', this.preventContext)
     disposeObject(this.scene); this.renderer.dispose(); this.renderer.domElement.remove()
   }
