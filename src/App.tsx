@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { nextCadVersion, snapshotCadSubmission } from './cad/cadProject'
+const CadWorkspace = lazy(() => import('./cad/CadWorkspace'))
 import { Button, Card, Dialog, Drawer, Dropdown, Input, Menu as TMenu, MessagePlugin, Popup, Switch, Table, Tag, Textarea, Tooltip } from 'tdesign-react'
 import type { PrimaryTableCol } from 'tdesign-react/es/table'
 import {
@@ -370,8 +372,8 @@ function App() {
         }
         setOpenTabs((tabs) => tabs.includes(taskId) ? tabs : [...tabs, taskId])
         setScreen({ kind: 'cad-workspace', taskId })
+        setReviewFocus(options?.openComments ? { taskId, commentId: options.commentId } : null)
         setNotificationsOpen(false)
-        void MessagePlugin.success(`任务 ${taskId}：已自动关联审核通过模型 ${task.approvedModel?.version ?? ''}`)
         return
       }
       if (task && !activeSeries[taskId]) setActiveSeries((value) => ({ ...value, [taskId]: task.series[0]?.id ?? '' }))
@@ -398,12 +400,20 @@ function App() {
     const action = guardAction; setGuardAction(null); action?.()
   }
   const submitReview = (taskId: string) => {
-    const stamp = new Date().toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
-    setTasks((items) => items.map((task) => task.id === taskId ? { ...task, status: '待审核', updated: '刚刚', review: [...task.review, { time: stamp, actor: '陈屿', status: '已提交审核', note: '工作版本 V04 已冻结并提交医生审核。' }] } : task))
     const current = tasks.find((task) => task.id === taskId)
-    if (current) setFlowEvents((events) => [...events, { id: `${taskId}-review-${crypto.randomUUID()}`, orderNo: current.orderNo, taskId, type: 'review-submit', name: '已提交审核', at: new Date().toISOString(), actor: '陈屿', role: '工程师', description: '工作版本 V04 已冻结并提交医生审核。', version: 'V04' }])
+    if (!current || current.status === '待审核' || current.status === '已完成') return
+    let version = 'V04'
+    if (current.taskType === 'CAD 设计') {
+      if (!isCadTaskUnlocked(current, tasks)) return
+      try { version = snapshotCadSubmission(taskId) }
+      catch { void MessagePlugin.error('CAD 工程版本保存失败，请返回工作区重试'); return }
+    }
+    const stamp = new Date().toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
+    const note = `工作版本 ${version} 已冻结并提交医生审核。`
+    setTasks((items) => items.map((task) => task.id === taskId ? { ...task, status: '待审核', updated: '刚刚', review: [...task.review, { time: stamp, actor: '陈屿', status: '已提交审核', note, ...(current.taskType === 'CAD 设计' ? { version } : {}) }] } : task))
+    setFlowEvents((events) => [...events, { id: `${taskId}-review-${crypto.randomUUID()}`, orderNo: current.orderNo, taskId, type: 'review-submit', name: '已提交审核', at: new Date().toISOString(), actor: '陈屿', role: '工程师', description: note, version }])
     setReviewComments((items) => items.map((comment) => comment.taskId === taskId ? { ...comment, submitted: comment.status === '已修改 · 待复核' } : comment))
-    setDirty((value) => ({ ...value, [taskId]: false })); setSubmitTask(null); void MessagePlugin.success(`任务 ${taskId} 已提交，版本 V04 已锁定`)
+    setDirty((value) => ({ ...value, [taskId]: false })); setSubmitTask(null); void MessagePlugin.success(`任务 ${taskId} 已提交，版本 ${version} 已锁定`)
   }
   const openNotice = (notice: Notice) => {
     setNotices((items) => items.map((item) => item.id === notice.id ? { ...item, unread: false, dismissed: notice.tone === 'warning' ? true : item.dismissed } : item))
@@ -444,13 +454,14 @@ function App() {
   const closeSettings = () => setScreen(settingsReturnScreen.current.kind === 'settings' ? { kind: 'home' } : settingsReturnScreen.current)
   const requestLogout = () => setLogoutVisible(true)
   const settingsReturnLabel = settingsReturnScreen.current.kind === 'home' ? '返回工作台' : settingsReturnScreen.current.kind === 'tasks' ? '返回我的任务' : settingsReturnScreen.current.kind === 'orders' ? '返回订单中心' : settingsReturnScreen.current.kind === 'reviews' ? '返回审核记录' : settingsReturnScreen.current.kind === 'detail' ? '返回任务详情' : '返回专业工作区'
+  const submissionVersion = submitTask && tasks.find((task) => task.id === submitTask)?.taskType === 'CAD 设计' ? nextCadVersion(submitTask) : 'V04'
 
   if (!authenticated) return <SignedOutScreen onReenter={() => setAuthenticated(true)} />
 
   return <div className="app" style={{ '--layout-sidebar-width': `${layout.sidebar}px`, '--layout-sidebar-collapsed-width': `${layout.sidebarCollapsed}px` } as React.CSSProperties}>
     <GlobalHeader screen={screen} openTabs={openTabs} tasks={tasks} user={userProfile} theme={resolvedTheme} goHome={() => goPlatform('home')} openWorkspace={openWorkspace} closeTab={closeTab} unreadCount={unreadCount} onThemeToggle={() => setThemePreference(resolvedTheme === 'light' ? 'dark' : 'light')} onNotifications={() => setNotificationsOpen(true)} onLock={() => setLocked(true)} onOpenSettings={openSettings} onLogout={requestLogout} />
     <div className="content-stage">
-      {screen.kind === 'workspace' && currentTask ? <Workspace task={currentTask} dirty={Boolean(dirty[currentTask.id])} savedAt={savedAt[currentTask.id]} mode={workspaceMode[currentTask.id] ?? 'view'} activeSeriesId={activeSeries[currentTask.id] ?? currentTask.series[0]?.id ?? ''} comments={reviewComments.filter((comment) => comment.taskId === currentTask.id)} reviewFocus={reviewFocus?.taskId === currentTask.id ? reviewFocus : null} reviewResetEnabled={reviewResetEnabled} onReviewFocusConsumed={() => setReviewFocus(null)} onUpdateComment={updateReviewComment} onResetReview={() => resetReviewDemo(currentTask.id)} onSeriesChange={(seriesId) => setActiveSeries((value) => ({ ...value, [currentTask.id]: seriesId }))} onModeChange={(mode) => setWorkspaceMode((value) => ({ ...value, [currentTask.id]: mode }))} onDirty={() => setDirty((value) => ({ ...value, [currentTask.id]: true }))} onSave={() => saveTask(currentTask.id)} onSubmit={() => { setSubmitTarget('doctor'); setSubmitTask(currentTask.id) }} onSubmitSalesperson={() => { setSubmitTarget('salesperson'); setSubmitTask(currentTask.id) }} /> : screen.kind === 'cad-workspace' && currentTask ? <CadWorkspace task={currentTask} onBack={() => setScreen({ kind: 'detail', taskId: currentTask.id })} /> :
+      {screen.kind === 'workspace' && currentTask ? <Workspace task={currentTask} dirty={Boolean(dirty[currentTask.id])} savedAt={savedAt[currentTask.id]} mode={workspaceMode[currentTask.id] ?? 'view'} activeSeriesId={activeSeries[currentTask.id] ?? currentTask.series[0]?.id ?? ''} comments={reviewComments.filter((comment) => comment.taskId === currentTask.id)} reviewFocus={reviewFocus?.taskId === currentTask.id ? reviewFocus : null} reviewResetEnabled={reviewResetEnabled} onReviewFocusConsumed={() => setReviewFocus(null)} onUpdateComment={updateReviewComment} onResetReview={() => resetReviewDemo(currentTask.id)} onSeriesChange={(seriesId) => setActiveSeries((value) => ({ ...value, [currentTask.id]: seriesId }))} onModeChange={(mode) => setWorkspaceMode((value) => ({ ...value, [currentTask.id]: mode }))} onDirty={() => setDirty((value) => ({ ...value, [currentTask.id]: true }))} onSave={() => saveTask(currentTask.id)} onSubmit={() => { setSubmitTarget('doctor'); setSubmitTask(currentTask.id) }} onSubmitSalesperson={() => { setSubmitTarget('salesperson'); setSubmitTask(currentTask.id) }} /> : screen.kind === 'cad-workspace' && currentTask && isCadTaskUnlocked(currentTask, tasks) ? <Suspense fallback={<div className="panel-empty">正在打开 CAD 工作区…</div>}><CadWorkspace reviewFocus={reviewFocus?.taskId === currentTask.id ? reviewFocus : null} onReviewFocusConsumed={() => setReviewFocus(null)} key={currentTask.id} task={currentTask} comments={reviewComments.filter((comment) => comment.taskId === currentTask.id)} onBack={() => setScreen({ kind: 'detail', taskId: currentTask.id })} onSubmit={() => { setSubmitTarget('doctor'); setSubmitTask(currentTask.id) }} onSubmitSalesperson={() => { setSubmitTarget('salesperson'); setSubmitTask(currentTask.id) }} renderReviewPanel={(bridge) => <ReviewCommentsPanel comments={reviewComments.filter((comment) => comment.taskId === currentTask.id)} selectedCommentId={bridge.selectedId} readOnly={currentTask.status === '待审核' || currentTask.status === '已完成'} syncState={bridge.syncState} syncedAt={bridge.syncedAt} resetEnabled={false} onSelect={(comment) => { bridge.onSelect(comment.id); if (comment.unread) updateReviewComment(comment.id, { unread: false }) }} onClose={bridge.onClose} onUpdate={updateReviewComment} onQueueSync={bridge.onQueueSync} onReset={() => {}} onSubmit={bridge.onSubmit} />} /></Suspense> :
         <PlatformShell screen={screen} goPlatform={goPlatform} collapsed={navCollapsed} onCollapsedChange={setNavCollapsed}>
           {screen.kind === 'home' && <HomeDashboard userName={userProfile.name} tasks={tasks} notices={notices} onNotice={openNotice} onDismissNotice={dismissNotice} onDetail={openTaskDetail} onOpen={openWorkspace} onAll={() => goPlatform('tasks')} />}
           {screen.kind === 'tasks' && <TaskList tasks={tasks} title="我的任务" onDetail={openTaskDetail} onOpen={openWorkspace} />}
@@ -465,7 +476,7 @@ function App() {
       <Button variant="outline" block onClick={() => setNotices((items) => items.map((item) => ({ ...item, unread: false })))}>全部标记为已读</Button>
     </Drawer>
     <Dialog visible={Boolean(submitTask)} header={submitTarget === 'doctor' ? '提交医生审核' : '提交业务员审核'} theme="warning" placement="center" width={520} confirmBtn={submitTarget === 'doctor' ? '确认提交审核' : '关闭'} cancelBtn={submitTarget === 'doctor' ? '取消' : null} onClose={() => setSubmitTask(null)} onConfirm={() => { if (!submitTask) return; if (submitTarget === 'doctor') submitReview(submitTask); else setSubmitTask(null) }}>
-      {submitTarget === 'doctor' ? <div className="dialog-copy"><p>确认提交任务 {submitTask} 的当前成果？</p><span>提交后将生成并锁定版本 V04。等待医生审核期间不能直接覆盖该版本；若审核退回，可基于已提交版本继续修改。</span><div><UserSafetyIcon size={17} />当前未保存修改将一并保存后提交。</div></div> : <div className="dialog-copy"><p>当前无法提交至业务员审核</p><span>该审核方式暂不可用，请稍后重试或联系管理员。</span></div>}
+      {submitTarget === 'doctor' ? <div className="dialog-copy"><p>确认提交任务 {submitTask} 的当前成果？</p><span>提交后将生成并锁定版本 {submissionVersion}。等待医生审核期间不能直接覆盖该版本；若审核退回，可基于已提交版本继续修改。</span><div><UserSafetyIcon size={17} />当前未保存修改将一并保存后提交。</div></div> : <div className="dialog-copy"><p>当前无法提交至业务员审核</p><span>该审核方式暂不可用，请稍后重试或联系管理员。</span></div>}
     </Dialog>
     <Dialog visible={Boolean(guardAction)} header="存在未保存修改" theme="warning" placement="center" width={560} footer={<div className="guard-actions"><Button theme="danger" variant="text" onClick={() => continueGuard(false)}>放弃修改</Button><span /><Button variant="outline" onClick={() => setGuardAction(null)}>继续编辑</Button><Button theme="primary" onClick={() => continueGuard(true)}>保存并离开</Button></div>} onClose={() => setGuardAction(null)}>
       <div className="dialog-copy"><p>离开前要保存当前工作吗？</p><span>任务 {currentWorkspaceId} 包含尚未保存的对象或视图调整。</span></div>
@@ -640,18 +651,6 @@ function Reviews({ tasks, onDetail }: { tasks: Task[]; onDetail: (id: string) =>
     { colKey: 'operation', title: '操作', width: 100, cell: ({ row }) => <Button variant="text" size="small" theme="primary" onClick={() => onDetail(row.task.id)}>查看任务</Button> },
   ]
   return <div className="page"><Card className="dashboard-card review-card table-card unified-list-card" bordered={false}><section className="list-page-heading"><h1>审核记录</h1></section><Table className="app-table" rowKey="recordId" data={records} columns={columns} size="small" hover bordered={false} tableLayout="fixed" /></Card></div>
-}
-
-function CadWorkspace({ task, onBack }: { task: Task; onBack: () => void }) {
-  const [loadState, setLoadState] = useState<'ready' | 'error'>(task.approvedModel ? 'ready' : 'error')
-  const model = task.approvedModel
-  return <div className="cad-workspace">
-    <header className="cad-workspace-toolbar"><div><Box size={18} /><strong>CAD 设计工作区</strong><span>任务 {task.id} · {task.title}</span></div><Button variant="outline" onClick={onBack}>返回任务详情</Button></header>
-    <main className="cad-workspace-body">
-      <aside className="cad-model-panel"><h2>关联模型</h2>{loadState === 'ready' && model ? <div className="cad-model-item"><span><Box size={20} /></span><div><strong>{model.name}</strong><small>{model.version} · {model.format ?? '格式未提供'}</small></div><Tag theme="success" variant="light">只读</Tag></div> : <div className="cad-load-error"><AssignmentErrorIcon size={28} /><strong>模型加载失败</strong><span>未找到可用的审核通过模型。</span><Button variant="outline" icon={<RefreshIcon size={16} />} onClick={() => setLoadState(task.approvedModel ? 'ready' : 'error')}>重试加载</Button></div>}</aside>
-      <section className="cad-canvas-placeholder"><div className="cad-placeholder-grid" aria-hidden="true" /><div className="cad-placeholder-copy"><Box size={44} /><h1>CAD 专业工作区</h1><p>已自动加载审核通过的上游模型。CAD 专业编辑功能暂未开放，当前可核对关联模型及版本信息。</p><dl><div><dt>模型</dt><dd>{model?.name ?? '未就绪'}</dd></div><div><dt>版本</dt><dd>{model?.version ?? '—'}</dd></div><div><dt>审核人</dt><dd>{model?.approvedBy ?? '—'}</dd></div></dl><Tooltip content="CAD 专业编辑功能暂未开放"><span className="disabled-action-wrap"><Button theme="primary" disabled>开始 CAD 编辑</Button></span></Tooltip></div></section>
-    </main>
-  </div>
 }
 
 function Workspace({ task, dirty, savedAt, mode, activeSeriesId, comments, reviewFocus, reviewResetEnabled, onReviewFocusConsumed, onUpdateComment, onResetReview, onSeriesChange, onModeChange, onDirty, onSave, onSubmit, onSubmitSalesperson }: { task: Task; dirty: boolean; savedAt?: string; mode: WorkspaceMode; activeSeriesId: string; comments: ReviewComment[]; reviewFocus: { taskId: string; commentId?: string } | null; reviewResetEnabled: boolean; onReviewFocusConsumed: () => void; onUpdateComment: (commentId: string, changes: Partial<Pick<ReviewComment, 'status' | 'replies' | 'unread' | 'submitted'>>) => void; onResetReview: () => void; onSeriesChange: (seriesId: string) => void; onModeChange: (mode: WorkspaceMode) => void; onDirty: () => void; onSave: () => void; onSubmit: () => void; onSubmitSalesperson: () => void }) {
