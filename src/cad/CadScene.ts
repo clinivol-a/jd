@@ -112,16 +112,14 @@ export class CadScene {
   constructor(private host: HTMLElement, private options: CadSceneOptions) {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true })
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75)); this.renderer.setClearColor(0xffffff)
-    this.renderer.localClippingEnabled = true; this.renderer.shadowMap.enabled = true; this.renderer.shadowMap.type = THREE.PCFShadowMap
+    this.renderer.localClippingEnabled = true; this.renderer.shadowMap.enabled = false
     this.renderer.domElement.setAttribute('aria-label', 'CAD 三维模型视窗'); this.renderer.domElement.setAttribute('tabindex', '0')
     this.host.appendChild(this.renderer.domElement)
     this.scene.add(this.reference, this.designs, this.sketches)
-    this.scene.add(new THREE.HemisphereLight(0xffffff, 0xb6a991, 2.7))
-    const key = new THREE.DirectionalLight(0xffffff, 3.3); key.position.set(60, 150, 160); key.castShadow = true
-    key.shadow.mapSize.set(2048, 2048); key.shadow.camera.left = -100; key.shadow.camera.right = 100; key.shadow.camera.top = 100; key.shadow.camera.bottom = -100; key.shadow.bias = -.0003
+    this.scene.add(new THREE.HemisphereLight(0xffffff, 0xd9dfe2, 2.1))
+    const key = new THREE.DirectionalLight(0xffffff, 1.4); key.position.set(80, 140, 120)
     this.scene.add(key)
-    const fill = new THREE.DirectionalLight(0xdbeaff, 2.2); fill.position.set(-100, 50, -100); this.scene.add(fill)
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(650, 650), new THREE.ShadowMaterial({ opacity: .11 })); ground.rotation.x = -Math.PI / 2; ground.position.y = -33.5; ground.receiveShadow = true; this.scene.add(ground)
+    const fill = new THREE.DirectionalLight(0xffffff, 1.2); fill.position.set(-100, 60, -100); this.scene.add(fill)
     this.camera.position.set(150, 75, 165)
     this.controls = new OrbitControls(this.camera, this.renderer.domElement); this.controls.enableDamping = true; this.controls.dampingFactor = .09; this.controls.minZoom = .25; this.controls.maxZoom = 8
     this.controls.addEventListener('end', this.cameraChanged)
@@ -132,8 +130,8 @@ export class CadScene {
     const animate = () => { if (this.disposed) return; this.controls.update(); this.renderer.render(this.scene, this.camera); this.frame = requestAnimationFrame(animate) }; animate()
     void loadJaw().then((geometry) => {
       if (this.disposed) return
-      const material = new THREE.MeshStandardMaterial({ color: '#dfd1b7', roughness: .64, metalness: .02, side: THREE.DoubleSide })
-      this.jaw = new THREE.Mesh(geometry.clone(), material); this.jaw.castShadow = true; this.jaw.receiveShadow = true; this.jaw.userData.objectId = 'jaw'; this.reference.add(this.jaw)
+      const material = new THREE.MeshStandardMaterial({ color: '#dfd1b7', roughness: .85, metalness: 0, side: THREE.DoubleSide })
+      this.jaw = new THREE.Mesh(geometry.clone(), material); this.jaw.userData.objectId = 'jaw'; this.reference.add(this.jaw)
       if (this.project) this.update(this.project, this.project.selectedId)
       this.fit(); if (this.project?.camera) this.restoreCamera(this.project.camera)
       this.options.onLoad(meshMetrics(geometry))
@@ -165,7 +163,7 @@ export class CadScene {
     this.designs.children.slice().forEach((object) => { this.designs.remove(object); disposeObject(object) })
     project.objects.filter((object) => object.kind !== 'reference').forEach((object) => {
       const activePreview = preview?.targetId === object.id ? preview : undefined
-      const material = new THREE.MeshStandardMaterial({ color: object.color, metalness: object.kind === 'guide' ? .05 : .68, roughness: .28, transparent: object.opacity < 1 || Boolean(activePreview), opacity: activePreview ? .72 : object.opacity, side: THREE.DoubleSide, emissive: selected === object.id ? '#102c25' : '#000000' })
+      const material = new THREE.MeshStandardMaterial({ color: object.color, metalness: object.kind === 'guide' ? 0 : .12, roughness: .7, transparent: object.opacity < 1 || Boolean(activePreview), opacity: activePreview ? .72 : object.opacity, side: THREE.DoubleSide, emissive: selected === object.id ? '#102c25' : '#000000' })
       const group = new THREE.Group(); group.visible = object.visible; group.position.set(...object.position)
       if (object.kind === 'plate') group.add(new THREE.Mesh(plateGeometry(object, activePreview), material))
       if (object.kind === 'guide') { const geometry = new THREE.TorusGeometry(30, 4, 12, 64, Math.PI); const mesh = new THREE.Mesh(geometry, material); mesh.rotation.x = Math.PI / 2; mesh.position.set(0, 0, 8); group.add(mesh) }
@@ -174,7 +172,7 @@ export class CadScene {
         const slot = new THREE.Mesh(new THREE.BoxGeometry(2.9, .35, .5), new THREE.MeshStandardMaterial({ color: '#344d60' })); slot.position.copy(screw.position).addScaledVector(normal, 2); slot.rotation.y = Math.atan2(normal.x, normal.z); group.add(slot)
       })
       if (object.kind === 'extrusion') { const sketch = project.sketches.find((item) => item.id === object.sketchId); const geometry = extrusionGeometry(sketch, object.distance ?? 8); const mesh = new THREE.Mesh(geometry, material); placeExtrusion(mesh, sketch, object.distance ?? 8); group.add(mesh) }
-      group.traverse((child) => { if (child instanceof THREE.Mesh) { child.userData.objectId = object.id; child.castShadow = true; child.receiveShadow = true } }); this.designs.add(group)
+      group.traverse((child) => { if (child instanceof THREE.Mesh) child.userData.objectId = object.id }); this.designs.add(group)
     })
     if (preview?.tool === '拉伸') {
       const mesh = new THREE.Mesh(extrusionGeometry(preview.sketch, preview.distance), new THREE.MeshStandardMaterial({ color: '#2f9d78', transparent: true, opacity: .45, side: THREE.DoubleSide })); placeExtrusion(mesh, preview.sketch, preview.direction); this.designs.add(mesh)

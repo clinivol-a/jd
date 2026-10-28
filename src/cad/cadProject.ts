@@ -34,9 +34,17 @@ export function readCadProject(taskId: string, modelId: string, upstreamVersion:
   return initialCadProject(taskId, modelId, upstreamVersion)
 }
 export function saveCadProject(project: CadProject): CadProject {
+  const previous = localStorage.getItem(projectKey(project.taskId))
+  if (previous) {
+    const saved = JSON.parse(previous) as CadProject
+    if (saved.schema === 1 && saved.savedAt && cadProjectContent(saved) === cadProjectContent(project)) return saved
+  }
   const saved = { ...project, savedAt: new Date().toISOString() }
   localStorage.setItem(projectKey(project.taskId), JSON.stringify(saved))
   return saved
+}
+export function cadProjectContent(project: CadProject) {
+  return JSON.stringify({ taskId: project.taskId, upstreamModelId: project.upstreamModelId, objects: project.objects, sketches: project.sketches, features: project.features })
 }
 export function readCadSnapshots(taskId: string): CadSnapshot[] {
   try { const value = JSON.parse(localStorage.getItem(snapshotKey(taskId)) ?? '[]'); return Array.isArray(value) ? value : [] } catch { return [] }

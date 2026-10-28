@@ -15,7 +15,7 @@
 .cad-tool-group-start { position: relative; padding-left: 9px; margin-left: 4px; }
 .cad-tool-group-start::before { content: ''; position: absolute; top: 10px; bottom: 10px; left: 0; width: 1px; background: var(--td-border-level-1-color); }
 .cad-tool-divider { width: 1px; height: 30px; margin: 0 8px; background: var(--td-border-level-1-color); }
-.cad-task-actions { display: flex; align-items: center; flex: 0 0 auto; gap: 8px; padding-left: 12px; border-left: 1px solid var(--td-border-level-1-color); }
+.cad-task-actions { display: flex; align-items: center; flex: 0 0 auto; gap: 8px; padding-left: 12px; }
 .cad-task-actions > .t-button { height: 36px; }
 .cad-task-actions .review-submit-main { height: 36px; gap: 8px; }
 .cad-save-state { min-width: 116px; display: inline-flex; align-items: center; justify-content: flex-end; gap: 5px; white-space: nowrap; color: var(--td-text-color-secondary); font-variant-numeric: tabular-nums; }
@@ -106,6 +106,12 @@
 .cad-plane-options { display: grid; gap: 10px; margin-top: 15px; }
 .cad-tool-footer { padding: 12px 18px; display: flex; align-items: center; gap: 8px; flex: 0 0 auto; border-top: 1px solid var(--td-border-level-1-color); }
 .cad-tool-footer > .t-button { flex: 1; }
+.cad-command-panel { width: 296px; max-width: calc(100% - 80px); max-height: min(490px, calc(100% - 28px)); position: absolute; top: 14px; left: 62px; z-index: 12; display: flex; flex-direction: column; color: var(--td-text-color-primary); background: var(--td-bg-color-container); border: 1px solid var(--td-border-level-1-color); border-radius: 6px; box-shadow: var(--td-shadow-1); }
+.cad-command-scroll { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+.cad-command-panel .cad-property-group { border-bottom: 0; }
+.cad-command-panel .cad-property-group > summary { padding-top: 10px; }
+.cad-command-panel .cad-panel-header { height: 38px; flex-basis: 38px; }
+.cad-command-panel .cad-tool-footer { flex-shrink: 0; padding: 10px 14px; }
 .cad-inspector-empty { min-height: 230px; padding: 30px; display: flex; align-items: center; justify-content: center; flex-direction: column; color: var(--td-text-color-secondary); text-align: center; }
 .cad-inspector-empty p { margin: 15px 0 5px; }.cad-inspector-empty span { color: var(--td-text-color-placeholder); }
 .cad-review-marker { position: absolute; width: 30px; height: 30px; color: white; background: var(--td-error-color); border: 2px solid #fff; border-radius: 50%; }
