@@ -2,12 +2,13 @@ export type CadObjectKind = 'reference' | 'plate' | 'screws' | 'guide' | 'extrus
 export type CadObject = {
   id: string; name: string; kind: CadObjectKind; visible: boolean; locked: boolean
   color: string; opacity: number; material: string; position: [number, number, number]
+  rotation?: [number, number, number]; scale?: [number, number, number];
   fillet: number; holes: { diameter: number; depth: number; offset: number }[]; distance?: number; sketchId?: string
 }
 export type SketchPrimitive = { kind: string; points: [number, number][] }
 export type CadSketch = { id: string; name: string; plane: 'XY' | 'XZ' | 'YZ'; primitives: SketchPrimitive[]; constraints: string[] }
 export type CadFeature = { id: string; name: string; tool: string; objectId?: string; at: string; parameters: Record<string, string | number> }
-export type CadCamera = { position: [number, number, number]; target: [number, number, number]; zoom: number }
+export type CadCamera = { position: [number, number, number]; target: [number, number, number]; zoom: number; frustumHeight?: number; projection?: 'orthographic' | 'perspective'; up?: [number, number, number] }
 export type CadProject = {
   schema: 1; taskId: string; upstreamModelId: string; upstreamVersion: string; version: string
   objects: CadObject[]; sketches: CadSketch[]; features: CadFeature[]; camera?: CadCamera; selectedId: string | null; savedAt: string | null

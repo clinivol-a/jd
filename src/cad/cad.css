@@ -158,3 +158,25 @@ html[data-theme="dark"] .cad-editor .cad-tree-selected { color: var(--brand-5); 
 @media (max-width: 1100px) {
   .cad-save-state { min-width: 98px; font-size: 12px; }
 }
+
+/* Camera and menus share the existing compact CAD surfaces. */
+.cad-context-menu { position: fixed; z-index: 2800; width: 218px; overflow-y: auto; padding: 5px; background: var(--td-bg-color-container); border: 1px solid var(--td-border-level-1-color); border-radius: 6px; box-shadow: var(--td-shadow-1); color: var(--td-text-color-primary); }
+.cad-context-menu button { display: flex; align-items: center; width: 100%; min-height: 32px; padding: 4px 10px; border: 0; border-radius: 4px; text-align: left; color: inherit; background: transparent; font: 400 14px/22px "PingFang SC", sans-serif; cursor: pointer; }
+.cad-context-menu button:hover:not(:disabled), .cad-context-menu button:focus-visible { background: var(--td-bg-color-container-hover); }
+.cad-context-menu button:focus-visible { outline: 1px solid var(--td-brand-color-focus); outline-offset: -1px; }
+.cad-context-menu button:disabled { color: var(--td-text-color-disabled); cursor: not-allowed; }
+.cad-context-menu .cad-menu-danger { color: var(--td-error-color); }
+.cad-history-tools { padding-right: 6px; margin-right: 6px; border-right: 1px solid var(--td-border-level-1-color); }
+.cad-history-tools + .cad-palette-group { margin-left: 0; padding-left: 0; border-left: 0; }
+.cad-cube-stage { position: relative; width: 84px; height: 84px; perspective: 400px; }
+.cad-cube-body { position: absolute; left: 15px; top: 15px; width: 54px; height: 54px; transform-style: preserve-3d; }
+.cad-view-cube .cad-cube-side { position: absolute; inset: 0; height: 54px; width: 54px; padding: 0; border-radius: 5px; backface-visibility: hidden; color: var(--cad-cube-fg); background: var(--cad-cube-bg); border-color: var(--cad-control-border); }
+.cad-cube-front { transform: translateZ(27px); }.cad-cube-back { transform: rotateY(180deg) translateZ(27px); }
+.cad-cube-right { transform: rotateY(90deg) translateZ(27px); }.cad-cube-left { transform: rotateY(-90deg) translateZ(27px); }
+.cad-cube-top { transform: rotateX(90deg) translateZ(27px); }.cad-cube-bottom { transform: rotateX(-90deg) translateZ(27px); }
+.cad-cube-axis { display: flex; gap: 16px; }
+.cad-view-cube .cad-view-options-trigger { height: 28px; display: flex; align-items: center; gap: 8px; }
+.cad-command-panel .cad-property-group > div > .t-button + .t-button { margin-top: 8px; }
+
+.cad-view-setting-actions { display: grid; gap: 8px; }
+.cad-view-setting-actions .t-button { width: 100%; }

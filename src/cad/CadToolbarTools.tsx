@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Dropdown, Tooltip } from 'tdesign-react'
-import { ChevronDownIcon } from 'tdesign-icons-react'
+import { ChevronDownIcon, RollbackIcon, RollfrontIcon } from 'tdesign-icons-react'
 import CadIcon from './CadIcon'
 import { cadSketchTools, cadToolbarGroups, cadToolById, fitCadToolbar } from './cadToolCatalog'
 import type { CadToolbarEntry, CadToolDefinition } from './cadToolCatalog'
 
 type Props = {
   ready: boolean; readOnly: boolean; activeTool: string | null; sketchMode: boolean; sketchTool: string
+  canUndo: boolean; canRedo: boolean; onUndo: () => void; onRedo: () => void
   onChoose: (command: string) => void; onSketchChoose: (tool: string) => void; onBack: () => void
 }
 const popupProps = { overlayClassName: 'cad-tool-menu' }
-export default function CadToolbarTools({ ready, readOnly, activeTool, sketchMode, sketchTool, onChoose, onSketchChoose, onBack }: Props) {
+export default function CadToolbarTools({ ready, readOnly, activeTool, sketchMode, sketchTool, canUndo, canRedo, onUndo, onRedo, onChoose, onSketchChoose, onBack }: Props) {
   const paletteRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(900)
   useEffect(() => {
@@ -20,7 +21,7 @@ export default function CadToolbarTools({ ready, readOnly, activeTool, sketchMod
     observer.observe(element)
     return () => observer.disconnect()
   }, [])
-  const { groups, hidden } = useMemo(() => fitCadToolbar(width), [width])
+  const { groups, hidden } = useMemo(() => fitCadToolbar(Math.max(0, width - 86)), [width])
   const disabled = (definition: CadToolDefinition) => !definition.available || !ready || (readOnly && !definition.readOnlySafe)
   const reason = (definition: CadToolDefinition) => !ready ? '请等待模型加载' : readOnly && !definition.readOnlySafe ? '当前成果已锁定' : ''
   const run = (id: string) => {
@@ -42,6 +43,7 @@ export default function CadToolbarTools({ ready, readOnly, activeTool, sketchMod
   const overflow = cadToolbarGroups.flatMap((group) => {
     const children = group.entries.filter((entry) => hiddenIds.has(entry.id)).map(entryOption)
     if (group.id === 'solid') children.push(commandOption('rib'))
+    if (group.id === 'transform') children.push(...['move-face', 'delete-face', 'replace-face'].map(commandOption))
     return children.length ? [{ value: `overflow-${group.id}`, content: group.name, children }] : []
   })
   const renderEntry = (entry: CadToolbarEntry) => {
@@ -58,6 +60,7 @@ export default function CadToolbarTools({ ready, readOnly, activeTool, sketchMod
     </span>
   }
   return <div className="cad-tools-scroll cad-tool-palette" ref={paletteRef} role="toolbar" aria-label={sketchMode ? '草图工具' : 'CAD 建模工具'}>
+    <div className="cad-palette-group cad-history-tools" role="group" aria-label="工程编辑历史"><Tooltip content="撤销（⌘/Ctrl+Z）"><span className="cad-tool-hit"><button type="button" className="cad-tool" aria-label="撤销" disabled={!canUndo} onClick={onUndo}><RollbackIcon size={20} /></button></span></Tooltip><Tooltip content="重做（⌘/Ctrl+Shift+Z、Ctrl+Y）"><span className="cad-tool-hit"><button type="button" className="cad-tool" aria-label="重做" disabled={!canRedo} onClick={onRedo}><RollfrontIcon size={20} /></button></span></Tooltip></div>
     {sketchMode ? <div className="cad-palette-group" role="group" aria-label="草图工具">{cadSketchTools.map((name) => <Tooltip key={name} content={name}><button type="button" className={`cad-tool${sketchTool === name ? ' cad-tool-active' : ''}`} aria-label={name} aria-pressed={sketchTool === name} onClick={() => onSketchChoose(name)}><CadIcon name={name} /></button></Tooltip>)}</div> : <>
       {groups.map((group) => <div className="cad-palette-group" role="group" aria-label={group.name} key={group.id}>{group.entries.map(renderEntry)}</div>)}
       <div className="cad-palette-group cad-palette-more"><Dropdown trigger="click" placement="bottom-right" minColumnWidth={244} maxColumnWidth={300} popupProps={popupProps} options={[...overflow, { value: 'back', content: <span className="cad-menu-command"><CadIcon name="返回" size={20} /><span>返回任务详情</span></span> }]} onClick={(item) => run(String(item.value))}><button type="button" className="cad-tool cad-tool-group-trigger" aria-label="更多工具" aria-haspopup="menu"><Tooltip content="更多工具"><span><CadIcon name="更多工具" /><ChevronDownIcon size={11} /></span></Tooltip></button></Dropdown></div>
