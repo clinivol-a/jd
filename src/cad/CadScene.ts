@@ -194,7 +194,11 @@ export class CadScene {
     this.controls.mouseButtons.LEFT = mode === '平移' ? THREE.MOUSE.PAN : mode === '缩放' ? THREE.MOUSE.DOLLY : THREE.MOUSE.ROTATE
     this.renderer.domElement.style.cursor = mode === '平移' ? 'grab' : mode === '缩放' ? 'zoom-in' : 'default'
   }
-  setSection(enabled: boolean, offset: number) { this.clipPlane.constant = offset; this.renderer.clippingPlanes = enabled ? [this.clipPlane] : [] }
+  setSection(enabled: boolean, offset: number, axis: 'X' | 'Y' | 'Z' = 'X', direction = 1) {
+    this.clipPlane.normal.set(axis === 'X' ? -direction : 0, axis === 'Y' ? -direction : 0, axis === 'Z' ? -direction : 0)
+    this.clipPlane.constant = offset * direction
+    this.renderer.clippingPlanes = enabled ? [this.clipPlane] : []
+  }
   setView(view: string) {
     const vectors: Record<string, [number, number, number]> = { 前: [0, 0, 220], 后: [0, 0, -220], 上: [0, 220, .01], 下: [0, -220, .01], 左: [-220, 0, 0], 右: [220, 0, 0], 等轴: [150, 75, 165] }
     this.camera.position.set(...(vectors[view] ?? vectors.等轴)); this.controls.target.set(0, 0, 0); this.controls.update(); this.cameraChanged()
