@@ -56,3 +56,33 @@ scene.camera = new THREE.OrthographicCamera(-100,100,75,-75,.1,3000); scene.came
 scene.controls = { target: new THREE.Vector3(), update() { scene.camera.lookAt(this.target) } }; scene.views = []; scene.frustumHeight = 150; scene.host = { clientWidth:1000, clientHeight:700 }; scene.renderer = { setSize() {} }; scene.options = { onCamera() {}, onView() {} }; scene.edges = false; scene.cameraChanged = () => {}
 scene.setView('前'); scene.setView('右'); assert.ok(scene.camera.position.x > 0); scene.previousView(); assert.ok(scene.camera.position.z > 0 && Math.abs(scene.camera.position.x) < .001, 'previous view restores the prior camera')
 console.log('PASS: CAD undo/redo, merged edits, branching, deletion restore, history bounds, reset, reference locks, transforms persistence failure, right-click drag threshold and camera history')
+
+// Display/navigation changes are isolated from engineering content and history.
+const { cadBoundaryGeometry } = load('src/cad/cadViewGeometry.ts')
+const openPlane = new THREE.PlaneGeometry(10,10); const originalPlane = Array.from(openPlane.attributes.position.array)
+const boundary = cadBoundaryGeometry(openPlane); assert.equal(boundary.attributes.position.count, 8, 'open plane has four boundary segments')
+const closedBox = new THREE.BoxGeometry(10,10,10); assert.equal(cadBoundaryGeometry(closedBox).attributes.position.count, 0, 'closed solid has no open boundaries, including duplicated face vertices')
+assert.deepEqual(Array.from(openPlane.attributes.position.array), originalPlane, 'boundary extraction never changes source geometry')
+globalThis.window = { devicePixelRatio: 1, matchMedia: () => ({ matches: true }) }
+globalThis.getComputedStyle = () => ({ getPropertyValue: () => '#52606b' })
+scene.reference = new THREE.Group(); scene.designs = new THREE.Group(); scene.shading = 'shaded'; scene.boundary = false
+const mesh = new THREE.Mesh(openPlane, new THREE.MeshStandardMaterial({ color: '#dfd1b7', opacity: .8, transparent: true })); scene.reference.add(mesh); scene.reference.add(new THREE.Mesh(openPlane,mesh.material))
+scene.setShading('wireframe'); assert.equal(mesh.material.wireframe,true)
+scene.setShading('translucent'); assert.equal(mesh.material.opacity,.28); assert.equal(mesh.material.depthWrite,false)
+scene.setShading('shaded'); assert.equal(mesh.material.opacity,.8); assert.equal(mesh.material.wireframe,false); assert.equal(mesh.material.color.getHexString(),'dfd1b7')
+scene.setShading('edges'); assert.equal(mesh.children.filter((child) => child.userData.cadEdges && child.visible).length,1)
+scene.setBoundary(true); assert.equal(mesh.children.filter((child) => child.userData.cadBoundary && child.visible).length,1)
+scene.setBoundary(false); assert.equal(mesh.children.filter((child) => child.userData.cadBoundary && child.visible).length,0)
+for (const view of ['前','后','左','右','上','下','等轴','二等轴','三轴']) { scene.setView(view); assert.ok(scene.camera.position.toArray().every(Number.isFinite)); assert.ok(scene.camera.quaternion.toArray().every(Number.isFinite)) }
+const cameraBefore = scene.captureView(); scene.rotateView('roll-right',90); assert.notDeepEqual(scene.camera.up.toArray(),cameraBefore.up); scene.previousView(); assert.deepEqual(scene.captureView().position,cameraBefore.position)
+scene.setDirection([1,-1,-1]); assert.ok(scene.camera.position.x>0 && scene.camera.position.y<0 && scene.camera.position.z<0)
+scene.raycaster = new THREE.Raycaster(); const zoomBefore = scene.camera.zoom; assert.equal(scene.zoomWindow({x:250,y:175,width:500,height:350}),true); assert.ok(scene.camera.zoom>zoomBefore)
+assert.equal(scene.zoomWindow({x:0,y:0,width:2,height:2}),false)
+let ratio; scene.renderer.setPixelRatio = (value) => { ratio=value }; scene.setHighQuality(true); assert.equal(ratio,1.5); scene.setHighQuality(false); assert.equal(ratio,1)
+const { cadToolbarGroups, cadPaletteWidth, fitCadToolbar, cadToolDefinitions } = load('src/cad/cadToolCatalog.ts')
+const full = fitCadToolbar(cadPaletteWidth(cadToolbarGroups)); assert.equal(full.hidden.length,0)
+const compact = fitCadToolbar(950); const allIds = cadToolbarGroups.flatMap((group) => group.entries.map((entry) => entry.id)); const visibleIds = compact.groups.flatMap((group) => group.entries.map((entry) => entry.id))
+assert.deepEqual([...visibleIds,...compact.hidden.map((entry) => entry.id)],allIds,'responsive overflow preserves a contiguous tail and the reference order')
+const configured = new Set(cadToolbarGroups.flatMap((group) => group.entries.flatMap((entry) => entry.children ?? [entry.primary])))
+for (const definition of cadToolDefinitions) assert.ok(configured.has(definition.id), `${definition.id} must remain reachable in its tool group`)
+console.log('PASS: open boundaries, real shading modes, material restoration, camera directions/roll/window zoom, render resolution, toolbar order and command reachability')

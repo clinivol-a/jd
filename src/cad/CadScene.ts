@@ -3,6 +3,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { STLLoader } from 'three/addons/loaders/STLLoader.js'
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js'
 import { TessellateModifier } from 'three/addons/modifiers/TessellateModifier.js'
+import { cadBoundaryGeometry } from './cadViewGeometry'
+import type { CadShading } from './cadViewGeometry'
 import { cadAsset } from './cadProject'
 import type { CadCamera, CadMetrics, CadObject, CadPreview, CadProject, CadSketch, SketchPrimitive } from './cadProject'
 
@@ -88,7 +90,7 @@ function disposeObject(object: THREE.Object3D) {
   object.traverse((child) => { const mesh = child as THREE.Mesh; mesh.geometry?.dispose(); const materials = mesh.material ? (Array.isArray(mesh.material) ? mesh.material : [mesh.material]) : []; materials.forEach((material) => material.dispose()) })
 }
 export function isCadPointerClick(from: [number, number], to: [number, number]) { return Math.hypot(to[0] - from[0], to[1] - from[1]) <= 5 }
-export type CadViewState = { projection: 'orthographic' | 'perspective'; edges: boolean; hasPrevious: boolean; cubeMatrix: string }
+export type CadViewState = { projection: 'orthographic' | 'perspective'; edges: boolean; hasPrevious: boolean; cubeMatrix: string; cubeQuaternion: [number, number, number, number]; shading: CadShading; highQuality: boolean; boundary: boolean; normalToSketch: boolean }
 export type CadSceneOptions = {
   onLoad: (metrics: CadMetrics) => void; onError: (message: string) => void
   onContext: (id: string | null, x: number, y: number) => void; onView: (state: CadViewState) => void;
@@ -112,6 +114,12 @@ export class CadScene {
   private gestureStart?: CadCamera
   private lastViewTick = 0
   private edges = false
+  private shading: CadShading = 'shaded'
+  private highQuality = false
+  private boundary = false
+  private normalToSketch = true
+  private transition?: { from: THREE.Quaternion; to: THREE.Quaternion; started: number; target: THREE.Vector3; distance: number }
+
   private planes = new THREE.Group()
   private frame = 0
   private disposed = false
@@ -145,7 +153,7 @@ export class CadScene {
     this.renderer.domElement.addEventListener('pointerup', this.pointerUp)
     this.renderer.domElement.addEventListener('contextmenu', this.preventContext)
     this.resizeObserver = new ResizeObserver(() => this.resize()); this.resizeObserver.observe(host); this.resize()
-    const animate = () => { if (this.disposed) return; this.controls.update(); this.renderer.render(this.scene, this.camera); this.frame = requestAnimationFrame(animate) }; animate()
+    const animate = () => { if (this.disposed) return; this.advanceView(); this.controls.update(); this.renderer.render(this.scene, this.camera); this.frame = requestAnimationFrame(animate) }; animate()
     void loadJaw().then((geometry) => {
       if (this.disposed) return
       const material = new THREE.MeshStandardMaterial({ color: '#dfd1b7', roughness: .85, metalness: 0, side: THREE.DoubleSide })
@@ -155,7 +163,7 @@ export class CadScene {
       this.options.onLoad(meshMetrics(geometry))
     }).catch(() => { if (!this.disposed) this.options.onError('下颌骨模型加载失败，请检查连接后重试。') })
   }
-  private syncTheme = () => { this.renderer.setClearColor(getComputedStyle(this.host).getPropertyValue('--cad-viewport-bg').trim() || '#ffffff'); if (this.edges) this.applyEdges() }
+  private syncTheme = () => { this.renderer.setClearColor(getComputedStyle(this.host).getPropertyValue('--cad-viewport-bg').trim() || '#ffffff'); if (this.edges || this.boundary) this.applyEdges() }
   private createControls() {
     const controls = new OrbitControls(this.camera, this.renderer.domElement)
     controls.enableDamping = true; controls.dampingFactor = .09; controls.minZoom = .25; controls.maxZoom = 8
@@ -170,7 +178,7 @@ export class CadScene {
   private pose(): CadCamera { return { position: this.camera.position.toArray() as [number, number, number], target: this.controls.target.toArray() as [number, number, number], zoom: this.camera.zoom, frustumHeight: this.frustumHeight, projection: this.camera instanceof THREE.PerspectiveCamera ? 'perspective' : 'orthographic', up: this.camera.up.toArray() as [number, number, number] } }
   private sameView(a: CadCamera, b: CadCamera) { return (a.projection ?? 'orthographic') === (b.projection ?? 'orthographic') && Math.abs(a.zoom - b.zoom) < 1e-6 && Math.abs((a.frustumHeight ?? 150) - (b.frustumHeight ?? 150)) < 1e-5 && [...a.position, ...a.target, ...(a.up ?? [0,1,0])].every((value, index) => Math.abs(value - [...b.position, ...b.target, ...(b.up ?? [0,1,0])][index]) < 1e-5) }
   private remember() { const pose = this.pose(); if (!this.views.length || !this.sameView(this.views[this.views.length - 1], pose)) this.views.push(pose); if (this.views.length > 20) this.views.shift() }
-  private cameraStart = () => { this.gestureStart = this.pose() }
+  private cameraStart = () => { this.transition = undefined; this.gestureStart = this.pose() }
   private cameraEnd = () => {
     if (this.gestureStart && !this.sameView(this.gestureStart, this.pose())) { this.views.push(this.gestureStart); if (this.views.length > 20) this.views.shift() }
     this.gestureStart = undefined; this.lastViewTick = 0; this.cameraChanged()
@@ -182,7 +190,7 @@ export class CadScene {
     this.options.onCamera(this.pose())
     const flip = new THREE.Matrix4().makeScale(1, -1, 1)
     const orientation = flip.clone().multiply(new THREE.Matrix4().makeRotationFromQuaternion(this.camera.quaternion.clone().invert())).multiply(flip)
-    this.options.onView({ projection: this.camera instanceof THREE.PerspectiveCamera ? 'perspective' : 'orthographic', edges: this.edges, hasPrevious: this.views.length > 0, cubeMatrix: `matrix3d(${orientation.elements.join(',')})` })
+    this.options.onView({ projection: this.camera instanceof THREE.PerspectiveCamera ? 'perspective' : 'orthographic', edges: this.edges, hasPrevious: this.views.length > 0, cubeMatrix: `matrix3d(${orientation.elements.join(',')})`, cubeQuaternion: this.camera.quaternion.clone().invert().toArray() as [number, number, number, number], shading: this.shading, highQuality: this.highQuality, boundary: this.boundary, normalToSketch: this.normalToSketch })
   }
   private pick(clientX: number, clientY: number) {
     const bounds = this.host.getBoundingClientRect()
@@ -213,7 +221,7 @@ export class CadScene {
   update(project: CadProject, selected: string | null, preview?: CadPreview, draft?: CadSketch) {
     this.project = project
     const jaw = project.objects.find((object) => object.id === 'jaw')
-    if (this.jaw && jaw) { this.jaw.visible = jaw.visible; const material = this.jaw.material as THREE.MeshStandardMaterial; material.color.set(jaw.color); material.emissive.set(selected === 'jaw' ? '#0b3024' : '#000000'); material.opacity = jaw.opacity; material.transparent = jaw.opacity < 1 }
+    if (this.jaw && jaw) { this.jaw.visible = jaw.visible; const material = this.jaw.material as THREE.MeshStandardMaterial; material.color.set(jaw.color); material.emissive.set(selected === 'jaw' ? '#0b3024' : '#000000'); material.opacity = jaw.opacity; material.userData.displayOpacity = jaw.opacity; material.transparent = jaw.opacity < 1 }
     this.designs.children.slice().forEach((object) => { this.designs.remove(object); disposeObject(object) })
     project.objects.filter((object) => object.kind !== 'reference').forEach((object) => {
       const activePreview = preview?.targetId === object.id ? preview : undefined
@@ -240,7 +248,7 @@ export class CadScene {
     }))
     this.applyEdges()
   }
-  setSketchPlane(plane: CadSketch['plane'] | null) { this.sketchPlane = plane; this.controls.enableRotate = !plane; if (plane) this.setView(plane === 'XY' ? '前' : plane === 'XZ' ? '上' : '右') }
+  setSketchPlane(plane: CadSketch['plane'] | null) { this.sketchPlane = plane; this.controls.enableRotate = !plane; if (plane && this.normalToSketch) this.setView(plane === 'XY' ? '前' : plane === 'XZ' ? '上' : '右') }
   setNavigation(mode: string) {
     this.navigation = mode
     this.controls.mouseButtons.LEFT = mode === '平移' ? THREE.MOUSE.PAN : mode === '缩放' ? THREE.MOUSE.DOLLY : THREE.MOUSE.ROTATE
@@ -251,12 +259,53 @@ export class CadScene {
     this.clipPlane.constant = offset * direction
     this.renderer.clippingPlanes = enabled ? [this.clipPlane] : []
   }
-  setView(view: string, remember = true) {
+  setView(view: string, remember = true, smooth = false) {
+    const vectors: Record<string, [number, number, number]> = { 前: [0, 0, 1], 后: [0, 0, -1], 上: [0, 1, .0001], 下: [0, -1, .0001], 左: [-1, 0, 0], 右: [1, 0, 0], 等轴: [1, 1, 1], 二等轴: [1, .55, 1], 三轴: [1, .65, 1.35] }
+    const direction = vectors[view]
+    if (direction) this.setDirection(direction, remember, smooth)
+  }
+  setDirection(direction: [number, number, number], remember = true, smooth = true, up = new THREE.Vector3(0, 1, 0)) {
     if (remember) this.remember()
-    const vectors: Record<string, [number, number, number]> = { 前: [0, 0, 1], 后: [0, 0, -1], 上: [0, 1, .0001], 下: [0, -1, .0001], 左: [-1, 0, 0], 右: [1, 0, 0], 等轴: [1, .5, 1.1] }
-    const distance = Math.max(10, this.camera.position.distanceTo(this.controls.target))
-    this.camera.up.set(0, 1, 0); this.camera.position.copy(this.controls.target).add(new THREE.Vector3(...(vectors[view] ?? vectors.等轴)).normalize().multiplyScalar(distance))
-    this.controls.update(); this.lastViewTick = 0; this.cameraChanged()
+    const normal = new THREE.Vector3(...direction).normalize()
+    if (!normal.lengthSq()) return
+    if (Math.abs(normal.dot(up)) > .9999) up = new THREE.Vector3(0, 0, normal.y > 0 ? -1 : 1)
+    const target = this.controls.target.clone(); const distance = Math.max(10, this.camera.position.distanceTo(target))
+    const to = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(normal, new THREE.Vector3(), up))
+    if (smooth && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) this.transition = { from: this.camera.quaternion.clone(), to, started: performance.now(), target, distance }
+    else { this.transition = undefined; this.camera.up.copy(up); this.camera.position.copy(target).addScaledVector(normal, distance); this.controls.update(); this.lastViewTick = 0; this.cameraChanged() }
+  }
+  private advanceView() {
+    const transition = this.transition; if (!transition) return
+    const t = Math.min(1, (performance.now() - transition.started) / 240)
+    const rotation = transition.from.clone().slerp(transition.to, t * t * (3 - 2 * t))
+    this.camera.position.copy(transition.target).add(new THREE.Vector3(0,0,transition.distance).applyQuaternion(rotation))
+    this.camera.up.set(0,1,0).applyQuaternion(rotation); this.controls.target.copy(transition.target)
+    if (t === 1) this.transition = undefined
+  }
+  rotateView(axis: 'left' | 'right' | 'up' | 'down' | 'roll-left' | 'roll-right', degrees = 15) {
+    const normal = this.camera.position.clone().sub(this.controls.target).normalize()
+    const rotationAxis = axis.startsWith('roll') ? normal : axis === 'left' || axis === 'right' ? this.camera.up.clone() : new THREE.Vector3(1,0,0).applyQuaternion(this.camera.quaternion)
+    const sign = axis === 'right' || axis === 'down' || axis === 'roll-right' ? -1 : 1
+    const rotation = new THREE.Quaternion().setFromAxisAngle(rotationAxis, THREE.MathUtils.degToRad(degrees * sign))
+    const up = this.camera.up.clone().applyQuaternion(rotation)
+    this.setDirection(normal.applyQuaternion(rotation).toArray() as [number, number, number], true, true, up)
+  }
+  captureView() { return this.pose() }
+  recallView(camera: CadCamera) { this.remember(); this.restoreCamera(camera) }
+  zoomWindow(rect: { x: number; y: number; width: number; height: number }) {
+    if (rect.width < 8 || rect.height < 8) return false
+    this.remember()
+    const width = this.host.clientWidth; const height = this.host.clientHeight
+    const center = new THREE.Vector2((rect.x + rect.width / 2) / width * 2 - 1, 1 - (rect.y + rect.height / 2) / height * 2)
+    this.camera.updateMatrixWorld(true); this.raycaster.setFromCamera(center, this.camera)
+    const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(this.camera.getWorldDirection(new THREE.Vector3()), this.controls.target)
+    const point = this.raycaster.ray.intersectPlane(plane, new THREE.Vector3()); if (!point) return false
+    const offset = this.camera.position.clone().sub(this.controls.target)
+    const factor = Math.max(rect.width / width, rect.height / height, .025)
+    this.controls.target.copy(point)
+    if (this.camera instanceof THREE.PerspectiveCamera) this.camera.position.copy(point).add(offset.multiplyScalar(factor))
+    else { this.camera.position.copy(point).add(offset); this.camera.zoom = Math.min(30, this.camera.zoom / factor) }
+    this.controls.update(); this.resize(); return true
   }
   previousView() { let pose = this.views.pop(); while (pose && this.sameView(pose, this.pose())) pose = this.views.pop(); if (pose) this.restoreCamera(pose); else { this.lastViewTick = 0; this.cameraChanged() } }
   resetView() { this.remember(); this.setView('等轴', false); this.fit(undefined, false) }
@@ -281,6 +330,7 @@ export class CadScene {
     return box
   }
   fit(id?: string, remember = true) {
+    this.transition = undefined
     const box = this.objectBox(id); if (box.isEmpty()) return false
     if (remember) this.remember()
     const center = box.getCenter(new THREE.Vector3())
@@ -295,16 +345,30 @@ export class CadScene {
     this.controls.update(); this.resize(); return true
   }
   restoreCamera(camera: CadCamera) {
+    this.transition = undefined
     this.setProjection(camera.projection ?? 'orthographic', false)
     if (camera.frustumHeight) this.frustumHeight = camera.frustumHeight
     this.camera.position.set(...camera.position); this.camera.up.set(...(camera.up ?? [0,1,0])); this.camera.zoom = camera.zoom; this.controls.target.set(...camera.target); this.camera.updateProjectionMatrix(); this.controls.update(); this.resize(); this.lastViewTick = 0; this.cameraChanged()
   }
   setReferencePlanes(visible: boolean, overrides: Partial<Record<string, boolean>> = {}) { this.planes.children.forEach((plane) => { plane.visible = overrides[plane.name] ?? visible }) }
-  setEdges(enabled: boolean) { this.edges = enabled; this.applyEdges(); this.lastViewTick = 0; this.cameraChanged() }
+  setEdges(enabled: boolean) { this.setShading(enabled ? 'edges' : 'shaded') }
+  setShading(mode: CadShading) { this.shading = mode; this.edges = mode === 'edges'; this.applyEdges(); this.lastViewTick = 0; this.cameraChanged() }
+  setHighQuality(enabled: boolean) { this.highQuality = enabled; this.renderer.setPixelRatio(enabled ? Math.min(window.devicePixelRatio * 1.5, 3) : Math.min(window.devicePixelRatio, 1.75)); this.resize() }
+  setBoundary(enabled: boolean) { this.boundary = enabled; this.applyEdges(); this.lastViewTick = 0; this.cameraChanged() }
+  setNormalToSketch(enabled: boolean) { this.normalToSketch = enabled; if (enabled && this.sketchPlane) this.setView(this.sketchPlane === 'XY' ? '前' : this.sketchPlane === 'XZ' ? '上' : '右'); this.lastViewTick = 0; this.cameraChanged() }
+
   private applyEdges() {
     const color = getComputedStyle(this.host).getPropertyValue('--cad-control-fg').trim() || '#52606b'
     ;[this.reference, this.designs].forEach((group) => group.traverse((object) => {
       if (!(object instanceof THREE.Mesh)) return
+      const material = object.material as THREE.MeshStandardMaterial
+      if (material.userData.displayOpacity === undefined) material.userData.displayOpacity = material.opacity
+      material.wireframe = this.shading === 'wireframe'
+      material.opacity = this.shading === 'translucent' ? Math.min(.28, material.userData.displayOpacity) : material.userData.displayOpacity
+      material.transparent = material.opacity < 1; material.depthWrite = !material.transparent
+      let boundary = object.children.find((child) => child.userData.cadBoundary) as THREE.LineSegments | undefined
+      if (!boundary && this.boundary) { boundary = new THREE.LineSegments(cadBoundaryGeometry(object.geometry), new THREE.LineBasicMaterial({ color: '#d58335', depthTest: true })); boundary.userData.cadBoundary = true; object.add(boundary) }
+      if (boundary) boundary.visible = this.boundary
       let lines = object.children.find((child) => child.userData.cadEdges) as THREE.LineSegments | undefined
       if (!lines && this.edges) { lines = new THREE.LineSegments(new THREE.EdgesGeometry(object.geometry, 30), new THREE.LineBasicMaterial({ color, transparent: true, opacity: .65 })); lines.userData.cadEdges = true; object.add(lines) }
       if (lines) { lines.visible = this.edges; (lines.material as THREE.LineBasicMaterial).color.set(color) }
