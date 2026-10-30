@@ -959,3 +959,28 @@ html[data-theme="dark"] .view-3.view-3-dark .viewport-selection { color: #d9e4e7
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+/* Shared CAD/reconstruction panel mechanics; mounted panels retain their state. */
+.workspace-body.unified-workspace-body { grid-template-columns: var(--series-panel-width) 1px minmax(0,1fr) 1px var(--object-panel-width); }
+.workspace-left-panel { grid-column: 1; grid-row: 1; min-width: 0; min-height: 0; overflow: hidden; }
+.workspace-left-panel > aside { height: 100%; }
+.workspace-right-panel { grid-column: 5; grid-row: 1; min-width: 0; min-height: 0; overflow: hidden; }
+.workspace-right-panel > aside { height: 100%; }
+.unified-workspace-body > .view-area { grid-column: 3; grid-row: 1; }
+.workspace-resizer-left { grid-column: 2; grid-row: 1; touch-action: none; }
+.workspace-resizer-right { grid-column: 4; grid-row: 1; touch-action: none; }
+.unified-workspace-body > [hidden] { display: none; }
+.workspace-resizing { cursor: col-resize; user-select: none; }
+.workspace-resizing .view-grid { pointer-events: none; }
+.context-tool-symbol { display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: 18px; }
+.context-tool-symbol > svg:first-child { width: 18px; height: 18px; }
+.context-tool-symbol > .tool-chevron { width: 11px; height: 11px; }
+.dashboard-page { --dashboard-data-row-height: 64px; --dashboard-table-head-height: 44px; --dashboard-section-head-height: 64px; }
+.recent-card .section-heading, .attention-card .section-heading { height: var(--dashboard-section-head-height); min-height: var(--dashboard-section-head-height); box-sizing: border-box; }
+.recent-table-head, .dashboard-notice-head { height: var(--dashboard-table-head-height); min-height: var(--dashboard-table-head-height); }
+.recent-item, .dashboard-notice-row, .dashboard-notice-main { height: var(--dashboard-data-row-height); min-height: var(--dashboard-data-row-height); box-sizing: border-box; }
+.recent-table, .dashboard-notice-table { min-height: calc(var(--dashboard-table-head-height) + 3 * var(--dashboard-data-row-height) + 12px); }
+.dashboard-notice-head, .dashboard-notice-main { grid-template-columns: minmax(0,1.2fr) minmax(0,1.5fr) 70px 40px 16px; }
+.notice-kind, .notice-kind .t-popup__reference, .notice-summary { min-width: 0; }
+.notice-kind strong, .notice-summary { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recent-item .t-popup__reference { min-width: 0; overflow: hidden; }
+html[data-theme="dark"] .panel-edge-handle { background: var(--td-bg-color-container); }

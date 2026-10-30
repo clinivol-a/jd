@@ -1,8 +1,9 @@
-export type CadObjectKind = 'reference' | 'plate' | 'screws' | 'guide' | 'extrusion'
+export type CadObjectKind = 'reference' | 'plate' | 'screws' | 'guide' | 'extrusion' | 'generated' | 'curve' | 'datum'
 export type CadObject = {
   id: string; name: string; kind: CadObjectKind; visible: boolean; locked: boolean
   color: string; opacity: number; material: string; position: [number, number, number]
   rotation?: [number, number, number]; scale?: [number, number, number];
+  construction?: { type: string; parameters: Record<string, string | number> }; thickness?: number; chamfer?: number; shellThickness?: number; normalOffset?: number; draft?: { axis: string; angle: number };
   fillet: number; holes: { diameter: number; depth: number; offset: number }[]; distance?: number; sketchId?: string
 }
 export type SketchPrimitive = { kind: string; points: [number, number][] }

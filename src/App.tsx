@@ -1,5 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { snapshotCadSubmission } from './cad/cadProject'
+import { useCadPanels } from './cad/useCadPanels'
+import HeaderHelp from './HeaderHelp'
 import WorkspaceTaskActions from './WorkspaceTaskActions'
 import ObjectStateIcon from './ObjectStateIcon'
 const CadWorkspace = lazy(() => import('./cad/CadWorkspace'))
@@ -59,7 +61,7 @@ type Task = {
 type SettingsSection = 'profile' | 'security' | 'preferences'
 type ThemePreference = 'light' | 'dark' | 'system'
 type ResolvedTheme = 'light' | 'dark'
-type Screen = { kind: 'home' | 'tasks' | 'orders' | 'reviews' } | { kind: 'detail' | 'workspace' | 'cad-workspace'; taskId: string } | { kind: 'settings'; section: SettingsSection }
+type Screen = { kind: 'home' | 'tasks' | 'reviews' } | { kind: 'detail' | 'workspace' | 'cad-workspace'; taskId: string } | { kind: 'settings'; section: SettingsSection }
 type UserProfile = { name: string; employeeId: string; role: string; department: string; avatar: string; phone: string; email: string }
 type NotificationPreferences = { taskAssigned: boolean; reviewResult: boolean; doctorComments: boolean; systemMessages: boolean }
 type Notice = { id: number; title: string; detail: string; time: string; unread: boolean; dismissed?: boolean; taskId?: string; tone: 'info' | 'success' | 'warning' | 'neutral' }
@@ -99,7 +101,7 @@ const initialNotices: Notice[] = [
 
 const navItems = [
   { key: 'home', label: '工作台', icon: HomeIcon }, { key: 'tasks', label: '我的任务', icon: TaskIcon },
-  { key: 'orders', label: '订单中心', icon: FileIcon }, { key: 'reviews', label: '审核记录', icon: TaskCheckedIcon },
+  { key: 'reviews', label: '审核记录', icon: TaskCheckedIcon },
 ] as const
 const workspaceModes: { key: WorkspaceMode; label: string; icon: typeof Eye }[] = [
   { key: 'file', label: '文件', icon: FilePlus2 }, { key: 'view', label: '视图', icon: Eye },
@@ -358,7 +360,7 @@ function App() {
   const currentTask = currentWorkspaceId ? tasks.find((task) => task.id === currentWorkspaceId) : undefined
   const unreadCount = notices.filter((notice) => notice.unread).length
   const runWithGuard = (action: () => void) => { if (currentWorkspaceId && dirty[currentWorkspaceId]) setGuardAction(() => action); else action() }
-  const goPlatform = (kind: 'home' | 'tasks' | 'orders' | 'reviews') => runWithGuard(() => setScreen({ kind }))
+  const goPlatform = (kind: 'home' | 'tasks' | 'reviews') => runWithGuard(() => setScreen({ kind }))
   const openTaskDetail = (taskId: string) => {
     const task = tasks.find((item) => item.id === taskId)
     if (!task) return
@@ -463,7 +465,7 @@ function App() {
   }
   const closeSettings = () => setScreen(settingsReturnScreen.current.kind === 'settings' ? { kind: 'home' } : settingsReturnScreen.current)
   const requestLogout = () => setLogoutVisible(true)
-  const settingsReturnLabel = settingsReturnScreen.current.kind === 'home' ? '返回工作台' : settingsReturnScreen.current.kind === 'tasks' ? '返回我的任务' : settingsReturnScreen.current.kind === 'orders' ? '返回订单中心' : settingsReturnScreen.current.kind === 'reviews' ? '返回审核记录' : settingsReturnScreen.current.kind === 'detail' ? '返回任务详情' : '返回专业工作区'
+  const settingsReturnLabel = settingsReturnScreen.current.kind === 'home' ? '返回工作台' : settingsReturnScreen.current.kind === 'tasks' ? '返回我的任务' : settingsReturnScreen.current.kind === 'reviews' ? '返回审核记录' : settingsReturnScreen.current.kind === 'detail' ? '返回任务详情' : '返回专业工作区'
 
   if (!authenticated) return <SignedOutScreen onReenter={() => setAuthenticated(true)} />
 
@@ -474,7 +476,6 @@ function App() {
         <PlatformShell screen={screen} goPlatform={goPlatform} collapsed={navCollapsed} onCollapsedChange={setNavCollapsed}>
           {screen.kind === 'home' && <HomeDashboard userName={userProfile.name} tasks={tasks} notices={notices} onNotice={openNotice} onDismissNotice={dismissNotice} onDetail={openTaskDetail} onOpen={openWorkspace} onAll={() => goPlatform('tasks')} />}
           {screen.kind === 'tasks' && <TaskList tasks={tasks} title="我的任务" onDetail={openTaskDetail} onOpen={openWorkspace} />}
-          {screen.kind === 'orders' && <Orders tasks={tasks} onDetail={openTaskDetail} />}
           {screen.kind === 'reviews' && <Reviews tasks={tasks} onDetail={openTaskDetail} />}
           {screen.kind === 'detail' && <TaskDetail task={tasks.find((task) => task.id === screen.taskId)!} tasks={tasks} events={flowEvents} feedback={upstreamFeedback} comments={reviewComments.filter((comment) => comment.taskId === screen.taskId)} onBack={() => setScreen({ kind: 'tasks' })} onOpen={(taskId, options) => openWorkspace(taskId, options)} onFeedback={submitUpstreamFeedback} />}
           {screen.kind === 'settings' && <SettingsPage section={screen.section} onSectionChange={(section) => setScreen({ kind: 'settings', section })} onBack={closeSettings} returnLabel={settingsReturnLabel} user={userProfile} onUserChange={setUserProfile} themePreference={themePreference} onThemePreferenceChange={setThemePreference} notificationPreferences={notificationPreferences} onNotificationPreferencesChange={setNotificationPreferences} onLogout={requestLogout} />}
@@ -503,7 +504,6 @@ function BrandLogo({ compact = false }: { compact?: boolean }) {
 }
 
 function GlobalHeader({ screen, openTabs, tasks, user, theme, goHome, openWorkspace, closeTab, unreadCount, onThemeToggle, onNotifications, onLock, onOpenSettings, onLogout }: { screen: Screen; openTabs: string[]; tasks: Task[]; user: UserProfile; theme: ResolvedTheme; goHome: () => void; openWorkspace: (id: string) => void; closeTab: (id: string) => void; unreadCount: number; onThemeToggle: () => void; onNotifications: () => void; onLock: () => void; onOpenSettings: (section: SettingsSection) => void; onLogout: () => void }) {
-  const helpOptions = ['账号切换', '账号管理', '手册', '教程', '许可', '关于'].map((label) => ({ content: label, value: label }))
   const accountOptions = [
     { content: <span className="account-menu-label">个人资料</span>, value: 'profile', prefixIcon: <UserCircleIcon size={17} /> },
     { content: <span className="account-menu-label">账户安全</span>, value: 'security', prefixIcon: <UserSafetyIcon size={17} /> },
@@ -513,16 +513,16 @@ function GlobalHeader({ screen, openTabs, tasks, user, theme, goHome, openWorksp
   return <header className="global-header">
     <BrandLogo />
     <nav className="global-tabs" aria-label="打开的任务"><button className={screen.kind !== 'workspace' && screen.kind !== 'cad-workspace' ? 'global-tab global-tab-active global-home' : 'global-tab global-home'} onClick={goHome}><HomeIcon size={16} /><span>Home</span></button><div className="task-tabs-scroll">{openTabs.map((id) => { const task = tasks.find((item) => item.id === id); const label = task ? `任务${task.id} · ${task.title}` : `任务${id}`; const active = (screen.kind === 'workspace' || screen.kind === 'cad-workspace') && screen.taskId === id; return <div className={active ? 'global-tab global-tab-active' : 'global-tab'} key={id}><Tooltip content={label}><button className="global-tab-main" onClick={() => openWorkspace(id)}>{label}</button></Tooltip><button className="global-tab-close" aria-label={`关闭任务 ${id} 标签`} onClick={() => closeTab(id)}><CloseIcon size={14} /></button></div> })}</div></nav>
-    <div className="global-actions"><Tooltip content={theme === 'light' ? '切换至深色模式' : '切换至浅色模式'}><button className="header-icon" aria-label={theme === 'light' ? '切换至深色模式' : '切换至浅色模式'} onClick={onThemeToggle}>{theme === 'light' ? <MoonIcon size={19} /> : <SunnyIcon size={19} />}</button></Tooltip><Tooltip content="通知中心"><button className="header-icon" aria-label={`通知中心，${unreadCount} 条未读`} onClick={onNotifications}><NotificationIcon size={19} />{unreadCount > 0 && <b>{unreadCount}</b>}</button></Tooltip><Dropdown options={helpOptions} trigger="click" placement="bottom-right" onClick={(item) => { const value = String(item.value); if (value === '账号管理') onOpenSettings('security'); else if (value === '账号切换') void MessagePlugin.info('账号切换为演示入口，统一身份服务待接入'); else void MessagePlugin.info(`${value}内容为演示入口，正式资料待接入`) }}><button className="header-icon" title="帮助" aria-label="帮助" aria-haspopup="menu"><HelpCircleIcon size={19} /></button></Dropdown><Tooltip content="锁定屏幕"><button className="header-icon" aria-label="锁定屏幕" onClick={onLock}><LockOnIcon size={18} /></button></Tooltip><Dropdown options={accountOptions} trigger="click" placement="bottom-right" minColumnWidth={240} panelTopContent={<div className="account-summary"><img className="avatar avatar-photo" src={user.avatar} alt={`${user.name}头像`} /><div className="account-summary-copy"><strong>{user.name}</strong><small>工号 {user.employeeId}</small><small>{user.role} · {user.department}</small></div></div>} onClick={(item) => { if (item.value === 'logout') onLogout(); else onOpenSettings(item.value as SettingsSection) }}><button className="account-trigger"><img className="avatar avatar-photo" src={user.avatar} alt={`${user.name}头像`} /><span><strong>{user.name}</strong><small>{user.role}</small></span><ChevronDownIcon size={14} /></button></Dropdown></div>
+    <div className="global-actions"><Tooltip content={theme === 'light' ? '切换至深色模式' : '切换至浅色模式'}><button className="header-icon" aria-label={theme === 'light' ? '切换至深色模式' : '切换至浅色模式'} onClick={onThemeToggle}>{theme === 'light' ? <MoonIcon size={19} /> : <SunnyIcon size={19} />}</button></Tooltip><Tooltip content="通知中心"><button className="header-icon" aria-label={`通知中心，${unreadCount} 条未读`} onClick={onNotifications}><NotificationIcon size={19} />{unreadCount > 0 && <b>{unreadCount}</b>}</button></Tooltip><HeaderHelp onManageAccount={() => onOpenSettings('security')} /><Tooltip content="锁定屏幕"><button className="header-icon" aria-label="锁定屏幕" onClick={onLock}><LockOnIcon size={18} /></button></Tooltip><Dropdown options={accountOptions} trigger="click" placement="bottom-right" minColumnWidth={240} panelTopContent={<div className="account-summary"><img className="avatar avatar-photo" src={user.avatar} alt={`${user.name}头像`} /><div className="account-summary-copy"><strong>{user.name}</strong><small>工号 {user.employeeId}</small><small>{user.role} · {user.department}</small></div></div>} onClick={(item) => { if (item.value === 'logout') onLogout(); else onOpenSettings(item.value as SettingsSection) }}><button className="account-trigger"><img className="avatar avatar-photo" src={user.avatar} alt={`${user.name}头像`} /><span><strong>{user.name}</strong><small>{user.role}</small></span><ChevronDownIcon size={14} /></button></Dropdown></div>
   </header>
 }
 
-function PlatformShell({ screen, goPlatform, collapsed, onCollapsedChange, children }: { screen: Screen; goPlatform: (kind: 'home' | 'tasks' | 'orders' | 'reviews') => void; collapsed: boolean; onCollapsedChange: (value: boolean) => void; children: React.ReactNode }) {
+function PlatformShell({ screen, goPlatform, collapsed, onCollapsedChange, children }: { screen: Screen; goPlatform: (kind: 'home' | 'tasks' | 'reviews') => void; collapsed: boolean; onCollapsedChange: (value: boolean) => void; children: React.ReactNode }) {
   const active = screen.kind === 'detail' ? 'tasks' : screen.kind === 'settings' ? '' : screen.kind
   const routeKey = screen.kind === 'detail' || screen.kind === 'workspace' || screen.kind === 'cad-workspace' ? `${screen.kind}-${screen.taskId}` : screen.kind
   const mainRef = useRef<HTMLElement>(null)
   useEffect(() => { mainRef.current?.scrollTo({ top: 0, left: 0 }) }, [routeKey])
-  return <div className={collapsed ? 'platform-shell nav-collapsed' : 'platform-shell'}><aside className="business-nav"><TMenu value={active} collapsed={collapsed} width={[layout.sidebar, layout.sidebarCollapsed]} onChange={(value) => goPlatform(value as 'home' | 'tasks' | 'orders' | 'reviews')}>{navItems.map((item) => { const Icon = item.icon; const menuIcon = <span className="nav-menu-icon"><Icon size={18} /></span>; return <TMenu.MenuItem key={item.key} value={item.key} icon={collapsed ? <Tooltip content={item.label} placement="right">{menuIcon}</Tooltip> : menuIcon} content={item.label} /> })}</TMenu><Tooltip content={collapsed ? '展开导航' : '收起导航'} placement="right"><button className="nav-collapse" aria-label={collapsed ? '展开导航' : '收起导航'} onClick={() => onCollapsedChange(!collapsed)}>{collapsed ? <MenuUnfoldIcon size={18} /> : <MenuFoldIcon size={18} />}</button></Tooltip></aside><main ref={mainRef} className="platform-main">{children}</main></div>
+  return <div className={collapsed ? 'platform-shell nav-collapsed' : 'platform-shell'}><aside className="business-nav"><TMenu value={active} collapsed={collapsed} width={[layout.sidebar, layout.sidebarCollapsed]} onChange={(value) => goPlatform(value as 'home' | 'tasks' | 'reviews')}>{navItems.map((item) => { const Icon = item.icon; const menuIcon = <span className="nav-menu-icon"><Icon size={18} /></span>; return <TMenu.MenuItem key={item.key} value={item.key} icon={collapsed ? <Tooltip content={item.label} placement="right">{menuIcon}</Tooltip> : menuIcon} content={item.label} /> })}</TMenu><Tooltip content={collapsed ? '展开导航' : '收起导航'} placement="right"><button className="nav-collapse" aria-label={collapsed ? '展开导航' : '收起导航'} onClick={() => onCollapsedChange(!collapsed)}>{collapsed ? <MenuUnfoldIcon size={18} /> : <MenuFoldIcon size={18} />}</button></Tooltip></aside><main ref={mainRef} className="platform-main">{children}</main></div>
 }
 
 function HomeDashboard({ userName, tasks, notices, onNotice, onDismissNotice, onDetail, onOpen, onAll }: { userName: string; tasks: Task[]; notices: Notice[]; onNotice: (notice: Notice) => void; onDismissNotice: (id: number) => void; onDetail: (id: string) => void; onOpen: (id: string) => void; onAll: () => void }) {
@@ -538,7 +538,7 @@ function HomeDashboard({ userName, tasks, notices, onNotice, onDismissNotice, on
     { label: '已完成任务', value: tasks.filter((task) => task.status === '已完成').length + 12, note: '本月累计', icon: TaskCheckedFilledIcon, tone: 'complete' },
   ]
   const dashboardNotices = notices.filter((notice) => !notice.dismissed && (noticeFilter === '全部' || (noticeFilter === '未读' ? notice.unread : !notice.unread))).slice(0, 3)
-  return <div className="page dashboard-page"><section className="dashboard-welcome"><div className="dashboard-welcome-copy"><h1>{greeting}，{userName}</h1><p>今天有 {actionableCount} 项任务需要处理，{reviewCount} 项成果等待医生审核。</p></div><time className="dashboard-date-text" dateTime={new Date().toISOString()}>{todayText}</time></section><section className="stat-grid" aria-label="任务统计">{stats.map(({ label, value, note, icon: Icon, tone }) => <Card key={label} className={`stat-card stat-${tone}`} bordered={false}><div className="stat-card-head"><span>{label}</span><i><Icon size={20} /></i></div><strong>{value}</strong><small>{note}</small></Card>)}</section><section className="dashboard-grid"><Card className="dashboard-card task-card table-card" bordered={false}><div className="section-heading"><h2>我的任务</h2><Button className="view-all-button" variant="text" theme="primary" onClick={onAll}><span>查看全部</span><ChevronRightIcon size={15} /></Button></div><TaskTable tasks={tasks} onDetail={onDetail} onOpen={onOpen} /></Card><div className="dashboard-aside"><Card className="dashboard-card recent-card" bordered={false}><div className="section-heading"><h2>最近任务</h2></div><div className="recent-table" role="table" aria-label="最近任务"><div className="recent-table-head" role="row"><span>任务名称</span><span>任务编号</span><span>最近操作</span><span aria-hidden="true" /></div>{tasks.slice(-3).reverse().map((task) => <button className="recent-item" key={task.id} onClick={() => onDetail(task.id)} role="row"><strong>{task.title}</strong><span>任务 {task.id}</span><time>{task.updated}</time><ChevronRightIcon size={16} /></button>)}</div></Card><Card className="dashboard-card attention-card" bordered={false}><div className="section-heading notice-heading"><h2>重要通知</h2><div className="notice-filters" aria-label="通知筛选">{(['全部', '未读', '已读'] as const).map((filter) => <Button key={filter} size="small" variant="text" theme={noticeFilter === filter ? 'primary' : 'default'} className={noticeFilter === filter ? 'notice-filter-active' : ''} onClick={() => setNoticeFilter(filter)}>{filter}</Button>)}</div></div><div className="dashboard-notice-table" role="table" aria-label={`${noticeFilter}通知`}><div className="dashboard-notice-head" role="row"><span>通知类型</span><span>内容</span><span>时间</span><span>状态</span><span aria-hidden="true" /></div>{dashboardNotices.length > 0 ? dashboardNotices.map((notice) => { return <div className={notice.unread ? 'dashboard-notice-row dashboard-notice-unread' : 'dashboard-notice-row'} key={notice.id} role="row"><button className="dashboard-notice-main" onClick={() => onNotice(notice)}><span className="notice-kind"><NoticeSymbol notice={notice} /><strong>{notice.title}</strong></span><span className="notice-summary">{notice.tone === 'warning' ? '查看意见并修改' : notice.detail}</span><time>{notice.time}</time><em>{notice.unread ? '未读' : '已读'}</em><ChevronRightIcon size={16} /></button>{notice.tone === 'warning' && <Tooltip content="关闭通知"><button className="notice-dismiss" aria-label={`关闭${notice.title}`} onClick={() => onDismissNotice(notice.id)}><CloseIcon size={13} /></button></Tooltip>}</div> }) : <div className="notice-empty">暂无{noticeFilter}通知</div>}</div></Card></div></section></div>
+  return <div className="page dashboard-page"><section className="dashboard-welcome"><div className="dashboard-welcome-copy"><h1>{greeting}，{userName}</h1><p>今天有 {actionableCount} 项任务需要处理，{reviewCount} 项成果等待医生审核。</p></div><time className="dashboard-date-text" dateTime={new Date().toISOString()}>{todayText}</time></section><section className="stat-grid" aria-label="任务统计">{stats.map(({ label, value, note, icon: Icon, tone }) => <Card key={label} className={`stat-card stat-${tone}`} bordered={false}><div className="stat-card-head"><span>{label}</span><i><Icon size={20} /></i></div><strong>{value}</strong><small>{note}</small></Card>)}</section><section className="dashboard-grid"><Card className="dashboard-card task-card table-card" bordered={false}><div className="section-heading"><h2>我的任务</h2><Button className="view-all-button" variant="text" theme="primary" onClick={onAll}><span>查看全部</span><ChevronRightIcon size={15} /></Button></div><TaskTable tasks={tasks} onDetail={onDetail} onOpen={onOpen} /></Card><div className="dashboard-aside"><Card className="dashboard-card recent-card" bordered={false}><div className="section-heading"><h2>最近任务</h2></div><div className="recent-table" role="table" aria-label="最近任务"><div className="recent-table-head" role="row"><span>任务名称</span><span>任务编号</span><span>最近操作</span><span aria-hidden="true" /></div>{tasks.slice(-3).reverse().map((task) => <button className="recent-item" key={task.id} onClick={() => onDetail(task.id)} role="row"><Tooltip content={task.title}><strong>{task.title}</strong></Tooltip><span>任务 {task.id}</span><Tooltip content={task.updated}><time>{task.updated}</time></Tooltip><ChevronRightIcon size={16} /></button>)}</div></Card><Card className="dashboard-card attention-card" bordered={false}><div className="section-heading notice-heading"><h2>重要通知</h2><div className="notice-filters" aria-label="通知筛选">{(['全部', '未读', '已读'] as const).map((filter) => <Button key={filter} size="small" variant="text" theme={noticeFilter === filter ? 'primary' : 'default'} className={noticeFilter === filter ? 'notice-filter-active' : ''} onClick={() => setNoticeFilter(filter)}>{filter}</Button>)}</div></div><div className="dashboard-notice-table" role="table" aria-label={`${noticeFilter}通知`}><div className="dashboard-notice-head" role="row"><span>通知类型</span><span>内容</span><span>时间</span><span>状态</span><span aria-hidden="true" /></div>{dashboardNotices.length > 0 ? dashboardNotices.map((notice) => { return <div className={notice.unread ? 'dashboard-notice-row dashboard-notice-unread' : 'dashboard-notice-row'} key={notice.id} role="row"><button className="dashboard-notice-main" onClick={() => onNotice(notice)}><span className="notice-kind"><NoticeSymbol notice={notice} /><Tooltip content={notice.title}><strong>{notice.title}</strong></Tooltip></span><Tooltip content={notice.tone === 'warning' ? '查看意见并修改' : notice.detail}><span className="notice-summary">{notice.tone === 'warning' ? '查看意见并修改' : notice.detail}</span></Tooltip><time>{notice.time}</time><em>{notice.unread ? '未读' : '已读'}</em><ChevronRightIcon size={16} /></button>{notice.tone === 'warning' && <Tooltip content="关闭通知"><button className="notice-dismiss" aria-label={`关闭${notice.title}`} onClick={() => onDismissNotice(notice.id)}><CloseIcon size={13} /></button></Tooltip>}</div> }) : <div className="notice-empty">暂无{noticeFilter}通知</div>}</div></Card></div></section></div>
 }
 
 function StatusTag({ status }: { status: TaskStatus }) { return <Tag className={status === '进行中' ? 'status-in-progress' : undefined} theme={statusTheme[status]} variant="light" size="small">{status}</Tag> }
@@ -646,10 +646,7 @@ function CadTaskDetail({ task, tasks, upstreamTask, events, feedback, onBack, on
 }
 function InfoSection({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) { return <Card className="info-section" bordered={false}><div className="info-section-title"><h2>{title}</h2>{action}</div>{children}</Card> }
 
-function Orders({ tasks, onDetail }: { tasks: Task[]; onDetail: (id: string) => void }) {
-  const columns: PrimaryTableCol<Task>[] = [{ colKey: 'orderNo', title: '订单编号', width: 170 }, { colKey: 'type', title: '任务类型', width: 110, cell: ({ row }) => row.taskType }, { colKey: 'id', title: '任务编号', width: 110, cell: ({ row }) => `任务 ${row.id}` }, { colKey: 'title', title: '任务名称', ellipsis: true }, { colKey: 'patient', title: '患者标识', width: 170 }, { colKey: 'source', title: '数据来源', ellipsis: true }, { colKey: 'operation', title: '操作', width: 120, cell: ({ row }) => row.taskType === 'CAD 设计' && !isCadTaskUnlocked(row, tasks) ? <Tooltip content={CAD_LOCKED_REASON}><span className="disabled-action-wrap"><Button variant="text" disabled>查看任务</Button></span></Tooltip> : <Button variant="text" theme="primary" onClick={() => onDetail(row.id)}>查看任务</Button> }]
-  return <div className="page"><Card className="dashboard-card list-card table-card order-table-card unified-list-card" bordered={false}><section className="list-page-heading"><h1>订单中心</h1></section><Table className="app-table" rowKey="id" data={tasks} columns={columns} size="small" hover bordered={false} tableLayout="fixed" /></Card></div>
-}
+
 function Reviews({ tasks, onDetail }: { tasks: Task[]; onDetail: (id: string) => void }) {
   const records = tasks.flatMap((task) => task.review.map((review, index) => ({ ...review, task, recordId: `${task.id}-${index}-${review.time}` }))).reverse()
   const columns: PrimaryTableCol<(typeof records)[number]>[] = [
@@ -663,13 +660,13 @@ function Reviews({ tasks, onDetail }: { tasks: Task[]; onDetail: (id: string) =>
 }
 
 function Workspace({ task, dirty, savedAt, mode, activeSeriesId, comments, reviewFocus, reviewResetEnabled, onReviewFocusConsumed, onUpdateComment, onResetReview, onSeriesChange, onModeChange, onDirty, onSave, onSubmit, onSubmitSalesperson }: { task: Task; dirty: boolean; savedAt?: string; mode: WorkspaceMode; activeSeriesId: string; comments: ReviewComment[]; reviewFocus: { taskId: string; commentId?: string } | null; reviewResetEnabled: boolean; onReviewFocusConsumed: () => void; onUpdateComment: (commentId: string, changes: Partial<Pick<ReviewComment, 'status' | 'replies' | 'unread' | 'submitted'>>) => void; onResetReview: () => void; onSeriesChange: (seriesId: string) => void; onModeChange: (mode: WorkspaceMode) => void; onDirty: () => void; onSave: (announce?: boolean) => boolean; onSubmit: () => void; onSubmitSalesperson: () => void }) {
-  const [activeObject, setActiveObject] = useState('mask-bone'); const [tool, setTool] = useState(toolsets[mode][0].label); const [toolAction, setToolAction] = useState(toolsets[mode][0].label); const [leftOpen, setLeftOpen] = useState(true); const [rightOpen, setRightOpen] = useState(true)
+  const [activeObject, setActiveObject] = useState('mask-bone'); const [tool, setTool] = useState(toolsets[mode][0].label); const [toolAction, setToolAction] = useState(toolsets[mode][0].label)
   const [toolRevision, setToolRevision] = useState(0)
   const [professionalTab, setProfessionalTab] = useState<ProfessionalTab>('mask')
-  const [leftWidth, setLeftWidth] = useState(228); const [rightWidth, setRightWidth] = useState(308)
+  const panels = useCadPanels(true, { storageKey: 'clinivol-reconstruction-panel-layout', left: 228, right: 308, labels: ['调整影像序列面板宽度','调整对象属性面板宽度'] })
+  const leftOpen = panels.layout.leftOpen; const rightOpen = panels.layout.rightOpen
   const [loadNoticeVisible, setLoadNoticeVisible] = useState(true)
   const [returnAlertVisible, setReturnAlertVisible] = useState(task.status === '审核退回')
-  const [focusMode, setFocusMode] = useState(false)
   const [commentsOpen, setCommentsOpen] = useState(false)
   const [selectedCommentId, setSelectedCommentId] = useState<string | null>(null)
   const [reviewSyncState, setReviewSyncState] = useState<'synced' | 'syncing' | 'failed'>('synced')
@@ -678,7 +675,6 @@ function Workspace({ task, dirty, savedAt, mode, activeSeriesId, comments, revie
   onSaveRef.current = onSave
   const [reviewSyncedAt, setReviewSyncedAt] = useState(savedAt ?? '09:02')
   const reviewSyncTimer = useRef<number | null>(null)
-  const panelStateBeforeFocus = useRef({ left: true, right: true })
   const readOnly = task.status === '待审核' || task.status === '已完成'
   const reviewPending = task.status === '待审核'
   useEffect(() => {
@@ -721,17 +717,6 @@ function Workspace({ task, dirty, savedAt, mode, activeSeriesId, comments, revie
     if (focused?.unread) onUpdateComment(focused.id, { unread: false })
     onReviewFocusConsumed()
   }, [comments, onReviewFocusConsumed, onUpdateComment, reviewFocus])
-  const startResize = (side: 'left' | 'right', event: React.PointerEvent) => {
-    event.preventDefault()
-    const startX = event.clientX; const startWidth = side === 'left' ? leftWidth : rightWidth
-    const onMove = (moveEvent: PointerEvent) => {
-      const delta = side === 'left' ? moveEvent.clientX - startX : startX - moveEvent.clientX
-      const next = Math.min(side === 'left' ? 340 : 420, Math.max(side === 'left' ? 184 : 252, startWidth + delta))
-      if (side === 'left') setLeftWidth(next); else setRightWidth(next)
-    }
-    const onUp = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp) }
-    window.addEventListener('pointermove', onMove); window.addEventListener('pointerup', onUp)
-  }
   const chooseTool = (label: string) => {
     if (label === '保存项目') {
       if (readOnly) void MessagePlugin.warning('当前成果已提交或锁定，暂不可保存')
@@ -756,30 +741,8 @@ function Workspace({ task, dirty, savedAt, mode, activeSeriesId, comments, revie
   const currentMode = workspaceModes.find((item) => item.key === mode) ?? workspaceModes[0]
   const visibleTools = toolsets[mode]
   const pluginOptions = ['AI分割', '蒙版体积与统计', 'STL属性统计'].map((label) => ({ content: <span className="toolbar-dropdown-option">{label}</span>, value: label }))
-  const setPanelOpen = (side: 'left' | 'right', open: boolean) => {
-    setFocusMode(false)
-    if (side === 'left') setLeftOpen(open); else setRightOpen(open)
-  }
-  const toggleFocusMode = () => {
-    if (focusMode) {
-      setLeftOpen(panelStateBeforeFocus.current.left)
-      setRightOpen(panelStateBeforeFocus.current.right)
-      setFocusMode(false)
-      return
-    }
-    panelStateBeforeFocus.current = { left: leftOpen, right: rightOpen }
-    setLeftOpen(false)
-    setRightOpen(false)
-    setFocusMode(true)
-  }
-  const changeMode = (nextMode: WorkspaceMode) => {
-    if (nextMode !== 'view' && focusMode) {
-      setLeftOpen(panelStateBeforeFocus.current.left)
-      setRightOpen(panelStateBeforeFocus.current.right)
-      setFocusMode(false)
-    }
-    onModeChange(nextMode)
-  }
+  const setPanelOpen = panels.toggle
+  const changeMode = onModeChange
   const selectedSeries = task.series.find((series) => series.id === activeSeriesId) ?? task.series[0]
   const selectedComment = comments.find((comment) => comment.id === selectedCommentId)
   const unreadReviewCount = comments.filter((comment) => comment.unread).length
@@ -831,7 +794,7 @@ function Workspace({ task, dirty, savedAt, mode, activeSeriesId, comments, revie
     }
     onSubmit()
   }
-  const workspaceStyle = { '--series-panel-width': `${leftWidth}px`, '--object-panel-width': `${rightWidth}px` } as React.CSSProperties
+  const workspaceStyle = { '--series-panel-width': `${panels.leftWidth}px`, '--object-panel-width': `${panels.rightWidth}px` } as React.CSSProperties
   return <main className="workspace-shell">
     <section className="professional-toolbar" aria-label="三维重建专业工具栏">
       <div className="workspace-mode-group" role="group" aria-label="工具类型切换">
@@ -839,19 +802,19 @@ function Workspace({ task, dirty, savedAt, mode, activeSeriesId, comments, revie
       </div>
       <span className="toolbar-module-divider" aria-hidden="true" />
       <div className="context-tools" aria-label={`${currentMode.label}工具`}>{visibleTools.map((definition) => { const mutationTool = mode === 'segment' || ['测量距离', '测量角度', '图像高级预处理'].includes(definition.label); return <ToolControl key={definition.label} definition={definition} activeTool={tool} disabled={readOnly && mutationTool} disabledReason={reviewPending ? '当前成果待审核，暂不可修改' : '当前成果已锁定，暂不可修改'} onChoose={chooseTool} /> })}</div>
-      {mode === 'view' && <Tooltip content={focusMode ? '退出专注模式' : '进入专注模式'}><button className={focusMode ? 'toolbar-focus toolbar-focus-active' : 'toolbar-focus'} aria-label={focusMode ? '退出专注模式' : '进入专注模式'} aria-pressed={focusMode} onClick={toggleFocusMode}>{focusMode ? <Minimize2 size={18} /> : <Maximize2 size={18} />}<span>专注模式</span></button></Tooltip>}
-      <Dropdown options={pluginOptions} trigger="click" placement="bottom-right" minColumnWidth={176} onClick={(item) => void MessagePlugin.info(`${String(item.value)}为插件演示入口，真实插件服务待接入`)}><button className="toolbar-more" aria-label="插件" aria-haspopup="menu"><Puzzle size={18} /><span className="context-tool-label">插件<ChevronDown size={11} className="tool-chevron" /></span></button></Dropdown>
+
+      <Dropdown options={pluginOptions} trigger="click" placement="bottom-right" minColumnWidth={176} onClick={(item) => void MessagePlugin.info(`${String(item.value)}为插件演示入口，真实插件服务待接入`)}><button className="toolbar-more" aria-label="插件" aria-haspopup="menu"><span className="context-tool-symbol"><Puzzle size={18} /><ChevronDownIcon size={11} className="tool-chevron" /></span><span className="context-tool-label">插件</span></button></Dropdown>
       <div className="workspace-task-actions">{comments.length > 0 && <Button className={commentsOpen ? 'review-opinion-trigger review-opinion-trigger-active' : 'review-opinion-trigger'} size="small" variant="text" theme="primary" aria-expanded={commentsOpen} onClick={toggleCommentsPanel}><span className="review-opinion-icon"><ListDemandIcon size={16} />{unreadReviewCount > 0 && <i aria-label={`${unreadReviewCount} 条未读审核意见`} />}</span>审核意见 {comments.length}</Button>}<WorkspaceTaskActions saveState={engineeringSaveState === 'failed' || reviewSyncState === 'failed' ? 'failed' : dirty || engineeringSaveState === 'saving' || reviewSyncState === 'syncing' ? 'saving' : 'saved'} savedAt={savedAt} readOnly={readOnly} disabled={readOnly || dirty || engineeringSaveState !== 'saved' || reviewSyncState !== 'synced'} disabledReason={readOnly ? '当前成果已锁定' : engineeringSaveState === 'failed' || reviewSyncState === 'failed' ? '保存失败，暂不可提交' : ''} onSubmit={requestReviewSubmit} onSubmitSalesperson={onSubmitSalesperson} /></div>
     </section>
     <div className="workspace-banner-slot">{task.status === '审核退回' && returnAlertVisible && <ReturnedReviewAlert onClose={() => setReturnAlertVisible(false)} />}{readOnly && <div className="locked-banner"><LockKeyhole size={17} /><span>{reviewPending ? '当前成果正在审核：影像浏览与视图操作可用，分割、模型及测量修改已锁定。' : '当前成果版本已锁定，仅可查看。'}</span></div>}</div>
-    <div className={`workspace-body ${!leftOpen ? 'workspace-no-left' : ''} ${!rightOpen ? 'workspace-no-right' : ''}`} style={workspaceStyle}>{!leftOpen && <Tooltip content="展开影像序列" placement="right"><button className="panel-edge-handle panel-edge-handle-left" aria-label="展开影像序列" onClick={() => setPanelOpen('left', true)}><ChevronRight size={15} /></button></Tooltip>}{leftOpen && <><SeriesPanel task={task} activeSeriesId={selectedSeries?.id ?? ''} onSeriesChange={onSeriesChange} loadNoticeVisible={loadNoticeVisible} onCloseLoadNotice={() => setLoadNoticeVisible(false)} /><PanelResizer side="left" onPointerDown={(event) => startResize('left', event)} onKeyboardResize={(delta) => setLeftWidth((value) => Math.min(340, Math.max(184, value + delta)))} /></>}<ViewGrid taskId={task.id} series={selectedSeries} tool={toolAction} toolRevision={toolRevision} activeObject={activeObject} comments={comments} selectedComment={selectedComment} onSelectComment={locateComment} onChooseTool={chooseTool} />{rightOpen && <><PanelResizer side="right" onPointerDown={(event) => startResize('right', event)} onKeyboardResize={(delta) => setRightWidth((value) => Math.min(420, Math.max(252, value + delta)))} /><ProfessionalPanel task={task} savedAt={savedAt} activeObject={activeObject} setActiveObject={setActiveObject} tab={professionalTab} onTabChange={setProfessionalTab} readOnly={readOnly} onDirty={onDirty} /></>}{!rightOpen && <Tooltip content="展开对象面板" placement="left"><button className="panel-edge-handle panel-edge-handle-right" aria-label="展开对象面板" onClick={() => setPanelOpen('right', true)}><ChevronLeft size={15} /></button></Tooltip>}{commentsOpen && <ReviewCommentsPanel comments={comments} selectedCommentId={selectedCommentId} readOnly={readOnly} syncState={reviewSyncState} syncedAt={reviewSyncedAt} resetEnabled={reviewResetEnabled} onSelect={locateComment} onClose={() => setCommentsOpen(false)} onUpdate={onUpdateComment} onQueueSync={queueReviewSync} onReset={resetCurrentReview} onSubmit={requestReviewSubmit} />}</div>
+    <div ref={panels.bodyRef} className={`workspace-body unified-workspace-body ${panels.resizing ? 'workspace-resizing' : ''} ${!leftOpen ? 'workspace-no-left' : ''} ${!rightOpen ? 'workspace-no-right' : ''}`} style={workspaceStyle}>{!leftOpen && <Tooltip content="展开影像序列" placement="right"><button className="panel-edge-handle panel-edge-handle-left" aria-label="展开影像序列" onClick={() => setPanelOpen('left', true)}><ChevronRight size={15} /></button></Tooltip>}<div className="workspace-left-panel" hidden={!leftOpen}><SeriesPanel task={task} activeSeriesId={selectedSeries?.id ?? ''} onSeriesChange={onSeriesChange} loadNoticeVisible={loadNoticeVisible} onCloseLoadNotice={() => setLoadNoticeVisible(false)} /></div><div className="panel-resizer workspace-resizer-left" hidden={!leftOpen && panels.resizing !== 'left'} {...panels.resizerProps('left')}><span /></div><ViewGrid taskId={task.id} series={selectedSeries} tool={toolAction} toolRevision={toolRevision} activeObject={activeObject} comments={comments} selectedComment={selectedComment} onSelectComment={locateComment} onChooseTool={chooseTool} /><div className="panel-resizer workspace-resizer-right" hidden={!rightOpen && panels.resizing !== 'right'} {...panels.resizerProps('right')}><span /></div><div className="workspace-right-panel" hidden={!rightOpen}><ProfessionalPanel task={task} savedAt={savedAt} activeObject={activeObject} setActiveObject={setActiveObject} tab={professionalTab} onTabChange={setProfessionalTab} readOnly={readOnly} onDirty={onDirty} /></div>{!rightOpen && <Tooltip content="展开对象面板" placement="left"><button className="panel-edge-handle panel-edge-handle-right" aria-label="展开对象面板" onClick={() => setPanelOpen('right', true)}><ChevronLeft size={15} /></button></Tooltip>}{commentsOpen && <ReviewCommentsPanel comments={comments} selectedCommentId={selectedCommentId} readOnly={readOnly} syncState={reviewSyncState} syncedAt={reviewSyncedAt} resetEnabled={reviewResetEnabled} onSelect={locateComment} onClose={() => setCommentsOpen(false)} onUpdate={onUpdateComment} onQueueSync={queueReviewSync} onReset={resetCurrentReview} onSubmit={requestReviewSubmit} />}</div>
     <footer className="workspace-status"><span>当前序列：{selectedSeries ? `${selectedSeries.modality} · ${selectedSeries.name}` : '无'}</span><span>{selectedSeries ? `层厚 ${selectedSeries.thickness} · ${selectedSeries.slices} 张` : '未关联影像'}</span><span>视图联动：开启</span><span /><span>当前工具：{tool}</span></footer>
   </main>
 }
 
 function ToolControl({ definition, activeTool, disabled, disabledReason, onChoose }: { definition: WorkspaceTool; activeTool: string; disabled: boolean; disabledReason: string; onChoose: (label: string) => void }) {
   const Icon = definition.icon; const active = Boolean(definition.persistent && (activeTool === definition.label || definition.options?.includes(activeTool)))
-  const control = <button className={active ? 'context-tool context-tool-active' : 'context-tool'} aria-pressed={definition.persistent ? active : undefined} aria-haspopup={definition.options ? 'menu' : undefined} disabled={disabled} onClick={() => !definition.options && onChoose(definition.label)}><Icon size={18} /><span className="context-tool-label">{definition.label}{definition.options && <ChevronDown size={11} className="tool-chevron" />}</span></button>
+  const control = <button className={active ? 'context-tool context-tool-active' : 'context-tool'} aria-pressed={definition.persistent ? active : undefined} aria-haspopup={definition.options ? 'menu' : undefined} disabled={disabled} onClick={() => !definition.options && onChoose(definition.label)}><span className="context-tool-symbol"><Icon size={18} />{definition.options && <ChevronDownIcon size={11} className="tool-chevron" />}</span><span className="context-tool-label">{definition.label}</span></button>
   if (disabled) return <Tooltip content={disabledReason}><span className="disabled-tool-wrap">{control}</span></Tooltip>
   if (!definition.options) return <Tooltip content={definition.label}>{control}</Tooltip>
   return <Dropdown trigger="click" placement="bottom-left" minColumnWidth={196} options={definition.options.map((option) => ({ content: <span className="toolbar-dropdown-option">{option}</span>, value: option }))} onClick={(item) => onChoose(String(item.value))}>{control}</Dropdown>
@@ -948,9 +911,6 @@ function ReviewCommentsPanel({ comments, selectedCommentId, readOnly, syncState,
   </aside>
 }
 
-function PanelResizer({ side, onPointerDown, onKeyboardResize }: { side: 'left' | 'right'; onPointerDown: (event: React.PointerEvent) => void; onKeyboardResize: (delta: number) => void }) {
-  return <div className={`panel-resizer panel-resizer-${side}`} role="separator" aria-label={side === 'left' ? '调整影像序列面板宽度' : '调整对象属性面板宽度'} aria-orientation="vertical" tabIndex={0} onPointerDown={onPointerDown} onKeyDown={(event) => { if (event.key === 'ArrowLeft') { event.preventDefault(); onKeyboardResize(side === 'left' ? -12 : 12) } if (event.key === 'ArrowRight') { event.preventDefault(); onKeyboardResize(side === 'left' ? 12 : -12) } }}><span /></div>
-}
 
 function SeriesPanel({ task, activeSeriesId, onSeriesChange, loadNoticeVisible, onCloseLoadNotice }: { task: Task; activeSeriesId: string; onSeriesChange: (seriesId: string) => void; loadNoticeVisible: boolean; onCloseLoadNotice: () => void }) {
   const [open, setOpen] = useState({ patient: true, study: true, series: true })

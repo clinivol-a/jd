@@ -1,0 +1,9 @@
+.header-help-menu .t-dropdown__item { font: 400 14px/22px "PingFang SC",sans-serif; }
+.header-help-menu .t-dropdown__item-text { white-space: nowrap; text-overflow: clip; }
+.header-help-menu .t-dropdown__item:not(.t-dropdown__item--disabled):hover { color: var(--td-text-color-primary); background: var(--td-bg-color-container-hover); }
+.header-help-menu .t-dropdown__item:focus-visible { outline: 1px solid var(--td-brand-color-focus); outline-offset: -1px; }
+.header-help-content { font: 400 14px/22px "PingFang SC",sans-serif; max-height: 60vh; overflow-y: auto; }
+.header-help-content h3 { font: 500 16px/24px "PingFang SC",sans-serif; margin: 16px 0 8px; }
+.header-help-content h3:first-child { margin-top: 0; }
+.header-help-content p { margin: 8px 0; }
+.header-help-content ol { padding-left: 22px; }

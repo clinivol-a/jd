@@ -3,19 +3,20 @@ import type { PointerEvent as ReactPointerEvent } from 'react'
 
 type Side = 'left' | 'right'
 type Layout = { left: number; right: number; leftOpen: boolean; rightOpen: boolean }
-const key = 'clinivol-cad-panel-layout'
+type PanelOptions = { storageKey: string; left: number; right: number; labels: [string, string] }
+const defaults: PanelOptions = { storageKey: 'clinivol-cad-panel-layout', left: 280, right: 304, labels: ['调整 CAD 模型树宽度','调整 CAD 属性面板宽度'] }
 const minimum = { left: 184, right: 252 }
-const readLayout = (hasSelection: boolean): Layout => {
+const readLayout = (hasSelection: boolean, options: PanelOptions): Layout => {
   try {
-    const saved = JSON.parse(localStorage.getItem(key) ?? 'null') as Partial<Layout> | null
-    if (saved) return { left: Math.max(184, Math.min(480, Number(saved.left) || 280)), right: Math.max(252, Math.min(480, Number(saved.right) || 304)), leftOpen: saved.leftOpen !== false, rightOpen: hasSelection && saved.rightOpen !== false }
+    const saved = JSON.parse(localStorage.getItem(options.storageKey) ?? 'null') as Partial<Layout> | null
+    if (saved) return { left: Math.max(184, Math.min(480, Number(saved.left) || options.left)), right: Math.max(252, Math.min(480, Number(saved.right) || options.right)), leftOpen: saved.leftOpen !== false, rightOpen: hasSelection && saved.rightOpen !== false }
   } catch { /* UI preferences do not affect the CAD project. */ }
-  return { left: 280, right: 304, leftOpen: true, rightOpen: hasSelection }
+  return { left: options.left, right: options.right, leftOpen: true, rightOpen: hasSelection }
 }
 
 /** UI-only panel preferences: resizing never writes or dirties the CAD project. */
-export function useCadPanels(hasSelection: boolean) {
-  const [layout, setLayout] = useState(() => readLayout(hasSelection))
+export function useCadPanels(hasSelection: boolean, options = defaults) {
+  const [layout, setLayout] = useState(() => readLayout(hasSelection, options))
   const [available, setAvailable] = useState(window.innerWidth)
   const [resizing, setResizing] = useState<Side | null>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
@@ -30,8 +31,8 @@ export function useCadPanels(hasSelection: boolean) {
   }, [])
   useEffect(() => {
     if (resizing) return
-    try { localStorage.setItem(key, JSON.stringify(layout)) } catch { /* Retain in-memory preferences if storage is unavailable. */ }
-  }, [layout, resizing])
+    try { localStorage.setItem(options.storageKey, JSON.stringify(layout)) } catch { /* Retain in-memory preferences if storage is unavailable. */ }
+  }, [layout, resizing, options.storageKey])
   const toggle = (side: Side, open: boolean, manual = true) => {
     if (side === 'right' && manual) manualRightClosed.current = !open
     setLayout((current) => ({ ...current, [`${side}Open`]: open }))
@@ -46,7 +47,7 @@ export function useCadPanels(hasSelection: boolean) {
     setLayout((current) => ({ ...current, [side]: Math.min(maxWidth(side), Math.max(minimum[side], width)), [`${side}Open`]: true }))
   }
   const resizerProps = (side: Side) => ({
-    role: 'separator' as const, 'aria-label': side === 'left' ? '调整 CAD 模型树宽度' : '调整 CAD 属性面板宽度', 'aria-orientation': 'vertical' as const,
+    role: 'separator' as const, 'aria-label': options.labels[side === 'left' ? 0 : 1], 'aria-orientation': 'vertical' as const,
     'aria-valuemin': minimum[side], 'aria-valuemax': Math.round(maxWidth(side)), 'aria-valuenow': Math.round(Math.min(layout[side], maxWidth(side))), tabIndex: 0,
     onKeyDown: (event: React.KeyboardEvent) => {
       if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); resize(side, layout[side] + (event.key === 'ArrowRight' ? 12 : -12) * (side === 'left' ? 1 : -1)) }

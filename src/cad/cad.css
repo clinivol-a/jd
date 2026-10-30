@@ -227,3 +227,5 @@ html[data-theme="dark"] .cad-view-cube .cad-cube-turn,
 html[data-theme="dark"] .cad-view-cube .cad-cube-roll { color: var(--td-text-color-placeholder); }
 html[data-theme="dark"] .cad-view-cube .cad-cube-turn:hover,
 html[data-theme="dark"] .cad-view-cube .cad-cube-roll:hover { color: var(--cad-cube-fg); }
+.cad-extended-parameters { padding: 14px; }
+.cad-command-validation { font-size: 14px; line-height: 22px; margin: 12px 0 0; color: var(--td-text-color-secondary); }

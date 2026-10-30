@@ -1,10 +1,11 @@
+import { extendedToolCommands } from './cadCommands'
 // Presentation only: command strings route to the existing CAD workspace handlers.
 // No geometry implementation is implied by an entry in this catalogue.
 export type CadToolDefinition = {
   id: string; name: string; icon: string; group: string; command?: string
   available: boolean; readOnlySafe?: boolean; description?: string
 }
-const tool = (id: string, name: string, icon: string, group: string, command?: string, readOnlySafe = false, description?: string): CadToolDefinition => ({ id, name, icon, group, command, available: Boolean(command), readOnlySafe, description })
+const tool = (id: string, name: string, icon: string, group: string, command?: string, readOnlySafe = false, description?: string): CadToolDefinition => ({ id, name, icon, group, command: command ?? extendedToolCommands[id], available: Boolean(command ?? extendedToolCommands[id]), readOnlySafe, description })
 export const cadToolDefinitions = [
   tool('sketch', '草图', '草图', '基础建模', '草图'),
   tool('extrude', '拉伸', '拉伸', '基础建模', '拉伸'),

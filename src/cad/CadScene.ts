@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { STLLoader } from 'three/addons/loaders/STLLoader.js'
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js'
 import { TessellateModifier } from 'three/addons/modifiers/TessellateModifier.js'
+import { generatedGeometry } from './cadCommands'
 import { cadBoundaryGeometry } from './cadViewGeometry'
 import type { CadShading } from './cadViewGeometry'
 import { cadAsset } from './cadProject'
@@ -45,7 +46,7 @@ function plateGeometry(object: CadObject, preview?: CadPreview) {
   const holes = [...[-53, -36, -18, 0, 18, 36, 53].map((offset) => ({ diameter: 3.4, offset })), ...object.holes]
   if (preview?.tool === '孔') holes.push({ diameter: preview.diameter, offset: preview.offset })
   holes.forEach((hole) => { const path = new THREE.Path(); path.absarc(hole.offset, 0, hole.diameter / 2, 0, Math.PI * 2, true); shape.holes.push(path) })
-  const source = new THREE.ExtrudeGeometry(shape, { depth: 2.1, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: .35, bevelThickness: .35, curveSegments: 16 })
+  const source = new THREE.ExtrudeGeometry(shape, { depth: object.thickness ?? 2.1, bevelEnabled: true, bevelSegments: object.chamfer ? 1 : 2, steps: 1, bevelSize: object.chamfer ?? .35, bevelThickness: object.chamfer ?? .35, curveSegments: 16 })
   // Subdivide the strip before bending: long cap triangles would bridge the jaw.
   const geometry = new TessellateModifier(3, 7).modify(source); source.dispose()
   const p = geometry.getAttribute('position')
@@ -74,11 +75,16 @@ function primitivePoints(primitive: SketchPrimitive): THREE.Vector2[] {
 function sketchPosition(point: THREE.Vector2, plane: CadSketch['plane']) {
   return plane === 'XZ' ? new THREE.Vector3(point.x, 0, point.y) : plane === 'YZ' ? new THREE.Vector3(0, point.x, point.y) : new THREE.Vector3(point.x, point.y, 45)
 }
-function extrusionGeometry(sketch: CadSketch | undefined, distance: number) {
+function extrusionGeometry(sketch: CadSketch | undefined, distance: number, object?: CadObject) {
   const contour = sketch?.primitives.find((primitive) => primitive.kind === '矩形' || primitive.kind === '圆')
   const points = contour ? primitivePoints(contour) : []
   const shape = points.length > 2 ? new THREE.Shape(points) : roundedRect(26, 12, 2)
-  return new THREE.ExtrudeGeometry(shape, { depth: Math.abs(distance), bevelEnabled: false, curveSegments: 32 })
+  if (object?.shellThickness && points.length > 2) {
+    const box = new THREE.Box2().setFromPoints(points); const size = box.getSize(new THREE.Vector2()); const center = box.getCenter(new THREE.Vector2())
+    const inner = points.map((point) => point.clone().sub(center).multiply(new THREE.Vector2(1-object.shellThickness!*2/size.x,1-object.shellThickness!*2/size.y)).add(center)).reverse()
+    shape.holes.push(new THREE.Path(inner))
+  }
+  return new THREE.ExtrudeGeometry(shape, { depth: Math.abs(distance), bevelEnabled: Boolean(object?.chamfer), bevelSegments: 1, bevelSize: object?.chamfer ?? 0, bevelThickness: object?.chamfer ?? 0, curveSegments: 32 })
 }
 function placeExtrusion(mesh: THREE.Mesh, sketch: CadSketch | undefined, direction: number) {
   if (sketch?.plane === 'XZ') mesh.rotation.x = Math.PI / 2
@@ -104,6 +110,7 @@ export class CadScene {
   private reference = new THREE.Group()
   private designs = new THREE.Group()
   private sketches = new THREE.Group()
+  private selection = new THREE.Group()
   private raycaster = new THREE.Raycaster()
   private resizeObserver: ResizeObserver
   private themeObserver: MutationObserver
@@ -135,7 +142,7 @@ export class CadScene {
     this.renderer.localClippingEnabled = true; this.renderer.shadowMap.enabled = false
     this.renderer.domElement.setAttribute('aria-label', 'CAD 三维模型视窗'); this.renderer.domElement.setAttribute('tabindex', '0')
     this.host.appendChild(this.renderer.domElement)
-    this.scene.add(this.reference, this.designs, this.sketches, this.planes)
+    this.scene.add(this.reference, this.designs, this.sketches, this.planes, this.selection)
     ;(['XY', 'XZ', 'YZ'] as const).forEach((name) => {
       const plane = new THREE.Mesh(new THREE.PlaneGeometry(150, 150), new THREE.MeshBasicMaterial({ color: '#638cb0', transparent: true, opacity: .10, side: THREE.DoubleSide, depthWrite: false }))
       if (name === 'XY') plane.position.z = 45
@@ -195,7 +202,7 @@ export class CadScene {
   private pick(clientX: number, clientY: number) {
     const bounds = this.host.getBoundingClientRect()
     this.raycaster.setFromCamera(new THREE.Vector2((clientX - bounds.left) / bounds.width * 2 - 1, -(clientY - bounds.top) / bounds.height * 2 + 1), this.camera)
-    const hit = this.raycaster.intersectObjects([...this.reference.children, ...this.designs.children], true).find((intersection) => intersection.object instanceof THREE.Mesh && intersection.object.visible && intersection.object.parent?.visible && intersection.object.userData.objectId && (!this.renderer.clippingPlanes.length || this.clipPlane.distanceToPoint(intersection.point) >= 0))
+    const hit = this.raycaster.intersectObjects([...this.reference.children, ...this.designs.children], true).find((intersection) => (intersection.object instanceof THREE.Mesh || intersection.object instanceof THREE.Line) && intersection.object.visible && intersection.object.parent?.visible && intersection.object.userData.objectId && (!this.renderer.clippingPlanes.length || this.clipPlane.distanceToPoint(intersection.point) >= 0))
     return hit?.object.userData.objectId as string | undefined
   }
   private pointerDown = (event: PointerEvent) => { this.down = [event.clientX, event.clientY] }
@@ -221,11 +228,11 @@ export class CadScene {
   update(project: CadProject, selected: string | null, preview?: CadPreview, draft?: CadSketch) {
     this.project = project
     const jaw = project.objects.find((object) => object.id === 'jaw')
-    if (this.jaw && jaw) { this.jaw.visible = jaw.visible; const material = this.jaw.material as THREE.MeshStandardMaterial; material.color.set(jaw.color); material.emissive.set(selected === 'jaw' ? '#0b3024' : '#000000'); material.opacity = jaw.opacity; material.userData.displayOpacity = jaw.opacity; material.transparent = jaw.opacity < 1 }
+    if (this.jaw && jaw) { this.jaw.visible = jaw.visible; const material = this.jaw.material as THREE.MeshStandardMaterial; material.color.set(jaw.color); material.emissive.set('#000000'); material.opacity = jaw.opacity; material.userData.displayOpacity = jaw.opacity; material.transparent = jaw.opacity < 1 }
     this.designs.children.slice().forEach((object) => { this.designs.remove(object); disposeObject(object) })
     project.objects.filter((object) => object.kind !== 'reference').forEach((object) => {
       const activePreview = preview?.targetId === object.id ? preview : undefined
-      const material = new THREE.MeshStandardMaterial({ color: object.color, metalness: object.kind === 'guide' ? 0 : .12, roughness: .7, transparent: object.opacity < 1 || Boolean(activePreview), opacity: activePreview ? .72 : object.opacity, side: THREE.DoubleSide, emissive: selected === object.id ? '#102c25' : '#000000' })
+      const material = new THREE.MeshStandardMaterial({ color: object.color, metalness: object.kind === 'guide' ? 0 : .12, roughness: .7, transparent: object.opacity < 1 || Boolean(activePreview), opacity: activePreview ? .72 : object.opacity, side: THREE.DoubleSide, emissive: '#000000' })
       const group = new THREE.Group(); group.visible = object.visible; group.position.set(...object.position); if (object.rotation) group.rotation.set(...object.rotation.map((angle) => THREE.MathUtils.degToRad(angle)) as [number, number, number]); if (object.scale) group.scale.set(...object.scale)
       if (object.kind === 'plate') group.add(new THREE.Mesh(plateGeometry(object, activePreview), material))
       if (object.kind === 'guide') { const geometry = new THREE.TorusGeometry(30, 4, 12, 64, Math.PI); const mesh = new THREE.Mesh(geometry, material); mesh.rotation.x = Math.PI / 2; mesh.position.set(0, 0, 8); group.add(mesh) }
@@ -233,8 +240,26 @@ export class CadScene {
         const normal = new THREE.Vector3(.048 * offset * .65, 0, 1).normalize(); const screw = new THREE.Mesh(new THREE.CylinderGeometry(2.7, 2.2, 3.8, 24), material); screw.position.copy(platePoint(offset, 3.2)); screw.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal); group.add(screw)
         const slot = new THREE.Mesh(new THREE.BoxGeometry(2.9, .35, .5), new THREE.MeshStandardMaterial({ color: '#344d60' })); slot.position.copy(screw.position).addScaledVector(normal, 2); slot.rotation.y = Math.atan2(normal.x, normal.z); group.add(slot)
       })
-      if (object.kind === 'extrusion') { const sketch = project.sketches.find((item) => item.id === object.sketchId); const geometry = extrusionGeometry(sketch, object.distance ?? 8); const mesh = new THREE.Mesh(geometry, material); placeExtrusion(mesh, sketch, object.distance ?? 8); group.add(mesh) }
-      group.traverse((child) => { if (child instanceof THREE.Mesh) child.userData.objectId = object.id }); this.designs.add(group)
+      if (object.kind === 'extrusion') { const sketch = project.sketches.find((item) => item.id === object.sketchId); const geometry = extrusionGeometry(sketch, object.distance ?? 8, object); const mesh = new THREE.Mesh(geometry, material); placeExtrusion(mesh, sketch, object.distance ?? 8); group.add(mesh) }
+      if (object.construction) {
+        const geometry = generatedGeometry(object,project)
+        if (geometry) { const drawable = object.kind === 'curve' || object.construction.type === '轴' ? new THREE.Line(geometry,new THREE.LineBasicMaterial({ color:object.color })) : new THREE.Mesh(geometry,material); group.add(drawable) }
+      }
+      group.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          if (object.draft || object.normalOffset) {
+            child.geometry.computeVertexNormals(); child.geometry.computeBoundingBox()
+            const position=child.geometry.getAttribute('position'),normal=child.geometry.getAttribute('normal'),box=child.geometry.boundingBox!; const axis=object.draft?.axis==='X'?0:object.draft?.axis==='Z'?2:1
+            for(let i=0;i<position.count;i++) { const point=new THREE.Vector3().fromBufferAttribute(position,i)
+              if(object.normalOffset) point.addScaledVector(new THREE.Vector3().fromBufferAttribute(normal,i),object.normalOffset)
+              if(object.draft){const factor=1-(point.getComponent(axis)-box.min.getComponent(axis))/Math.max(.1,box.max.getComponent(axis)-box.min.getComponent(axis))*Math.tan(THREE.MathUtils.degToRad(object.draft.angle));for(const other of [0,1,2].filter((index)=>index!==axis))point.setComponent(other,point.getComponent(other)*factor)}
+              position.setXYZ(i,point.x,point.y,point.z)
+            }
+            child.geometry.computeVertexNormals(); child.geometry.computeBoundingBox()
+          }
+          child.userData.objectId=object.id
+        } else if(child instanceof THREE.Line) child.userData.objectId=object.id
+      }); this.designs.add(group)
     })
     if (preview?.tool === '拉伸') {
       const mesh = new THREE.Mesh(extrusionGeometry(preview.sketch, preview.distance), new THREE.MeshStandardMaterial({ color: '#2f9d78', transparent: true, opacity: .45, side: THREE.DoubleSide })); placeExtrusion(mesh, preview.sketch, preview.direction); this.designs.add(mesh)
@@ -247,6 +272,18 @@ export class CadScene {
       if (points.length === 1) { const dot = new THREE.Mesh(new THREE.SphereGeometry(.7), new THREE.MeshBasicMaterial({ color: '#087f60', depthTest: false })); dot.position.copy(points[0]); this.sketches.add(dot) }
     }))
     this.applyEdges()
+    this.selectOutline(selected)
+  }
+  private selectOutline(id: string | null) {
+    this.selection.children.slice().forEach((object) => { this.selection.remove(object); disposeObject(object) })
+    if (!id) return
+    this.scene.updateMatrixWorld(true)
+    ;[this.reference, this.designs].forEach((group) => group.traverse((object) => {
+      if (!(object instanceof THREE.Mesh || object instanceof THREE.Line) || object.userData.objectId !== id || !object.visible || !object.parent?.visible) return
+      const geometry = object.geometry.clone().applyMatrix4(object.matrixWorld)
+      const lineMaterial = new THREE.LineBasicMaterial({ color: '#2f9d78', transparent: true, opacity: .95, depthTest: false }); const outline = object instanceof THREE.Mesh ? new THREE.LineSegments(new THREE.EdgesGeometry(geometry, 16), lineMaterial) : new THREE.Line(geometry.clone(), lineMaterial)
+      geometry.dispose(); outline.renderOrder = 10; this.selection.add(outline)
+    }))
   }
   setSketchPlane(plane: CadSketch['plane'] | null) { this.sketchPlane = plane; this.controls.enableRotate = !plane; if (plane && this.normalToSketch) this.setView(plane === 'XY' ? '前' : plane === 'XZ' ? '上' : '右') }
   setNavigation(mode: string) {
@@ -375,12 +412,15 @@ export class CadScene {
     }))
   }
   metrics(id: string): CadMetrics | null {
+    if (['curve','datum'].includes(this.project?.objects.find((object)=>object.id===id)?.kind??'')) return null
     this.scene.updateMatrixWorld(true)
     if (id === 'jaw') return this.jaw ? meshMetrics(this.jaw.geometry) : null
     const group = this.designs.children.find((item) => item.children.some((child) => child.userData.objectId === id)); if (!group) return null
     const bounds = new THREE.Box3().setFromObject(group).getSize(new THREE.Vector3()); let area = 0; let volume = 0; let triangles = 0
     group.traverse((object) => { if (object instanceof THREE.Mesh) { const geometry = object.geometry.clone().applyMatrix4(object.matrixWorld); const metrics = meshMetrics(geometry); geometry.dispose(); area += metrics.area; volume += metrics.volume ?? 0; triangles += metrics.triangles } })
-    return { bounds: bounds.toArray() as [number, number, number], area, volume, triangles }
+    const object = this.project?.objects.find((item)=>item.id===id)
+    const openSurface = object?.construction?.type==='填充' && !object.thickness
+    return { bounds: bounds.toArray() as [number, number, number], area, volume: openSurface ? null : volume, triangles }
   }
   getScale() { return 20 * this.host.clientHeight / this.visibleHeight() }
   dispose() {

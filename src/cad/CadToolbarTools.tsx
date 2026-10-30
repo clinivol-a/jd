@@ -23,7 +23,7 @@ export default function CadToolbarTools({ ready, readOnly, activeTool, sketchMod
   }, [])
   const { groups, hidden } = useMemo(() => fitCadToolbar(Math.max(0, width - 80)), [width])
   const disabled = (definition: CadToolDefinition) => !definition.available || !ready || (readOnly && !definition.readOnlySafe)
-  const reason = (definition: CadToolDefinition) => !ready ? '请等待模型加载' : readOnly && !definition.readOnlySafe ? '当前成果已锁定' : !definition.available ? '尚未接入几何命令' : ''
+  const reason = (definition: CadToolDefinition) => !ready ? '请等待模型加载' : readOnly && !definition.readOnlySafe ? '当前成果已锁定' : ''
   const run = (id: string) => {
     const definition = cadToolById.get(id)
     if (definition?.command && !disabled(definition)) onChoose(definition.command)

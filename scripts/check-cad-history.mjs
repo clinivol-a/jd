@@ -86,3 +86,35 @@ assert.deepEqual([...visibleIds,...compact.hidden.map((entry) => entry.id)],allI
 const configured = new Set(cadToolbarGroups.flatMap((group) => group.entries.flatMap((entry) => entry.children ?? [entry.primary])))
 for (const definition of cadToolDefinitions) assert.ok(configured.has(definition.id), `${definition.id} must remain reachable in its tool group`)
 console.log('PASS: open boundaries, real shading modes, material restoration, camera directions/roll/window zoom, render resolution, toolbar order and command reachability')
+
+const { prepareCadCommand, generatedGeometry, initialCommandParams, extendedToolCommands } = load('src/cad/cadCommands.ts')
+const sk1={id:'sk1',name:'矩形草图',plane:'XY',primitives:[{kind:'矩形',points:[[-5,-4],[5,4]]}],constraints:[]}
+const sk2={id:'sk2',name:'圆形草图',plane:'XY',primitives:[{kind:'圆',points:[[0,0],[6,0]]}],constraints:[]}
+const commandProject={...initial,sketches:[sk1,sk2]}
+const params={...initialCommandParams,targetId:'plate',sketchId:'sk1',sketch2Id:'sk2'}
+const engineeringBefore=cadProjectContent(commandProject)
+for(const command of Object.values(extendedToolCommands).filter((name)=>!['抽壳','拔模'].includes(name))){
+  const result=prepareCadCommand(commandProject,command,params)
+  assert.equal(result.error,undefined,`${command} validates with appropriate inputs`)
+  assert.notEqual(cadProjectContent(result.project),engineeringBefore,`${command} must change engineering content`)
+  for(const object of result.project.objects.filter((item)=>item.construction)) { const geometry=generatedGeometry(object,result.project); assert.ok(geometry?.attributes.position.count>0,`${command} has visible geometry`); assert.ok(Array.from(geometry.attributes.position.array).every(Number.isFinite)); geometry.dispose() }
+  assert.equal(cadProjectContent(commandProject),engineeringBefore,'command never mutates its source project')
+  assert.deepEqual(result.project.objects.find((item)=>item.id==='jaw'),commandProject.objects[0],'approved reference is immutable')
+}
+assert.ok(prepareCadCommand(commandProject,'线性阵列',{...params,targetId:'jaw'}).error)
+assert.ok(prepareCadCommand(commandProject,'放样',{...params,sketch2Id:'sk1'}).error)
+const zeroProfile={...sk1,primitives:[{kind:'矩形',points:[[0,0],[0,4]]}]}
+assert.ok(prepareCadCommand({...commandProject,sketches:[zeroProfile,sk2]},'扫掠',params).error)
+assert.ok(prepareCadCommand(commandProject,'3D 拟合样条',{...params,points:'bad input'}).error)
+assert.ok(prepareCadCommand(commandProject,'拔模',{...params,angle:46}).error)
+assert.equal(prepareCadCommand(commandProject,'拔模',{...params,angle:8}).error,undefined)
+assert.equal(prepareCadCommand(commandProject,'线性阵列',params).project.objects.length,initial.objects.length+2)
+console.log('PASS: CAD command input validation, distinct geometric output, source/reference immutability and pattern instance identities')
+
+scene.selection=new THREE.Group(); scene.scene=new THREE.Scene(); scene.scene.add(scene.reference,scene.designs,scene.selection); mesh.userData.objectId='group-selection'
+const sibling=scene.reference.children[1]; sibling.userData.objectId='group-selection'
+scene.selectOutline('group-selection'); assert.equal(scene.selection.children.length,2,'one object ID outlines all component meshes')
+assert.equal(mesh.material.color.getHexString(),'dfd1b7','selection preserves the source material')
+mesh.visible=false; scene.selectOutline('group-selection'); assert.equal(scene.selection.children.length,1,'hidden components have no selection outline')
+scene.selectOutline(null); assert.equal(scene.selection.children.length,0,'clearing selection removes all outlines')
+console.log('PASS: multi-mesh object selection, material preservation and hidden/cleared outlines')
