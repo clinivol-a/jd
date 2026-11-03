@@ -1,8 +1,8 @@
 # CliniVol Design System V1.0 — Tokens
 
-版本：2026-11-03。唯一 Light 色彩权威为本轮用户提供的两张最终 Figma 色板与语义映射截图。原主题生成器的颜色不作为新依据。机器可读清单：`tokens.json`；运行样式：`../src/design-system/tokens.css`。
+版本：2026-11-03。唯一 Light 色彩权威为本轮用户提供的两张最终 Figma 色板与语义映射截图。原主题生成器的颜色不作为新依据。机器可读/运行快照：`tokens.json`与`../src/design-system/tokens.css`；本次新确认的Dark/Info映射以本文为准，运行同步状态见下文。
 
-## 基础色板（不可随主题改变）
+## Light基础色板（原始值保持不变）
 
 | 色板 | 级别 | 基础值 |
 |---|---|---|
@@ -113,45 +113,160 @@
 
 `component-stroke`另映射`--td-border-level-1-color`；`component-border`映射`--td-border-level-2-color`及`--td-component-border`。`text-color-brand/link`由可读文本语义消费；品牌按钮以brand-color消费。进行中仍是独立Info蓝色，绝不跟随品牌绿。
 
-## Dark（保留A已实现的主题，不宣称为最终Figma深色色板）
+## 2026-11-03 最终主题确认（覆盖此前临时映射）
 
-未提供最终Dark色板。下表明确是既有A表面与可读性适配，待未来Dark规范核对；基础色板不变。文字白色Alpha按提供的文字规范90/55/35/22%。
+本节及Figma映射表是本次最新确认的规范。浅色沿用最终Figma色板；**只有Light页面背景语义为#F5F7F9**，Gray2仍为#EEEEEE。深色只替换品牌绿色十级色阶，文字、背景、边框、灰阶、Error/Warning/Success、遮罩、滚动条与阴影全部保留TDesign官方Dark定义。不得继续沿用旧A蓝灰色表面或自行推导深色语义色。
 
-| 语义 | Dark值/引用 |
+来源：用户2026-11-03提供的Dark品牌CSS、最终确认文字和完整Shadow截图；官方默认值取自`tdesign-react 1.18.4 / node_modules/tdesign-react/es/style/index.css`。本轮只记录规范；`tokens.json`与`src/design-system/tokens.css`仍是上次集成的运行快照，尚未同步本次新增Dark/Info确认，不能反过来覆盖本规范。
+
+### 品牌绿与独立Info蓝
+
+Info是独立备用信息语义，使用TDesign未被品牌绿覆盖之前的官方品牌蓝。蓝色必须单独保存十级原始值，不能把`info-color`别名指向已经改绿的`--td-brand-color`。品牌文字、链接、选中态使用品牌语义；进行中/信息状态使用Info；错误红、警告橙、成功绿各自独立。Info作为备用色，不意味着本轮新增组件或重新给所有页面着色。
+
+| 级别 | 品牌绿 Dark | Info 蓝 Light | Info 蓝 Dark |
+|---|---|---|---|
+| 1 | `#0F2D24` | `#F2F3FF` | `#1B2F51` |
+| 2 | `#12372C` | `#D9E1FF` | `#173463` |
+| 3 | `#164235` | `#B5C7FF` | `#143975` |
+| 4 | `#195040` | `#8EABFF` | `#103D88` |
+| 5 | `#1D604B` | `#618DFF` | `#0D429A` |
+| 6 | `#227258` | `#366EF4` | `#054BBE` |
+| 7 | `#2C8B6A` | `#0052D9` | `#2667D4` |
+| 8 | `#45A986` | `#003CAB` | `#4582E6` |
+| 9 | `#6BC3A1` | `#002A7C` | `#699EF5` |
+| 10 | `#9ADABE` | `#001A57` | `#96BBF8` |
+
+| 状态/用途 | Brand Light | Brand Dark | Info Light | Info Dark |
+|---|---|---|---|---|
+| Normal | Brand7 | Brand8 | Info7 | Info8 |
+| Hover | Brand6 | Brand7 | Info6 | Info7 |
+| Active | Brand8 | Brand9 | Info8 | Info9 |
+| Focus | Brand2 | Brand2 | Info2 | Info2 |
+| Disabled | Brand3 | Brand3 | Info3 | Info3 |
+| Light | Brand1 | Brand1 | Info1 | Info1 |
+| Light Hover | Brand2 | Brand2 | Info2 | Info2 |
+
+Dark的品牌文字、链接均引用Brand8=#45A986。官方Dark的非品牌语义引用链原样保留，品牌阶梯更换后自动跟随。当前代码仍使用data-theme区分医学视窗；后续运行落地应同时设置TDesign的theme-mode，使官方深色样式真正生效，避免自定义反色或循环变量别名。
+
+### Dark官方非品牌值（完整来源快照）
+
+以下Token读取官方Dark块，保持原值/原别名。升级TDesign时应复核差异，不静默改动已确认视觉。原始TDesign蓝色仅作为Info副本保存，品牌绿是唯一的品牌覆盖。
+
+| TDesign Token | 官方Dark定义 |
 |---|---|
-| bg-color-page | `#101518` |
-| bg-color-container | `#1A2024` |
-| bg-color-secondarycontainer | `#22292E` |
-| bg-color-component | `#252D32` |
-| bg-color-component-hover | `#30393F` |
-| bg-color-component-active | `#34423D` |
-| bg-color-container-hover | `#252D32` |
-| bg-color-container-active | `#2B353A` |
-| bg-color-component-disabled | `#20262A` |
-| component-stroke | `#343D42` |
-| component-border | `#48545B` |
-| text-color-primary | `rgba(255,255,255,.90)` |
-| text-color-secondary | `rgba(255,255,255,.55)` |
-| text-color-placeholder | `rgba(255,255,255,.35)` |
-| text-color-disabled | `rgba(255,255,255,.22)` |
-| text-color-anti | `rgba(0,0,0,.90)` |
-| brand-color-light | `#18352D` |
-| brand-color-focus | `#1D4639` |
-| text-color-brand | `{brand.4}` |
-| text-color-link | `{brand.4}` |
-| error-color | `{error.4}` |
-| error-color-light | `#472622` |
-| warning-color | `{warning.4}` |
-| warning-color-light | `#443719` |
-| success-color | `{success.4}` |
-| success-color-light | `#17392D` |
+| `--td-warning-color-1` | `#4f2a1d` |
+| `--td-warning-color-2` | `#582f21` |
+| `--td-warning-color-3` | `#733c23` |
+| `--td-warning-color-4` | `#a75d2b` |
+| `--td-warning-color-5` | `#cf6e2d` |
+| `--td-warning-color-6` | `#dc7633` |
+| `--td-warning-color-7` | `#e8935c` |
+| `--td-warning-color-8` | `#ecbf91` |
+| `--td-warning-color-9` | `#eed7bf` |
+| `--td-warning-color-10` | `#f3e9dc` |
+| `--td-error-color-1` | `#472324` |
+| `--td-error-color-2` | `#5e2a2d` |
+| `--td-error-color-3` | `#703439` |
+| `--td-error-color-4` | `#83383e` |
+| `--td-error-color-5` | `#a03f46` |
+| `--td-error-color-6` | `#c64751` |
+| `--td-error-color-7` | `#de6670` |
+| `--td-error-color-8` | `#ec888e` |
+| `--td-error-color-9` | `#edb1b6` |
+| `--td-error-color-10` | `#eeced0` |
+| `--td-success-color-1` | `#193a2a` |
+| `--td-success-color-2` | `#1a4230` |
+| `--td-success-color-3` | `#17533d` |
+| `--td-success-color-4` | `#0d7a55` |
+| `--td-success-color-5` | `#059465` |
+| `--td-success-color-6` | `#43af8a` |
+| `--td-success-color-7` | `#46bf96` |
+| `--td-success-color-8` | `#80d2b6` |
+| `--td-success-color-9` | `#b4e1d3` |
+| `--td-success-color-10` | `#deede8` |
+| `--td-gray-color-1` | `#f3f3f3` |
+| `--td-gray-color-2` | `#eee` |
+| `--td-gray-color-3` | `#e8e8e8` |
+| `--td-gray-color-4` | `#ddd` |
+| `--td-gray-color-5` | `#c6c6c6` |
+| `--td-gray-color-6` | `#a6a6a6` |
+| `--td-gray-color-7` | `#8b8b8b` |
+| `--td-gray-color-8` | `#777` |
+| `--td-gray-color-9` | `#5e5e5e` |
+| `--td-gray-color-10` | `#4b4b4b` |
+| `--td-gray-color-11` | `#393939` |
+| `--td-gray-color-12` | `#2c2c2c` |
+| `--td-gray-color-13` | `#242424` |
+| `--td-gray-color-14` | `#181818` |
+| `--td-font-white-1` | `rgba(255, 255, 255, 0.9)` |
+| `--td-font-white-2` | `rgba(255, 255, 255, 0.55)` |
+| `--td-font-white-3` | `rgba(255, 255, 255, 0.35)` |
+| `--td-font-white-4` | `rgba(255, 255, 255, 0.22)` |
+| `--td-font-gray-1` | `rgba(0, 0, 0, 0.9)` |
+| `--td-font-gray-2` | `rgba(0, 0, 0, 0.6)` |
+| `--td-font-gray-3` | `rgba(0, 0, 0, 0.4)` |
+| `--td-font-gray-4` | `rgba(0, 0, 0, 0.26)` |
+| `--td-warning-color` | `var(--td-warning-color-5)` |
+| `--td-error-color` | `var(--td-error-color-6)` |
+| `--td-success-color` | `var(--td-success-color-5)` |
+| `--td-warning-color-hover` | `var(--td-warning-color-4)` |
+| `--td-warning-color-focus` | `var(--td-warning-color-2)` |
+| `--td-warning-color-active` | `var(--td-warning-color-6)` |
+| `--td-warning-color-disabled` | `var(--td-warning-color-3)` |
+| `--td-warning-color-light` | `var(--td-warning-color-1)` |
+| `--td-warning-color-light-hover` | `var(--td-warning-color-2)` |
+| `--td-error-color-hover` | `var(--td-error-color-5)` |
+| `--td-error-color-focus` | `var(--td-error-color-2)` |
+| `--td-error-color-active` | `var(--td-error-color-7)` |
+| `--td-error-color-disabled` | `var(--td-error-color-3)` |
+| `--td-error-color-light` | `var(--td-error-color-1)` |
+| `--td-error-color-light-hover` | `var(--td-error-color-2)` |
+| `--td-success-color-hover` | `var(--td-success-color-4)` |
+| `--td-success-color-focus` | `var(--td-success-color-2)` |
+| `--td-success-color-active` | `var(--td-success-color-6)` |
+| `--td-success-color-disabled` | `var(--td-success-color-3)` |
+| `--td-success-color-light` | `var(--td-success-color-1)` |
+| `--td-success-color-light-hover` | `var(--td-success-color-2)` |
+| `--td-mask-active` | `rgba(0, 0, 0, 0.4)` |
+| `--td-mask-disabled` | `rgba(0, 0, 0, 0.6)` |
+| `--td-mask-background` | `rgba(36, 36, 36, 0.96)` |
+| `--td-mask-gradient` | `rgba(36, 36, 36, 0)` |
+| `--td-bg-color-page` | `var(--td-gray-color-14)` |
+| `--td-bg-color-container` | `var(--td-gray-color-13)` |
+| `--td-bg-color-container-hover` | `var(--td-gray-color-12)` |
+| `--td-bg-color-container-active` | `var(--td-gray-color-10)` |
+| `--td-bg-color-container-select` | `var(--td-gray-color-9)` |
+| `--td-bg-color-secondarycontainer` | `var(--td-gray-color-12)` |
+| `--td-bg-color-secondarycontainer-hover` | `var(--td-gray-color-11)` |
+| `--td-bg-color-secondarycontainer-active` | `var(--td-gray-color-9)` |
+| `--td-bg-color-component` | `var(--td-gray-color-11)` |
+| `--td-bg-color-component-hover` | `var(--td-gray-color-10)` |
+| `--td-bg-color-component-active` | `var(--td-gray-color-9)` |
+| `--td-bg-color-secondarycomponent` | `var(--td-gray-color-10)` |
+| `--td-bg-color-secondarycomponent-hover` | `var(--td-gray-color-9)` |
+| `--td-bg-color-secondarycomponent-active` | `var(--td-gray-color-8)` |
+| `--td-bg-color-component-disabled` | `var(--td-gray-color-12)` |
+| `--td-bg-color-specialcomponent` | `transparent` |
+| `--td-text-color-primary` | `var(--td-font-white-1)` |
+| `--td-text-color-secondary` | `var(--td-font-white-2)` |
+| `--td-text-color-placeholder` | `var(--td-font-white-3)` |
+| `--td-text-color-disabled` | `var(--td-font-white-4)` |
+| `--td-text-color-anti` | `#fff` |
+| `--td-text-color-brand` | `var(--td-brand-color-8)` |
+| `--td-text-color-link` | `var(--td-brand-color-8)` |
+| `--td-text-color-watermark` | `rgba(255, 255, 255, 0.1)` |
+| `--td-border-level-1-color` | `var(--td-gray-color-11)` |
+| `--td-component-stroke` | `var(--td-gray-color-11)` |
+| `--td-border-level-2-color` | `var(--td-gray-color-9)` |
+| `--td-component-border` | `var(--td-gray-color-9)` |
+| `--td-table-shadow-color` | `rgba(0, 0, 0, 0.55)` |
+| `--td-scrollbar-color` | `rgba(255, 255, 255, 0.1)` |
+| `--td-scrollbar-hover-color` | `rgba(255, 255, 255, 0.3)` |
+| `--td-scroll-track-color` | `#333` |
 
-### 当前确认但不在本次最终Figma表中的值
+### 已确认的专业显示例外
 
-- Info蓝色：沿用A进行中状态`#0052D9`，浅底`#E8F3FF`；Dark前景`#8BB7FF`、浅底`#183651`。这是状态兼容，不是新增Figma色阶。
-- 四设计阶段沿用此前确认Cyan/Purple/Yellow/Pink：浅色前景/背景`#004E6D/#E8F5FF`、`#5610A4/#FBF0FF`、`#654900/#FFF5E4`、`#800A5F/#FFF0F6`。Dark配对保留现有实现。
-- 五卡审核退回图标仍保留A紫色`#6F49A8/#F2EDFA`；真正退回状态/通知仍为Error红色。两种语义不可混用。
-- 医学四视图方向色、CT灰阶、STL材质及CAD视窗白/深灰背景不由平台调色板反色。
+医学二维影像、三维医学视图、CAD视窗白/深灰背景、方向识别色和模型材质继续按已有专业规则显示，不因平台Dark背景恢复官方值而强制反色。Cyan/Purple/Yellow/Pink设计阶段色保持既有身份语义，不与任务状态混用。
 
 ## 字体与行高
 
@@ -193,7 +308,7 @@ TDesign `title-extraLarge`历史别名映射当前title-large=20/28，不引入1
 
 ## 阴影
 
-截图裁掉了数值尾部，因此数值采用用户允许的**已安装tdesign-react 1.18.4/es/style/index.css**原定义，不宣称完整转录截图。截图用途层级可确认；若后续提供不同的完整Figma数值再核对。阴影不加到全局Header和普通白色业务卡片。
+用户已确认阴影统一使用**TDesign官方默认值**。本次完整Shadow截图的三个Light层级与已安装tdesign-react 1.18.4/es/style/index.css逐项一致；Dark也直接使用同文件官方Dark值。此前“截图尾部待核对”的状态已解除。阴影不加到全局Header和普通白色业务卡片。
 
 | 层级 | Light实际值 | 场景 |
 |---|---|---|
@@ -210,9 +325,9 @@ Dark使用同一TDesign文件既有Dark值：
 
 24px图标作者画板，1.5px描边，运行尺寸16/20/24。空间4/8/12/16/24；平台左右安全边距24。GlobalHeader=56px、单排专业工具栏=58px。卡片8px；面板伸缩不触发工程保存。
 
-## 待核对
+## 确认状态与实施边界
 
-1. 最终Figma Dark全量色板与映射尚未提供；现有深色表面不是推测的Figma值。
-2. 截图阴影数值尾部不能精确转录，已采用可核验TDesign原定义。
-3. Info完整色阶与扩展四色完整色阶不在本轮最终截图，保留已有确认值。
-4. Icon原作者非矩形曲线不统一改写为数学意义的1px圆角；通过同一24画板/1.5描边/round端点连接与矩形rx1统一，详见icons.md。
+- Light最终Figma色板、Light页面背景例外、Dark品牌绿、Dark其他官方默认值、Info双主题完整蓝色和三级官方阴影均已确认，不再标记为待定。
+- 字体、字号+8px行高、圆角、Icon标准继续沿用原规范，不因本次主题确认而改变。
+- Icon复杂路径逐点1px圆角属于矢量实现边界，不是主题Token缺失；不以SVG容器圆角伪装路径已调整。
+- 本次仅更新Markdown；未更改CSS、JSON运行快照、页面或Figma。后续代码同步须按本规范验证，未来Figma写入以figma-variable-mapping.md为依据，不能宣称当前已同步。

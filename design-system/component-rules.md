@@ -2,7 +2,7 @@
 
 | 组件 | 规则 |
 |---|---|
-| Button | TDesign原交互，14/22 Regular，中等点击区域；Primary沿用品牌Normal/Hover/Active，不强改灰；实心Primary在两种主题均用White1前景，避免深色主题Anti深字落在固定Brand7深底上；禁用仍沿用组件禁用色。图标与文字垂直居中，间距8px。 |
+| Button | TDesign原交互，14/22 Regular，中等点击区域；Primary沿用品牌Normal/Hover/Active，不强改灰；实心Primary使用对应主题品牌语义及TDesign Anti前景（Dark官方Anti=#FFF）；禁用仍沿用组件禁用色。图标与文字垂直居中，间距8px。 |
 | Tag | 状态语义独立：未开始灰、进行中Info蓝、待审核Warning橙、审核退回Error红、已完成Success绿；不能用品牌绿代替进行中。 |
 | Tooltip | 只限定`.t-tooltip--default`，Light容器白底/主要文字/浅边/shadow-1/8px；Dark对应表面/浅字。箭头同表面。 |
 | Dropdown/Popover | 保留TDesign机制、完整14/22文案、不裁切；radius-medium8px、shadow-2；不继承Tooltip专用白底覆盖。 |
@@ -33,3 +33,7 @@ AI十项按用户顺序显示；当前没有对应AI服务或重建Mesh编辑器
 ## 不改变的领域
 
 CT黑底、3D医学视图白底、方向识别色与红色审核定位、CAD模型原材质/几何、自动保存/提交/退回/解锁机制均保留。当前浏览器原型不等于真实临床算法、服务端鉴权或制造级CAD内核。
+
+## 2026-11-03主题与阴影确认
+
+Light保持最终Figma色彩及#F5F7F9页面背景例外。Dark仅替换品牌绿阶梯，Normal=Brand8、Hover=Brand7、Active=Brand9；其余全部采用TDesign官方Dark。品牌文字与链接随Brand8；Info独立引用官方原品牌蓝，不能随品牌覆盖变绿。三级阴影均为官方默认参数，不给Header或白色卡片新增投影。精确色值与未来Figma映射见tokens.md和figma-variable-mapping.md。本次为规范更新，尚未同步运行CSS/JSON。

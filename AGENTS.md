@@ -57,8 +57,10 @@
 ## Design System V1.0（2026-11-03）
 
 34. 任何 UI 修改前，必须先阅读 `design-system/tokens.md`、`design-system/icons.md`、`design-system/component-rules.md` 和 `design-system/figma-variable-mapping.md`。它们与本轮用户确认的最终 Figma 截图构成当前视觉基准；旧 DESIGN.md 及旧主题生成器中的冲突数值不再生效。
-35. Token 采用基础色板 → 语义 → 组件三层；核心品牌色 #0D7A5D，页面背景语义固定 #F5F7F9，但 Gray2 基础值保持 #EEEEEE。普通 Hover 中性灰，进行中保持独立蓝色。运行变量在 `src/design-system/tokens.css`，机器可读依据在 `design-system/tokens.json`。
+35. Token 采用基础色板 → 语义 → 组件三层；Light核心品牌色 #0D7A5D，Light页面背景语义固定 #F5F7F9，但 Gray2 基础值保持 #EEEEEE。普通 Hover 中性灰，进行中保持独立蓝色。运行变量在 `src/design-system/tokens.css`，机器可读依据在 `design-system/tokens.json`。
 36. 通用 Icon 通过 CliniVolIcon 适配，24×24画板、1.5px描边、16/20/24px使用尺寸。不得对医学影像、View Cube或模型几何进行全局SVG描边/填色覆盖。面性统计Icon和复杂路径圆角的边界以icons.md为准，不伪称已逐点重绘。
 37. 正式A项目入口使用项目/订单稳定ID，名称不作主键；保留现有A任务、审核、CAD依赖与本地存储键。不导入实验E*任务或实验存储，不改写真实人员或审计身份。医院演示映射必须有demo来源，不能回填production记录。
-38. 默认保持Light，兼容已实现Dark；没有最终Dark Figma色板时沿用文档明确的兼容映射，不编造精确设计值。通用Tooltip Light白底、深色文字；专业医学画布和材质不自动反色。
+38. 默认保持Light。Dark只覆盖2026-11-03用户确认的十级品牌绿及其Brand8/7/9语义映射；文字、背景、边框、灰阶、Error/Warning/Success和阴影沿用TDesign官方Dark。Info独立保存TDesign官方Light/Dark蓝阶，不得引用已改绿的品牌变量。通用Tooltip Light白底、深色文字；专业医学画布和材质不自动反色。
 39. 本次集成在独立worktree与`codex/a-dashboard-design-system-v1`分支进行。备份Tag为`backup/a-before-project-dashboard-20261103`，恢复方法见README。修改完成仍不等于部署；须继续遵守15–33条。
+
+40. 2026-11-03已确认三级阴影使用TDesign官方默认值；Light最终Figma、Dark品牌绿、Info双主题蓝色与官方Dark非品牌变量均已定稿，详见tokens.md及figma-variable-mapping.md。未来Figma写入前按这两份映射核对，Shadow使用Effect Styles而非伪造SHADOW变量。本次仅文档确认，CSS/JSON运行同步尚未完成，不得宣称已应用到页面。
