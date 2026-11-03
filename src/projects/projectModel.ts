@@ -84,14 +84,22 @@ export function projectProgress(project:Project):string {
   return (current.length?current:project.tasks.filter(t=>t.status==='未开始')).map(t=>`${compactText(t.taskType)}${t.status}`).join(' · ')
 }
 export function filterProjects(projects:Project[],f:Filters):Project[] {
-  return projects.filter(p=>(!f.source||!p.tasks.some(t=>t.id.startsWith('P')))&&inRange(p.createdAt,f.range)&&(!f.search||[p.name,p.id].some(v=>v.toLowerCase().includes(f.search.toLowerCase())))&&(f.stage==='全部'||p.tasks.some(t=>t.taskType===f.stage))&&(f.status==='全部'||p.tasks.some(t=>statusMatches(t,f.status))))
+  return projects.filter(p=>inRange(p.createdAt,f.range)&&(!f.search||[p.name,p.id].some(v=>v.toLowerCase().includes(f.search.toLowerCase())))&&(f.stage==='全部'||p.tasks.some(t=>t.taskType===f.stage))&&(f.status==='全部'||p.tasks.some(t=>statusMatches(t,f.status))))
 }
-export function filterTasks(projects:Project[],f:Filters):{project:Project;task:Task}[] {
-  return projects.filter(p=>inRange(p.createdAt,f.range)&&(!f.search||[p.name,p.id].some(v=>v.toLowerCase().includes(f.search.toLowerCase())))).flatMap(project=>project.tasks.filter(t=>owns(t)&&(!f.source||!t.id.startsWith('E'))&&(f.stage==='全部'||t.taskType===f.stage)&&statusMatches(t,f.status)).map(task=>({project,task})))
+export function statisticsTasks(tasks:Task[],range:DateRange,events:FlowEvent[]=[]):Task[] {
+ return [...new Map(tasks.map(t=>[t.id,t])).values()].filter(t=>{
+  if(!owns(t))return false
+  const dates=[parseTimestamp(t.updated),...events.filter(e=>e.taskId===t.id&&e.orderNo===t.orderNo).map(e=>parseTimestamp(e.at))].filter((d):d is Date=>!!d)
+  const latest=dates.sort((a,b)=>b.getTime()-a.getTime())[0]
+  return !!latest&&inRange(day(latest),range)
+ })
 }
-export function monthlyCounts(projects:Project[],now=new Date()) {
-  const tasks=projects.filter(p=>inRange(p.createdAt,periodRange('month',now))).flatMap(p=>p.tasks.filter(owns))
-  return {待处理:tasks.filter(t=>statusMatches(t,'待处理')).length,进行中:tasks.filter(t=>t.status==='进行中').length,待审核:tasks.filter(t=>t.status==='待审核').length,审核退回:tasks.filter(t=>t.status==='审核退回').length,已完成:tasks.filter(t=>t.status==='已完成').length}
+export function filterTasks(projects:Project[],f:Filters,events:FlowEvent[]=[]):{project:Project;task:Task}[] {
+ const eligible=f.source?new Set(statisticsTasks(projects.flatMap(p=>p.tasks),f.range,events).map(t=>t.id)):null
+ return projects.filter(p=>(!!f.source||inRange(p.createdAt,f.range))&&(!f.search||[p.name,p.id].some(v=>v.toLowerCase().includes(f.search.toLowerCase())))).flatMap(project=>project.tasks.filter(t=>owns(t)&&(!eligible||eligible.has(t.id))&&(f.stage==='全部'||t.taskType===f.stage)&&statusMatches(t,f.status)).map(task=>({project,task})))
+}
+export function monthlyCounts(projects:Project[],now=new Date(),events:FlowEvent[]=[]) {
+ return aDashboardCounts(projects.flatMap(p=>p.tasks),events,now)
 }
 export function latestTaskActivity(task:Task,events:FlowEvent[]):string {
   return [(/今天|昨天/.test(task.updated)&&events.some(e=>e.taskId===task.id)?'':isoDisplayTime(task.updated)),...events.filter(e=>e.taskId===task.id).map(e=>e.at)].filter(Boolean).sort().at(-1)??''
@@ -165,11 +173,9 @@ export function demoFlowEvents(project:Project):FlowEvent[] {
  });return rows
 }
 
-// Scheme A's pre-existing monthly completion aggregate has no individual task records.
-export const aDashboardHistory = { completed: 12 } as const
-export function aDashboardCounts(tasks:Task[]) {
- const mine=tasks.filter(t=>owns(t)&&!t.catalogDemo)
- return {待处理:mine.filter(t=>['进行中','审核退回'].includes(t.status)).length,进行中:mine.filter(t=>t.status==='进行中').length,待审核:mine.filter(t=>t.status==='待审核').length,审核退回:mine.filter(t=>t.status==='审核退回').length,已完成:mine.filter(t=>t.status==='已完成').length+aDashboardHistory.completed}
+export function aDashboardCounts(tasks:Task[],events:FlowEvent[]=[],now=new Date()) {
+ const mine=statisticsTasks(tasks,periodRange('month',now),events)
+ return {待处理:mine.filter(t=>statusMatches(t,'待处理')).length,进行中:mine.filter(t=>t.status==='进行中').length,待审核:mine.filter(t=>t.status==='待审核').length,审核退回:mine.filter(t=>t.status==='审核退回').length,已完成:mine.filter(t=>t.status==='已完成').length}
 }
 export function projectStatus(project:Project):TaskStatus {
  if(project.tasks.every(t=>t.status==='已完成'))return '已完成'

@@ -516,3 +516,10 @@ html[data-theme="dark"] .context-tool-active, html[data-theme="dark"] .context-t
 .t-tooltip--default[data-popper-placement^="left"] .t-popup__arrow { right: -5px; }
 .t-tooltip--default[data-popper-placement^="right"] .t-popup__arrow { left: -5px; }
 .context-tool:disabled .cv-icon { color: inherit; opacity: 1; filter: none; }
+
+/* Final stage reference: shared identity surface; no change to table geometry. */
+.design-stage-icon { background: var(--stage-bg); border-radius: var(--cv-radius-medium); }
+.design-stage-icon.stage-cyan { --stage-bg: var(--cv-stage-cyan-light); }
+.design-stage-icon.stage-purple { --stage-bg: var(--cv-stage-purple-light); }
+.design-stage-icon.stage-yellow { --stage-bg: var(--cv-stage-yellow-light); }
+.design-stage-icon.stage-pink { --stage-bg: var(--cv-stage-pink-light); }

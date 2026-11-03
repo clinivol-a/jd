@@ -20,7 +20,7 @@ const storage=new Map(),localStorage={getItem:key=>storage.get(key)??null,setIte
 const functions=new Function('originalTasks','initialTasks','localStorage',compiled+';return {initialFlowEvents,getStoredTasks:getStoredBaseTasks,isCadTaskUnlocked}')(tasks,tasks,localStorage)
 const events=functions.initialFlowEvents(),projects=m.projectsFor(tasks,events)
 assert.equal(projects.length,5);assert.equal(new Set(projects.map(p=>p.id)).size,5)
-assert.deepEqual(m.aDashboardCounts(tasks),{待处理:3,进行中:2,待审核:2,审核退回:1,已完成:13})
+assert.deepEqual(m.aDashboardCounts(tasks,events,new Date('2026-10-23T12:00:00')),{待处理:3,进行中:2,待审核:2,审核退回:1,已完成:1})
 assert.equal(m.canEnter(tasks.find(t=>t.id==='005'),tasks),false)
 assert.equal(m.canEnter(tasks.find(t=>t.id==='007'),tasks),true)
 assert.deepEqual(tasks.filter(t=>['004','005','006','007'].includes(t.id)).map(t=>[t.id,t.status]),[['004','待审核'],['005','未开始'],['006','已完成'],['007','进行中']])

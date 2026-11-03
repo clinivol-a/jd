@@ -1,3 +1,4 @@
+import { MaskRegionIcon, ReferencePlaneIcon, BooleanUnionIcon, MaskSplitIcon, VolumeStatisticsIcon, StlStatisticsIcon } from './design-system/WorkspaceSemanticIcon'
 import { AiBoneIcon, BoneRebuildIcon, OrganIcon, LungVesselIcon, BronchusIcon, AbdomenIcon, SpineRibsIcon, AortaIcon, LungLobesIcon, SkinIcon, MeshEditIcon } from './design-system/MedicalToolIcon'
 import { withDemoProjects, projectsFor, defaultFilters, periodRange, canEnter, owns, cleanOwner, noticeProjectTarget, formatNoticeTime, noticeTimestamp } from './projects/projectModel'
 import type { Filters, Period, DateRange, ProjectTarget } from './projects/projectModel'
@@ -108,7 +109,6 @@ const initialNotices: Notice[] = [
   { id: 2, title: '医生审核通过', detail: '任务 015 的成果已通过审核。', time: '昨天', unread: false, tone: 'success' },
   { id: 3, title: '医生审核退回', detail: '任务 002 有新的修改意见。', time: '08:42', eventId:'002-review-1', unread: true, taskId: '002', tone: 'warning' },
   { id: 4, title: 'CAD 任务已具备开始条件', detail: '任务 007 已关联审核通过的上游模型。', time: '今天', eventId:'007-model-linked', unread: false, taskId: '007', tone: 'neutral' },
-  { id: 5, title: '系统消息', detail: '当前没有需要处理的系统通知。', time: '10 月 8 日', unread: false, tone: 'neutral' },
 ]
 
 const navItems = [
@@ -117,7 +117,7 @@ const navItems = [
 ] as const
 const workspaceModes: { key: WorkspaceMode; label: string; icon: typeof Eye }[] = [
   { key: 'ai', label: 'AI', icon: AiBoneIcon }, { key: 'view', label: '视图', icon: LayoutGrid },
-  { key: 'image', label: '图像', icon: ImageIcon }, { key: 'segment', label: '分割', icon: Scissors },
+  { key: 'image', label: '图像', icon: ImageIcon }, { key: 'segment', label: '分割', icon: MaskRegionIcon },
 ]
 const toolsets: Record<WorkspaceMode, WorkspaceTool[]> = {
   ai: [
@@ -130,12 +130,12 @@ const toolsets: Record<WorkspaceMode, WorkspaceTool[]> = {
   view: [
     { label: '布局', icon: LayoutGrid, options: ['三位四窗', '多平面重建', '三维主视图（上下）', '三维主视图（左右）'] },
     { label: '伪色', icon: Palette, options: ['灰色', '全谱', '锯齿', '三角'] },
-    { label: '参考平面', icon: Grid2X2, persistent: true }, { label: '层切', icon: ScanLine, persistent: true },
+    { label: '参考平面', icon: ReferencePlaneIcon, persistent: true }, { label: '层切', icon: ScanLine, persistent: true },
     { label: '四角信息显隐', icon: Maximize2 }, { label: '十字线显隐', icon: Crosshair },
     { label: '浏览序列', icon: Images, persistent: true },
     { label: '蒙版阴影', icon: Layers3, options: ['半', '全', '活动', '二元'], persistent: true },
-    { label:'蒙版体积与统计',icon:Gauge,available:false,unavailableReason:'当前工程没有可用于体积统计的体素蒙版数据' },
-    { label:'STL属性统计',icon:Box },
+    { label:'蒙版体积与统计',icon:VolumeStatisticsIcon,available:false,unavailableReason:'当前工程没有可用于体积统计的体素蒙版数据' },
+    { label:'STL属性统计',icon:StlStatisticsIcon },
   ],
   image: [
     { label: '移动图像', icon: Move, persistent: true }, { label: '缩放', icon: ZoomIn, persistent: true },
@@ -148,7 +148,7 @@ const toolsets: Record<WorkspaceMode, WorkspaceTool[]> = {
     { label: '区域生长', icon: Crosshair, persistent: true }, { label: '动态区域生长', icon: Gauge, persistent: true },
     { label: '编辑蒙版', icon: Layers3, persistent: true }, { label: '3D蒙版擦除', icon: Eraser, persistent: true },
     { label: '多断层编辑', icon: Grid2X2, persistent: true }, { label: '分离蒙版', icon: Split },
-    { label: '布尔操作', icon: Combine }, { label: '拆分蒙版', icon: Scissors },
+    { label: '布尔操作', icon: BooleanUnionIcon }, { label: '拆分蒙版', icon: MaskSplitIcon },
     { label: '快速重建', icon: BoneRebuildIcon, options: ['骨骼重建', '器官重建', '血管重建', '支气管重建', '皮肤重建'] },
   ],
 }
@@ -409,7 +409,7 @@ function App() {
   const currentWorkspaceId = screen.kind === 'workspace' || screen.kind === 'cad-workspace' ? screen.taskId : null
   const currentTask = currentWorkspaceId ? tasks.find((task) => task.id === currentWorkspaceId) : undefined
   const projects=useMemo(()=>withDemoProjects(projectsFor(tasks,flowEvents)),[tasks,flowEvents])
-  const unreadCount = notices.filter((notice) => notice.unread).length
+  const unreadCount = notices.filter((notice) => !notice.dismissed && notice.unread).length
   const runWithGuard = (action: () => void) => { if (currentWorkspaceId && dirty[currentWorkspaceId]) setGuardAction(() => action); else action() }
   useEffect(()=>{ const onHash=()=>runWithGuard(()=>rawSetScreen(validateRoute(readProjectRoute(),tasks)));window.addEventListener('popstate',onHash);window.addEventListener('hashchange',onHash);return ()=>{window.removeEventListener('popstate',onHash);window.removeEventListener('hashchange',onHash)} },[tasks,dirty,currentWorkspaceId])
   const [projectNavigationKey,setProjectNavigationKey]=useState(0)
@@ -418,7 +418,7 @@ function App() {
     setProjectNavigationKey(key=>key+1)
     setScreen({kind:'project',projectId,taskId:target?.taskId,eventId:target?.eventId})
   })
-  const openStat=(status:Filters['status'])=>{setProjectFilters({...defaultFilters(),view:'tasks',status,period:'custom',range:['',''],source:'a-statistics'});goPlatform('tasks')}
+  const openStat=(status:Filters['status'])=>{setProjectFilters({...defaultFilters(),view:'tasks',status,period:'month',range:periodRange('month'),source:'a-statistics'});goPlatform('tasks')}
   const goPlatform = (kind: 'home' | 'tasks' | 'reviews') => runWithGuard(() => setScreen({ kind }))
   const openTaskDetail = (taskId: string) => {
     const task = tasks.find((item) => item.id === taskId)
@@ -536,7 +536,7 @@ function App() {
       {screen.kind === 'workspace' && currentTask ? <Workspace task={currentTask} dirty={Boolean(dirty[currentTask.id])} savedAt={savedAt[currentTask.id]} mode={workspaceMode[currentTask.id] ?? 'view'} activeSeriesId={activeSeries[currentTask.id] ?? currentTask.series[0]?.id ?? ''} comments={reviewComments.filter((comment) => comment.taskId === currentTask.id)} reviewFocus={reviewFocus?.taskId === currentTask.id ? reviewFocus : null} reviewResetEnabled={reviewResetEnabled} onReviewFocusConsumed={() => setReviewFocus(null)} onUpdateComment={updateReviewComment} onResetReview={() => resetReviewDemo(currentTask.id)} onSeriesChange={(seriesId) => setActiveSeries((value) => ({ ...value, [currentTask.id]: seriesId }))} onModeChange={(mode) => setWorkspaceMode((value) => ({ ...value, [currentTask.id]: mode }))} onDirty={() => setDirty((value) => ({ ...value, [currentTask.id]: true }))} onSave={(announce = true) => saveTask(currentTask.id, announce)} onSubmit={() => { setSubmitTarget('doctor'); setSubmitTask(currentTask.id) }} onSubmitSalesperson={() => { setSubmitTarget('salesperson'); setSubmitTask(currentTask.id) }} /> : screen.kind === 'cad-workspace' && currentTask && canEnter(currentTask, tasks) ? <Suspense fallback={<div className="panel-empty">正在打开 CAD 工作区…</div>}><CadWorkspace reviewFocus={reviewFocus?.taskId === currentTask.id ? reviewFocus : null} onReviewFocusConsumed={() => setReviewFocus(null)} key={currentTask.id} task={currentTask} comments={reviewComments.filter((comment) => comment.taskId === currentTask.id)} onBack={() => openProject(currentTask.orderNo,{projectId:currentTask.orderNo,taskId:currentTask.id})} onSubmit={() => { setSubmitTarget('doctor'); setSubmitTask(currentTask.id) }} onSubmitSalesperson={() => { setSubmitTarget('salesperson'); setSubmitTask(currentTask.id) }} renderReviewPanel={(bridge) => <ReviewCommentsPanel comments={reviewComments.filter((comment) => comment.taskId === currentTask.id)} selectedCommentId={bridge.selectedId} readOnly={currentTask.status === '待审核' || currentTask.status === '已完成'} syncState={bridge.syncState} syncedAt={bridge.syncedAt} resetEnabled={false} onSelect={(comment) => { bridge.onSelect(comment.id); if (comment.unread) updateReviewComment(comment.id, { unread: false }) }} onClose={bridge.onClose} onUpdate={updateReviewComment} onQueueSync={bridge.onQueueSync} onReset={() => {}} onSubmit={bridge.onSubmit} />} /></Suspense> :
         <PlatformShell screen={screen} goPlatform={goPlatform} collapsed={navCollapsed} onCollapsedChange={setNavCollapsed}>
           {screen.kind === 'home' && <ProjectDashboard projects={projects} tasks={tasks} events={flowEvents} notices={notices} userName={userProfile.name} homeFilter={homeFilter} onHomeFilter={setHomeFilter} onProject={openProject} onNotice={openNotice} onDismiss={dismissNotice} onStat={openStat} onAll={()=>{setProjectFilters({...defaultFilters(),period:homeFilter.period,range:homeFilter.range});goPlatform('tasks')}} />}
-          {screen.kind === 'tasks' && <ProjectList projects={projects} tasks={tasks} filters={projectFilters} onFilters={setProjectFilters} onProject={openProject} onOpen={openWorkspace} />}
+          {screen.kind === 'tasks' && <ProjectList projects={projects} tasks={tasks} events={flowEvents} filters={projectFilters} onFilters={setProjectFilters} onProject={openProject} onOpen={openWorkspace} />}
           {screen.kind==='project'&&<ProjectDetail project={projects.find(p=>p.id===screen.projectId)} tasks={tasks} events={flowEvents} target={screen} navigationKey={projectNavigationKey} onBack={()=>setScreen(projectReturnScreen.current)} onOpen={openWorkspace}/>}
           {screen.kind === 'reviews' && <Reviews tasks={tasks} onDetail={openTaskDetail} />}
           {screen.kind === 'detail' && <TaskDetail task={tasks.find((task) => task.id === screen.taskId)!} tasks={tasks} events={flowEvents} feedback={upstreamFeedback} comments={reviewComments.filter((comment) => comment.taskId === screen.taskId)} onBack={() => setScreen(detailReturnScreen.current)} onOpen={(taskId, options) => openWorkspace(taskId, options)} onFeedback={submitUpstreamFeedback} />}
@@ -544,7 +544,7 @@ function App() {
         </PlatformShell>}
     </div>
     <Drawer visible={notificationsOpen} placement="right" size="400px" header={<div className="drawer-title"><span>通知中心</span><Tag theme="primary" variant="light">{unreadCount} 条未读</Tag></div>} footer={false} onClose={() => setNotificationsOpen(false)}>
-      <div className="notice-list">{notices.filter((notice) => !notice.dismissed).map((notice) => <div key={notice.id} className={`notice-item notice-${notice.tone} ${notice.unread ? 'notice-unread' : ''}`}><button className="notice-item-main" onClick={() => openNotice(notice)}><NoticeSymbol notice={notice} /><span><strong>{notice.title}</strong>{notice.detail && !/^[-—]$/.test(notice.detail.trim()) && <small>{notice.tone === 'warning' ? '查看意见并修改' : notice.detail}</small>}{formatNoticeTime(noticeTimestamp(notice,flowEvents)) && <em>{formatNoticeTime(noticeTimestamp(notice,flowEvents))}</em>}</span>{(notice.projectId||notice.taskId||notice.eventId) && <ChevronRightIcon size={16} />}</button>{notice.tone === 'warning' && <button className="notice-item-close" aria-label={`关闭${notice.title}`} onClick={() => dismissNotice(notice.id)}><CloseIcon size={14} /></button>}</div>)}</div>
+      <div className="notice-list">{!notices.some(notice=>!notice.dismissed)&&<div className="notice-empty">暂无通知</div>}{notices.filter((notice) => !notice.dismissed).map((notice) => <div key={notice.id} className={`notice-item notice-${notice.tone} ${notice.unread ? 'notice-unread' : ''}`}><button className="notice-item-main" onClick={() => openNotice(notice)}><NoticeSymbol notice={notice} /><span><strong>{notice.title}</strong>{notice.detail && !/^[-—]$/.test(notice.detail.trim()) && <small>{notice.tone === 'warning' ? '查看意见并修改' : notice.detail}</small>}{formatNoticeTime(noticeTimestamp(notice,flowEvents)) && <em>{formatNoticeTime(noticeTimestamp(notice,flowEvents))}</em>}</span>{(notice.projectId||notice.taskId||notice.eventId) && <ChevronRightIcon size={16} />}</button>{notice.tone === 'warning' && <button className="notice-item-close" aria-label={`关闭${notice.title}`} onClick={() => dismissNotice(notice.id)}><CloseIcon size={14} /></button>}</div>)}</div>
       <Button variant="outline" block onClick={() => setNotices((items) => items.map((item) => ({ ...item, unread: false })))}>全部标记为已读</Button>
     </Drawer>
     <Dialog visible={Boolean(submitTask)} header={submitTarget === 'doctor' ? '提交审核' : '提交业务员审核'} theme="warning" placement="center" width={520} confirmBtn={submitTarget === 'doctor' ? '确认提交审核' : '关闭'} cancelBtn={submitTarget === 'doctor' ? '取消' : null} onClose={() => setSubmitTask(null)} onConfirm={() => { if (!submitTask) return; if (submitTarget === 'doctor') submitReview(submitTask); else setSubmitTask(null) }}>
