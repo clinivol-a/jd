@@ -1,108 +1,23 @@
 ---
-name: "CliniVol"
-description: "A light, precise medical production platform joining task coordination to a purpose-built reconstruction workspace."
-colors:
-  brand-primary: "#0D7A5D"
-  brand-secondary: "#2F9D78"
-  brand-soft: "#E8F5F1"
-  ink: "#1D252D"
-  muted: "#65727D"
-  line: "#DFE4E7"
-  canvas: "#F3F5F6"
-  panel: "#FFFFFF"
-  viewport: "#050708"
-  warning: "#D79B2B"
-  returned: "#D6534C"
-  complete: "#4D976D"
-typography:
-  heading:
-    fontFamily: '"Segoe UI Variable", "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif'
-    fontSize: "26px"
-    fontWeight: 690
-    lineHeight: 1.2
-  title:
-    fontFamily: '"Segoe UI Variable", "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif'
-    fontSize: "16px"
-    fontWeight: 660
-    lineHeight: 1.3
-  body:
-    fontFamily: '"Segoe UI Variable", "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif'
-    fontSize: "12px"
-    fontWeight: 400
-    lineHeight: 1.6
-rounded:
-  control: "6px"
-  card: "8px"
-  round: "50%"
-spacing:
-  xs: "4px"
-  sm: "8px"
-  md: "14px"
-  lg: "20px"
-  page: "32px"
+name: CliniVol Design System V1.0
+description: Confirmed project dashboard, stable professional workspaces and Figma-backed semantic tokens
 ---
 
-# Design System: CliniVol
+# CliniVol Design System V1.0
 
-## North Star
+本轮（2026-11-03）已确认的最终Figma截图与以下四份规范替代旧的字号、色阶、圆角和专业分类描述。产品Logo与已实现交互保持，不建立新品牌。
 
-CliniVol is a light medical production console. The platform layer follows TDesign's desktop interaction grammar, while the reconstruction layer behaves like compact Windows professional software rather than a SaaS dashboard. Brand green connects selection and primary action across both layers. Dark color is confined to the four image viewports where CT/MR contrast requires it.
+- [Token与来源](design-system/tokens.md)
+- [Icon规范与例外](design-system/icons.md)
+- [组件与状态规则](design-system/component-rules.md)
+- [Figma Variables映射](design-system/figma-variable-mapping.md)
 
-## Brand and Logo
+运行实现为`src/design-system/tokens.css`及`CliniVolIcon.tsx`；基本值与来源清单为`design-system/tokens.json`。
 
-- Product name is always **CliniVol**. Do not append 3D, V2, or version text to the visible brand name.
-- Use `/public/assets/clinivol-logo.png` as supplied. Preserve its full graphic-plus-English lockup, alpha channel, aspect ratio, and color.
-- The 56px GlobalHeader reserves a fixed 196px logo region. The image uses `object-fit: contain`; transparent padding is handled by the container and image dimensions, never by stretching or cropping.
+品牌核心#0D7A5D、Light页面#F5F7F9，主要表面白色；常规正文14/22 Regular、卡片标题16/24 Medium、页面标题24/32 Medium。GlobalHeader56px，专业工具栏58px。进行中蓝、待审核橙、退回红、完成绿，与设计阶段Cyan/Purple/Yellow/Pink身份独立。
 
-## Color and Theme
+平台首页以稳定项目ID聚合。项目编号/医院/名称冻结左侧，操作冻结右侧；最近项目与通知统一进入同一项目详情。详情为项目基本信息、设计阶段、项目流转记录；宽内容四列阶段卡片，保留任务ID与原有工作区、只读审核和CAD解锁逻辑。
 
-- Primary brand: `#0D7A5D`; hover/secondary emphasis: `#2F9D78`; active: `#086348`; soft field: `#E8F5F1`.
-- TDesign brand variables are overridden centrally in `:root`, including the 1–10 ramp and hover, active, disabled, light, and focus tokens.
-- Warning, error, success, and information keep distinct semantic colors. Green is not used as a universal status color.
-- Persistent surfaces are white or cool gray. Only `.medical-view` uses a dark background.
+三维重建为AI/视图/图像/分割；不再开放主动文件入口或插件分类。AI缺真实处理能力的命令禁用，不伪造结果。CAD保持原单排纯Icon工具栏、浮动命令面板、真实展示STL与原材质。二维医学画布黑色，医学3D视图白色，CAD沿用Light白/Dark#24292D，不受平台颜色重映射强制反色。
 
-## Layout
-
-- GlobalHeader remains mounted at 56px across Home, details, and professional tasks.
-- Internal task tabs have fixed 184×55px geometry, so hover and active states cannot change their size.
-- Platform content and professional content have independent scrolling/overflow regions; the document itself remains fixed.
-- Business pages use a 224px TDesign Menu rail that collapses to 64px without affecting the header.
-- Dashboard uses five 8px statistics cards, a primary task table, recent work, and one important-notice card.
-- Professional workspace rows: menu bar, case/action strip, four workspace modes, contextual toolbar, optional state banner, flexible three-column work area, and status bar.
-- Professional columns: 222px Series tree, flexible 2×2 image grid, 280px object/property panel. Side panels may collapse independently.
-
-## Component Ownership
-
-### TDesign
-
-Cards, Tables, Menu, Buttons, Tags, Inputs, Drawer, Dropdown, Popup, Dialog, Tooltip, and Message feedback are platform-level primitives. Their spacing and neutral/semantic colors remain recognizable as TDesign while the centralized brand token replaces default blue.
-
-### Purpose-built professional UI
-
-Global task-tab composition, Windows-style software menu, View/Segment/Model/Measure switcher, contextual toolbar, Patient/Study/Series tree, medical four-view layout, cross-reference lines, object lists, and compact properties are custom components. TDesign basics may appear inside them, but the layout is not a generic admin template.
-
-## Professional Viewports
-
-- Axial border red; Coronal border green; Sagittal border yellow; 3D View border blue.
-- Each 2D viewport includes view name, orientation marks, slice/window/thickness metadata, simulated-image disclosure, and two cross-reference lines.
-- The 3D viewport contains only surface-preview and orientation information; it does not receive artificial slice metadata.
-- All geometry is explicitly marked as simulated and has no diagnostic or clinical meaning.
-
-## Interaction Rules
-
-- Home and task tabs change content below GlobalHeader only.
-- Closing a tab closes the workspace view, never the task record.
-- Dirty state is preserved per open task and triggers save/discard/cancel before leaving.
-- Save remains in the workspace and reports success.
-- Submit creates a pending-review state, locks the submitted version, disables editing, and synchronizes Home counts and table status.
-- Returned tasks display doctor feedback and re-enable editing.
-- Lock screen covers the entire application but preserves the exact underlying task/screen state.
-- Keyboard focus remains visible. Reduced-motion preference collapses transitions to near-instant behavior.
-
-## Avoid
-
-- Do not redraw the logo or type the wordmark as a substitute.
-- Do not reintroduce a dark professional shell outside the image viewports.
-- Do not use default TDesign blue for brand actions.
-- Do not invent AI segmentation, real DICOM interpretation, unconfirmed CAD tools, or clinical measurement claims.
-- Do not use gradients, heavy shadows, oversized radii, or decorative dashboard metrics.
+Light/Dark颜色的来源、截图未给出的值、保留的面性Icon与复杂圆角限制均在四份规范中明确记录。当前无真实临床AI算法、服务端鉴权或制造级CAD精度能力。

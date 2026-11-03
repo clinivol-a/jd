@@ -1,4 +1,4 @@
-import { BrowseIcon, BrowseOffIcon, LockOffIcon, LockOnIcon } from 'tdesign-icons-react'
+import { BrowseIcon, BrowseOffIcon, LockOffIcon, LockOnIcon } from './design-system/tdesign'
 
 /** Shared TDesign line icons for professional-object state; behaviour stays with each caller. */
 export default function ObjectStateIcon({ kind, active, size = 16 }: { kind: 'visibility' | 'lock'; active: boolean; size?: number }) {

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import { EditIcon, Move1Icon, ZoomInIcon } from 'tdesign-icons-react'
+import { CliniVolIcon } from '../design-system/CliniVolIcon'
+import { EditIcon, Move1Icon, ZoomInIcon } from '../design-system/tdesign'
 export default function CadIcon({ name, size = 20 }: { name: string; size?: number }) {
   if (name === '草图') return <EditIcon size={size} />
   if (name === '移动' || name === '平移') return <Move1Icon size={size} />
@@ -99,5 +100,5 @@ export default function CadIcon({ name, size = 20 }: { name: string; size?: numb
     结束钣金模型: <><path d="M3 3v18h18v-5H8V3ZM12 8l4 4 6-8" /></>,
     适应视窗: <><path d="M3 9V3h6m6 0h6v6m0 6v6h-6M9 21H3v-6" /><circle cx="12" cy="12" r="3" /></>,
   }
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name] ?? paths.立方体}</svg>
+  return <CliniVolIcon size={size}>{paths[name] ?? paths.立方体}</CliniVolIcon>
 }

@@ -1,0 +1,143 @@
+import type { Task, TaskStatus, TaskType, FlowEvent, Notice } from '../App'
+export const CURRENT_ENGINEER = 'CV-DS-028'
+export const stages: TaskType[] = ['三维重建','CAD 设计','有限元分析','3D 打印']
+export const statuses: TaskStatus[] = ['未开始','进行中','待审核','审核退回','已完成']
+export type DateRange = [string,string]
+export type Period = '3m'|'6m'|'12m'|'custom'|'month'
+export type Filters = { view:'projects'|'tasks'; search:string; period:Period; range:DateRange; stage:'全部'|TaskType; status:'全部'|'待处理'|TaskStatus; page:number; source?:'a-statistics' }
+export type Project = { id:string; name:string; createdAt:string; dueAt:string; patient:string; tasks:Task[]; hospital:string; dataOrigin:'demo'|'production'|'unknown'; createdSource:'project'|'first-task' }
+export type ProjectTarget = { projectId:string; taskId?:string; eventId?:string }
+// Explicitly scoped prototype hospital assignments; never infer production partnerships.
+export const demoProjectMetadata:Record<string,{hospital:string;dataOrigin:'demo'}>={
+ 'CV260910-0184':{hospital:'安徽医科大学第一附属医院',dataOrigin:'demo'},
+ 'CV260908-0172':{hospital:'中国科学技术大学附属第一医院（安徽省立医院）',dataOrigin:'demo'},
+ 'CV260907-0168':{hospital:'安徽医科大学第一附属医院',dataOrigin:'demo'},
+ 'CV261019-0211':{hospital:'安徽医科大学第一附属医院',dataOrigin:'demo'},
+ 'CV261020-0226':{hospital:'中国科学技术大学附属第一医院（安徽省立医院）',dataOrigin:'demo'},
+}
+const originalCreated: Record<string,string> = {'CV260910-0184':'2026-10-09','CV260908-0172':'2026-10-07','CV260907-0168':'2026-10-06','CV261019-0211':'2026-10-19','CV261020-0226':'2026-10-20'}
+export const day = (date:Date) => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
+export function periodRange(period:Period, now=new Date()):DateRange {
+  const end=day(now)
+  return period==='month'?[day(new Date(now.getFullYear(),now.getMonth(),1)),day(new Date(now.getFullYear(),now.getMonth()+1,0))]:[day(new Date(now.getFullYear(),now.getMonth()-({ '3m':2,'6m':5,'12m':11,custom:2 }[period]),1)),end]
+}
+export const defaultFilters = ():Filters => ({view:'projects',search:'',period:'3m',range:periodRange('3m'),stage:'全部',status:'全部',page:1})
+export const ownerId = (task:Task) => task.owner.split('（')[0]==='陈屿' ? CURRENT_ENGINEER : 'CV-DS-OTHER'
+export const owns = (task:Task) => ownerId(task)===CURRENT_ENGINEER
+export const cleanOwner = (task:Task) => displayPerson(task.owner)
+export function isoDisplayTime(text:string, now=new Date()):string {
+  if(!text || text==='-')return ''
+  if(/^\d{4}-\d\d-\d\d/.test(text))return text
+  const time=text.match(/(\d{1,2}):(\d{2})/);const clock=time?`${time[1].padStart(2,'0')}:${time[2]}:00`:'00:00:00'
+  if(text.includes('今天')||/^\d\d?:\d\d$/.test(text))return `${day(now)}T${clock}`
+  if(text.includes('昨天')){const date=new Date(now);date.setDate(date.getDate()-1);return `${day(date)}T${clock}`}
+  const match=text.match(/(\d+)\s*月\s*(\d+)\s*日/)
+  return match?`${now.getFullYear()}-${match[1].padStart(2,'0')}-${match[2].padStart(2,'0')}T${clock}`:''
+}
+export const formatDate=(value:string)=>value?value.slice(0,10):'—'
+function parseTimestamp(value:string | undefined):Date|null {
+ if(!value||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})?$/.test(value))return null
+ const date=new Date(value)
+ if(!Number.isFinite(date.getTime()))return null
+ const calendar=value.slice(0,10),test=new Date(calendar+'T00:00:00Z')
+ return test.toISOString().slice(0,10)===calendar?date:null
+}
+const padTime=(value:number)=>String(value).padStart(2,'0')
+export function formatShortDateTime(value:string):string {
+ const date=parseTimestamp(value)
+ return date?`${padTime(date.getMonth()+1)}-${padTime(date.getDate())} ${padTime(date.getHours())}:${padTime(date.getMinutes())}`:'—'
+}
+export const formatRecent=formatShortDateTime
+export function noticeTimestamp(notice:Notice,events:FlowEvent[]=[]):string {
+ // Event identity is explicit: later reviews must not move an old notice's received time.
+ return notice.createdAt??(notice.eventId?events.find(event=>event.id===notice.eventId)?.at:undefined)??(parseTimestamp(notice.time)?notice.time:'')
+}
+export function formatNoticeTime(value:string,now=new Date()):string {
+ const date=parseTimestamp(value)
+ if(!date)return '—'
+ const elapsed=now.getTime()-date.getTime()
+ if(elapsed<0||!Number.isFinite(elapsed))return formatShortDateTime(value)
+ // Relative labels never cross a local calendar-day boundary.
+ if(day(date)!==day(now))return formatShortDateTime(value)
+ if(elapsed<60000)return '刚刚'
+ if(elapsed<3600000)return `${Math.floor(elapsed/60000)}分钟前`
+ return `${padTime(date.getHours())}:${padTime(date.getMinutes())}`
+}
+export const formatTime=(value:string)=>value?`${formatDate(value)}${value.includes('T')?' '+value.slice(11,16):''}`:'—'
+export function projectsFor(tasks:Task[],events:FlowEvent[],now=new Date()):Project[] {
+  const groups=new Map<string,Task[]>()
+  tasks.forEach(t=>groups.set(t.orderNo,[...(groups.get(t.orderNo)??[]),t]))
+  return [...groups].filter(([,items])=>items.some(owns)).map(([id,items])=>{
+    const name=items[0].title
+    const metadata=demoProjectMetadata[id]
+    const production=items.some(task=>task.dataOrigin==='production')
+    const hospital=items.find(task=>task.hospital)?.hospital??(!production?metadata?.hospital:undefined)??'—'
+    const createdAt=events.filter(e=>e.orderNo===id&&e.type==='created').map(e=>e.at.slice(0,10)).sort()[0]??originalCreated[id]??''
+    const dueAt=items.map(t=>isoDisplayTime(t.deadline,now)).filter(Boolean).sort().at(-1)??''
+    return {id,name,createdAt,dueAt,patient:items[0].patient,tasks:[...items].sort((a,b)=>stages.indexOf(a.taskType)-stages.indexOf(b.taskType)),hospital,dataOrigin:production?'production' as const:metadata?'demo' as const:'unknown' as const,createdSource:'first-task' as const}
+  }).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||a.id.localeCompare(b.id))
+}
+export const inRange=(createdAt:string,range:DateRange)=> (!range[0]||createdAt>=range[0])&&(!range[1]||createdAt.slice(0,10)<=range[1])
+export const statusMatches=(task:Task,status:Filters['status'])=>status==='全部'||status==='待处理'?(status==='全部'||task.status==='进行中'||task.status==='审核退回'):task.status===status
+export function projectProgress(project:Project):string {
+  if(project.tasks.every(t=>t.status==='已完成'))return '全部专业任务已完成'
+  const current=project.tasks.filter(t=>['审核退回','进行中','待审核'].includes(t.status)).sort((a,b)=>Number(b.status==='审核退回')-Number(a.status==='审核退回'))
+  return (current.length?current:project.tasks.filter(t=>t.status==='未开始')).map(t=>`${compactText(t.taskType)}${t.status}`).join(' · ')
+}
+export function filterProjects(projects:Project[],f:Filters):Project[] {
+  return projects.filter(p=>inRange(p.createdAt,f.range)&&(!f.search||[p.name,p.id].some(v=>v.toLowerCase().includes(f.search.toLowerCase())))&&(f.stage==='全部'||p.tasks.some(t=>t.taskType===f.stage))&&(f.status==='全部'||p.tasks.some(t=>statusMatches(t,f.status))))
+}
+export function filterTasks(projects:Project[],f:Filters):{project:Project;task:Task}[] {
+  return projects.filter(p=>inRange(p.createdAt,f.range)&&(!f.search||[p.name,p.id].some(v=>v.toLowerCase().includes(f.search.toLowerCase())))).flatMap(project=>project.tasks.filter(t=>owns(t)&&(!f.source||!t.id.startsWith('E'))&&(f.stage==='全部'||t.taskType===f.stage)&&statusMatches(t,f.status)).map(task=>({project,task})))
+}
+export function monthlyCounts(projects:Project[],now=new Date()) {
+  const tasks=projects.filter(p=>inRange(p.createdAt,periodRange('month',now))).flatMap(p=>p.tasks.filter(owns))
+  return {待处理:tasks.filter(t=>statusMatches(t,'待处理')).length,进行中:tasks.filter(t=>t.status==='进行中').length,待审核:tasks.filter(t=>t.status==='待审核').length,审核退回:tasks.filter(t=>t.status==='审核退回').length,已完成:tasks.filter(t=>t.status==='已完成').length}
+}
+export function latestTaskActivity(task:Task,events:FlowEvent[]):string {
+  return [(/今天|昨天/.test(task.updated)&&events.some(e=>e.taskId===task.id)?'':isoDisplayTime(task.updated)),...events.filter(e=>e.taskId===task.id).map(e=>e.at)].filter(Boolean).sort().at(-1)??''
+}
+export function recentProjects(projects:Project[],events:FlowEvent[],limit=3) {
+  return projects.map(project=>{
+    const times=project.tasks.flatMap(task=>[
+      // Relative labels alone cannot establish a real project activity timestamp.
+      parseTimestamp(task.updated)?task.updated:'',
+      ...events.filter(event=>event.orderNo===project.id&&event.taskId===task.id).map(event=>event.at),
+    ]).filter(at=>parseTimestamp(at)).sort((a,b)=>new Date(b).getTime()-new Date(a).getTime())
+    return {project,at:times[0]??''}
+  }).filter(row=>row.at).sort((a,b)=>new Date(b.at).getTime()-new Date(a.at).getTime()||a.project.id.localeCompare(b.project.id)).slice(0,limit)
+}
+export function noticeProjectTarget(notice:Notice,projects:Project[],events:FlowEvent[]):ProjectTarget|null {
+  const event=notice.eventId?events.find(item=>item.id===notice.eventId):undefined
+  const taskId=notice.taskId??event?.taskId
+  const project=notice.projectId?projects.find(item=>item.id===notice.projectId):taskId?projects.find(item=>item.tasks.some(task=>task.id===taskId)):event?projects.find(item=>item.id===event.orderNo):undefined
+  // Conflicting or inaccessible identities must never fall through to another project.
+  if(!project||(taskId&&!project.tasks.some(task=>task.id===taskId))||(event&&(event.orderNo!==project.id||(taskId&&event.taskId!==taskId))))return null
+  return {projectId:project.id,...(taskId?{taskId}:{}),...(event?{eventId:event.id}:{})}
+}
+export function sortedNotices(notices:Notice[],events:FlowEvent[] = []) {return [...notices].sort((a,b)=>(parseTimestamp(noticeTimestamp(b,events))?.getTime()??-Infinity)-(parseTimestamp(noticeTimestamp(a,events))?.getTime()??-Infinity)||b.id-a.id)}
+export function canEnter(task:Task,tasks:Task[]) {
+  if(!owns(task)||!['三维重建','CAD 设计'].includes(task.taskType))return false
+  if(task.taskType==='CAD 设计') {const upstream=tasks.find(t=>t.id===task.upstreamTaskId);return upstream?.status==='已完成'&&!!upstream.approvedModel}
+  return true
+}
+export function taskAction(task:Task){return task.status==='已完成'?'查看成果':task.status==='待审核'?'查看提交成果':task.status==='审核退回'?'查看意见并修改':'继续设计'}
+export function projectEvents(project:Project,events:FlowEvent[]) {return [...new Map(events.filter(e=>e.orderNo===project.id).map(e=>[e.id,e])).values()].sort((a,b)=>b.at.localeCompare(a.at)||b.id.localeCompare(a.id))}
+
+// Scheme A's pre-existing monthly completion aggregate has no individual task records.
+export const aDashboardHistory = { completed: 12 } as const
+export function aDashboardCounts(tasks:Task[]) {
+ const mine=tasks.filter(t=>owns(t))
+ return {待处理:mine.filter(t=>['进行中','审核退回'].includes(t.status)).length,进行中:mine.filter(t=>t.status==='进行中').length,待审核:mine.filter(t=>t.status==='待审核').length,审核退回:mine.filter(t=>t.status==='审核退回').length,已完成:mine.filter(t=>t.status==='已完成').length+aDashboardHistory.completed}
+}
+export function projectStatus(project:Project):TaskStatus {
+ if(project.tasks.every(t=>t.status==='已完成'))return '已完成'
+ for(const status of ['审核退回','进行中','待审核'] as const)if(project.tasks.some(t=>t.status===status))return status
+ return '未开始'
+}
+export const compactText=(text:string)=>text.replace(/CAD\s+设计/g,'CAD设计').replace(/3D\s+打印/g,'3D打印').replace(/版本\s*V\d+\b/g,'成果').replace(/\s+V\d+\b/g,'').replace(/([\u4e00-\u9fff])\s+(?=[\u4e00-\u9fff])/g,'$1')
+
+export function displayPerson(value:string) {
+ const name=value.split('（')[0]
+ return !name||['刘工','张工','某工程师'].includes(name)?'—':name
+}

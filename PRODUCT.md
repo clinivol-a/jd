@@ -68,3 +68,8 @@ The platform separates business coordination from specialist production without 
 ## Accessibility & Inclusion
 
 The prototype should support keyboard navigation, visible focus, semantic buttons and dialogs, readable contrast in both light and dark surfaces, and status labels that do not rely on color alone.
+
+
+## 2026-11-03 当前实施范围（优先于上文早期原型范围）
+
+A以任务/订单稳定ID聚合手术项目，包含医院演示元数据、项目/任务视角、四种设计阶段及统一详情导航。保留已实现的三维重建、CAD、双向选中、工程自动保存、审核意见和任务上下游锁定。当前数据仍为前端原型，原有7任务及12项历史完成汇总不补造；不导入实验E*任务或隔离存储。不新增临床AI算法、销售/管理员后台或制造级内核。正式视觉基准为design-system/四份Markdown及本轮最终Figma截图；14/22业务文字、Light默认及现有Dark、固定56pxHeader/58px专业工具栏继续保持。

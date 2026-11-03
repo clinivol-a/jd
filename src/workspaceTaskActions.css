@@ -1,8 +1,8 @@
 .workspace-persistence-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; height: 36px; }
-.workspace-persistence-state { width: 124px; display: inline-flex; align-items: center; justify-content: flex-end; gap: 5px; white-space: nowrap; color: var(--td-text-color-secondary); font-size: 14px; line-height: 22px; font-weight: 400; font-variant-numeric: tabular-nums; }
+.workspace-persistence-state { width: 124px; display: inline-flex; align-items: center; justify-content: flex-end; gap: 5px; white-space: nowrap; color: var(--td-text-color-secondary); font-size: var(--cv-font-size-body-medium); line-height: var(--cv-line-height-body-medium); font-weight: 400; font-variant-numeric: tabular-nums; }
 .workspace-persistence-failed { color: var(--td-error-color); }
 .workspace-action-divider { width: 1px; height: 20px; margin: 0 3px; background: var(--td-border-level-1-color); }
-.workspace-persistence-actions .review-submit-main.t-button { height: 36px; font-size: 14px; line-height: 22px; font-weight: 400; }
+.workspace-persistence-actions .review-submit-main.t-button { height: 36px; font-size: var(--cv-font-size-body-medium); line-height: var(--cv-line-height-body-medium); font-weight: 400; }
 .workspace-persistence-actions .t-button__text { display: inline-flex; align-items: center; gap: 8px; }
 .workspace-persistence-actions .review-submit-menu { height: 36px; }
 .workspace-review-menu .t-dropdown__item, .workspace-review-menu .t-dropdown__item-text { white-space: nowrap; text-overflow: clip; }

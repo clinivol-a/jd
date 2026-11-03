@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Tooltip } from 'tdesign-react'
-import { RollbackIcon, RollfrontIcon } from 'tdesign-icons-react'
+import { RollbackIcon, RollfrontIcon } from '../design-system/tdesign'
 import CadIcon from './CadIcon'
 import CadToolDropdown from './CadToolDropdown'
 import { cadSketchTools, cadToolbarGroups, cadToolById, fitCadToolbar } from './cadToolCatalog'

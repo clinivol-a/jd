@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { Button, Dialog, Dropdown, Input, InputNumber, MessagePlugin, Select, Slider, Tooltip } from 'tdesign-react'
-import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CloseIcon, ListDemandIcon, SearchIcon } from 'tdesign-icons-react'
+import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CloseIcon, ListDemandIcon, SearchIcon } from '../design-system/tdesign'
 import WorkspaceTaskActions from '../WorkspaceTaskActions'
 import ObjectStateIcon from '../ObjectStateIcon'
 import { useCadPanels } from './useCadPanels'

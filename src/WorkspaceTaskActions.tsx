@@ -1,5 +1,5 @@
 import { Button, Dropdown, Tooltip } from 'tdesign-react'
-import { CheckIcon, ChevronDownIcon, SendIcon, TimeIcon } from 'tdesign-icons-react'
+import { CheckIcon, ChevronDownIcon, SendIcon, TimeIcon } from './design-system/tdesign'
 import './workspaceTaskActions.css'
 
 type Props = {

@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Dropdown, Tooltip } from 'tdesign-react'
 import type { DropdownProps } from 'tdesign-react'
-import { ChevronDownIcon } from 'tdesign-icons-react'
+import { ChevronDownIcon } from '../design-system/tdesign'
 
 // Shared geometry for every CAD dropdown, including the camera menu trigger.
 export default function CadToolDropdown({ label, icon, children, options, onChoose, active = false, placement = 'bottom-left', minWidth = 236 }: {

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { KeyboardEvent, MouseEvent } from 'react'
 import { Button, Dialog, Input, MessagePlugin, Tooltip } from 'tdesign-react'
-import { CheckIcon, SettingIcon, DeleteIcon } from 'tdesign-icons-react'
+import { CheckIcon, SettingIcon, DeleteIcon } from '../design-system/tdesign'
 import * as THREE from 'three'
 import CadIcon from './CadIcon'
 import CadToolDropdown from './CadToolDropdown'
