@@ -712,7 +712,7 @@ button.global-tab { justify-content: center; gap: 7px; }
 /* Lock */
 .lock-screen { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; background: var(--canvas); }
 .lock-panel { width: 380px; display: grid; justify-items: center; gap: 13px; padding: 32px 38px 30px; background: var(--td-bg-color-container); border: 1px solid var(--line); border-radius: var(--cv-radius-medium); box-shadow: var(--td-shadow-3); }
-.lock-avatar { width: 58px; height: 58px; display: grid; place-items: center; color: #fff; background: var(--brand-7); border-radius: var(--cv-radius-circle); font-size: var(--cv-font-size-title-large); font-weight: 400; }
+.lock-avatar { width: 58px; height: 58px; display: grid; place-items: center; object-fit:cover; border-radius: var(--cv-radius-circle); }
 .lock-panel h2 { margin: 2px 0 0; font-size: var(--cv-font-size-title-large); }
 .lock-panel p { margin: -6px 0 2px; color: var(--td-text-color-secondary); font-size: var(--type-body-size); line-height: var(--type-body-line-height); }
 .lock-panel .t-input { width: 100%; margin-top: 5px; }
@@ -860,3 +860,11 @@ html[data-theme="dark"] .panel-edge-handle { background: var(--td-bg-color-conta
 /* Keep reply controls accessible when the expanded issue list shares a short desktop. */
 .review-thread { min-height: 190px; }
 .review-thread-messages { min-height: 0; }
+
+/* Lock identity moves independently of the established credential controls. */
+.lock-panel { position:relative; }
+.lock-panel::before { content:''; display:block; height:58px; }
+.lock-panel > .brand-logo { position:absolute; top:20px; left:20px; width:119px; height:38px; }
+.lock-panel > .brand-logo img { width:119px; height:auto; object-fit:contain; }
+.lock-panel > .lock-avatar { object-fit:cover; background:transparent; }
+.lock-panel > .lock-avatar, .lock-panel > h2, .lock-panel > p, .lock-panel > .t-tag { transform:translateY(-20px); }

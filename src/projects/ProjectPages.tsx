@@ -32,7 +32,7 @@ export function ProjectTable({projects,onProject,paginated=false,page=1,onPage}:
 function TaskOperations({task,tasks,onOpen,card=false}:{task:Task;tasks:Task[];onOpen:(id:string,options?:{openComments?:boolean})=>void;card?:boolean}) {
   if(!card&&task.status==='未开始')return <span className="task-operation-empty">-</span>
   const allowed=canEnter(task,tasks)&&task.status!=='未开始'
-  const reason=task.id.startsWith('P')?'暂无关联的可用工程资料':!owns(task)?`由${cleanOwner(task)}负责`:task.status==='未开始'?'等待上游正式成果，当前阶段尚未开始':!['三维重建','CAD 设计'].includes(task.taskType)?'此设计阶段尚无可进入的工作区':''
+  const reason=!owns(task)?`由${cleanOwner(task)}负责`:task.status==='未开始'?'等待上游正式成果，当前阶段尚未开始':!['三维重建','CAD 设计'].includes(task.taskType)?'此设计阶段尚无可进入的工作区':''
   return <Tooltip content={reason}><span><Button theme={!card||['进行中','审核退回'].includes(task.status)?'primary':'default'} variant={card?(['进行中','审核退回'].includes(task.status)?'base':'outline'):'text'} disabled={!allowed} onClick={()=>onOpen(task.id,{openComments:task.status==='审核退回'})}>{task.status==='未开始'?'尚未开始':taskAction(task)}</Button></span></Tooltip>
 }
 export function ProjectList({projects,tasks,filters,onFilters,onProject,onOpen}:{projects:Project[];tasks:Task[];filters:Filters;onFilters:(filters:Filters)=>void;onProject:(id:string)=>void;onOpen:(id:string,options?:{openComments?:boolean})=>void}) {

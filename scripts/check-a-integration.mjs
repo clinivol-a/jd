@@ -15,9 +15,9 @@ const model={exports:{}}
 new Function('module','exports',ts.transpileModule(fs.readFileSync('src/projects/projectModel.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText)(model,model.exports)
 const m=model.exports
 const functionText=name=>ast.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text===name).getText(ast)
-const compiled=ts.transpileModule(`const seedDates=${variable(ast,'seedDates')};const eventTime=${variable(ast,'eventTime')};${functionText('initialFlowEvents')}\n${functionText('isCadTaskUnlocked')}\n${functionText('synchronizeCadTasks')}\n${functionText('getStoredTasks')}`,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText
+const compiled=ts.transpileModule(`const seedDates=${variable(ast,'seedDates')};const eventTime=${variable(ast,'eventTime')};${functionText('initialFlowEvents')}\n${functionText('isCadTaskUnlocked')}\n${functionText('synchronizeCadTasks')}\n${functionText('getStoredBaseTasks')}`,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText
 const storage=new Map(),localStorage={getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value)}
-const functions=new Function('originalTasks','initialTasks','localStorage',compiled+';return {initialFlowEvents,getStoredTasks,isCadTaskUnlocked}')(tasks,tasks,localStorage)
+const functions=new Function('originalTasks','initialTasks','localStorage',compiled+';return {initialFlowEvents,getStoredTasks:getStoredBaseTasks,isCadTaskUnlocked}')(tasks,tasks,localStorage)
 const events=functions.initialFlowEvents(),projects=m.projectsFor(tasks,events)
 assert.equal(projects.length,5);assert.equal(new Set(projects.map(p=>p.id)).size,5)
 assert.deepEqual(m.aDashboardCounts(tasks),{待处理:3,进行中:2,待审核:2,审核退回:1,已完成:13})

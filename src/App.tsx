@@ -64,7 +64,7 @@ export type Task = {
   status: TaskStatus; owner: string; updated: string; deadline: string
   series: ImagingSeries[]; source: string
   upstreamTaskId?: string; approvedModel?: ApprovedModel; cadRequirement?: string
-  hospital?: string; dataOrigin?: 'demo' | 'production'
+  catalogDemo?: boolean; catalogCreatedAt?:string; hospital?: string; dataOrigin?: 'demo' | 'production'
   reviewer?: { id?: string; name: string; role: string }
   review: { time: string; actor: string; status: string; note: string; version?: string; round?: number; commentCount?: number; reviewerIdentity?: ReviewerIdentity; submissionId?: string }[]
 }
@@ -116,22 +116,22 @@ const navItems = [
   { key: 'reviews', label: '审核记录', icon: TaskCheckedIcon },
 ] as const
 const workspaceModes: { key: WorkspaceMode; label: string; icon: typeof Eye }[] = [
-  { key: 'ai', label: 'AI', icon: AiBoneIcon }, { key: 'view', label: '视图', icon: Eye },
-  { key: 'image', label: '图像', icon: ImageIcon }, { key: 'segment', label: '分割', icon: Layers3 },
+  { key: 'ai', label: 'AI', icon: AiBoneIcon }, { key: 'view', label: '视图', icon: LayoutGrid },
+  { key: 'image', label: '图像', icon: ImageIcon }, { key: 'segment', label: '分割', icon: Scissors },
 ]
 const toolsets: Record<WorkspaceMode, WorkspaceTool[]> = {
   ai: [
-    {label:'骨骼重建',icon:BoneRebuildIcon,available:false}, {label:'器官重建',icon:OrganIcon,available:false},
-    {label:'肺血管重建',icon:LungVesselIcon,available:false}, {label:'支气管重建',icon:BronchusIcon,available:false},
-    {label:'腹部器官重建',icon:AbdomenIcon,available:false}, {label:'脊柱与肋骨重建',icon:SpineRibsIcon,available:false},
-    {label:'腹部大血管重建',icon:AortaIcon,available:false}, {label:'肺叶重建',icon:LungLobesIcon,available:false},
-    {label:'皮肤重建',icon:SkinIcon,available:false}, {label:'Mesh编辑',icon:MeshEditIcon,available:false},
+    {label:'骨骼重建',icon:BoneRebuildIcon}, {label:'器官重建',icon:OrganIcon},
+    {label:'肺血管重建',icon:LungVesselIcon}, {label:'支气管重建',icon:BronchusIcon},
+    {label:'腹部器官重建',icon:AbdomenIcon}, {label:'脊柱与肋骨重建',icon:SpineRibsIcon},
+    {label:'腹部大血管重建',icon:AortaIcon}, {label:'肺叶重建',icon:LungLobesIcon},
+    {label:'皮肤重建',icon:SkinIcon}, {label:'Mesh编辑',icon:MeshEditIcon},
   ],
   view: [
     { label: '布局', icon: LayoutGrid, options: ['三位四窗', '多平面重建', '三维主视图（上下）', '三维主视图（左右）'] },
     { label: '伪色', icon: Palette, options: ['灰色', '全谱', '锯齿', '三角'] },
-    { label: '参考平面', icon: PanelTop, persistent: true }, { label: '层切', icon: ScanLine, persistent: true },
-    { label: '四角信息显隐', icon: Info }, { label: '十字线显隐', icon: Crosshair },
+    { label: '参考平面', icon: Grid2X2, persistent: true }, { label: '层切', icon: ScanLine, persistent: true },
+    { label: '四角信息显隐', icon: Maximize2 }, { label: '十字线显隐', icon: Crosshair },
     { label: '浏览序列', icon: Images, persistent: true },
     { label: '蒙版阴影', icon: Layers3, options: ['半', '全', '活动', '二元'], persistent: true },
     { label:'蒙版体积与统计',icon:Gauge,available:false,unavailableReason:'当前工程没有可用于体积统计的体素蒙版数据' },
@@ -144,12 +144,12 @@ const toolsets: Record<WorkspaceMode, WorkspaceTool[]> = {
     { label: '窗宽窗位调整', icon: SlidersHorizontal, persistent: true }, { label: '图像高级预处理', icon: WandSparkles },
   ],
   segment: [
-    { label: '新建蒙版', icon: Plus }, { label: '阈值分割', icon: SlidersHorizontal, persistent: true },
-    { label: '区域生长', icon: Paintbrush, persistent: true }, { label: '动态区域生长', icon: Gauge, persistent: true },
+    { label: '新建蒙版', icon: FilePlus2 }, { label: '阈值分割', icon: SlidersHorizontal, persistent: true },
+    { label: '区域生长', icon: Crosshair, persistent: true }, { label: '动态区域生长', icon: Gauge, persistent: true },
     { label: '编辑蒙版', icon: Layers3, persistent: true }, { label: '3D蒙版擦除', icon: Eraser, persistent: true },
     { label: '多断层编辑', icon: Grid2X2, persistent: true }, { label: '分离蒙版', icon: Split },
     { label: '布尔操作', icon: Combine }, { label: '拆分蒙版', icon: Scissors },
-    { label: '快速重建', icon: Boxes, options: ['骨骼重建', '器官重建', '血管重建', '支气管重建', '皮肤重建'] },
+    { label: '快速重建', icon: BoneRebuildIcon, options: ['骨骼重建', '器官重建', '血管重建', '支气管重建', '皮肤重建'] },
   ],
 }
 const initialProfessionalObjects: ProfessionalObject[] = [
@@ -248,7 +248,7 @@ function synchronizeCadTasks(tasks: Task[]): Task[] {
   })
 }
 
-function getStoredTasks() {
+function getStoredBaseTasks() {
   try {
     const stored = localStorage.getItem('clinivol-prototype-tasks')
     if (!stored) return synchronizeCadTasks(initialTasks)
@@ -273,6 +273,13 @@ function getStoredTasks() {
   catch { return synchronizeCadTasks(initialTasks) }
 }
 
+function getStoredTasks():Task[] {
+ const base=getStoredBaseTasks()
+ let saved:Task[]=[];try {saved=JSON.parse(localStorage.getItem('clinivol-catalog-tasks')??'[]')}catch{}
+ const catalog=withDemoProjects([]).flatMap(p=>p.tasks).map(t=>({...t,...saved.find(v=>v.id===t.id),approvedModel:t.approvedModel,upstreamTaskId:t.upstreamTaskId,catalogDemo:true}))
+ return [...base,...catalog]
+}
+
 function getStoredWorkspaceState(): { savedAt?: Record<string, string>; mode?: Record<string, WorkspaceMode>; activeSeries?: Record<string, string> } {
   try {
     const stored = localStorage.getItem('clinivol-workspace-state')
@@ -286,7 +293,7 @@ function getStoredWorkspaceState(): { savedAt?: Record<string, string>; mode?: R
   } catch { return {} }
 }
 
-function getStoredReviewComments() {
+function getStoredReviewCommentsBase() {
   try {
     const stored = localStorage.getItem('clinivol-review-comments')
     if (!stored) return initialReviewComments
@@ -317,10 +324,16 @@ function getStoredReviewComments() {
   } catch { return initialReviewComments }
 }
 
+function getStoredReviewComments():ReviewComment[] {
+ const stored=getStoredReviewCommentsBase()
+ const added:ReviewComment[]=withDemoProjects([]).flatMap(p=>p.tasks).filter(t=>t.status==='审核退回').map(t=>({id:`${t.id}-review-1`,taskId:t.id,round:1,version:'V01',author:'周医生',time:`${t.catalogCreatedAt?.slice(5).replace('-',' 月 ')} 日 08:50`,title:'请检查骨骼边界连续性',content:'请核对骨骼边界与相邻层面，确认修复区域的结构连续性。',status:'待修改',unread:true,submitted:false,view:'Axial',seriesId:t.series[0].id,position:{x:50,y:50},slice:286,replies:[]}))
+ return [...stored,...added.filter(c=>!stored.some(v=>v.id===c.id))]
+}
+
 function validateRoute(route:Screen,tasks:Task[]):Screen {
   if(route.kind==='detail'||route.kind==='workspace'||route.kind==='cad-workspace') {
     const task=tasks.find(t=>t.id===route.taskId)
-    if(!task||!owns(task))return {kind:'tasks'}
+    if(!task||(!owns(task)&&!['已完成','待审核'].includes(task.status)))return {kind:'tasks'}
     if(route.kind==='detail'&&task.taskType==='CAD 设计'&&!canEnter(task,tasks))return {kind:'project',projectId:task.orderNo}
     if((route.kind==='workspace'||route.kind==='cad-workspace')&&!canEnter(task,tasks))return {kind:'project',projectId:task.orderNo}
     if(route.kind!=='detail')return {kind:task.taskType==='CAD 设计'?'cad-workspace':'workspace',taskId:task.id}
@@ -331,6 +344,7 @@ function validateRoute(route:Screen,tasks:Task[]):Screen {
 function App() {
   const storedWorkspaceState = useMemo(getStoredWorkspaceState, [])
   const [tasks, setTasks] = useState<Task[]>(getStoredTasks)
+  const [stagePreview,setStagePreview]=useState<Task|null>(null)
   const [screen, rawSetScreen] = useState<Screen>(() => validateRoute(readProjectRoute(),getStoredTasks()))
   const setScreen = (next:Screen) => { const safe=validateRoute(next,tasks); if(window.location.hash!==projectUrl(safe)) window.history.pushState(null,'',projectUrl(safe)); rawSetScreen(safe) }
   const detailReturnScreen=useRef<Screen>({kind:'tasks'})
@@ -364,7 +378,7 @@ function App() {
   const [navCollapsed, setNavCollapsed] = useState(false)
   const reviewResetEnabled = useMemo(() => new URLSearchParams(window.location.search).has('build'), [])
   const resolvedTheme: ResolvedTheme = themePreference === 'system' ? (systemDark ? 'dark' : 'light') : themePreference
-  useEffect(() => localStorage.setItem('clinivol-prototype-tasks', JSON.stringify(tasks)), [tasks])
+  useEffect(() => { localStorage.setItem('clinivol-prototype-tasks', JSON.stringify(tasks.filter(t=>!t.catalogDemo))); localStorage.setItem('clinivol-catalog-tasks',JSON.stringify(tasks.filter(t=>t.catalogDemo))) }, [tasks])
   useEffect(() => {
     setTasks((current) => {
       const synchronized = synchronizeCadTasks(current)
@@ -415,9 +429,10 @@ function App() {
     const action = () => {
       const task = tasks.find((item) => item.id === taskId)
       if (!task) return
-      if(!owns(task)||!['三维重建','CAD 设计'].includes(task.taskType)) return
+      if(!canEnter(task,tasks))return
+      if(!['三维重建','CAD 设计'].includes(task.taskType)){setStagePreview(task);return}
       if (task.taskType === 'CAD 设计') {
-        if (!isCadTaskUnlocked(task, tasks)) {
+        if (!isCadTaskUnlocked(task, tasks) && !['已完成','待审核'].includes(task.status)) {
           void MessagePlugin.warning(CAD_LOCKED_REASON)
           return
         }
@@ -518,7 +533,7 @@ function App() {
   return <div className="app" style={{ '--layout-sidebar-width': `${layout.sidebar}px`, '--layout-sidebar-collapsed-width': `${layout.sidebarCollapsed}px` } as React.CSSProperties}>
     <GlobalHeader screen={screen} openTabs={openTabs} tasks={tasks} user={userProfile} theme={resolvedTheme} goHome={() => goPlatform('home')} openWorkspace={openWorkspace} closeTab={closeTab} unreadCount={unreadCount} onThemeToggle={() => setThemePreference(resolvedTheme === 'light' ? 'dark' : 'light')} onNotifications={() => setNotificationsOpen(true)} onLock={() => setLocked(true)} onOpenSettings={openSettings} onLogout={requestLogout} />
     <div className="content-stage">
-      {screen.kind === 'workspace' && currentTask ? <Workspace task={currentTask} dirty={Boolean(dirty[currentTask.id])} savedAt={savedAt[currentTask.id]} mode={workspaceMode[currentTask.id] ?? 'view'} activeSeriesId={activeSeries[currentTask.id] ?? currentTask.series[0]?.id ?? ''} comments={reviewComments.filter((comment) => comment.taskId === currentTask.id)} reviewFocus={reviewFocus?.taskId === currentTask.id ? reviewFocus : null} reviewResetEnabled={reviewResetEnabled} onReviewFocusConsumed={() => setReviewFocus(null)} onUpdateComment={updateReviewComment} onResetReview={() => resetReviewDemo(currentTask.id)} onSeriesChange={(seriesId) => setActiveSeries((value) => ({ ...value, [currentTask.id]: seriesId }))} onModeChange={(mode) => setWorkspaceMode((value) => ({ ...value, [currentTask.id]: mode }))} onDirty={() => setDirty((value) => ({ ...value, [currentTask.id]: true }))} onSave={(announce = true) => saveTask(currentTask.id, announce)} onSubmit={() => { setSubmitTarget('doctor'); setSubmitTask(currentTask.id) }} onSubmitSalesperson={() => { setSubmitTarget('salesperson'); setSubmitTask(currentTask.id) }} /> : screen.kind === 'cad-workspace' && currentTask && isCadTaskUnlocked(currentTask, tasks) ? <Suspense fallback={<div className="panel-empty">正在打开 CAD 工作区…</div>}><CadWorkspace reviewFocus={reviewFocus?.taskId === currentTask.id ? reviewFocus : null} onReviewFocusConsumed={() => setReviewFocus(null)} key={currentTask.id} task={currentTask} comments={reviewComments.filter((comment) => comment.taskId === currentTask.id)} onBack={() => openProject(currentTask.orderNo,{projectId:currentTask.orderNo,taskId:currentTask.id})} onSubmit={() => { setSubmitTarget('doctor'); setSubmitTask(currentTask.id) }} onSubmitSalesperson={() => { setSubmitTarget('salesperson'); setSubmitTask(currentTask.id) }} renderReviewPanel={(bridge) => <ReviewCommentsPanel comments={reviewComments.filter((comment) => comment.taskId === currentTask.id)} selectedCommentId={bridge.selectedId} readOnly={currentTask.status === '待审核' || currentTask.status === '已完成'} syncState={bridge.syncState} syncedAt={bridge.syncedAt} resetEnabled={false} onSelect={(comment) => { bridge.onSelect(comment.id); if (comment.unread) updateReviewComment(comment.id, { unread: false }) }} onClose={bridge.onClose} onUpdate={updateReviewComment} onQueueSync={bridge.onQueueSync} onReset={() => {}} onSubmit={bridge.onSubmit} />} /></Suspense> :
+      {screen.kind === 'workspace' && currentTask ? <Workspace task={currentTask} dirty={Boolean(dirty[currentTask.id])} savedAt={savedAt[currentTask.id]} mode={workspaceMode[currentTask.id] ?? 'view'} activeSeriesId={activeSeries[currentTask.id] ?? currentTask.series[0]?.id ?? ''} comments={reviewComments.filter((comment) => comment.taskId === currentTask.id)} reviewFocus={reviewFocus?.taskId === currentTask.id ? reviewFocus : null} reviewResetEnabled={reviewResetEnabled} onReviewFocusConsumed={() => setReviewFocus(null)} onUpdateComment={updateReviewComment} onResetReview={() => resetReviewDemo(currentTask.id)} onSeriesChange={(seriesId) => setActiveSeries((value) => ({ ...value, [currentTask.id]: seriesId }))} onModeChange={(mode) => setWorkspaceMode((value) => ({ ...value, [currentTask.id]: mode }))} onDirty={() => setDirty((value) => ({ ...value, [currentTask.id]: true }))} onSave={(announce = true) => saveTask(currentTask.id, announce)} onSubmit={() => { setSubmitTarget('doctor'); setSubmitTask(currentTask.id) }} onSubmitSalesperson={() => { setSubmitTarget('salesperson'); setSubmitTask(currentTask.id) }} /> : screen.kind === 'cad-workspace' && currentTask && canEnter(currentTask, tasks) ? <Suspense fallback={<div className="panel-empty">正在打开 CAD 工作区…</div>}><CadWorkspace reviewFocus={reviewFocus?.taskId === currentTask.id ? reviewFocus : null} onReviewFocusConsumed={() => setReviewFocus(null)} key={currentTask.id} task={currentTask} comments={reviewComments.filter((comment) => comment.taskId === currentTask.id)} onBack={() => openProject(currentTask.orderNo,{projectId:currentTask.orderNo,taskId:currentTask.id})} onSubmit={() => { setSubmitTarget('doctor'); setSubmitTask(currentTask.id) }} onSubmitSalesperson={() => { setSubmitTarget('salesperson'); setSubmitTask(currentTask.id) }} renderReviewPanel={(bridge) => <ReviewCommentsPanel comments={reviewComments.filter((comment) => comment.taskId === currentTask.id)} selectedCommentId={bridge.selectedId} readOnly={currentTask.status === '待审核' || currentTask.status === '已完成'} syncState={bridge.syncState} syncedAt={bridge.syncedAt} resetEnabled={false} onSelect={(comment) => { bridge.onSelect(comment.id); if (comment.unread) updateReviewComment(comment.id, { unread: false }) }} onClose={bridge.onClose} onUpdate={updateReviewComment} onQueueSync={bridge.onQueueSync} onReset={() => {}} onSubmit={bridge.onSubmit} />} /></Suspense> :
         <PlatformShell screen={screen} goPlatform={goPlatform} collapsed={navCollapsed} onCollapsedChange={setNavCollapsed}>
           {screen.kind === 'home' && <ProjectDashboard projects={projects} tasks={tasks} events={flowEvents} notices={notices} userName={userProfile.name} homeFilter={homeFilter} onHomeFilter={setHomeFilter} onProject={openProject} onNotice={openNotice} onDismiss={dismissNotice} onStat={openStat} onAll={()=>{setProjectFilters({...defaultFilters(),period:homeFilter.period,range:homeFilter.range});goPlatform('tasks')}} />}
           {screen.kind === 'tasks' && <ProjectList projects={projects} tasks={tasks} filters={projectFilters} onFilters={setProjectFilters} onProject={openProject} onOpen={openWorkspace} />}
@@ -541,7 +556,8 @@ function App() {
     <Dialog visible={logoutVisible} header="退出登录" theme="warning" placement="center" width={440} confirmBtn="退出登录" cancelBtn="取消" onClose={() => setLogoutVisible(false)} onConfirm={() => { setLogoutVisible(false); setAuthenticated(false) }}>
       <div className="dialog-copy"><p>确定要退出当前账号吗？</p><span>退出后将返回登录页面，本设备上的任务进度与个人偏好不会被清除。</span></div>
     </Dialog>
-    {locked && <LockScreen onUnlock={() => setLocked(false)} />}
+    <Dialog visible={!!stagePreview} header={stagePreview?`${stagePreview.taskType} · ${stagePreview.status}`:''} footer={false} onClose={()=>setStagePreview(null)}><p>{stagePreview?.title}</p><p>负责人：{stagePreview?.owner}</p><p>{stagePreview?.status==='已完成'?'成果已确认，可查看关联的项目记录。':'当前阶段信息'}</p><p>当前尚无关联的分析或打印成果文件。</p></Dialog>
+    {locked && <LockScreen user={userProfile} onUnlock={() => setLocked(false)} />}
   </div>
 }
 
@@ -770,9 +786,12 @@ function Workspace({ task, dirty, savedAt, mode, activeSeriesId, comments, revie
     if (focused?.unread) onUpdateComment(focused.id, { unread: false })
     onReviewFocusConsumed()
   }, [comments, onReviewFocusConsumed, onUpdateComment, reviewFocus])
+  const [aiCommand,setAiCommand]=useState<string|null>(null)
+  const [aiRegion,setAiRegion]=useState('当前序列')
   const chooseTool = (label: string) => {
     const definition=toolsets[mode].find(item=>item.label===label)
     if(definition?.available===false)return
+    if(mode==='ai'){setAiCommand(label);return}
     if(label==='STL属性统计'){if(task.approvedModel?.id===cadAsset.modelId)setStatisticsOpen(true);return}
     if (label === '保存项目') {
       if (readOnly) void MessagePlugin.warning('当前成果已提交或锁定，暂不可保存')
@@ -862,7 +881,7 @@ function Workspace({ task, dirty, savedAt, mode, activeSeriesId, comments, revie
     </section>
     <div className="workspace-banner-slot">{task.status === '审核退回' && returnAlertVisible && <ReturnedReviewAlert onClose={() => setReturnAlertVisible(false)} />}{readOnly && <div className="locked-banner"><LockKeyhole size={17} /><span>{reviewPending ? '当前成果正在审核：影像浏览与视图操作可用，分割、模型及测量修改已锁定。' : '当前成果版本已锁定，仅可查看。'}</span></div>}</div>
     <div ref={panels.bodyRef} className={`workspace-body unified-workspace-body ${panels.resizing ? 'workspace-resizing' : ''} ${!leftOpen ? 'workspace-no-left' : ''} ${!rightOpen ? 'workspace-no-right' : ''}`} style={workspaceStyle}>{!leftOpen && <Tooltip content="展开影像序列" placement="right"><button className="panel-edge-handle panel-edge-handle-left" aria-label="展开影像序列" onClick={() => setPanelOpen('left', true)}><ChevronRight size={15} /></button></Tooltip>}<div className="workspace-left-panel" hidden={!leftOpen}><SeriesPanel task={task} activeSeriesId={selectedSeries?.id ?? ''} onSeriesChange={onSeriesChange} loadNoticeVisible={loadNoticeVisible} onCloseLoadNotice={() => setLoadNoticeVisible(false)} /></div><div className="panel-resizer workspace-resizer-left" hidden={!leftOpen && panels.resizing !== 'left'} {...panels.resizerProps('left')}><span /></div><ViewGrid hiddenModels={hiddenModels} taskId={task.id} series={selectedSeries} tool={toolAction} toolRevision={toolRevision} activeObject={activeObject} comments={comments} selectedComment={selectedComment} onSelectComment={locateComment} onChooseTool={chooseTool} /><div className="panel-resizer workspace-resizer-right" hidden={!rightOpen && panels.resizing !== 'right'} {...panels.resizerProps('right')}><span /></div><div className="workspace-right-panel" hidden={!rightOpen}><ProfessionalPanel onViewVisibility={(id,hidden)=>setHiddenModels(current=>hidden?[...current.filter(item=>item!==id),id]:current.filter(item=>item!==id))} task={task} savedAt={savedAt} activeObject={activeObject} setActiveObject={setActiveObject} tab={professionalTab} onTabChange={setProfessionalTab} readOnly={readOnly} onDirty={onDirty} /></div>{!rightOpen && <Tooltip content="展开对象面板" placement="left"><button className="panel-edge-handle panel-edge-handle-right" aria-label="展开对象面板" onClick={() => setPanelOpen('right', true)}><ChevronLeft size={15} /></button></Tooltip>}{commentsOpen && <ReviewCommentsPanel comments={comments} selectedCommentId={selectedCommentId} readOnly={readOnly} syncState={reviewSyncState} syncedAt={reviewSyncedAt} resetEnabled={reviewResetEnabled} onSelect={locateComment} onClose={() => setCommentsOpen(false)} onUpdate={onUpdateComment} onQueueSync={queueReviewSync} onReset={resetCurrentReview} onSubmit={requestReviewSubmit} />}</div>
-    <footer className="workspace-status"><span>当前序列：{selectedSeries ? `${selectedSeries.modality} · ${selectedSeries.name}` : '无'}</span><span>{selectedSeries ? `层厚 ${selectedSeries.thickness} · ${selectedSeries.slices} 张` : '未关联影像'}</span><span>视图联动：开启</span><span /><span>当前工具：{tool}</span></footer><ReconstructionStatistics visible={statisticsOpen} onClose={()=>setStatisticsOpen(false)}/>
+    <footer className="workspace-status"><span>当前序列：{selectedSeries ? `${selectedSeries.modality} · ${selectedSeries.name}` : '无'}</span><span>{selectedSeries ? `层厚 ${selectedSeries.thickness} · ${selectedSeries.slices} 张` : '未关联影像'}</span><span>视图联动：开启</span><span /><span>当前工具：{tool}</span></footer><Dialog visible={!!aiCommand} header={aiCommand??''} confirmBtn='确认范围' cancelBtn='取消' onClose={()=>setAiCommand(null)} onConfirm={()=>{void MessagePlugin.info('处理范围已确认；当前未连接影像计算服务，未生成重建结果');setAiCommand(null)}}><p>影像序列：{selectedSeries?.name??'无关联序列'}</p><Input aria-label="处理范围" value={aiRegion} onChange={setAiRegion} placeholder='处理范围'/><p>确认前可检查当前序列与处理范围。</p></Dialog><ReconstructionStatistics visible={statisticsOpen} onClose={()=>setStatisticsOpen(false)}/>
   </main>
 }
 
@@ -1231,6 +1250,6 @@ function SignedOutScreen({ onReenter }: { onReenter: () => void }) {
   return <div className="signed-out-screen"><section className="signed-out-panel"><BrandLogo compact /><UserCircleIcon size={48} /><h1>已退出当前账号</h1><p>当前会话已结束，本设备上的任务进度与个人偏好均已保留。</p><Button theme="primary" size="large" onClick={onReenter}>重新登录</Button></section></div>
 }
 
-function LockScreen({ onUnlock }: { onUnlock: () => void }) { return <div className="lock-screen"><div className="lock-panel"><BrandLogo compact /><div className="lock-avatar">陈</div><h2>CliniVol 已锁定</h2><p>陈屿 · 三维重建设计师</p><Tag theme="warning" variant="light"><LockOnIcon size={14} />当前账号处于锁定状态</Tag><Input type="password" placeholder="请输入账号密码" /><Button theme="primary" block onClick={onUnlock}>解锁并返回</Button></div></div> }
+function LockScreen({ user, onUnlock }: { user:UserProfile; onUnlock: () => void }) { return <div className="lock-screen"><div className="lock-panel"><BrandLogo compact /><img className="lock-avatar" src={user.avatar} alt={`${user.name}头像`}/><h2>已锁定</h2><p>{user.name} · {user.role}</p><Tag theme="warning" variant="light"><LockOnIcon size={14} />当前账号处于锁定状态</Tag><Input type="password" placeholder="请输入账号密码" /><Button theme="primary" block onClick={onUnlock}>解锁并返回</Button></div></div> }
 
 export default App

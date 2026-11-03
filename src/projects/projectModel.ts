@@ -71,9 +71,9 @@ export function projectsFor(tasks:Task[],events:FlowEvent[],now=new Date()):Proj
     const metadata=demoProjectMetadata[id]
     const production=items.some(task=>task.dataOrigin==='production')
     const hospital=items.find(task=>task.hospital)?.hospital??(!production?metadata?.hospital:undefined)??'—'
-    const createdAt=events.filter(e=>e.orderNo===id&&e.type==='created').map(e=>e.at.slice(0,10)).sort()[0]??originalCreated[id]??''
+    const createdAt=events.filter(e=>e.orderNo===id&&e.type==='created').map(e=>e.at.slice(0,10)).sort()[0]??originalCreated[id]??items.find(t=>t.catalogDemo)?.catalogCreatedAt??''
     const dueAt=items.map(t=>isoDisplayTime(t.deadline,now)).filter(Boolean).sort().at(-1)??''
-    return {id,name,createdAt,dueAt,patient:items[0].patient,tasks:[...items].sort((a,b)=>stages.indexOf(a.taskType)-stages.indexOf(b.taskType)),hospital,dataOrigin:production?'production' as const:metadata?'demo' as const:'unknown' as const,createdSource:'first-task' as const}
+  return {id,name,createdAt,dueAt,patient:items[0].patient,tasks:[...items].sort((a,b)=>stages.indexOf(a.taskType)-stages.indexOf(b.taskType)),hospital,dataOrigin:production?'production' as const:metadata||items.some(t=>t.dataOrigin==='demo')?'demo' as const:'unknown' as const,createdSource:'first-task' as const}
   }).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||a.id.localeCompare(b.id))
 }
 export const inRange=(createdAt:string,range:DateRange)=> (!range[0]||createdAt>=range[0])&&(!range[1]||createdAt.slice(0,10)<=range[1])
@@ -116,18 +116,39 @@ export function noticeProjectTarget(notice:Notice,projects:Project[],events:Flow
 }
 export function sortedNotices(notices:Notice[],events:FlowEvent[] = []) {return [...notices].sort((a,b)=>(parseTimestamp(noticeTimestamp(b,events))?.getTime()??-Infinity)-(parseTimestamp(noticeTimestamp(a,events))?.getTime()??-Infinity)||b.id-a.id)}
 export function canEnter(task:Task,tasks:Task[]) {
-  if(task.id.startsWith('P'))return false
-  if(!owns(task)||!['三维重建','CAD 设计'].includes(task.taskType))return false
+  if(task.status==='未开始')return false
+  if(['已完成','待审核'].includes(task.status))return true
+  if(!owns(task))return false
   if(task.taskType==='CAD 设计') {const upstream=tasks.find(t=>t.id===task.upstreamTaskId);return upstream?.status==='已完成'&&!!upstream.approvedModel}
   return true
 }
 export function taskAction(task:Task){return task.status==='已完成'?'查看成果':task.status==='待审核'?'查看提交成果':task.status==='审核退回'?'查看意见并修改':'继续设计'}
-export function projectEvents(project:Project,events:FlowEvent[]) {return [...new Map(events.filter(e=>e.orderNo===project.id).map(e=>[e.id,e])).values()].sort((a,b)=>b.at.localeCompare(a.at)||b.id.localeCompare(a.id))}
+export function projectEvents(project:Project,events:FlowEvent[]) {
+ const stored=events.filter(e=>e.orderNo===project.id)
+ const mock=project.tasks.some(t=>t.catalogDemo)?demoFlowEvents({...project,tasks:withDemoProjects([]).find(p=>p.id===project.id)?.tasks??project.tasks}):[]
+ return [...new Map([...mock,...stored].map(e=>[e.id,e])).values()].sort((a,b)=>b.at.localeCompare(a.at)||b.id.localeCompare(a.id))
+}
+export function demoFlowEvents(project:Project):FlowEvent[] {
+ const rows:FlowEvent[]=[]
+ const add=(task:Task,key:string,name:string,description:string,offset:number)=>rows.push({id:`${task.id}-catalog-${key}`,orderNo:project.id,taskId:task.id,type:key,name,description,at:new Date(new Date(project.createdAt+'T08:00:00').getTime()+offset*60000).toISOString(),actor:key==='review-return'?'周医生':key==='review-pass'?'管理员':'陈屿',role:key==='review-return'?'医生':key==='review-pass'?'管理员':'工程师'})
+ const first=project.tasks[0];if(!first)return rows
+ add(first,'project-created','项目已创建','项目已创建',0)
+ project.tasks.forEach((t,i)=>{
+  add(t,'assigned','任务已分配','分配给陈屿',i+1)
+  const base=20+i*120
+  if(t.status==='未开始'){add(t,'waiting','等待解锁','前序正式成果确认后开始',base);return}
+  if(i>0)add(t,'linked','上游成果已解锁','已关联上游正式成果',base)
+  add(t,'started',`${t.taskType}任务已开始`,'任务已开始',base+1)
+  if(['待审核','审核退回','已完成'].includes(t.status))add(t,'review-submit','已提交审核','成果已提交审核',base+20)
+  if(t.status==='审核退回')add(t,'review-return','审核退回','请处理审核意见',base+30)
+  if(t.status==='已完成'){add(t,'review-pass','审核通过','正式成果已确认并锁定',base+30);add(t,'completed','任务已完成','任务已完成',base+31)}
+ });return rows
+}
 
 // Scheme A's pre-existing monthly completion aggregate has no individual task records.
 export const aDashboardHistory = { completed: 12 } as const
 export function aDashboardCounts(tasks:Task[]) {
- const mine=tasks.filter(t=>owns(t))
+ const mine=tasks.filter(t=>owns(t)&&!t.catalogDemo)
  return {待处理:mine.filter(t=>['进行中','审核退回'].includes(t.status)).length,进行中:mine.filter(t=>t.status==='进行中').length,待审核:mine.filter(t=>t.status==='待审核').length,审核退回:mine.filter(t=>t.status==='审核退回').length,已完成:mine.filter(t=>t.status==='已完成').length+aDashboardHistory.completed}
 }
 export function projectStatus(project:Project):TaskStatus {
@@ -151,7 +172,8 @@ export function withDemoProjects(existing:Project[]):Project[] {
  const catalog=names.map((name,i):Project=>{
   const id=`CV26110${2-i%2}-${String(301+i).padStart(4,'0')}`,createdAt=`2026-11-0${2-i%2||1}`
   const types=i===0?stages:i%2===0?stages.slice(0,2):stages.slice(0,1)
-  const items=types.map((taskType,j):Task=>({id:`P${301+i}-${j+1}`,title:name,patient:`CV-P-2026-${301+i}`,orderNo:id,surgery:'术前结构评估、修复设计及成果确认。',taskType,status:i===0?(j===0?'已完成':j===1?'进行中':'未开始'):states[i],owner:'陈屿',updated:`${createdAt}T${String(9+i).padStart(2,'0')}:20:00`,deadline:'2026-11-20T18:00:00',series:[],source:'项目关联资料',hospital:hospitals[i%hospitals.length],dataOrigin:'demo',review:[]}))
+  const items=types.map((taskType,j):Task=>({id:`P${301+i}-${j+1}`,title:name,patient:`CV-P-2026-${301+i}`,orderNo:id,surgery:'术前结构评估、修复设计及成果确认。',taskType,status:i===0?(j===0?'已完成':j===1?'进行中':'未开始'):j===0&&types.length>1?'已完成':states[i],catalogDemo:true,catalogCreatedAt:createdAt,owner:'陈屿',updated:`${createdAt}T${String(9+i).padStart(2,'0')}:20:00`,deadline:'2026-11-20T18:00:00',series:[{id:`${id}-series`,name:'头颌面 CT',modality:'CT',format:'DICOM',slices:742,thickness:'0.625 mm',studyId:`${id}-study`,studyName:'头颌面 CT',studyDate:createdAt,description:'头颌面结构影像'}],source:'项目关联资料',hospital:hospitals[i%hospitals.length],dataOrigin:'demo',review:[]}))
+  items.forEach((t,j)=>{if(j>0){t.upstreamTaskId=items[j-1].id;if(t.taskType==='CAD 设计')t.approvedModel=items[j-1].approvedModel}if(t.status==='已完成')t.approvedModel={id:`${t.id}-result`,name:`${t.title}成果`,version:'V01',approvedAt:createdAt,approvedBy:'管理员'}})
   return {id,name,createdAt,dueAt:'2026-11-20',patient:items[0].patient,tasks:items,hospital:items[0].hospital!,dataOrigin:'demo',createdSource:'project'}
  })
  return [...existing,...catalog.filter(p=>!existing.some(e=>e.id===p.id))].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||a.id.localeCompare(b.id))

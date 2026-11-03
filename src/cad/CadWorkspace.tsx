@@ -27,7 +27,7 @@ import CadToolbarTools from './CadToolbarTools'
 import type { CadMetrics, CadObject, CadPreview, CadSketch } from './cadProject'
 import './cad.css'
 
-type CadTask = { id: string; title: string; patient: string; orderNo: string; status: string; approvedModel?: { id: string; name: string; version: string } }
+type CadTask = { catalogDemo?: boolean; dataOrigin?: 'demo'|'production'; id: string; title: string; patient: string; orderNo: string; status: string; approvedModel?: { id: string; name: string; version: string } }
 type ReviewSummary = { id: string; title: string; unread: boolean; position: { x: number; y: number } }
 type ReviewBridge = { selectedId: string | null; onSelect: (id: string) => void; onClose: () => void; onSubmit: () => void; syncState: 'synced' | 'syncing' | 'failed'; syncedAt: string; onQueueSync: () => void }
 type Props = { task: CadTask; onBack: () => void; onSubmit: () => void; onSubmitSalesperson: () => void; comments: ReviewSummary[]; reviewFocus: { taskId: string; commentId?: string } | null; onReviewFocusConsumed: () => void; renderReviewPanel: (bridge: ReviewBridge) => ReactNode }
@@ -113,7 +113,7 @@ export default function CadWorkspace({ task, onSubmit, onSubmitSalesperson, comm
   useEffect(() => {
     if (!viewportRef.current) return
     setLoadState('loading'); setLoadError('')
-    if (task.approvedModel?.id !== cadAsset.modelId) { setLoadError('当前任务尚未关联可加载的模型资源，请联系项目负责人。'); setLoadState('error'); return }
+    if (task.approvedModel?.id !== cadAsset.modelId && !(task.catalogDemo && task.dataOrigin === 'demo' && task.approvedModel)) { setLoadError('当前任务尚未关联可加载的模型资源，请联系项目负责人。'); setLoadState('error'); return }
     try {
       const scene = new CadScene(viewportRef.current, {
         onLoad: () => { setLoadState('ready'); setScaleWidth(scene.getScale()); setMetrics(scene.metrics(projectRef.current.selectedId ?? 'jaw')) },

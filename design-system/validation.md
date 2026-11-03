@@ -67,3 +67,14 @@ Impeccable扫描一次：106条advisory（105条色值提示，1条旧CAD占位�
 - Token复核以AGENTS和tokens.md为准：Light页面#F5F7F9、Card6px、其余既定圆角、官方shadow1/2/3、Dark仅品牌阶梯覆盖、独立Info蓝。既有统计面性图标及医学视图/方向立方体/模型材质属于已记录例外，不把医学图形误作普通Icon强制改描边或颜色；复杂路径的圆角不宣称已经逐点数学重建。
 - 验证通过：TypeScript+Vite构建；`check-final-sprint.mjs`、`check-design-system.mjs`、`check-a-integration.mjs`、`check-cad-history.mjs`、`git diff --check`。浏览器1280×720实测Light/Dark、Tooltip、分页、四阶段详情、通知、审核面板默认展开、AI禁用状态；控制台无error。未重新宣称1920/1366或真实语音权限测试。
 - 本地预览4194复用现有进程，HTTP200。截图保存于`/Users/yifei/Downloads/clinivol-a-final-sprint-20261103/`。保留原有bundle超过500kB警告，本轮未做无关拆包。
+
+## 本轮项目入口与语义修正（2026-11-03）
+
+- 保护点：backup/a-before-demo-interactions-20261103（6e5b173）。仅当前A分支，本轮未部署。
+- 移除P前缀入口禁用；已完成/待审核的查看权限与编辑/上游解锁分开。新增目录任务独立存储clinivol-catalog-tasks，不改原7任务持久化。已完成重建只读、进行中CAD可进入。新增CAD在catalogDemo且demo来源时复用本地展示STL，生产模型身份校验保留。
+- 演示项目时间轴补齐稳定ID的创建、分配、开始、提交、审核、完成、上游关联或等待事件，仅按已配置状态生成；后续实际事件合并、不删除原始事件。原7任务事件测试保留。
+- 重建图标改长骨轮廓；有限元为受力三角网格；AI骨骼+星形、肺血管/肺叶路径减少重叠。视图四窗、分割剪切及相关上下文语义统一；共享适配层仍24画板、1.5描边、矩形rx1。面性统计、医学切片/方向几何仍为既定例外。
+- AI十项正常颜色、开放参数确认窗口。当前未连接计算服务，仅记录用户所选范围并反馈，不生成虚假蒙版或成功结果。未实现的有限元/打印工作区不冒充现有重建工作区，没有成果文件时明确显示资料边界。
+- 锁屏119px Logo（原178px约2/3）独立定位于左上，当前账户照片，身份区上移20px；保留原58px Logo布局占位，因此凭证控件不随上区移动。
+- Token核对：check-design-system验证Light/Dark品牌/Info、官方非品牌Dark、页面F5F7F9、Card6px、字体、圆角及官方三级阴影。Tooltip shadow2/8px/12px箭头、TDesign输入/按钮/表格保持既有语义；锁屏原占位头像的硬编码白字绿底已移除。
+- 浏览器实测：四阶段项目按钮/非空时间轴；重建成果只读进入；CAD演示STL实际加载完成、草图/拉伸可用；AI骨骼重建参数窗口；锁屏头像及Logo截图。Light/Dark切换和CAD就绪状态正常。未对所有工具逐个做临床算法验证。
