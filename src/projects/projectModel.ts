@@ -125,23 +125,43 @@ export function canEnter(task:Task,tasks:Task[]) {
 export function taskAction(task:Task){return task.status==='已完成'?'查看成果':task.status==='待审核'?'查看提交成果':task.status==='审核退回'?'查看意见并修改':'继续设计'}
 export function projectEvents(project:Project,events:FlowEvent[]) {
  const stored=events.filter(e=>e.orderNo===project.id)
- const mock=project.tasks.some(t=>t.catalogDemo)?demoFlowEvents({...project,tasks:withDemoProjects([]).find(p=>p.id===project.id)?.tasks??project.tasks}):[]
+ const mock=project.dataOrigin==='demo'&&project.tasks.some(t=>t.catalogDemo)?demoFlowEvents(project):[]
  return [...new Map([...mock,...stored].map(e=>[e.id,e])).values()].sort((a,b)=>b.at.localeCompare(a.at)||b.id.localeCompare(a.id))
 }
+type DemoMilestone = 'linked'|'started'|'review-submit'|'review-return'|'review-pass'|'completed'
+// Recorded initial demo history, not a projection of configured stages or live status.
+// Later operations come from the event store and never rewrite this history.
+const completedHistory:DemoMilestone[]=['started','review-submit','review-pass','completed']
+const returnedHistory:DemoMilestone[]=['started','review-submit','review-return']
+const demoHistory:Record<string,DemoMilestone[]>={
+ 'P301-1':completedHistory,'P301-2':['linked','started'],'P301-3':[],'P301-4':[],
+ 'P302-1':completedHistory,
+ 'P303-1':completedHistory,'P303-2':['linked','started','review-submit'],
+ 'P304-1':returnedHistory,
+ 'P305-1':completedHistory,'P305-2':['linked','started'],
+ 'P306-1':completedHistory,
+ 'P307-1':completedHistory,'P307-2':['linked','started','review-submit'],
+ 'P308-1':returnedHistory,
+}
 export function demoFlowEvents(project:Project):FlowEvent[] {
+ if(project.dataOrigin!=='demo')return []
+ const seed=withDemoProjects([]).find(p=>p.id===project.id)
+ if(!seed)return []
  const rows:FlowEvent[]=[]
- const add=(task:Task,key:string,name:string,description:string,offset:number)=>rows.push({id:`${task.id}-catalog-${key}`,orderNo:project.id,taskId:task.id,type:key,name,description,at:new Date(new Date(project.createdAt+'T08:00:00').getTime()+offset*60000).toISOString(),actor:key==='review-return'?'周医生':key==='review-pass'?'管理员':'陈屿',role:key==='review-return'?'医生':key==='review-pass'?'管理员':'工程师'})
- const first=project.tasks[0];if(!first)return rows
+ const add=(task:Task,key:string,name:string,description:string,offset:number)=>rows.push({id:`${task.id}-catalog-${key}`,orderNo:seed.id,taskId:task.id,type:key,name,description,at:new Date(new Date(seed.createdAt+'T08:00:00').getTime()+offset*60000).toISOString(),actor:key==='review-return'?'周医生':key==='review-pass'?'管理员':'陈屿',role:key==='review-return'?'医生':key==='review-pass'?'管理员':'工程师'})
+ const first=seed.tasks[0];if(!first)return rows
  add(first,'project-created','项目已创建','项目已创建',0)
- project.tasks.forEach((t,i)=>{
+ seed.tasks.forEach((t,i)=>{
   add(t,'assigned','任务已分配','分配给陈屿',i+1)
   const base=20+i*120
-  if(t.status==='未开始'){add(t,'waiting','等待解锁','前序正式成果确认后开始',base);return}
-  if(i>0)add(t,'linked','上游成果已解锁','已关联上游正式成果',base)
-  add(t,'started',`${t.taskType}任务已开始`,'任务已开始',base+1)
-  if(['待审核','审核退回','已完成'].includes(t.status))add(t,'review-submit','已提交审核','成果已提交审核',base+20)
-  if(t.status==='审核退回')add(t,'review-return','审核退回','请处理审核意见',base+30)
-  if(t.status==='已完成'){add(t,'review-pass','审核通过','正式成果已确认并锁定',base+30);add(t,'completed','任务已完成','任务已完成',base+31)}
+  for(const milestone of demoHistory[t.id]??[]){
+   if(milestone==='linked')add(t,milestone,'上游成果已解锁','已关联上游正式成果',base)
+   if(milestone==='started')add(t,milestone,`${t.taskType}任务已开始`,'任务已开始',base+1)
+   if(milestone==='review-submit')add(t,milestone,'已提交审核','成果已提交审核',base+20)
+   if(milestone==='review-return')add(t,milestone,'审核退回','请处理审核意见',base+30)
+   if(milestone==='review-pass')add(t,milestone,'审核通过','正式成果已确认并锁定',base+30)
+   if(milestone==='completed')add(t,milestone,'任务已完成','任务已完成',base+31)
+  }
  });return rows
 }
 
