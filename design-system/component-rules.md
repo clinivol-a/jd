@@ -36,7 +36,7 @@ CT黑底、3D医学视图白底、方向识别色与红色审核定位、CAD模�
 
 ## 2026-11-03主题与阴影确认
 
-Light保持最终Figma色彩及#F5F7F9页面背景例外。Dark仅替换品牌绿阶梯，Normal=Brand8、Hover=Brand7、Active=Brand9；其余全部采用TDesign官方Dark。品牌文字与链接随Brand8；Info独立引用官方原品牌蓝，不能随品牌覆盖变绿。三级阴影均为官方默认参数，不给Header或白色卡片新增投影。精确色值与未来Figma映射见tokens.md和figma-variable-mapping.md。本次为规范更新，尚未同步运行CSS/JSON。
+Light保持最终Figma色彩及#F5F7F9页面背景例外。Dark仅替换品牌绿阶梯，Normal=Brand8、Hover=Brand7、Active=Brand9；其余全部采用TDesign官方Dark。品牌文字与链接随Brand8；Info独立引用官方原品牌蓝，不能随品牌覆盖变绿。三级阴影均为官方默认参数，不给Header或白色卡片新增投影。精确色值与未来Figma映射见tokens.md和figma-variable-mapping.md。本轮已同步运行CSS/JSON；Figma尚未修改。
 
 ## 审核、CAD保存与方案边界（最新修订）
 

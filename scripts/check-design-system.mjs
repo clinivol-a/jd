@@ -22,3 +22,13 @@ const pages=fs.readFileSync('src/projects/ProjectPages.tsx','utf8'),columns=page
 assert.equal([...columns.matchAll(/fixed:'left'/g)].length,3);assert.ok(pages.includes('iconsOnly'));assert.ok(!pages.includes('专业阶段'))
 for(const file of ['tokens.md','icons.md','component-rules.md','figma-variable-mapping.md'])assert.ok(fs.statSync('design-system/'+file).size>100)
 console.log('PASS: final Figma palettes/semantic mapping, typography/radius/shadow sources, shared icons, AI capability boundaries, moved statistics and project columns')
+
+assert.equal(data.components['card-radius'],'6px')
+assert.ok(css.includes('--cv-card-radius: 6px'))
+assert.deepEqual(data.palettes['brand-dark'],['#0F2D24','#12372C','#164235','#195040','#1D604B','#227258','#2C8B6A','#45A986','#6BC3A1','#9ADABE'])
+const darkCss=css.slice(css.indexOf(':root.dark,'),css.indexOf('\n:root {',css.indexOf(':root.dark,')))
+const tdOverrides=[...darkCss.matchAll(/--td-([\w-]+):/g)].map(m=>m[1])
+assert.ok(tdOverrides.every(name=>name.startsWith('brand-color')),'Dark may only override official brand variables')
+assert.ok(app.includes("setAttribute('theme-mode', resolvedTheme)"),'activate official Dark theme selector')
+for(const [theme,normal] of [['light',7],['dark',8]])assert.ok(css.includes(`--cv-info: var(--cv-palette-info-${theme}-${normal})`))
+console.log('PASS: official Dark defaults retained, custom green ramp, isolated Info ramps, Card 6px and official theme activation')

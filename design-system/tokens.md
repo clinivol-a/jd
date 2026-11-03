@@ -1,6 +1,6 @@
 # CliniVol Design System V1.0 — Tokens
 
-版本：2026-11-03。唯一 Light 色彩权威为本轮用户提供的两张最终 Figma 色板与语义映射截图。原主题生成器的颜色不作为新依据。机器可读/运行快照：`tokens.json`与`../src/design-system/tokens.css`；本次新确认的Dark/Info映射以本文为准，运行同步状态见下文。
+版本：2026-11-03。唯一 Light 色彩权威为本轮用户提供的两张最终 Figma 色板与语义映射截图。原主题生成器的颜色不作为新依据。机器可读/运行快照：`tokens.json`与`../src/design-system/tokens.css`；Dark/Info映射已同步运行实现，详见下文。
 
 ## Light基础色板（原始值保持不变）
 
@@ -117,7 +117,7 @@
 
 本节及Figma映射表是本次最新确认的规范。浅色沿用最终Figma色板；**只有Light页面背景语义为#F5F7F9**，Gray2仍为#EEEEEE。深色只替换品牌绿色十级色阶，文字、背景、边框、灰阶、Error/Warning/Success、遮罩、滚动条与阴影全部保留TDesign官方Dark定义。不得继续沿用旧A蓝灰色表面或自行推导深色语义色。
 
-来源：用户2026-11-03提供的Dark品牌CSS、最终确认文字和完整Shadow截图；官方默认值取自`tdesign-react 1.18.4 / node_modules/tdesign-react/es/style/index.css`。本轮只记录规范；`tokens.json`与`src/design-system/tokens.css`仍是上次集成的运行快照，尚未同步本次新增Dark/Info确认，不能反过来覆盖本规范。
+来源：用户2026-11-03提供的Dark品牌CSS、最终确认文字和完整Shadow截图；官方默认值取自`tdesign-react 1.18.4 / node_modules/tdesign-react/es/style/index.css`。最新Dark/Info确认已同步至`tokens.json`与`src/design-system/tokens.css`，规范与运行源一致；Figma尚未写入。
 
 ### 品牌绿与独立Info蓝
 
@@ -330,10 +330,10 @@ Dark使用同一TDesign文件既有Dark值：
 - Light最终Figma色板、Light页面背景例外、Dark品牌绿、Dark其他官方默认值、Info双主题完整蓝色和三级官方阴影均已确认，不再标记为待定。
 - 字体、字号+8px行高、圆角、Icon标准继续沿用原规范，不因本次主题确认而改变。
 - Icon复杂路径逐点1px圆角属于矢量实现边界，不是主题Token缺失；不以SVG容器圆角伪装路径已调整。
-- 本次仅更新Markdown；未更改CSS、JSON运行快照、页面或Figma。后续代码同步须按本规范验证，未来Figma写入以figma-variable-mapping.md为依据，不能宣称当前已同步。
+- 最新确认已同步至CSS、JSON与页面；未来Figma写入仍以figma-variable-mapping.md为依据，尚未修改Figma。
 
 ## Card官方圆角核验（优先于旧“卡片一律8px”规则）
 
 依赖版本：tdesign-react 1.18.4。实际编译样式`node_modules/tdesign-react/es/card/style/index.css`第9行：`.t-card`的`border-radius: var(--td-radius-medium)`；官方`es/style/index.css`第330行定义`--td-radius-medium: 6px`，因此无覆盖时Card最终默认圆角为**6px**。未发现独立的官方Card圆角变量；不要臆造Card专属TDesign Token。
 
-项目上次集成的运行CSS把同名medium映射为8px，属于项目覆盖，不是官方Card默认值。本轮只修正文档，不修改运行CSS或当前页面。后续落实Card规范时需区分Card的6px组件规则与其他组件既定3/4/8/12/16px、50%体系，不全局把medium改成6px。Icon内部1px微圆角不受影响。
+项目上次集成的运行CSS把同名medium映射为8px，属于项目覆盖，不是官方Card默认值。本轮已将Card运行规则改为独立--cv-card-radius=6px，避免改变其他medium组件。后续落实Card规范时需区分Card的6px组件规则与其他组件既定3/4/8/12/16px、50%体系，不全局把medium改成6px。Icon内部1px微圆角不受影响。

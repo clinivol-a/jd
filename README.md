@@ -80,6 +80,6 @@ pnpm exec vite preview --host 127.0.0.1 --port 4194 --strictPort
 - 蒙版体积与统计已移至视图，缺体素蒙版而禁用。
 - STL属性统计已移至视图；任务006关联现有真实STL资源时可读取三角面、包围盒与文件大小；没有实际文件的任务禁用。没有伪造体积数据。
 - 医学DICOM、原有分割及CAD仍是此前确认的交互原型能力；不新增专业几何算法或宣称临床/制造可用。
-- Dark品牌绿、官方Dark非品牌值、独立Info双主题蓝阶及官方三级阴影已于2026-11-03确认，见design-system/tokens.md及figma-variable-mapping.md。本次只更新规范，CSS/JSON运行快照尚未同步这些新增确认；未修改Figma。面性统计Icon不伪装成线性，复杂路径不伪称精确1px转角。
+- Dark品牌绿、官方Dark非品牌值、独立Info双主题蓝阶及官方三级阴影已于2026-11-03确认，见design-system/tokens.md及figma-variable-mapping.md。本轮已同步CSS/JSON运行实现；未修改Figma。面性统计Icon不伪装成线性，复杂路径不伪称精确1px转角。
 
 4194与4192是不同浏览器Origin，本地验收不会自动复制原A浏览器存储。兼容性脚本验证原A任务记录、患者字段和审核记录可用原键恢复；原A端口的数据、工程与提交快照保持不动。后续正式同源发布时继续使用原键，本轮不执行线上替换或跨Origin数据搬运。

@@ -12,7 +12,7 @@ description: Confirmed project dashboard, stable professional workspaces and Fig
 - [组件与状态规则](design-system/component-rules.md)
 - [Figma Variables映射](design-system/figma-variable-mapping.md)
 
-运行实现为`src/design-system/tokens.css`及`CliniVolIcon.tsx`；`design-system/tokens.json`为上次运行快照。2026-11-03新增确认的Dark/Info/Shadow规范已写入Markdown，本轮尚未同步CSS/JSON，不以旧快照覆盖新规范。
+运行实现为`src/design-system/tokens.css`及`CliniVolIcon.tsx`；`design-system/tokens.json`为上次运行快照。2026-11-03新增确认的Dark/Info/Shadow规范已写入Markdown，本轮已同步CSS/JSON，不以旧快照覆盖新规范。
 
 品牌核心#0D7A5D、Light页面#F5F7F9，主要表面白色；常规正文14/22 Regular、卡片标题16/24 Medium、页面标题24/32 Medium。GlobalHeader56px，专业工具栏58px。进行中蓝、待审核橙、退回红、完成绿，与设计阶段Cyan/Purple/Yellow/Pink身份独立。
 

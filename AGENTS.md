@@ -63,7 +63,7 @@
 38. 默认保持Light。Dark只覆盖2026-11-03用户确认的十级品牌绿及其Brand8/7/9语义映射；文字、背景、边框、灰阶、Error/Warning/Success和阴影沿用TDesign官方Dark。Info独立保存TDesign官方Light/Dark蓝阶，不得引用已改绿的品牌变量。通用Tooltip Light白底、深色文字；专业医学画布和材质不自动反色。
 39. 本次集成在独立worktree与`codex/a-dashboard-design-system-v1`分支进行。备份Tag为`backup/a-before-project-dashboard-20261103`，恢复方法见README。修改完成仍不等于部署；须继续遵守15–33条。
 
-40. 2026-11-03已确认三级阴影使用TDesign官方默认值；Light最终Figma、Dark品牌绿、Info双主题蓝色与官方Dark非品牌变量均已定稿，详见tokens.md及figma-variable-mapping.md。未来Figma写入前按这两份映射核对，Shadow使用Effect Styles而非伪造SHADOW变量。本次仅文档确认，CSS/JSON运行同步尚未完成，不得宣称已应用到页面。
+40. 2026-11-03已确认三级阴影使用TDesign官方默认值；Light最终Figma、Dark品牌绿、Info双主题蓝色与官方Dark非品牌变量均已定稿，详见tokens.md及figma-variable-mapping.md。未来Figma写入前按这两份映射核对，Shadow使用Effect Styles而非伪造SHADOW变量。最新规则已同步至CSS/JSON运行实现；Figma尚未写入，不得混淆两者状态。
 
 ## 已确认的长期 Token 执行规则（2026-11-03）
 
@@ -134,3 +134,5 @@ shadow-1用于基础投影及指定轻量交互，shadow-2用于Dropdown/Popover
 用户以后明确指定Figma文件并要求写入时，以本文件和`design-system/figma-variable-mapping.md`为依据执行。原始色板 → Light/Dark语义变量 → 组件绑定；品牌绿与Info蓝使用独立原始色，保留完整别名链。先检查既有集合、变量、模式和样式，复用更新，不重复建立另一套规范或覆盖无关内容。
 
 颜色用COLOR变量、尺寸/字号/行高等按对应FLOAT映射；多层阴影采用Figma Effect Styles（Light/Dark各三级），不能把CSS阴影字符串冒充COLOR或不存在的SHADOW变量。未经本轮明确授权不操作Figma、不部署；必须区分“规范已确认”“文档已记录”“代码已落地”“Figma已写入”，只报告实际完成的状态。
+
+41. Card使用独立组件Token `--cv-card-radius: 6px`，不全局修改medium8px；深色统计卡片的品牌/Info/Warning/Success图标必须引用对应主题语义，紫色审核退回统计图标使用可读的Dark紫色配对。设计阶段四枚图标使用同一24px画板、1.5px线性笔画、20px显示尺寸，不堆叠多个微小符号；保留Cyan/Purple/Yellow/Pink身份色和完整Tooltip。

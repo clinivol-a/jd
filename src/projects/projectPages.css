@@ -34,14 +34,14 @@
 .project-name-link:focus-visible, .project-stat-action:focus-visible { outline: 2px solid var(--td-brand-color); outline-offset: 3px; }
 .project-stage-tags { display: flex; gap: 6px; flex-wrap: nowrap; white-space: nowrap; }
 /* Professional identity and business status are independent color systems. */
-.project-stage-label.stage-cyan { --stage-bg: #e8f5ff; --stage-text: #004e6d; }
-.project-stage-label.stage-purple { --stage-bg: #fbf0ff; --stage-text: #5610a4; }
-.project-stage-label.stage-yellow { --stage-bg: #fff5e4; --stage-text: #654900; }
-.project-stage-label.stage-pink { --stage-bg: #fff0f6; --stage-text: #800a5f; }
-html[data-theme="dark"] .project-stage-label.stage-cyan { --stage-bg: #003850; --stage-text: #85d3ff; }
-html[data-theme="dark"] .project-stage-label.stage-purple { --stage-bg: #3b007b; --stage-text: #dcbfff; }
-html[data-theme="dark"] .project-stage-label.stage-yellow { --stage-bg: #443000; --stage-text: #ffd36d; }
-html[data-theme="dark"] .project-stage-label.stage-pink { --stage-bg: #610046; --stage-text: #ffaedc; }
+.project-stage-label.stage-cyan { --stage-bg: var(--cv-stage-cyan-light); --stage-text: var(--cv-stage-cyan); }
+.project-stage-label.stage-purple { --stage-bg: var(--cv-stage-purple-light); --stage-text: var(--cv-stage-purple); }
+.project-stage-label.stage-yellow { --stage-bg: var(--cv-stage-yellow-light); --stage-text: var(--cv-stage-yellow); }
+.project-stage-label.stage-pink { --stage-bg: var(--cv-stage-pink-light); --stage-text: var(--cv-stage-pink); }
+html[data-theme="dark"] .project-stage-label.stage-cyan { --stage-bg: var(--cv-stage-cyan-light); --stage-text: var(--cv-stage-cyan); }
+html[data-theme="dark"] .project-stage-label.stage-purple { --stage-bg: var(--cv-stage-purple-light); --stage-text: var(--cv-stage-purple); }
+html[data-theme="dark"] .project-stage-label.stage-yellow { --stage-bg: var(--cv-stage-yellow-light); --stage-text: var(--cv-stage-yellow); }
+html[data-theme="dark"] .project-stage-label.stage-pink { --stage-bg: var(--cv-stage-pink-light); --stage-text: var(--cv-stage-pink); }
 .project-stage-label.t-tag { height: 24px; padding: 0 8px; border: 0; border-radius: var(--cv-radius-small); background: var(--stage-bg); color: var(--stage-text); font-size: var(--cv-font-size-body-medium); line-height: var(--cv-line-height-body-medium); font-weight: 400; flex-shrink: 0; }
 .project-stat-action { border: 0; background: transparent; color: inherit; width: 100%; display: block; text-align: left; padding: 18px 20px 16px; }
 .project-stat-action > strong { display: block; margin-top: 8px; color: var(--td-text-color-primary); font-size: var(--cv-font-size-headline-medium); line-height: var(--cv-line-height-headline-medium); font-weight: 400; font-variant-numeric: tabular-nums; }
@@ -64,7 +64,7 @@ html[data-theme="dark"] .project-stage-label.stage-pink { --stage-bg: #610046; -
 .project-stages-card .section-heading > span { color: var(--td-text-color-secondary); }
 .project-stages-card { container-type: inline-size; }
 .project-stages { display: grid; grid-template-columns: minmax(0,1fr); gap: 16px; padding: 0 24px 24px; }
-.project-stage { display: flex; flex-direction: column; padding: 20px; border: 1px solid var(--td-border-level-1-color); border-radius: var(--cv-radius-medium); min-width: 0; }
+.project-stage { display: flex; flex-direction: column; padding: 20px; border: 1px solid var(--td-border-level-1-color); border-radius: var(--cv-card-radius); min-width: 0; }
 .project-stage > p { margin-top: 12px; }
 .project-stage-title { display: flex; align-items: center; gap: 12px; }
 .project-stage-title > .t-tag { margin-left: auto; }
@@ -91,7 +91,7 @@ html[data-theme="dark"] .project-dashboard { --td-bg-color-specialcomponent: var
 .project-attention-text { color: var(--project-error-color,var(--td-error-color)); }
 html[data-theme="dark"] .project-page .t-button--theme-primary.t-button--variant-text:not(.t-is-disabled),
 html[data-theme="dark"] .project-dashboard .t-button--theme-primary.t-button--variant-text:not(.t-is-disabled),
-html[data-theme="dark"] .project-page .t-tag--primary:not(.status-in-progress) { color: var(--brand-5); }
+html[data-theme="dark"] .project-page .t-tag--primary:not(.status-in-progress) { color: var(--td-text-color-brand); }
 
 /* TDesign owns fixed-column offsets; one scroll container, no row wrapping. */
 .project-data-table th, .project-data-table td, .review-card .t-table th, .review-card .t-table td { white-space: nowrap; }

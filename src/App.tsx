@@ -386,6 +386,7 @@ function App() {
   }, [])
   useEffect(() => {
     document.documentElement.dataset.theme = resolvedTheme
+    document.documentElement.setAttribute('theme-mode', resolvedTheme)
     document.documentElement.style.colorScheme = resolvedTheme
     localStorage.setItem('clinivol-theme-preference', themePreference)
   }, [resolvedTheme, themePreference])
