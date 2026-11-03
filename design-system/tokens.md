@@ -299,7 +299,7 @@ TDesign `title-extraLarge`历史别名映射当前title-large=20/28，不引入1
 |---|---|---|
 | radius-small | 3px | 基础组件内部 |
 | radius-default | 4px | 按钮/输入等基础控件 |
-| radius-medium | 8px | 卡片/Popup/Tooltip |
+| radius-medium | 8px | 按既有组件场景用于Popup/Tooltip等；不作为Card强制值 |
 | radius-large | 12px | Dialog |
 | radius-extra-large | 16px | 扩展展示组件 |
 | radius-circle | 50% | 圆形控件/头像 |
@@ -323,7 +323,7 @@ Dark使用同一TDesign文件既有Dark值：
 
 ## 尺寸与兼容
 
-24px图标作者画板，1.5px描边，运行尺寸16/20/24。空间4/8/12/16/24；平台左右安全边距24。GlobalHeader=56px、单排专业工具栏=58px。卡片8px；面板伸缩不触发工程保存。
+24px图标作者画板，1.5px描边，运行尺寸16/20/24。空间4/8/12/16/24；平台左右安全边距24。GlobalHeader=56px、单排专业工具栏=58px。首页大卡片及平台通用Card使用官方默认6px；面板伸缩不触发工程保存。
 
 ## 确认状态与实施边界
 
@@ -331,3 +331,9 @@ Dark使用同一TDesign文件既有Dark值：
 - 字体、字号+8px行高、圆角、Icon标准继续沿用原规范，不因本次主题确认而改变。
 - Icon复杂路径逐点1px圆角属于矢量实现边界，不是主题Token缺失；不以SVG容器圆角伪装路径已调整。
 - 本次仅更新Markdown；未更改CSS、JSON运行快照、页面或Figma。后续代码同步须按本规范验证，未来Figma写入以figma-variable-mapping.md为依据，不能宣称当前已同步。
+
+## Card官方圆角核验（优先于旧“卡片一律8px”规则）
+
+依赖版本：tdesign-react 1.18.4。实际编译样式`node_modules/tdesign-react/es/card/style/index.css`第9行：`.t-card`的`border-radius: var(--td-radius-medium)`；官方`es/style/index.css`第330行定义`--td-radius-medium: 6px`，因此无覆盖时Card最终默认圆角为**6px**。未发现独立的官方Card圆角变量；不要臆造Card专属TDesign Token。
+
+项目上次集成的运行CSS把同名medium映射为8px，属于项目覆盖，不是官方Card默认值。本轮只修正文档，不修改运行CSS或当前页面。后续落实Card规范时需区分Card的6px组件规则与其他组件既定3/4/8/12/16px、50%体系，不全局把medium改成6px。Icon内部1px微圆角不受影响。

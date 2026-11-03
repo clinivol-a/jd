@@ -332,3 +332,11 @@ Shadow为多层DROP_SHADOW复合Effect，不存在原生SHADOW类型的Figma Var
 | Shadow/Dark/3 | Dark | --td-shadow-3（Dark） | 上层投影 |
 
 完整参数见tokens.md，已与TDesign 1.18.4原定义核对。当前只准备映射，未来获得指定Figma文件及操作指令后再检查现有集合、模式、变量和Style，复用并更新，不擅自重复新建或覆盖无关内容。
+
+## Card组件圆角例外（最新确认）
+
+| Variable名称 | 集合 | 模式 | 类型 | 值 | 来源 | 使用场景 | CSS依据 |
+|---|---|---|---|---|---|---|---|
+| card/radius | CliniVol Components | Shared | FLOAT | 6 | tdesign-react 1.18.4官方Card | 首页大卡片、平台通用Card | .t-card → --td-radius-medium；官方默认6px |
+
+这是规划的CliniVol组件变量，不冒称TDesign存在同名Card专属Token。`radius/medium = 8`继续保留给其他既定组件类型，Card不得错误绑定到它。当前运行CSS存在8px项目覆盖，本次未更改代码或Figma。Icon路径1px微圆角与组件圆角分别管理。
