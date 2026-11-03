@@ -12,7 +12,7 @@ import './projectPages.css'
 const themes:Record<TaskStatus,'default'|'primary'|'warning'|'danger'|'success'>={未开始:'default',进行中:'primary',待审核:'warning',审核退回:'danger',已完成:'success'}
 export function ProjectStatus({status}:{status:TaskStatus}){return <Tag className={status==='进行中'?'status-in-progress':undefined} theme={themes[status]} variant="light">{status}</Tag>}
 const stageClasses:Record<TaskType,string>={'三维重建':'cyan','CAD 设计':'purple','有限元分析':'yellow','3D 打印':'pink'}
-export function StageLabel({stage}:{stage:TaskType}){return <Tag className={`project-stage-label stage-${stageClasses[stage]}`} variant="light"><DesignStageIcon stage={stage}/>{compactText(stage)}</Tag>}
+export function StageLabel({stage}:{stage:TaskType}){return <Tag className={`project-stage-label stage-${stageClasses[stage]}`} variant="light" icon={<DesignStageIcon stage={stage}/>}>{compactText(stage)}</Tag>}
 function StageTags({tasks,iconsOnly=false}:{tasks:Task[];iconsOnly?:boolean}){return <div className="project-stage-tags">{stages.filter(stage=>tasks.some(t=>t.taskType===stage)).map(stage=>iconsOnly?<Tooltip key={stage} content={compactText(stage)}><span className={`design-stage-icon stage-${stageClasses[stage]}`} aria-label={compactText(stage)}><DesignStageIcon stage={stage}/></span></Tooltip>:<StageLabel key={stage} stage={stage}/>)}</div>}
 export function ProjectTable({projects,onProject,paginated=false,page=1,onPage}:{projects:Project[];onProject:(id:string)=>void;paginated?:boolean;page?:number;onPage?:(page:number)=>void}){
   const columns:PrimaryTableCol<Project>[]=[

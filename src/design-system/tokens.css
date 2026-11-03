@@ -519,4 +519,7 @@ html[data-theme="dark"] .context-tool-active, html[data-theme="dark"] .context-t
 
 /* Stage identity uses glyph color only, in tables and detail labels. */
 .design-stage-icon { background: transparent; border-radius: 0; }
-.project-stage-label.t-tag { background: transparent; gap: 8px; }
+.project-stage-label.t-tag { display: inline-flex; align-items: center; justify-content: center; background: var(--stage-bg); gap: 8px; }
+.project-stage-label > .cv-icon { width: 20px; height: 20px; flex: 0 0 20px; display: block; }
+.project-stage-label > span { display: inline-flex; align-items: center; line-height: var(--cv-line-height-body-medium); }
+.project-info-grid .project-stage-tags { flex-wrap: wrap; }
