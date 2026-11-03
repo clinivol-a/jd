@@ -55,3 +55,15 @@ Impeccable扫描一次：106条advisory（105条色值提示，1条旧CAD占位�
 - TypeScript/Vite构建、设计系统契约、A数据/阶段可见性、CAD历史与几何检查通过，保留现有大chunk提示；git diff --check通过。浏览器没有新增error。最新页面检查实际视口1280×720，未冒称本轮已重新测量1920/1366尺寸。
 - 截图及133项计算值证据保存在下载目录clinivol-a-token-audit-20261103。本轮不部署，不修改B或独立审核实验环境。
 - 此前Dark/Info/阴影待确认项已关闭并落地；复杂矢量逐点数学1px圆角仍按既有Icon实现边界说明，不以CSS圆角冒充。
+
+## 2026-11-03 最终本地收口（替代上文旧Tooltip记录）
+
+- 当前A工作树：`clinivol-a-dashboard-design-system-v1`，分支`codex/a-dashboard-design-system-v1`。修改前快照`backup/a-before-final-sprint-20261103`指向`b57fc1d`。未修改旧A目录、B或独立审核原型，未调用线上部署。
+- 默认Tooltip实际内容表面：Light `rgb(255,255,255)`、主要文字、8px圆角、0px边框、官方shadow-2；箭头12px、同表面且无独立边框/阴影，覆盖原有小箭头拼缝。Dropdown/Dialog不套用Tooltip覆盖。
+- 原有5个项目/7个工程任务及原审核数据保留；新增8个隔离的demo目录项目，总计13个。首页6条，完整列表每页6条、3页；已实际点击第2/3页确认内容切换。首条四阶段项目在首页和完整列表均可见，医院非空，四类项目状态齐全。统计仍来自原工程任务而非新增目录。新目录没有工程资产，阶段进入按钮禁用，不虚构临床或制造成果。
+- 设计阶段四枚线性图标为骨骼、几何实体、受力三角网格、打印框架与喷头；沿用四类扩展身份色。AI主图标骨骼+星形，十项子工具各有独立语义图形，经CliniVolIcon统一24画板/1.5px笔画/圆端点。AI缺处理能力的十项继续真正禁用。实测Light图标与文字均黑26%、Dark均白22%，图标opacity=1，没有二次灰化。
+- 共享提交操作组只显示“提交审核”主按钮；未更改保存、成果锁定或审核状态流转。审核面板打开即展开全部3问题，A区内部滚动、单条标题展开保留。1280×720实测评论输入/发送/语音及固定底部操作均可见，消息区独立滚动。
+- 通知中心现有无时间记录隐藏时间，不补造收到时间；无值/横线详情隐藏。时间函数保留真实事件时间来源，刚发生为刚刚，当日HH:mm，跨日MM-DD HH:mm；通知已读/跳转逻辑未改。
+- Token复核以AGENTS和tokens.md为准：Light页面#F5F7F9、Card6px、其余既定圆角、官方shadow1/2/3、Dark仅品牌阶梯覆盖、独立Info蓝。既有统计面性图标及医学视图/方向立方体/模型材质属于已记录例外，不把医学图形误作普通Icon强制改描边或颜色；复杂路径的圆角不宣称已经逐点数学重建。
+- 验证通过：TypeScript+Vite构建；`check-final-sprint.mjs`、`check-design-system.mjs`、`check-a-integration.mjs`、`check-cad-history.mjs`、`git diff --check`。浏览器1280×720实测Light/Dark、Tooltip、分页、四阶段详情、通知、审核面板默认展开、AI禁用状态；控制台无error。未重新宣称1920/1366或真实语音权限测试。
+- 本地预览4194复用现有进程，HTTP200。截图保存于`/Users/yifei/Downloads/clinivol-a-final-sprint-20261103/`。保留原有bundle超过500kB警告，本轮未做无关拆包。

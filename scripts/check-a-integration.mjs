@@ -49,5 +49,5 @@ assert.ok(flow006.some(e=>e.taskId==='007'&&e.type==='created'));assert.ok(flow0
 assert.ok(!flow006.some(e=>e.taskId==='007'&&['started','model-linked'].includes(e.type)))
 assert.ok(flow007.some(e=>e.taskId==='007'&&e.type==='started'));assert.ok(flow007.some(e=>e.taskId==='007'&&e.type==='model-linked'))
 assert.equal(m.formatRecent('2026-10-23T10:08:00'),'10-23 10:08')
-const clock=new Date('2026-11-03T10:30:00');assert.equal(m.formatNoticeTime('2026-11-03T10:29:50',clock),'刚刚');assert.equal(m.formatNoticeTime('2026-11-03T10:25:00',clock),'5分钟前');assert.equal(m.formatNoticeTime('2026-11-03T08:40:00',clock),'08:40');assert.equal(m.formatNoticeTime('2026-11-02T09:00:00',clock),'11-02 09:00')
+const clock=new Date('2026-11-03T10:30:00');assert.equal(m.formatNoticeTime('2026-11-03T10:29:50',clock),'刚刚');assert.equal(m.formatNoticeTime('2026-11-03T10:25:00',clock),'10:25');assert.equal(m.formatNoticeTime('2026-11-03T08:40:00',clock),'08:40');assert.equal(m.formatNoticeTime('2026-11-02T09:00:00',clock),'11-02 09:00')
 console.log('PASS: A task identities/states/persistence, unchanged CAD geometry/data/history, hospital provenance, statistics, project aggregation, notice identities and stage-gated task events')

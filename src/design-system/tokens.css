@@ -469,12 +469,12 @@
 .t-tooltip--default .t-popup__content {
   background: var(--cv-bg-color-container);
   color: var(--cv-text-color-primary);
-  border: 1px solid var(--cv-component-stroke);
+  border: 0;
   border-radius: var(--cv-radius-medium);
-  box-shadow: var(--cv-shadow-1);
+  box-shadow: var(--cv-shadow-2);
   font: var(--cv-font-weight-regular) var(--cv-font-size-body-medium)/var(--cv-line-height-body-medium) var(--cv-font-family);
 }
-.t-tooltip--default[data-popper-placement] .t-popup__arrow::before { background: var(--cv-bg-color-container); box-shadow: none; border: 1px solid var(--cv-component-stroke); }
+.t-tooltip--default[data-popper-placement] .t-popup__arrow::before { background: var(--cv-bg-color-container); box-shadow: none; border: 0; width: 12px; height: 12px; border-radius: 1px; }
 .cv-icon { stroke-width: var(--cv-icon-stroke); display: inline-block; flex: 0 0 auto; width: var(--cv-icon-size); height: var(--cv-icon-size); vertical-align: middle; }
 .cv-icon [stroke-width], .t-icon [stroke-width] { stroke-width: var(--cv-icon-stroke); stroke-linecap: round; stroke-linejoin: round; }
 .global-actions .header-icon, .sidebar-menu .t-icon { color: var(--cv-text-color-primary); }
@@ -509,3 +509,10 @@ html[data-theme="dark"] .context-tool-active, html[data-theme="dark"] .context-t
 
 /* Card is the official 6px component exception; other medium surfaces remain 8px. */
 .t-card { border-radius: var(--cv-card-radius); }
+
+.t-tooltip--default .t-popup__arrow { width: 12px; height: 12px; background: transparent; }
+.t-tooltip--default[data-popper-placement^="top"] .t-popup__arrow { bottom: -5px; }
+.t-tooltip--default[data-popper-placement^="bottom"] .t-popup__arrow { top: -5px; }
+.t-tooltip--default[data-popper-placement^="left"] .t-popup__arrow { right: -5px; }
+.t-tooltip--default[data-popper-placement^="right"] .t-popup__arrow { left: -5px; }
+.context-tool:disabled .cv-icon { color: inherit; opacity: 1; filter: none; }

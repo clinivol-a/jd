@@ -1,4 +1,5 @@
-import { projectsFor, defaultFilters, periodRange, canEnter, owns, cleanOwner, noticeProjectTarget, formatNoticeTime, noticeTimestamp } from './projects/projectModel'
+import { AiBoneIcon, BoneRebuildIcon, OrganIcon, LungVesselIcon, BronchusIcon, AbdomenIcon, SpineRibsIcon, AortaIcon, LungLobesIcon, SkinIcon, MeshEditIcon } from './design-system/MedicalToolIcon'
+import { withDemoProjects, projectsFor, defaultFilters, periodRange, canEnter, owns, cleanOwner, noticeProjectTarget, formatNoticeTime, noticeTimestamp } from './projects/projectModel'
 import type { Filters, Period, DateRange, ProjectTarget } from './projects/projectModel'
 import { ProjectDashboard, ProjectList, ProjectDetail, ExtendedTaskDetail, StageLabel } from './projects/ProjectPages'
 import { readProjectRoute, projectUrl } from './projects/routes'
@@ -115,16 +116,16 @@ const navItems = [
   { key: 'reviews', label: '审核记录', icon: TaskCheckedIcon },
 ] as const
 const workspaceModes: { key: WorkspaceMode; label: string; icon: typeof Eye }[] = [
-  { key: 'ai', label: 'AI', icon: WandSparkles }, { key: 'view', label: '视图', icon: Eye },
+  { key: 'ai', label: 'AI', icon: AiBoneIcon }, { key: 'view', label: '视图', icon: Eye },
   { key: 'image', label: '图像', icon: ImageIcon }, { key: 'segment', label: '分割', icon: Layers3 },
 ]
 const toolsets: Record<WorkspaceMode, WorkspaceTool[]> = {
   ai: [
-    {label:'骨骼重建',icon:Boxes,available:false}, {label:'器官重建',icon:Activity,available:false},
-    {label:'肺血管重建',icon:Activity,available:false}, {label:'支气管重建',icon:Split,available:false},
-    {label:'腹部器官重建',icon:Boxes,available:false}, {label:'脊柱与肋骨重建',icon:Layers3,available:false},
-    {label:'腹部大血管重建',icon:Activity,available:false}, {label:'肺叶重建',icon:Split,available:false},
-    {label:'皮肤重建',icon:Layers3,available:false}, {label:'Mesh编辑',icon:Grid2X2,available:false},
+    {label:'骨骼重建',icon:BoneRebuildIcon,available:false}, {label:'器官重建',icon:OrganIcon,available:false},
+    {label:'肺血管重建',icon:LungVesselIcon,available:false}, {label:'支气管重建',icon:BronchusIcon,available:false},
+    {label:'腹部器官重建',icon:AbdomenIcon,available:false}, {label:'脊柱与肋骨重建',icon:SpineRibsIcon,available:false},
+    {label:'腹部大血管重建',icon:AortaIcon,available:false}, {label:'肺叶重建',icon:LungLobesIcon,available:false},
+    {label:'皮肤重建',icon:SkinIcon,available:false}, {label:'Mesh编辑',icon:MeshEditIcon,available:false},
   ],
   view: [
     { label: '布局', icon: LayoutGrid, options: ['三位四窗', '多平面重建', '三维主视图（上下）', '三维主视图（左右）'] },
@@ -393,7 +394,7 @@ function App() {
 
   const currentWorkspaceId = screen.kind === 'workspace' || screen.kind === 'cad-workspace' ? screen.taskId : null
   const currentTask = currentWorkspaceId ? tasks.find((task) => task.id === currentWorkspaceId) : undefined
-  const projects=useMemo(()=>projectsFor(tasks,flowEvents),[tasks,flowEvents])
+  const projects=useMemo(()=>withDemoProjects(projectsFor(tasks,flowEvents)),[tasks,flowEvents])
   const unreadCount = notices.filter((notice) => notice.unread).length
   const runWithGuard = (action: () => void) => { if (currentWorkspaceId && dirty[currentWorkspaceId]) setGuardAction(() => action); else action() }
   useEffect(()=>{ const onHash=()=>runWithGuard(()=>rawSetScreen(validateRoute(readProjectRoute(),tasks)));window.addEventListener('popstate',onHash);window.addEventListener('hashchange',onHash);return ()=>{window.removeEventListener('popstate',onHash);window.removeEventListener('hashchange',onHash)} },[tasks,dirty,currentWorkspaceId])
@@ -462,7 +463,7 @@ function App() {
       catch { void MessagePlugin.error('CAD 工程版本保存失败，请返回工作区重试'); return }
     }
     const stamp = new Date().toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
-    const note = `工作版本 ${version} 已冻结并提交医生审核。`
+    const note = `工作版本 ${version} 已冻结并提交审核。`
     setTasks((items) => items.map((task) => task.id === taskId ? { ...task, status: '待审核', updated: '刚刚', review: [...task.review, { time: stamp, actor: '陈屿', status: '已提交审核', note, ...(current.taskType === 'CAD 设计' ? { version } : {}) }] } : task))
     setFlowEvents((events) => [...events, { id: `${taskId}-review-${crypto.randomUUID()}`, orderNo: current.orderNo, taskId, type: 'review-submit', name: '已提交审核', at: new Date().toISOString(), actor: '陈屿', role: '工程师', description: note, version }])
     setReviewComments((items) => items.map((comment) => comment.taskId === taskId ? { ...comment, submitted: comment.status === '已修改 · 待复核' } : comment))
@@ -528,11 +529,11 @@ function App() {
         </PlatformShell>}
     </div>
     <Drawer visible={notificationsOpen} placement="right" size="400px" header={<div className="drawer-title"><span>通知中心</span><Tag theme="primary" variant="light">{unreadCount} 条未读</Tag></div>} footer={false} onClose={() => setNotificationsOpen(false)}>
-      <div className="notice-list">{notices.filter((notice) => !notice.dismissed).map((notice) => <div key={notice.id} className={`notice-item notice-${notice.tone} ${notice.unread ? 'notice-unread' : ''}`}><button className="notice-item-main" onClick={() => openNotice(notice)}><NoticeSymbol notice={notice} /><span><strong>{notice.title}</strong><small>{notice.tone === 'warning' ? '查看意见并修改' : notice.detail}</small><em>{formatNoticeTime(noticeTimestamp(notice,flowEvents))}</em></span>{(notice.projectId||notice.taskId||notice.eventId) && <ChevronRightIcon size={16} />}</button>{notice.tone === 'warning' && <button className="notice-item-close" aria-label={`关闭${notice.title}`} onClick={() => dismissNotice(notice.id)}><CloseIcon size={14} /></button>}</div>)}</div>
+      <div className="notice-list">{notices.filter((notice) => !notice.dismissed).map((notice) => <div key={notice.id} className={`notice-item notice-${notice.tone} ${notice.unread ? 'notice-unread' : ''}`}><button className="notice-item-main" onClick={() => openNotice(notice)}><NoticeSymbol notice={notice} /><span><strong>{notice.title}</strong>{notice.detail && !/^[-—]$/.test(notice.detail.trim()) && <small>{notice.tone === 'warning' ? '查看意见并修改' : notice.detail}</small>}{formatNoticeTime(noticeTimestamp(notice,flowEvents)) && <em>{formatNoticeTime(noticeTimestamp(notice,flowEvents))}</em>}</span>{(notice.projectId||notice.taskId||notice.eventId) && <ChevronRightIcon size={16} />}</button>{notice.tone === 'warning' && <button className="notice-item-close" aria-label={`关闭${notice.title}`} onClick={() => dismissNotice(notice.id)}><CloseIcon size={14} /></button>}</div>)}</div>
       <Button variant="outline" block onClick={() => setNotices((items) => items.map((item) => ({ ...item, unread: false })))}>全部标记为已读</Button>
     </Drawer>
-    <Dialog visible={Boolean(submitTask)} header={submitTarget === 'doctor' ? '提交医生审核' : '提交业务员审核'} theme="warning" placement="center" width={520} confirmBtn={submitTarget === 'doctor' ? '确认提交审核' : '关闭'} cancelBtn={submitTarget === 'doctor' ? '取消' : null} onClose={() => setSubmitTask(null)} onConfirm={() => { if (!submitTask) return; if (submitTarget === 'doctor') submitReview(submitTask); else setSubmitTask(null) }}>
-      {submitTarget === 'doctor' ? <div className="dialog-copy"><p>确认提交任务 {submitTask} 的当前成果？</p><span>提交后将锁定本次正式成果。等待医生审核期间不能直接覆盖该版本；若审核退回，可基于已提交版本继续修改。</span><div><UserSafetyIcon size={17} />当前未保存修改将一并保存后提交。</div></div> : <div className="dialog-copy"><p>当前无法提交至业务员审核</p><span>该审核方式暂不可用，请稍后重试或联系管理员。</span></div>}
+    <Dialog visible={Boolean(submitTask)} header={submitTarget === 'doctor' ? '提交审核' : '提交业务员审核'} theme="warning" placement="center" width={520} confirmBtn={submitTarget === 'doctor' ? '确认提交审核' : '关闭'} cancelBtn={submitTarget === 'doctor' ? '取消' : null} onClose={() => setSubmitTask(null)} onConfirm={() => { if (!submitTask) return; if (submitTarget === 'doctor') submitReview(submitTask); else setSubmitTask(null) }}>
+      {submitTarget === 'doctor' ? <div className="dialog-copy"><p>确认提交任务 {submitTask} 的当前成果？</p><span>提交后将锁定本次正式成果。等待审核期间不能直接覆盖该版本；若审核退回，可基于已提交版本继续修改。</span><div><UserSafetyIcon size={17} />当前未保存修改将一并保存后提交。</div></div> : <div className="dialog-copy"><p>当前无法提交至业务员审核</p><span>该审核方式暂不可用，请稍后重试或联系管理员。</span></div>}
     </Dialog>
     <Dialog visible={Boolean(guardAction)} header="存在未保存修改" theme="warning" placement="center" width={560} footer={<div className="guard-actions"><Button theme="danger" variant="text" onClick={() => continueGuard(false)}>放弃修改</Button><span /><Button variant="outline" onClick={() => setGuardAction(null)}>继续编辑</Button><Button theme="primary" onClick={() => continueGuard(true)}>保存并离开</Button></div>} onClose={() => setGuardAction(null)}>
       <div className="dialog-copy"><p>离开前要保存当前工作吗？</p><span>任务 {currentWorkspaceId} 包含尚未保存的对象或视图调整。</span></div>
@@ -886,7 +887,7 @@ type BrowserSpeechRecognitionConstructor = new () => BrowserSpeechRecognition
 
 function ReviewCommentsPanel({ comments, selectedCommentId, readOnly, syncState, syncedAt, resetEnabled, onSelect, onClose, onUpdate, onQueueSync, onReset, onSubmit }: { comments: ReviewComment[]; selectedCommentId: string | null; readOnly: boolean; syncState: 'synced' | 'syncing' | 'failed'; syncedAt: string; resetEnabled: boolean; onSelect: (comment: ReviewComment) => void; onClose: () => void; onUpdate: (commentId: string, changes: Partial<Pick<ReviewComment, 'status' | 'replies' | 'unread' | 'submitted'>>) => void; onQueueSync: () => void; onReset: () => void; onSubmit: () => void }) {
   const [reply, setReply] = useState('')
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(true)
   const [expandedTitleId, setExpandedTitleId] = useState<string | null>(null)
   const [listening, setListening] = useState(false)
   const [resetVisible, setResetVisible] = useState(false)

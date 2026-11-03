@@ -136,3 +136,5 @@ shadow-1用于基础投影及指定轻量交互，shadow-2用于Dropdown/Popover
 颜色用COLOR变量、尺寸/字号/行高等按对应FLOAT映射；多层阴影采用Figma Effect Styles（Light/Dark各三级），不能把CSS阴影字符串冒充COLOR或不存在的SHADOW变量。未经本轮明确授权不操作Figma、不部署；必须区分“规范已确认”“文档已记录”“代码已落地”“Figma已写入”，只报告实际完成的状态。
 
 41. Card使用独立组件Token `--cv-card-radius: 6px`，不全局修改medium8px；深色统计卡片的品牌/Info/Warning/Success图标必须引用对应主题语义，紫色审核退回统计图标使用可读的Dark紫色配对。设计阶段四枚图标使用同一24px画板、1.5px线性笔画、20px显示尺寸，不堆叠多个微小符号；保留Cyan/Purple/Yellow/Pink身份色和完整Tooltip。
+
+42. 专业工作区只保留单一“提交审核”主按钮，不显示下拉箭头或“提交给谁”入口；审核对象由后台权限和任务配置决定。审核意见默认全部展开，保留A区内部滚动与标题展开逻辑。通用Tooltip使用shadow-2、8px圆角、12px同表面箭头，避免边框拼接；不得误改Dropdown/Dialog。首页最多6项目，完整列表至少13个演示目录项目、每页6条分页，至少一个四阶段组合；目录demo数据不污染原工程任务/审核记录，无资料时不开放虚假工程。

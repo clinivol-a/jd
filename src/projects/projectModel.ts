@@ -54,13 +54,12 @@ export function noticeTimestamp(notice:Notice,events:FlowEvent[]=[]):string {
 }
 export function formatNoticeTime(value:string,now=new Date()):string {
  const date=parseTimestamp(value)
- if(!date)return '—'
+ if(!date)return ''
  const elapsed=now.getTime()-date.getTime()
  if(elapsed<0||!Number.isFinite(elapsed))return formatShortDateTime(value)
  // Relative labels never cross a local calendar-day boundary.
  if(day(date)!==day(now))return formatShortDateTime(value)
  if(elapsed<60000)return '刚刚'
- if(elapsed<3600000)return `${Math.floor(elapsed/60000)}分钟前`
  return `${padTime(date.getHours())}:${padTime(date.getMinutes())}`
 }
 export const formatTime=(value:string)=>value?`${formatDate(value)}${value.includes('T')?' '+value.slice(11,16):''}`:'—'
@@ -85,7 +84,7 @@ export function projectProgress(project:Project):string {
   return (current.length?current:project.tasks.filter(t=>t.status==='未开始')).map(t=>`${compactText(t.taskType)}${t.status}`).join(' · ')
 }
 export function filterProjects(projects:Project[],f:Filters):Project[] {
-  return projects.filter(p=>inRange(p.createdAt,f.range)&&(!f.search||[p.name,p.id].some(v=>v.toLowerCase().includes(f.search.toLowerCase())))&&(f.stage==='全部'||p.tasks.some(t=>t.taskType===f.stage))&&(f.status==='全部'||p.tasks.some(t=>statusMatches(t,f.status))))
+  return projects.filter(p=>(!f.source||!p.tasks.some(t=>t.id.startsWith('P')))&&inRange(p.createdAt,f.range)&&(!f.search||[p.name,p.id].some(v=>v.toLowerCase().includes(f.search.toLowerCase())))&&(f.stage==='全部'||p.tasks.some(t=>t.taskType===f.stage))&&(f.status==='全部'||p.tasks.some(t=>statusMatches(t,f.status))))
 }
 export function filterTasks(projects:Project[],f:Filters):{project:Project;task:Task}[] {
   return projects.filter(p=>inRange(p.createdAt,f.range)&&(!f.search||[p.name,p.id].some(v=>v.toLowerCase().includes(f.search.toLowerCase())))).flatMap(project=>project.tasks.filter(t=>owns(t)&&(!f.source||!t.id.startsWith('E'))&&(f.stage==='全部'||t.taskType===f.stage)&&statusMatches(t,f.status)).map(task=>({project,task})))
@@ -117,6 +116,7 @@ export function noticeProjectTarget(notice:Notice,projects:Project[],events:Flow
 }
 export function sortedNotices(notices:Notice[],events:FlowEvent[] = []) {return [...notices].sort((a,b)=>(parseTimestamp(noticeTimestamp(b,events))?.getTime()??-Infinity)-(parseTimestamp(noticeTimestamp(a,events))?.getTime()??-Infinity)||b.id-a.id)}
 export function canEnter(task:Task,tasks:Task[]) {
+  if(task.id.startsWith('P'))return false
   if(!owns(task)||!['三维重建','CAD 设计'].includes(task.taskType))return false
   if(task.taskType==='CAD 设计') {const upstream=tasks.find(t=>t.id===task.upstreamTaskId);return upstream?.status==='已完成'&&!!upstream.approvedModel}
   return true
@@ -140,4 +140,19 @@ export const compactText=(text:string)=>text.replace(/CAD\s+设计/g,'CAD设计'
 export function displayPerson(value:string) {
  const name=value.split('（')[0]
  return !name||['刘工','张工','某工程师'].includes(name)?'—':name
+}
+
+// Presentation-only catalog: no engineering assets, no writes to task/audit stores.
+export function withDemoProjects(existing:Project[]):Project[] {
+ if(existing.some(p=>p.dataOrigin==='production'))return existing
+ const names=['颌面联合修复规划','颅颌面重建项目','下颌骨精准修复','眶颧复合体修复','颅骨缺损修复','上颌骨重建规划','颌骨联合设计','下颌角修复规划']
+ const hospitals=['安徽医科大学第一附属医院','安徽省立医院','中国科学技术大学附属第一医院','合肥市第一人民医院','蚌埠医学院第一附属医院']
+ const states:TaskStatus[]=['进行中','已完成','待审核','审核退回','进行中','已完成','待审核','审核退回']
+ const catalog=names.map((name,i):Project=>{
+  const id=`CV26110${2-i%2}-${String(301+i).padStart(4,'0')}`,createdAt=`2026-11-0${2-i%2||1}`
+  const types=i===0?stages:i%2===0?stages.slice(0,2):stages.slice(0,1)
+  const items=types.map((taskType,j):Task=>({id:`P${301+i}-${j+1}`,title:name,patient:`CV-P-2026-${301+i}`,orderNo:id,surgery:'术前结构评估、修复设计及成果确认。',taskType,status:i===0?(j===0?'已完成':j===1?'进行中':'未开始'):states[i],owner:'陈屿',updated:`${createdAt}T${String(9+i).padStart(2,'0')}:20:00`,deadline:'2026-11-20T18:00:00',series:[],source:'项目关联资料',hospital:hospitals[i%hospitals.length],dataOrigin:'demo',review:[]}))
+  return {id,name,createdAt,dueAt:'2026-11-20',patient:items[0].patient,tasks:items,hospital:items[0].hospital!,dataOrigin:'demo',createdSource:'project'}
+ })
+ return [...existing,...catalog.filter(p=>!existing.some(e=>e.id===p.id))].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||a.id.localeCompare(b.id))
 }

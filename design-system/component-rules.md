@@ -4,7 +4,7 @@
 |---|---|
 | Button | TDesign原交互，14/22 Regular，中等点击区域；Primary沿用品牌Normal/Hover/Active，不强改灰；实心Primary使用对应主题品牌语义及TDesign Anti前景（Dark官方Anti=#FFF）；禁用仍沿用组件禁用色。图标与文字垂直居中，间距8px。 |
 | Tag | 状态语义独立：未开始灰、进行中Info蓝、待审核Warning橙、审核退回Error红、已完成Success绿；不能用品牌绿代替进行中。 |
-| Tooltip | 只限定`.t-tooltip--default`，Light容器白底/主要文字/浅边/shadow-1/8px；Dark对应表面/浅字。箭头同表面。 |
+| Tooltip | 只限定`.t-tooltip--default`，Light容器白底/主要文字/shadow-2/8px；Dark对应表面/浅字。箭头为12px同表面图形，和主体重叠衔接，无菱形边框拼缝。 |
 | Dropdown/Popover | 保留TDesign机制、完整14/22文案、不裁切；radius-medium8px、shadow-2；不继承Tooltip专用白底覆盖。 |
 | Dialog | radius-large12px与shadow-3，标题Medium；保持原关闭/确认/取消及真实权限，不新增假成功。 |
 | Table | 全部正文表头14/22 Regular，单行、省略+Tooltip；固定项目编号/医院/名称三列和右操作列，中间横向滚动。首页最多6项目。 |
@@ -45,3 +45,5 @@ Light保持最终Figma色彩及#F5F7F9页面背景例外。Dark仅替换品牌�
 CAD真实工程修改后自动保存，不要求手动保存；顶部已保存时间取自实际保存成功记录，保存中/失败状态如实呈现。CAD工具栏不得重新添加独立“保存工程”按钮。
 
 A为唯一正式主方案；B已弃用并历史归档，不进行日常开发、维护或部署，未经专项授权不修改或覆盖。双端审核原型作为独立实验环境保留，可先验证复杂审核功能，与A的代码及部署隔离。
+
+审核入口为单一“提交审核”按钮，无下拉与审核对象选择；对象由后台授权决定。审核意见A区默认全部展开，仍保留独立滚动与单条标题省略/展开。新增demo项目目录与工程任务存储隔离，分页每页6条；没有工程资料不得启用工作区或伪造成果。

@@ -371,7 +371,7 @@ button.global-tab { justify-content: center; gap: 7px; }
 .workspace-task-actions > .t-button .t-button__text, .workspace-save-button.t-button .t-button__text, .review-submit-main.t-button .t-button__text { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: var(--type-body-size); line-height: var(--type-body-line-height); font-weight: 400; }
 .workspace-task-actions > .t-button .t-button__text svg { flex: 0 0 auto; display: block; }
 .review-split { height: 36px; display: inline-flex; flex: 0 0 auto; align-items: stretch; overflow: hidden; border-radius: var(--td-radius-default); }
-.review-submit-main.t-button { height: 36px; border-radius: var(--td-radius-default) 0 0 var(--td-radius-default); }
+.review-submit-main.t-button { height: 36px; border-radius: var(--td-radius-default); }
 .review-submit-menu { width: 32px; height: 36px; display: grid; flex: 0 0 32px; place-items: center; padding: 0; color: #fff; background: var(--brand-7); border: 0; border-left: 1px solid rgba(255, 255, 255, .35); border-radius: 0 var(--td-radius-default) var(--td-radius-default) 0; }
 .review-submit-menu:hover:not(:disabled) { background: var(--brand-8); }
 .review-submit-menu:disabled { color: var(--td-text-color-disabled); background: var(--td-bg-color-component-disabled); cursor: not-allowed; }
@@ -857,3 +857,6 @@ html[data-theme="dark"] .view-3.view-3-dark .viewport-selection { color: #d9e4e7
 .notice-kind strong, .notice-summary { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .recent-item .t-popup__reference { min-width: 0; overflow: hidden; }
 html[data-theme="dark"] .panel-edge-handle { background: var(--td-bg-color-container); }
+/* Keep reply controls accessible when the expanded issue list shares a short desktop. */
+.review-thread { min-height: 190px; }
+.review-thread-messages { min-height: 0; }

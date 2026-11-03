@@ -21,7 +21,7 @@ export function ProjectTable({projects,onProject,paginated=false,page=1,onPage}:
     {colKey:'name',title:'手术项目名称',width:180,fixed:'left',ellipsis:true,cell:({row})=><button className="project-name-link" onClick={()=>onProject(row.id)}><span>{row.name}</span></button>},
     {colKey:'patient',title:'患者标识',width:150,ellipsis:true},
     {colKey:'stages',title:'设计阶段',width:150,cell:({row})=><StageTags tasks={row.tasks} iconsOnly/>},
-    {colKey:'progress',title:'当前进展',width:155,ellipsis:true,cell:({row})=>paginated?<span>{projectProgress(row)}</span>:<ProjectStatus status={projectStatus(row)}/>},
+    {colKey:'progress',title:'当前进展',width:155,ellipsis:true,cell:({row})=><ProjectStatus status={projectStatus(row)}/>},
     {colKey:'createdAt',title:'创建时间',width:120,cell:({row})=><Tooltip content={row.createdSource==='first-task'?'创建时间依据：同订单最早任务创建记录':'项目创建时间'}><span className="project-date-value">{formatDate(row.createdAt)}</span></Tooltip>},
     {colKey:'dueAt',title:'预计交付时间',width:120,cell:({row})=><span className="project-date-value">{formatDate(row.dueAt)}</span>},
     {colKey:'actions',title:'操作',width:108,fixed:'right',cell:({row})=><Button variant="text" theme="primary" onClick={()=>onProject(row.id)}>查看详情</Button>},
@@ -32,7 +32,7 @@ export function ProjectTable({projects,onProject,paginated=false,page=1,onPage}:
 function TaskOperations({task,tasks,onOpen,card=false}:{task:Task;tasks:Task[];onOpen:(id:string,options?:{openComments?:boolean})=>void;card?:boolean}) {
   if(!card&&task.status==='未开始')return <span className="task-operation-empty">-</span>
   const allowed=canEnter(task,tasks)&&task.status!=='未开始'
-  const reason=!owns(task)?`由${cleanOwner(task)}负责`:task.status==='未开始'?'等待上游正式成果，当前阶段尚未开始':!['三维重建','CAD 设计'].includes(task.taskType)?'此设计阶段尚无可进入的工作区':''
+  const reason=task.id.startsWith('P')?'暂无关联的可用工程资料':!owns(task)?`由${cleanOwner(task)}负责`:task.status==='未开始'?'等待上游正式成果，当前阶段尚未开始':!['三维重建','CAD 设计'].includes(task.taskType)?'此设计阶段尚无可进入的工作区':''
   return <Tooltip content={reason}><span><Button theme={!card||['进行中','审核退回'].includes(task.status)?'primary':'default'} variant={card?(['进行中','审核退回'].includes(task.status)?'base':'outline'):'text'} disabled={!allowed} onClick={()=>onOpen(task.id,{openComments:task.status==='审核退回'})}>{task.status==='未开始'?'尚未开始':taskAction(task)}</Button></span></Tooltip>
 }
 export function ProjectList({projects,tasks,filters,onFilters,onProject,onOpen}:{projects:Project[];tasks:Task[];filters:Filters;onFilters:(filters:Filters)=>void;onProject:(id:string)=>void;onOpen:(id:string,options?:{openComments?:boolean})=>void}) {
