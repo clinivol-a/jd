@@ -48,7 +48,7 @@ pnpm build
 - 项目页面：`#home`、`#projects`、`#project/订单ID`；专业工作区继续使用`#workspace/任务ID`和`#cad/任务ID`。
 - `#task/任务ID`旧入口兼容转向所属项目；底层任务身份不删除。
 - 浅色/深色与字体、Icon等规范以`design-system/`四份Markdown为准；先读AGENTS。
-- 首页五卡仍为原A七任务＋历史完成汇总12：3/2/2/1/13。历史完成12没有逐条明细，不补造任务。
+- 首页五卡与可点击任务列表使用同一权限和月份范围，按实际专业任务计算，不叠加无明细的历史12项。当前固定目录种子本月测试为4/2/2/2/6。
 - 医院为本原型已知订单的demo元数据，不代表真实客户合作；production记录无医院时显示空值。
 
 ### 安全恢复（不覆盖或删除当前工作）
@@ -76,10 +76,14 @@ pnpm exec vite preview --host 127.0.0.1 --port 4194 --strictPort
 
 ### 能力边界
 
-- AI十项名称完整，但无真实AI重建服务/重建Mesh编辑器，规范禁用；不会生成医学结果。
+- AI十项开放正常颜色参数入口；无真实计算服务时如实反馈，不产生虚假医学结果。
 - 蒙版体积与统计已移至视图，缺体素蒙版而禁用。
 - STL属性统计已移至视图；任务006关联现有真实STL资源时可读取三角面、包围盒与文件大小；没有实际文件的任务禁用。没有伪造体积数据。
 - 医学DICOM、原有分割及CAD仍是此前确认的交互原型能力；不新增专业几何算法或宣称临床/制造可用。
 - Dark品牌绿、官方Dark非品牌值、独立Info双主题蓝阶及官方三级阴影已于2026-11-03确认，见design-system/tokens.md及figma-variable-mapping.md。本轮已同步CSS/JSON运行实现；未修改Figma。面性统计Icon不伪装成线性，复杂路径不伪称精确1px转角。
 
 4194与4192是不同浏览器Origin，本地验收不会自动复制原A浏览器存储。兼容性脚本验证原A任务记录、患者字段和审核记录可用原键恢复；原A端口的数据、工程与提交快照保持不动。后续正式同源发布时继续使用原键，本轮不执行线上替换或跨Origin数据搬运。
+
+## 正式开发交付
+
+从[开发交付说明](docs/DEVELOPER_HANDOFF.md)开始；[页面清单](docs/SCREEN_INVENTORY.md)、[数据/接口](docs/DATA_AND_API_HANDOFF.md)、[验收](docs/ACCEPTANCE_CHECKLIST.md)、[更新与Preview](docs/RELEASE_WORKFLOW.md)。正式交付Tag为design-handoff-v1.0-20261104，完整SHA通过Git解析；线上状态以docs/VERSION.json为准，当前未发布Preview。
