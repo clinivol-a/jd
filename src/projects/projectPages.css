@@ -42,7 +42,7 @@ html[data-theme="dark"] .project-stage-label.stage-cyan { --stage-bg: var(--cv-s
 html[data-theme="dark"] .project-stage-label.stage-purple { --stage-bg: var(--cv-stage-purple-light); --stage-text: var(--cv-stage-purple); }
 html[data-theme="dark"] .project-stage-label.stage-yellow { --stage-bg: var(--cv-stage-yellow-light); --stage-text: var(--cv-stage-yellow); }
 html[data-theme="dark"] .project-stage-label.stage-pink { --stage-bg: var(--cv-stage-pink-light); --stage-text: var(--cv-stage-pink); }
-.project-stage-label.t-tag { height: 24px; padding: 0 8px; border: 0; border-radius: var(--cv-radius-small); background: var(--stage-bg); color: var(--stage-text); font-size: var(--cv-font-size-body-medium); line-height: var(--cv-line-height-body-medium); font-weight: 400; flex-shrink: 0; }
+.project-stage-label.t-tag { background: var(--stage-bg); color: var(--stage-text); flex-shrink: 0; }
 .project-stat-action { border: 0; background: transparent; color: inherit; width: 100%; display: block; text-align: left; padding: 18px 20px 16px; }
 .project-stat-action > strong { display: block; margin-top: 8px; color: var(--td-text-color-primary); font-size: var(--cv-font-size-headline-medium); line-height: var(--cv-line-height-headline-medium); font-weight: 400; font-variant-numeric: tabular-nums; }
 .project-stat-action > small { display: block; margin-top: 2px; color: var(--td-text-color-secondary); font-size: var(--cv-font-size-body-medium); line-height: var(--cv-line-height-body-medium); }
