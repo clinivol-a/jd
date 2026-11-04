@@ -1,9 +1,8 @@
+import { loadTs } from './load-ts.mjs'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import ts from 'typescript'
-const module={exports:{}}
-new Function('module','exports',ts.transpileModule(fs.readFileSync('src/projects/projectModel.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText)(module,module.exports)
-const m=module.exports,extra=m.withDemoProjects([])
+const m=loadTs('src/projects/projectModel.ts'),extra=m.withDemoProjects([])
 assert.equal(extra.length,8);assert.equal(new Set(extra.map(p=>p.id)).size,8)
 assert.ok(extra.every(p=>p.hospital&&p.tasks.every(t=>t.dataOrigin==='demo'&&t.catalogDemo)))
 assert.equal(extra[0].tasks.length,4)

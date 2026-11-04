@@ -1,9 +1,8 @@
+import { loadTs } from './load-ts.mjs'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import ts from 'typescript'
-const module={exports:{}}
-new Function('module','exports',ts.transpileModule(fs.readFileSync('src/projects/projectModel.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText)(module,module.exports)
-const m=module.exports,projects=m.withDemoProjects([]),tasks=projects.flatMap(p=>p.tasks),now=new Date('2026-11-03T12:00:00'),range=m.periodRange('month',now)
+const m=loadTs('src/projects/projectModel.ts'),projects=m.withDemoProjects([]),tasks=projects.flatMap(p=>p.tasks),now=new Date('2026-11-03T12:00:00'),range=m.periodRange('month',now)
 const counts=m.aDashboardCounts(tasks,[],now)
 assert.deepEqual(counts,{待处理:4,进行中:2,待审核:2,审核退回:2,已完成:6})
 for(const [status,count] of Object.entries(counts)){

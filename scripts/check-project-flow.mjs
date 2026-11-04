@@ -1,9 +1,8 @@
+import { loadTs } from './load-ts.mjs'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import ts from 'typescript'
-const module={exports:{}}
-new Function('module','exports',ts.transpileModule(fs.readFileSync('src/projects/projectModel.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText)(module,module.exports)
-const m=module.exports,projects=m.withDemoProjects([])
+const m=loadTs('src/projects/projectModel.ts'),projects=m.withDemoProjects([])
 for(const p of projects){
  const before=JSON.stringify(p),rows=m.projectEvents(p,[])
  assert.ok(rows.length>0,p.id)

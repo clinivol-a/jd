@@ -1,3 +1,5 @@
+import { localDay, parseTimestamp, timestamp, formatAuditTime, formatDynamicTime, formatDateTime } from '../dateTime'
+export { formatDate } from '../dateTime'
 import type { Task, TaskStatus, TaskType, FlowEvent, Notice } from '../App'
 export const CURRENT_ENGINEER = 'CV-DS-028'
 export const stages: TaskType[] = ['三维重建','CAD 设计','有限元分析','3D 打印']
@@ -16,7 +18,7 @@ export const demoProjectMetadata:Record<string,{hospital:string;dataOrigin:'demo
  'CV261020-0226':{hospital:'中国科学技术大学附属第一医院（安徽省立医院）',dataOrigin:'demo'},
 }
 const originalCreated: Record<string,string> = {'CV260910-0184':'2026-10-09','CV260908-0172':'2026-10-07','CV260907-0168':'2026-10-06','CV261019-0211':'2026-10-19','CV261020-0226':'2026-10-20'}
-export const day = (date:Date) => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
+export const day = localDay
 export function periodRange(period:Period, now=new Date()):DateRange {
   const end=day(now)
   return period==='month'?[day(new Date(now.getFullYear(),now.getMonth(),1)),day(new Date(now.getFullYear(),now.getMonth()+1,0))]:[day(new Date(now.getFullYear(),now.getMonth()-({ '3m':2,'6m':5,'12m':11,custom:2 }[period]),1)),end]
@@ -32,37 +34,16 @@ export function isoDisplayTime(text:string, now=new Date()):string {
   if(text.includes('今天')||/^\d\d?:\d\d$/.test(text))return `${day(now)}T${clock}`
   if(text.includes('昨天')){const date=new Date(now);date.setDate(date.getDate()-1);return `${day(date)}T${clock}`}
   const match=text.match(/(\d+)\s*月\s*(\d+)\s*日/)
-  return match?`${now.getFullYear()}-${match[1].padStart(2,'0')}-${match[2].padStart(2,'0')}T${clock}`:''
+  return match?`2026-${match[1].padStart(2,'0')}-${match[2].padStart(2,'0')}T${clock}`:''
 }
-export const formatDate=(value:string)=>value?value.slice(0,10):'—'
-function parseTimestamp(value:string | undefined):Date|null {
- if(!value||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})?$/.test(value))return null
- const date=new Date(value)
- if(!Number.isFinite(date.getTime()))return null
- const calendar=value.slice(0,10),test=new Date(calendar+'T00:00:00Z')
- return test.toISOString().slice(0,10)===calendar?date:null
-}
-const padTime=(value:number)=>String(value).padStart(2,'0')
-export function formatShortDateTime(value:string):string {
- const date=parseTimestamp(value)
- return date?`${padTime(date.getMonth()+1)}-${padTime(date.getDate())} ${padTime(date.getHours())}:${padTime(date.getMinutes())}`:'—'
-}
-export const formatRecent=formatShortDateTime
+export const formatShortDateTime = formatAuditTime
+export const formatRecent = formatDynamicTime
 export function noticeTimestamp(notice:Notice,events:FlowEvent[]=[]):string {
  // Event identity is explicit: later reviews must not move an old notice's received time.
  return notice.createdAt??(notice.eventId?events.find(event=>event.id===notice.eventId)?.at:undefined)??(parseTimestamp(notice.time)?notice.time:'')
 }
-export function formatNoticeTime(value:string,now=new Date()):string {
- const date=parseTimestamp(value)
- if(!date)return ''
- const elapsed=now.getTime()-date.getTime()
- if(elapsed<0||!Number.isFinite(elapsed))return formatShortDateTime(value)
- // Relative labels never cross a local calendar-day boundary.
- if(day(date)!==day(now))return formatShortDateTime(value)
- if(elapsed<60000)return '刚刚'
- return `${padTime(date.getHours())}:${padTime(date.getMinutes())}`
-}
-export const formatTime=(value:string)=>value?`${formatDate(value)}${value.includes('T')?' '+value.slice(11,16):''}`:'—'
+export const formatNoticeTime = formatDynamicTime
+export const formatTime = formatDateTime
 export function projectsFor(tasks:Task[],events:FlowEvent[],now=new Date()):Project[] {
   const groups=new Map<string,Task[]>()
   tasks.forEach(t=>groups.set(t.orderNo,[...(groups.get(t.orderNo)??[]),t]))
@@ -72,7 +53,8 @@ export function projectsFor(tasks:Task[],events:FlowEvent[],now=new Date()):Proj
     const production=items.some(task=>task.dataOrigin==='production')
     const hospital=items.find(task=>task.hospital)?.hospital??(!production?metadata?.hospital:undefined)??'—'
     const createdAt=events.filter(e=>e.orderNo===id&&e.type==='created').map(e=>e.at.slice(0,10)).sort()[0]??originalCreated[id]??items.find(t=>t.catalogDemo)?.catalogCreatedAt??''
-    const dueAt=items.map(t=>isoDisplayTime(t.deadline,now)).filter(Boolean).sort().at(-1)??''
+    const dueStamp=(at:string)=>timestamp(at.length===10?at+'T00:00:00':at)
+    const dueAt=items.map(t=>isoDisplayTime(t.deadline,now)).filter(at=>Number.isFinite(dueStamp(at))).sort((a,b)=>dueStamp(a)-dueStamp(b)).at(-1)??''
   return {id,name,createdAt,dueAt,patient:items[0].patient,tasks:[...items].sort((a,b)=>stages.indexOf(a.taskType)-stages.indexOf(b.taskType)),hospital,dataOrigin:production?'production' as const:metadata||items.some(t=>t.dataOrigin==='demo')?'demo' as const:'unknown' as const,createdSource:'first-task' as const}
   }).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||a.id.localeCompare(b.id))
 }
@@ -102,7 +84,7 @@ export function monthlyCounts(projects:Project[],now=new Date(),events:FlowEvent
  return aDashboardCounts(projects.flatMap(p=>p.tasks),events,now)
 }
 export function latestTaskActivity(task:Task,events:FlowEvent[]):string {
-  return [(/今天|昨天/.test(task.updated)&&events.some(e=>e.taskId===task.id)?'':isoDisplayTime(task.updated)),...events.filter(e=>e.taskId===task.id).map(e=>e.at)].filter(Boolean).sort().at(-1)??''
+  return [(/今天|昨天/.test(task.updated)&&events.some(e=>e.taskId===task.id)?'':isoDisplayTime(task.updated)),...events.filter(e=>e.taskId===task.id).map(e=>e.at)].filter(at=>parseTimestamp(at)).sort((a,b)=>new Date(a).getTime()-new Date(b).getTime()).at(-1)??''
 }
 export function recentProjects(projects:Project[],events:FlowEvent[],limit=3) {
   return projects.map(project=>{
@@ -134,7 +116,7 @@ export function taskAction(task:Task){return task.status==='已完成'?'查看�
 export function projectEvents(project:Project,events:FlowEvent[]) {
  const stored=events.filter(e=>e.orderNo===project.id)
  const mock=project.dataOrigin==='demo'&&project.tasks.some(t=>t.catalogDemo)?demoFlowEvents(project):[]
- return [...new Map([...mock,...stored].map(e=>[e.id,e])).values()].sort((a,b)=>b.at.localeCompare(a.at)||b.id.localeCompare(a.id))
+ return [...new Map([...mock,...stored].map(e=>[e.id,e])).values()].sort((a,b)=>(parseTimestamp(b.at)?.getTime()??-Infinity)-(parseTimestamp(a.at)?.getTime()??-Infinity)||b.id.localeCompare(a.id))
 }
 type DemoMilestone = 'linked'|'started'|'review-submit'|'review-return'|'review-pass'|'completed'
 // Recorded initial demo history, not a projection of configured stages or live status.

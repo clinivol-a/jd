@@ -491,7 +491,6 @@
 .design-stage-icon.stage-purple { --stage-text: var(--cv-stage-purple); }
 .design-stage-icon.stage-yellow { --stage-text: var(--cv-stage-yellow); }
 .design-stage-icon.stage-pink { --stage-text: var(--cv-stage-pink); }
-.project-stage-label { gap: 4px; }
 .project-stage-label.stage-cyan { --stage-bg: var(--cv-stage-cyan-light); --stage-text: var(--cv-stage-cyan); }
 .project-stage-label.stage-purple { --stage-bg: var(--cv-stage-purple-light); --stage-text: var(--cv-stage-purple); }
 .project-stage-label.stage-yellow { --stage-bg: var(--cv-stage-yellow-light); --stage-text: var(--cv-stage-yellow); }
@@ -519,7 +518,7 @@ html[data-theme="dark"] .context-tool-active, html[data-theme="dark"] .context-t
 
 /* Stage identity uses glyph color only, in tables and detail labels. */
 .design-stage-icon { background: transparent; border-radius: 0; }
-.project-stage-label.t-tag { display: inline-flex; align-items: center; justify-content: center; background: var(--stage-bg); gap: 8px; }
-.project-stage-label > .cv-icon { width: 20px; height: 20px; flex: 0 0 20px; display: block; }
+.project-stage-label.t-tag { display: inline-flex; align-items: center; justify-content: center; background: var(--stage-bg); gap: var(--td-comp-margin-xs); }
+.project-stage-label > .cv-icon { width: var(--td-font-size-body-medium); height: var(--td-font-size-body-medium); flex: 0 0 var(--td-font-size-body-medium); display: block; }
 .project-stage-label > span { display: inline-flex; align-items: center; line-height: var(--cv-line-height-body-medium); }
 .project-info-grid .project-stage-tags { flex-wrap: wrap; }

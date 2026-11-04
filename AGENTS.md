@@ -135,9 +135,11 @@ shadow-1用于基础投影及指定轻量交互，shadow-2用于Dropdown/Popover
 
 颜色用COLOR变量、尺寸/字号/行高等按对应FLOAT映射；多层阴影采用Figma Effect Styles（Light/Dark各三级），不能把CSS阴影字符串冒充COLOR或不存在的SHADOW变量。未经本轮明确授权不操作Figma、不部署；必须区分“规范已确认”“文档已记录”“代码已落地”“Figma已写入”，只报告实际完成的状态。
 
-41. Card使用独立组件Token `--cv-card-radius: 6px`，不全局修改medium8px；深色统计卡片的品牌/Info/Warning/Success图标必须引用对应主题语义，紫色审核退回统计图标使用可读的Dark紫色配对。设计阶段四枚图标使用同一24px画板、1.5px线性笔画、20px显示尺寸，不堆叠多个微小符号；保留Cyan/Purple/Yellow/Pink身份色和完整Tooltip。
+41. Card使用独立组件Token `--cv-card-radius: 6px`，不全局修改medium8px；深色统计卡片的品牌/Info/Warning/Success图标必须引用对应主题语义，紫色审核退回统计图标使用可读的Dark紫色配对。设计阶段四枚图标使用同一24px画板、1.5px线性笔画、独立显示20px（Tag内按第45条14px），不堆叠多个微小符号；保留Cyan/Purple/Yellow/Pink身份色和完整Tooltip。
 
 42. 专业工作区只保留单一“提交审核”主按钮，不显示下拉箭头或“提交给谁”入口；审核对象由后台权限和任务配置决定。审核意见默认全部展开，保留A区内部滚动与标题展开逻辑。通用Tooltip使用shadow-2、8px圆角、12px同表面箭头，避免边框拼接；不得误改Dropdown/Dialog。首页最多6项目，完整列表至少13个演示项目、每页6条分页，至少一个四阶段组合。
 
 43. 演示任务按状态开放重建/CAD入口，不按ID前缀禁用；成果查看与编辑权限分别判断，未开始及上游未通过仍阻断。目录任务独立保存于clinivol-catalog-tasks，不能污染原任务记录。CAD演示可复用本地已提供的STL，不称其为该患者真实成果；分析及打印无文件时明确展示资料边界，不生成假成果。演示初始事件保持稳定ID，和后续实际操作合并。
 44. AI十项均使用正常颜色并开放参数确认入口；当前未连接计算服务时如实反馈，不假报重建成功，不写入虚假蒙版。此规则替代旧AI统一禁用要求。锁屏复用当前账户照片及资料，Logo缩小并独立左上定位，保留凭证控件原位置。
+
+45. 日期时间按`design-system/component-rules.md`的Date & Time Formatting执行，统一复用`src/dateTime.ts`；跨年显示年份，审核/流转不使用相对时间，保存必须使用真实成功时间戳。设计阶段Tag使用官方icon属性，Icon14px、间距4px、24px高、14/22 Regular、左右8px/上下0、主题4px圆角；仅该组件内Icon为14px例外，不改变独立图标。审核记录不得混入任务分配/开始事件；这些活动仍保留在流转记录。按钮反色Token保持原语义，不强制纯白。

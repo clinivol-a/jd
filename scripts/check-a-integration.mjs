@@ -1,3 +1,4 @@
+import { loadTs } from './load-ts.mjs'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import { execFileSync } from 'node:child_process'
@@ -9,15 +10,13 @@ const baselineText=execFileSync('git',['show','backup/a-before-project-dashboard
 const baseline=parse(baselineText)
 function variable(ast,name){for(const node of ast.statements)if(ts.isVariableStatement(node))for(const d of node.declarationList.declarations)if(d.name.getText(ast)===name)return d.initializer.getText(ast);throw new Error(name)}
 const base=new Function(`return (${variable(baseline,'initialTasks')})`)(),tasks=new Function(`return (${variable(ast,'originalTasks')})`)()
-assert.deepEqual(tasks,base,'original task data must survive integration byte-for-byte at object level')
+const withoutAssignment=rows=>rows.map(t=>({...t,review:t.review.filter(r=>!['已分配','任务已分配'].includes(r.status))}));assert.deepEqual(withoutAssignment(tasks),withoutAssignment(base),'original task and real review data survive; assignment is stored only as activity')
 assert.equal(tasks.length,7);assert.ok(tasks.every(t=>!t.id.startsWith('E')))
-const model={exports:{}}
-new Function('module','exports',ts.transpileModule(fs.readFileSync('src/projects/projectModel.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText)(model,model.exports)
-const m=model.exports
+const m=loadTs('src/projects/projectModel.ts')
 const functionText=name=>ast.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text===name).getText(ast)
 const compiled=ts.transpileModule(`const seedDates=${variable(ast,'seedDates')};const eventTime=${variable(ast,'eventTime')};${functionText('initialFlowEvents')}\n${functionText('isCadTaskUnlocked')}\n${functionText('synchronizeCadTasks')}\n${functionText('getStoredBaseTasks')}`,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText
 const storage=new Map(),localStorage={getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value)}
-const functions=new Function('originalTasks','initialTasks','localStorage',compiled+';return {initialFlowEvents,getStoredTasks:getStoredBaseTasks,isCadTaskUnlocked}')(tasks,tasks,localStorage)
+const functions=new Function('originalTasks','initialTasks','localStorage','legacyTimestamp','isReviewStatus',compiled+';return {initialFlowEvents,getStoredTasks:getStoredBaseTasks,isCadTaskUnlocked}')(tasks,tasks,localStorage,loadTs('src/dateTime.ts').legacyTimestamp,loadTs('src/reviewRecords.ts').isReviewStatus)
 const events=functions.initialFlowEvents(),projects=m.projectsFor(tasks,events)
 assert.equal(projects.length,5);assert.equal(new Set(projects.map(p=>p.id)).size,5)
 assert.deepEqual(m.aDashboardCounts(tasks,events,new Date('2026-10-23T12:00:00')),{待处理:3,进行中:2,待审核:2,审核退回:1,已完成:1})
@@ -42,12 +41,12 @@ assert.equal(m.noticeProjectTarget({taskId:'007',projectId:'CV260910-0184'},proj
 assert.equal(m.noticeProjectTarget({title:'任务 007',detail:'同名项目'},projects,events),null)
 assert.equal(m.noticeProjectTarget({taskId:'missing'},projects,events),null)
 const flow=functionText('TaskFlow'),beforeReturn=flow.slice(flow.indexOf('  const orderTasks'),flow.indexOf('  return <InfoSection'))
-const visible=new Function('task','tasks','events','taskStageOrder',ts.transpileModule(beforeReturn,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText+';return visible')
+const visible=new Function('task','tasks','events','taskStageOrder','timestamp',ts.transpileModule(beforeReturn,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText+';return visible')
 const order={三维重建:0,'CAD 设计':1,有限元分析:2,'3D 打印':3}
-const flow006=visible(tasks.find(t=>t.id==='006'),tasks,events,order),flow007=visible(tasks.find(t=>t.id==='007'),tasks,events,order)
+const flow006=visible(tasks.find(t=>t.id==='006'),tasks,events,order,loadTs('src/dateTime.ts').timestamp),flow007=visible(tasks.find(t=>t.id==='007'),tasks,events,order,loadTs('src/dateTime.ts').timestamp)
 assert.ok(flow006.some(e=>e.taskId==='007'&&e.type==='created'));assert.ok(flow006.some(e=>e.taskId==='007'&&e.type==='assigned'))
 assert.ok(!flow006.some(e=>e.taskId==='007'&&['started','model-linked'].includes(e.type)))
 assert.ok(flow007.some(e=>e.taskId==='007'&&e.type==='started'));assert.ok(flow007.some(e=>e.taskId==='007'&&e.type==='model-linked'))
-assert.equal(m.formatRecent('2026-10-23T10:08:00'),'10-23 10:08')
-const clock=new Date('2026-11-03T10:30:00');assert.equal(m.formatNoticeTime('2026-11-03T10:29:50',clock),'刚刚');assert.equal(m.formatNoticeTime('2026-11-03T10:25:00',clock),'10:25');assert.equal(m.formatNoticeTime('2026-11-03T08:40:00',clock),'08:40');assert.equal(m.formatNoticeTime('2026-11-02T09:00:00',clock),'11-02 09:00')
+assert.equal(m.formatRecent('2026-10-23T10:08:00',new Date('2026-11-03T12:00:00')),'10-23 10:08')
+const clock=new Date('2026-11-03T10:30:00');assert.equal(m.formatNoticeTime('2026-11-03T10:29:50',clock),'刚刚');assert.equal(m.formatNoticeTime('2026-11-03T10:25:00',clock),'5分钟前');assert.equal(m.formatNoticeTime('2026-11-03T08:40:00',clock),'08:40');assert.equal(m.formatNoticeTime('2026-11-02T09:00:00',clock),'11-02 09:00')
 console.log('PASS: A task identities/states/persistence, unchanged CAD geometry/data/history, hospital provenance, statistics, project aggregation, notice identities and stage-gated task events')
