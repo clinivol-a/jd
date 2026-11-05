@@ -80,3 +80,5 @@
 html[data-auth-screen='true'],html[data-auth-screen='true'] body,html[data-auth-screen='true'] #root {min-width:0;height:auto;min-height:100%;overflow:auto;}
 
 .auth-sales-app{--layout-sidebar-width:224px;--layout-sidebar-collapsed-width:64px;}
+
+.auth-shell .auth-code-feedback,.auth-security-form .auth-code-feedback{min-height:22px;margin:8px 0 0;font:400 14px/22px var(--cv-font-family);color:var(--td-text-color-secondary);}.auth-shell .auth-code-feedback.error,.auth-security-form .auth-code-feedback.error{color:var(--td-error-color);}.auth-shell .auth-code-feedback.success,.auth-security-form .auth-code-feedback.success{color:var(--td-success-color);}

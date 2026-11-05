@@ -3,7 +3,7 @@ import { readFileSync, existsSync, writeFileSync, statSync } from 'node:fs'
 import { resolve, extname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { AuthService, AuthFailure, random, hash } from './service.mjs'
-export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=resolve('dist'),secure=origin.startsWith('https://')}={}){
+export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=resolve('dist'),secure=origin.startsWith('https://'),devConsoleKey=''}={}){
  const cookies=req=>Object.fromEntries((req.headers.cookie||'').split(';').map(v=>v.trim().split('=')))
  const allowed=new Set([origin,'http://127.0.0.1:5210','http://localhost:5210']);const limits=new Map()
  const server=createServer(async(req,res)=>{
@@ -25,6 +25,16 @@ export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=re
    let body={};if(req.method==='POST'){let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>3000000)throw new AuthFailure('请求内容过大。',413)}try{body=JSON.parse(raw||'{}')}catch{throw new AuthFailure('请求格式不正确。')}}
    const rateKey=(req.socket.remoteAddress||'')+':'+action;const previous=limits.get(rateKey)||[];const attempts=previous.filter(t=>t>Date.now()-60000);if(attempts.length>(['login/password','otp/send','otp/verify','scan/create'].includes(action)?15:100))throw new AuthFailure('操作过于频繁，请稍后重试。',429);attempts.push(Date.now());limits.set(rateKey,attempts)
    let result
+   if(action.startsWith('dev/')){
+    const localOrigin=/^http:\/\/(localhost|127\.0\.0\.1):5210$/.test(requestOrigin||'');const forwarded=req.headers['x-forwarded-host'];
+    if(!devConsoleKey||!service.testConsole||process.env.NODE_ENV==='production'||req.headers['cf-connecting-ip']||req.headers.forwarded||req.headers['x-forwarded-proto']==='https'||!localOrigin||forwarded&&!/^(localhost|127\.0\.0\.1):5210$/.test(String(forwarded))||req.headers['x-clinivol-dev-console']!==devConsoleKey)throw new AuthFailure('接口不存在。',404)
+    if(req.method!=='POST')throw new AuthFailure('请求方式不支持。',405)
+    if(action==='dev/state')result=service.testState(d)
+    else if(action==='dev/review')result=service.testReview(body)
+    else if(action==='dev/reset')result=service.testReset()
+    else throw new AuthFailure('接口不存在。',404)
+    res.end(JSON.stringify(result));return
+   }
    if(req.method==='GET'&&action==='session')result=service.session(d)
    else if(req.method==='GET'&&action==='scan/status')result=service.pollScan(d,url.searchParams.get('id'))
    else if(req.method==='POST'){
@@ -60,7 +70,9 @@ export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=re
 }
 if(process.argv[1]&&fileURLToPath(import.meta.url)===resolve(process.argv[1])){
  const directory=resolve(process.env.AUTH_DATA_DIR||'.local/auth'),mode=process.env.AUTH_MODE||'disabled',origin=process.env.AUTH_PUBLIC_ORIGIN||'http://127.0.0.1:5210'
- const service=new AuthService({directory,mode,publicOrigin:process.env.AUTH_PUBLIC_ORIGIN||'',smsProvider:mode==='local'&&process.env.AUTH_TEST_SMS==='1'?async(phone,code,purpose)=>writeFileSync(join(directory,'sms-outbox.json'),JSON.stringify({phone,code,purpose,at:Date.now()}),{mode:0o600}):undefined})
+ const consoleEnabled=mode==='local'&&process.env.AUTH_DEV_CONSOLE==='1'&&!process.env.AUTH_PUBLIC_ORIGIN&&process.env.NODE_ENV!=='production'
+ const service=new AuthService({directory,mode,testConsole:consoleEnabled,publicOrigin:process.env.AUTH_PUBLIC_ORIGIN||'',smsProvider:mode==='local'&&process.env.AUTH_TEST_SMS==='1'?async(phone,code,purpose)=>writeFileSync(join(directory,'sms-outbox.json'),JSON.stringify({phone,code,purpose,at:Date.now()}),{mode:0o600}):undefined})
  if(mode==='local')service.seedLocal()
- const port=Number(process.env.AUTH_PORT||5211);createAuthServer(service,{origin}).listen(port,'127.0.0.1',()=>console.log(`Auth server listening on 127.0.0.1:${port}; mode=${mode}. Local test credentials, when enabled: .local/auth/test-credentials.json`))
+ let devConsoleKey='';if(consoleEnabled){service.migrateTestScenario();devConsoleKey=random();writeFileSync(join(directory,'dev-console-key'),devConsoleKey,{mode:0o600})}
+ const port=Number(process.env.AUTH_PORT||5211);createAuthServer(service,{origin,devConsoleKey}).listen(port,'127.0.0.1',()=>console.log(`Auth server listening on 127.0.0.1:${port}; mode=${mode}. Local test credentials, when enabled: .local/auth/test-credentials.json`))
 }
