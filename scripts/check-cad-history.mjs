@@ -10,7 +10,7 @@ function load(file) {
   if (cache.has(resolved)) return cache.get(resolved)
   const code = ts.transpileModule(fs.readFileSync(resolved, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
   const module = { exports: {} }; cache.set(resolved, module.exports)
-  new Function('require', 'module', 'exports', code)((name) => name.startsWith('.') ? load(path.resolve(path.dirname(resolved), name + '.ts')) : name === 'three' ? THREE : require(name), module, module.exports)
+  new Function('require', 'module', 'exports', code)((name) => name === '../auth/AuthContext' ? { useAuth: () => ({user:{id:'unit-test'}}) } : name.startsWith('.') ? load(path.resolve(path.dirname(resolved), name + '.ts')) : name === 'three' ? THREE : require(name), module, module.exports)
   return module.exports
 }
 const { cadHistoryReducer: reduce } = load('src/cad/useCadHistory.ts')

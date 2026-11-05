@@ -1,3 +1,6 @@
+import {useAuth,useWorkspaceStorage} from './auth/AuthContext'
+import AccountMenu,{roleName} from './auth/AccountMenu'
+import AccountSecurity from './auth/AccountSecurity'
 import { formatAuditTime, formatDate, formatDateTime, formatOperation, formatSavedTime, legacyTimestamp, timestamp } from './dateTime'
 import { isReviewStatus, reviewRecords } from './reviewRecords'
 import type { ReviewStatus } from './reviewRecords'
@@ -174,9 +177,9 @@ function getStoredThemePreference(): ThemePreference {
   return stored === 'dark' || stored === 'system' ? stored : 'light'
 }
 
-function getStoredUserProfile(): UserProfile {
+function getStoredUserProfile(storage: Storage = localStorage): UserProfile {
   try {
-    const stored = JSON.parse(localStorage.getItem('clinivol-user-profile') ?? '{}') as Partial<UserProfile>
+    const stored = JSON.parse(storage.getItem('clinivol-user-profile') ?? '{}') as Partial<UserProfile>
     const profile = { ...initialUserProfile, ...stored }
     if (profile.phone === '138 0000 0280') profile.phone = ''
     if (profile.email === 'chenyu.demo@clinivol.example') profile.email = ''
@@ -185,8 +188,8 @@ function getStoredUserProfile(): UserProfile {
   catch { return initialUserProfile }
 }
 
-function getStoredNotificationPreferences(): NotificationPreferences {
-  try { return { ...initialNotificationPreferences, ...JSON.parse(localStorage.getItem('clinivol-notification-preferences') ?? '{}') as Partial<NotificationPreferences> } }
+function getStoredNotificationPreferences(storage: Storage = localStorage): NotificationPreferences {
+  try { return { ...initialNotificationPreferences, ...JSON.parse(storage.getItem('clinivol-notification-preferences') ?? '{}') as Partial<NotificationPreferences> } }
   catch { return initialNotificationPreferences }
 }
 
@@ -219,17 +222,17 @@ function initialFlowEvents(): FlowEvent[] {
     return entries
   })
 }
-function getStoredFlowEvents() {
+function getStoredFlowEvents(storage: Storage = localStorage) {
   try {
-    const saved = JSON.parse(localStorage.getItem('clinivol-task-flow-events') ?? 'null') as FlowEvent[] | null
+    const saved = JSON.parse(storage.getItem('clinivol-task-flow-events') ?? 'null') as FlowEvent[] | null
     const seeds = initialFlowEvents()
-    const legacy = getStoredTasks().flatMap((task) => task.review.slice(initialTasks.find((item) => item.id === task.id)?.review.length ?? 0).filter((review) => isReviewStatus(review.status)).map((review, index) => ({ id: `${task.id}-legacy-review-${index}`, orderNo: task.orderNo, taskId: task.id, type: 'review-history', name: review.status, at: eventTime(review.time), actor: review.actor, role: review.actor.includes('医生') ? '医生' : '工程师', description: review.note, version: review.version, commentCount: review.commentCount } satisfies FlowEvent)))
+    const legacy = getStoredTasks(storage).flatMap((task) => task.review.slice(initialTasks.find((item) => item.id === task.id)?.review.length ?? 0).filter((review) => isReviewStatus(review.status)).map((review, index) => ({ id: `${task.id}-legacy-review-${index}`, orderNo: task.orderNo, taskId: task.id, type: 'review-history', name: review.status, at: eventTime(review.time), actor: review.actor, role: review.actor.includes('医生') ? '医生' : '工程师', description: review.note, version: review.version, commentCount: review.commentCount } satisfies FlowEvent)))
     const combined = [...seeds, ...legacy]
     const retained = saved?.filter((event) => event.type !== 'workspace-opened' && event.name !== '进入 CAD 工作区' && event.name !== '已分配' && event.type !== 'assigned' && event.name !== '任务已分配')
     return retained ? [...combined.filter((event) => !retained.some((item) => item.id === event.id || item.taskId === event.taskId && item.name === event.name && item.at.slice(0, 16) === event.at.slice(0, 16))), ...retained] : combined
   } catch { return initialFlowEvents() }
 }
-function getStoredFeedback() { try { return JSON.parse(localStorage.getItem('clinivol-upstream-feedback') ?? '[]') as UpstreamFeedback[] } catch { return [] as UpstreamFeedback[] } }
+function getStoredFeedback(storage: Storage = localStorage) { try { return JSON.parse(storage.getItem('clinivol-upstream-feedback') ?? '[]') as UpstreamFeedback[] } catch { return [] as UpstreamFeedback[] } }
 
 function isCadTaskUnlocked(task: Task, tasks: Task[]) {
   if (task.taskType !== 'CAD 设计' || !task.upstreamTaskId) return task.taskType !== 'CAD 设计'
@@ -251,9 +254,9 @@ function synchronizeCadTasks(tasks: Task[]): Task[] {
   })
 }
 
-function getStoredBaseTasks() {
+function getStoredBaseTasks(storage: Storage = localStorage) {
   try {
-    const stored = localStorage.getItem('clinivol-prototype-tasks')
+    const stored = storage.getItem('clinivol-prototype-tasks')
     if (!stored) return synchronizeCadTasks(initialTasks)
     const parsed = JSON.parse(stored) as Task[]
     return synchronizeCadTasks(initialTasks.map((task) => {
@@ -276,17 +279,17 @@ function getStoredBaseTasks() {
   catch { return synchronizeCadTasks(initialTasks) }
 }
 
-function getStoredTasks():Task[] {
- const base=getStoredBaseTasks()
- let saved:Task[]=[];try {saved=JSON.parse(localStorage.getItem('clinivol-catalog-tasks')??'[]')}catch{}
+function getStoredTasks(storage: Storage = localStorage):Task[] {
+ const base=getStoredBaseTasks(storage)
+ let saved:Task[]=[];try {saved=JSON.parse(storage.getItem('clinivol-catalog-tasks')??'[]')}catch{}
  const catalog=withDemoProjects([]).flatMap(p=>p.tasks).map(t=>({...t,...saved.find(v=>v.id===t.id),approvedModel:t.approvedModel,upstreamTaskId:t.upstreamTaskId,catalogDemo:true}))
  // Legacy activity entries are retained for recovery; only review projections classify them.
  return [...base,...catalog]
 }
 
-function getStoredWorkspaceState(): { savedAt?: Record<string, string>; mode?: Record<string, WorkspaceMode>; activeSeries?: Record<string, string> } {
+function getStoredWorkspaceState(storage: Storage = localStorage): { savedAt?: Record<string, string>; mode?: Record<string, WorkspaceMode>; activeSeries?: Record<string, string> } {
   try {
-    const stored = localStorage.getItem('clinivol-workspace-state')
+    const stored = storage.getItem('clinivol-workspace-state')
     if (!stored) return {}
     const parsed = JSON.parse(stored) as { savedAt?: Record<string, string>; mode?: Record<string, string>; activeSeries?: Record<string, string> }
     const mode = Object.fromEntries(Object.entries(parsed.mode ?? {}).map(([taskId, value]) => {
@@ -297,9 +300,9 @@ function getStoredWorkspaceState(): { savedAt?: Record<string, string>; mode?: R
   } catch { return {} }
 }
 
-function getStoredReviewCommentsBase() {
+function getStoredReviewCommentsBase(storage:Storage=localStorage) {
   try {
-    const stored = localStorage.getItem('clinivol-review-comments')
+    const stored = storage.getItem('clinivol-review-comments')
     if (!stored) return initialReviewComments
     const parsed = JSON.parse(stored) as Array<Omit<Partial<ReviewComment>, 'status' | 'replies'> & { status?: string; replies?: Array<Partial<ReviewReply>> }>
     return parsed.map((comment, index) => {
@@ -328,8 +331,8 @@ function getStoredReviewCommentsBase() {
   } catch { return initialReviewComments }
 }
 
-function getStoredReviewComments():ReviewComment[] {
- const stored=getStoredReviewCommentsBase()
+function getStoredReviewComments(storage: Storage = localStorage):ReviewComment[] {
+ const stored=getStoredReviewCommentsBase(storage)
  const added:ReviewComment[]=withDemoProjects([]).flatMap(p=>p.tasks).filter(t=>t.status==='审核退回').map(t=>({id:`${t.id}-review-1`,taskId:t.id,round:1,version:'V01',author:'周医生',time:`${t.catalogCreatedAt?.slice(5).replace('-',' 月 ')} 日 08:50`,title:'请检查骨骼边界连续性',content:'请核对骨骼边界与相邻层面，确认修复区域的结构连续性。',status:'待修改',unread:true,submitted:false,view:'Axial',seriesId:t.series[0].id,position:{x:50,y:50},slice:286,replies:[]}))
  return [...stored,...added.filter(c=>!stored.some(v=>v.id===c.id))]
 }
@@ -346,25 +349,25 @@ function validateRoute(route:Screen,tasks:Task[]):Screen {
   return route
 }
 function App() {
-  const storedWorkspaceState = useMemo(getStoredWorkspaceState, [])
-  const [tasks, setTasks] = useState<Task[]>(getStoredTasks)
+  const auth=useAuth(), storage=useWorkspaceStorage()
+  const storedWorkspaceState = useMemo(()=>getStoredWorkspaceState(storage), [storage])
+  const [tasks, setTasks] = useState<Task[]>(()=>auth.user?.id==='chen-yu'?getStoredTasks(storage):[])
   const [stagePreview,setStagePreview]=useState<Task|null>(null)
-  const [screen, rawSetScreen] = useState<Screen>(() => validateRoute(readProjectRoute(),getStoredTasks()))
+  const [screen, rawSetScreen] = useState<Screen>(() => validateRoute(readProjectRoute(),auth.user?.id==='chen-yu'?getStoredTasks(storage):[]))
   const setScreen = (next:Screen) => { const safe=validateRoute(next,tasks); if(window.location.hash!==projectUrl(safe)) window.history.pushState(null,'',projectUrl(safe)); rawSetScreen(safe) }
   const detailReturnScreen=useRef<Screen>({kind:'tasks'})
   const projectReturnScreen=useRef<Screen>({kind:'tasks'})
-  const [projectFilters,setProjectFilters] = useState<Filters>(()=>{try { const saved=JSON.parse(localStorage.getItem('project-list-filters')??'null'); return saved?{...defaultFilters(),...saved,range:saved.period==='custom'?saved.range:periodRange(saved.period)}:defaultFilters() }catch{return defaultFilters()}})
-  const [homeFilter,setHomeFilter] = useState<{period:Period;range:DateRange}>(()=>{try {const saved=JSON.parse(localStorage.getItem('project-home-filter')??'null');return saved?{...saved,range:saved.period==='custom'?saved.range:periodRange(saved.period)}:{period:'3m',range:periodRange('3m')}}catch{return {period:'3m',range:periodRange('3m')}}})
-  useEffect(()=>{localStorage.setItem('project-list-filters',JSON.stringify(projectFilters))},[projectFilters])
-  useEffect(()=>{localStorage.setItem('project-home-filter',JSON.stringify(homeFilter))},[homeFilter])
+  const [projectFilters,setProjectFilters] = useState<Filters>(()=>{try { const saved=JSON.parse(storage.getItem('project-list-filters')??'null'); return saved?{...defaultFilters(),...saved,range:saved.period==='custom'?saved.range:periodRange(saved.period)}:defaultFilters() }catch{return defaultFilters()}})
+  const [homeFilter,setHomeFilter] = useState<{period:Period;range:DateRange}>(()=>{try {const saved=JSON.parse(storage.getItem('project-home-filter')??'null');return saved?{...saved,range:saved.period==='custom'?saved.range:periodRange(saved.period)}:{period:'3m',range:periodRange('3m')}}catch{return {period:'3m',range:periodRange('3m')}}})
+  useEffect(()=>{storage.setItem('project-list-filters',JSON.stringify(projectFilters))},[projectFilters])
+  useEffect(()=>{storage.setItem('project-home-filter',JSON.stringify(homeFilter))},[homeFilter])
   const settingsReturnScreen = useRef<Screen>({ kind: 'home' })
   const [themePreference, setThemePreference] = useState<ThemePreference>(getStoredThemePreference)
   const [systemDark, setSystemDark] = useState(() => window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false)
-  const [userProfile, setUserProfile] = useState<UserProfile>(getStoredUserProfile)
-  const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreferences>(getStoredNotificationPreferences)
-  const [authenticated, setAuthenticated] = useState(true)
-  const [logoutVisible, setLogoutVisible] = useState(false)
-  const [openTabs, setOpenTabs] = useState<string[]>(['001'])
+  const [userProfile, setUserProfile] = useState<UserProfile>(()=>({...getStoredUserProfile(storage),name:auth.user!.name,role:roleName(auth.user!),department:auth.user!.department,employeeId:auth.user!.employeeId,avatar:auth.user!.avatar,phone:auth.user!.phone,email:auth.user!.email}))
+  useEffect(()=>{const user=auth.user;if(user)setUserProfile(current=>({...current,name:user.name,email:user.email,phone:user.phone,avatar:user.avatar,role:roleName(user),department:user.department,employeeId:user.employeeId}))},[auth.user])
+  const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreferences>(()=>getStoredNotificationPreferences(storage))
+  const [openTabs, setOpenTabs] = useState<string[]>(()=>{try{return JSON.parse(storage.getItem('clinivol-open-tabs')||(auth.user?.id==='chen-yu'?'["001"]':'[]'))}catch{return auth.user?.id==='chen-yu'?['001']:[]}})
   const [dirty, setDirty] = useState<Record<string, boolean>>({})
   const [savedAt, setSavedAt] = useState<Record<string, string>>(storedWorkspaceState.savedAt ?? {})
   const [workspaceMode, setWorkspaceMode] = useState<Record<string, WorkspaceMode>>(storedWorkspaceState.mode ?? { '001': 'view', '002': 'segment', '003': 'view' })
@@ -372,17 +375,20 @@ function App() {
   const [submitTask, setSubmitTask] = useState<string | null>(null)
   const [submitTarget, setSubmitTarget] = useState<'doctor' | 'salesperson'>('doctor')
   const [guardAction, setGuardAction] = useState<(() => void) | null>(null)
-  const [locked, setLocked] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
-  const [notices, setNotices] = useState(initialNotices)
-  const [reviewComments, setReviewComments] = useState<ReviewComment[]>(getStoredReviewComments)
-  const [flowEvents, setFlowEvents] = useState<FlowEvent[]>(getStoredFlowEvents)
-  const [upstreamFeedback, setUpstreamFeedback] = useState<UpstreamFeedback[]>(getStoredFeedback)
+  const [notices, setNotices] = useState(()=>{if(auth.user?.id!=='chen-yu')return [] as Notice[];try{return JSON.parse(storage.getItem('clinivol-notices')||'null') as Notice[] || initialNotices}catch{return initialNotices}})
+  const [reviewComments, setReviewComments] = useState<ReviewComment[]>(()=>auth.user?.id==='chen-yu'?getStoredReviewComments(storage):[])
+  const [flowEvents, setFlowEvents] = useState<FlowEvent[]>(()=>auth.user?.id==='chen-yu'?getStoredFlowEvents(storage):[])
+  const [upstreamFeedback, setUpstreamFeedback] = useState<UpstreamFeedback[]>(()=>auth.user?.id==='chen-yu'?getStoredFeedback(storage):[])
   const [reviewFocus, setReviewFocus] = useState<{ taskId: string; commentId?: string } | null>(null)
-  const [navCollapsed, setNavCollapsed] = useState(false)
+  const [navCollapsed, setNavCollapsed] = useState(()=>storage.getItem('clinivol-nav-collapsed')==='1')
+  useEffect(()=>storage.setItem('clinivol-nav-collapsed',navCollapsed?'1':'0'),[navCollapsed,storage])
+  useEffect(()=>{storage.setItem('clinivol-open-tabs',JSON.stringify(openTabs))},[openTabs,storage])
+  useEffect(()=>{storage.setItem('clinivol-notices',JSON.stringify(notices))},[notices,storage])
+  useEffect(()=>{const flush=(e:Event)=>{const checks=(e as CustomEvent<{checks:Promise<boolean>[]}>) .detail.checks;checks.push(Promise.resolve(Object.keys(dirty).filter(id=>dirty[id]).every(id=>saveTask(id,false))))};window.addEventListener('clinivol-before-account-change',flush);return()=>window.removeEventListener('clinivol-before-account-change',flush)},[dirty,savedAt,workspaceMode,activeSeries])
   const reviewResetEnabled = useMemo(() => new URLSearchParams(window.location.search).has('build'), [])
   const resolvedTheme: ResolvedTheme = themePreference === 'system' ? (systemDark ? 'dark' : 'light') : themePreference
-  useEffect(() => { localStorage.setItem('clinivol-prototype-tasks', JSON.stringify(tasks.filter(t=>!t.catalogDemo))); localStorage.setItem('clinivol-catalog-tasks',JSON.stringify(tasks.filter(t=>t.catalogDemo))) }, [tasks])
+  useEffect(() => { storage.setItem('clinivol-prototype-tasks', JSON.stringify(tasks.filter(t=>!t.catalogDemo))); storage.setItem('clinivol-catalog-tasks',JSON.stringify(tasks.filter(t=>t.catalogDemo))) }, [tasks])
   useEffect(() => {
     setTasks((current) => {
       const synchronized = synchronizeCadTasks(current)
@@ -390,12 +396,12 @@ function App() {
       return changed ? synchronized : current
     })
   }, [tasks])
-  useEffect(() => localStorage.setItem('clinivol-workspace-state', JSON.stringify({ savedAt, mode: workspaceMode, activeSeries })), [savedAt, workspaceMode, activeSeries])
-  useEffect(() => localStorage.setItem('clinivol-review-comments', JSON.stringify(reviewComments)), [reviewComments])
-  useEffect(() => localStorage.setItem('clinivol-task-flow-events', JSON.stringify(flowEvents)), [flowEvents])
-  useEffect(() => localStorage.setItem('clinivol-upstream-feedback', JSON.stringify(upstreamFeedback)), [upstreamFeedback])
-  useEffect(() => localStorage.setItem('clinivol-user-profile', JSON.stringify(userProfile)), [userProfile])
-  useEffect(() => localStorage.setItem('clinivol-notification-preferences', JSON.stringify(notificationPreferences)), [notificationPreferences])
+  useEffect(() => storage.setItem('clinivol-workspace-state', JSON.stringify({ savedAt, mode: workspaceMode, activeSeries })), [savedAt, workspaceMode, activeSeries])
+  useEffect(() => storage.setItem('clinivol-review-comments', JSON.stringify(reviewComments)), [reviewComments])
+  useEffect(() => storage.setItem('clinivol-task-flow-events', JSON.stringify(flowEvents)), [flowEvents])
+  useEffect(() => storage.setItem('clinivol-upstream-feedback', JSON.stringify(upstreamFeedback)), [upstreamFeedback])
+  useEffect(() => storage.setItem('clinivol-user-profile', JSON.stringify(userProfile)), [userProfile])
+  useEffect(() => storage.setItem('clinivol-notification-preferences', JSON.stringify(notificationPreferences)), [notificationPreferences])
   useEffect(() => {
     const media = window.matchMedia('(prefers-color-scheme: dark)')
     const update = (event: MediaQueryListEvent | MediaQueryList) => setSystemDark(event.matches)
@@ -412,7 +418,7 @@ function App() {
 
   const currentWorkspaceId = screen.kind === 'workspace' || screen.kind === 'cad-workspace' ? screen.taskId : null
   const currentTask = currentWorkspaceId ? tasks.find((task) => task.id === currentWorkspaceId) : undefined
-  const projects=useMemo(()=>withDemoProjects(projectsFor(tasks,flowEvents)),[tasks,flowEvents])
+  const projects=useMemo(()=>auth.user?.id==='chen-yu'?withDemoProjects(projectsFor(tasks,flowEvents)):projectsFor(tasks,flowEvents),[tasks,flowEvents,auth.user?.id])
   const unreadCount = notices.filter((notice) => !notice.dismissed && notice.unread).length
   const runWithGuard = (action: () => void) => { if (currentWorkspaceId && dirty[currentWorkspaceId]) setGuardAction(() => action); else action() }
   useEffect(()=>{ const onHash=()=>runWithGuard(()=>rawSetScreen(validateRoute(readProjectRoute(),tasks)));window.addEventListener('popstate',onHash);window.addEventListener('hashchange',onHash);return ()=>{window.removeEventListener('popstate',onHash);window.removeEventListener('hashchange',onHash)} },[tasks,dirty,currentWorkspaceId])
@@ -461,7 +467,7 @@ function App() {
   }
   const saveTask = (taskId: string, announce = true) => {
     const now = new Date().toISOString()
-    try { localStorage.setItem('clinivol-workspace-state', JSON.stringify({ savedAt: { ...savedAt, [taskId]: now }, mode: workspaceMode, activeSeries })) }
+    try { storage.setItem('clinivol-workspace-state', JSON.stringify({ savedAt: { ...savedAt, [taskId]: now }, mode: workspaceMode, activeSeries })) }
     catch { return false }
     setDirty((value) => ({ ...value, [taskId]: false })); setSavedAt((value) => ({ ...value, [taskId]: now })); setTasks((items) => items.map((task) => task.id === taskId ? { ...task, updated: now } : task))
     if (announce) void MessagePlugin.success(`任务 ${taskId} 已保存`)
@@ -478,7 +484,7 @@ function App() {
     let version = 'V04'
     if (current.taskType === 'CAD 设计') {
       if (!isCadTaskUnlocked(current, tasks)) return
-      try { version = snapshotCadSubmission(taskId) }
+      try { version = snapshotCadSubmission(taskId,storage) }
       catch { void MessagePlugin.error('CAD 工程版本保存失败，请返回工作区重试'); return }
     }
     const stamp = new Date().toISOString()
@@ -529,13 +535,12 @@ function App() {
     runWithGuard(() => setScreen({ kind: 'settings', section }))
   }
   const closeSettings = () => setScreen(settingsReturnScreen.current.kind === 'settings' ? { kind: 'home' } : settingsReturnScreen.current)
-  const requestLogout = () => setLogoutVisible(true)
+  const requestLogout = () => runWithGuard(()=>window.dispatchEvent(new Event('clinivol-request-logout')))
   const settingsReturnLabel = settingsReturnScreen.current.kind === 'home' ? '返回工作台' : settingsReturnScreen.current.kind === 'tasks' ? '返回项目' : settingsReturnScreen.current.kind === 'reviews' ? '返回审核记录' : settingsReturnScreen.current.kind === 'detail' ? '返回任务详情' : '返回专业工作区'
 
-  if (!authenticated) return <SignedOutScreen onReenter={() => setAuthenticated(true)} />
 
   return <div className="app" style={{ '--layout-sidebar-width': `${layout.sidebar}px`, '--layout-sidebar-collapsed-width': `${layout.sidebarCollapsed}px` } as React.CSSProperties}>
-    <GlobalHeader screen={screen} openTabs={openTabs} tasks={tasks} user={userProfile} theme={resolvedTheme} goHome={() => goPlatform('home')} openWorkspace={openWorkspace} closeTab={closeTab} unreadCount={unreadCount} onThemeToggle={() => setThemePreference(resolvedTheme === 'light' ? 'dark' : 'light')} onNotifications={() => setNotificationsOpen(true)} onLock={() => setLocked(true)} onOpenSettings={openSettings} onLogout={requestLogout} />
+    <GlobalHeader screen={screen} openTabs={openTabs} tasks={tasks} user={userProfile} theme={resolvedTheme} goHome={() => goPlatform('home')} openWorkspace={openWorkspace} closeTab={closeTab} unreadCount={unreadCount} onThemeToggle={() => setThemePreference(resolvedTheme === 'light' ? 'dark' : 'light')} onNotifications={() => setNotificationsOpen(true)} onLock={()=>void auth.lock()} beforeAccountChange={runWithGuard} onOpenSettings={openSettings} onLogout={requestLogout} />
     <div className="content-stage">
       {screen.kind === 'workspace' && currentTask ? <Workspace task={currentTask} dirty={Boolean(dirty[currentTask.id])} savedAt={savedAt[currentTask.id]} mode={workspaceMode[currentTask.id] ?? 'view'} activeSeriesId={activeSeries[currentTask.id] ?? currentTask.series[0]?.id ?? ''} comments={reviewComments.filter((comment) => comment.taskId === currentTask.id)} reviewFocus={reviewFocus?.taskId === currentTask.id ? reviewFocus : null} reviewResetEnabled={reviewResetEnabled} onReviewFocusConsumed={() => setReviewFocus(null)} onUpdateComment={updateReviewComment} onResetReview={() => resetReviewDemo(currentTask.id)} onSeriesChange={(seriesId) => setActiveSeries((value) => ({ ...value, [currentTask.id]: seriesId }))} onModeChange={(mode) => setWorkspaceMode((value) => ({ ...value, [currentTask.id]: mode }))} onDirty={() => setDirty((value) => ({ ...value, [currentTask.id]: true }))} onSave={(announce = true) => saveTask(currentTask.id, announce)} onSubmit={() => { setSubmitTarget('doctor'); setSubmitTask(currentTask.id) }} onSubmitSalesperson={() => { setSubmitTarget('salesperson'); setSubmitTask(currentTask.id) }} /> : screen.kind === 'cad-workspace' && currentTask && canEnter(currentTask, tasks) ? <Suspense fallback={<div className="panel-empty">正在打开 CAD 工作区…</div>}><CadWorkspace reviewFocus={reviewFocus?.taskId === currentTask.id ? reviewFocus : null} onReviewFocusConsumed={() => setReviewFocus(null)} key={currentTask.id} task={currentTask} comments={reviewComments.filter((comment) => comment.taskId === currentTask.id)} onBack={() => openProject(currentTask.orderNo,{projectId:currentTask.orderNo,taskId:currentTask.id})} onSubmit={() => { setSubmitTarget('doctor'); setSubmitTask(currentTask.id) }} onSubmitSalesperson={() => { setSubmitTarget('salesperson'); setSubmitTask(currentTask.id) }} renderReviewPanel={(bridge) => <ReviewCommentsPanel comments={reviewComments.filter((comment) => comment.taskId === currentTask.id)} selectedCommentId={bridge.selectedId} readOnly={currentTask.status === '待审核' || currentTask.status === '已完成'} syncState={bridge.syncState} syncedAt={bridge.syncedAt} resetEnabled={false} onSelect={(comment) => { bridge.onSelect(comment.id); if (comment.unread) updateReviewComment(comment.id, { unread: false }) }} onClose={bridge.onClose} onUpdate={updateReviewComment} onQueueSync={bridge.onQueueSync} onReset={() => {}} onSubmit={bridge.onSubmit} />} /></Suspense> :
         <PlatformShell screen={screen} goPlatform={goPlatform} collapsed={navCollapsed} onCollapsedChange={setNavCollapsed}>
@@ -544,7 +549,7 @@ function App() {
           {screen.kind==='project'&&<ProjectDetail project={projects.find(p=>p.id===screen.projectId)} tasks={tasks} events={flowEvents} target={screen} navigationKey={projectNavigationKey} onBack={()=>setScreen(projectReturnScreen.current)} onOpen={openWorkspace}/>}
           {screen.kind === 'reviews' && <Reviews tasks={tasks} events={flowEvents} onDetail={openTaskDetail} />}
           {screen.kind === 'detail' && <TaskDetail task={tasks.find((task) => task.id === screen.taskId)!} tasks={tasks} events={flowEvents} feedback={upstreamFeedback} comments={reviewComments.filter((comment) => comment.taskId === screen.taskId)} onBack={() => setScreen(detailReturnScreen.current)} onOpen={(taskId, options) => openWorkspace(taskId, options)} onFeedback={submitUpstreamFeedback} />}
-          {screen.kind === 'settings' && <SettingsPage section={screen.section} onSectionChange={(section) => setScreen({ kind: 'settings', section })} onBack={closeSettings} returnLabel={settingsReturnLabel} user={userProfile} onUserChange={setUserProfile} themePreference={themePreference} onThemePreferenceChange={setThemePreference} notificationPreferences={notificationPreferences} onNotificationPreferencesChange={setNotificationPreferences} onLogout={requestLogout} />}
+          {screen.kind === 'settings' && <SettingsPage section={screen.section} onSectionChange={(section) => setScreen({ kind: 'settings', section })} onBack={closeSettings} returnLabel={settingsReturnLabel} user={userProfile} onUserChange={async(profile)=>{await auth.updateProfile({name:profile.name,email:profile.email,avatar:profile.avatar.startsWith('data:')?profile.avatar:undefined});setUserProfile({...profile,phone:auth.user!.phone,role:roleName(auth.user!)})}} themePreference={themePreference} onThemePreferenceChange={setThemePreference} notificationPreferences={notificationPreferences} onNotificationPreferencesChange={setNotificationPreferences} onLogout={requestLogout} />}
         </PlatformShell>}
     </div>
     <Drawer visible={notificationsOpen} placement="right" size="400px" header={<div className="drawer-title"><span>通知中心</span><Tag theme="primary" variant="light">{unreadCount} 条未读</Tag></div>} footer={false} onClose={() => setNotificationsOpen(false)}>
@@ -557,11 +562,7 @@ function App() {
     <Dialog visible={Boolean(guardAction)} header="存在未保存修改" theme="warning" placement="center" width={560} footer={<div className="guard-actions"><Button theme="danger" variant="text" onClick={() => continueGuard(false)}>放弃修改</Button><span /><Button variant="outline" onClick={() => setGuardAction(null)}>继续编辑</Button><Button theme="primary" onClick={() => continueGuard(true)}>保存并离开</Button></div>} onClose={() => setGuardAction(null)}>
       <div className="dialog-copy"><p>离开前要保存当前工作吗？</p><span>任务 {currentWorkspaceId} 包含尚未保存的对象或视图调整。</span></div>
     </Dialog>
-    <Dialog visible={logoutVisible} header="退出登录" theme="warning" placement="center" width={440} confirmBtn="退出登录" cancelBtn="取消" onClose={() => setLogoutVisible(false)} onConfirm={() => { setLogoutVisible(false); setAuthenticated(false) }}>
-      <div className="dialog-copy"><p>确定要退出当前账号吗？</p><span>退出后将返回登录页面，本设备上的任务进度与个人偏好不会被清除。</span></div>
-    </Dialog>
     <Dialog visible={!!stagePreview} header={stagePreview?`${stagePreview.taskType} · ${stagePreview.status}`:''} footer={false} onClose={()=>setStagePreview(null)}><p>{stagePreview?.title}</p><p>负责人：{stagePreview?.owner}</p><p>{stagePreview?.status==='已完成'?'成果已确认，可查看关联的项目记录。':'当前阶段信息'}</p><p>当前尚无关联的分析或打印成果文件。</p></Dialog>
-    {locked && <LockScreen user={userProfile} onUnlock={() => setLocked(false)} />}
   </div>
 }
 
@@ -570,17 +571,11 @@ function BrandLogo({ compact = false }: { compact?: boolean }) {
   return <div className={className} role="img" aria-label="CliniVol"><img className="brand-logo-light" src="/assets/clinivol-logo-light.png" alt="" aria-hidden="true" /><img className="brand-logo-dark" src="/assets/clinivol-logo-dark.png" alt="" aria-hidden="true" /></div>
 }
 
-function GlobalHeader({ screen, openTabs, tasks, user, theme, goHome, openWorkspace, closeTab, unreadCount, onThemeToggle, onNotifications, onLock, onOpenSettings, onLogout }: { screen: Screen; openTabs: string[]; tasks: Task[]; user: UserProfile; theme: ResolvedTheme; goHome: () => void; openWorkspace: (id: string) => void; closeTab: (id: string) => void; unreadCount: number; onThemeToggle: () => void; onNotifications: () => void; onLock: () => void; onOpenSettings: (section: SettingsSection) => void; onLogout: () => void }) {
-  const accountOptions = [
-    { content: <span className="account-menu-label">个人资料</span>, value: 'profile', prefixIcon: <UserCircleIcon size={17} /> },
-    { content: <span className="account-menu-label">账户安全</span>, value: 'security', prefixIcon: <UserSafetyIcon size={17} /> },
-    { content: <span className="account-menu-label">偏好设置</span>, value: 'preferences', prefixIcon: <SettingIcon size={17} /> },
-    { content: <span className="account-menu-label">退出登录</span>, value: 'logout', prefixIcon: <LogoutIcon size={17} /> },
-  ]
+export function GlobalHeader({ beforeAccountChange, screen, openTabs, tasks, user, theme, goHome, openWorkspace, closeTab, unreadCount, onThemeToggle, onNotifications, onLock, onOpenSettings, onLogout }: { screen: Screen; openTabs: string[]; tasks: Task[]; user: UserProfile; theme: ResolvedTheme; goHome: () => void; openWorkspace: (id: string) => void; closeTab: (id: string) => void; unreadCount: number; onThemeToggle: () => void; onNotifications: () => void; onLock: () => void; onOpenSettings: (section: SettingsSection) => void; onLogout: () => void; beforeAccountChange?: (action:()=>void)=>void }) {
   return <header className="global-header">
     <BrandLogo />
     <nav className="global-tabs" aria-label="打开的任务"><button className={screen.kind !== 'workspace' && screen.kind !== 'cad-workspace' ? 'global-tab global-tab-active global-home' : 'global-tab global-home'} onClick={goHome}><HomeIcon size={16} /><span>Home</span></button><div className="task-tabs-scroll">{openTabs.map((id) => { const task = tasks.find((item) => item.id === id); const label = task ? `任务${task.id} · ${task.title}` : `任务${id}`; const active = (screen.kind === 'workspace' || screen.kind === 'cad-workspace') && screen.taskId === id; return <div className={active ? 'global-tab global-tab-active' : 'global-tab'} key={id}><Tooltip content={label}><button className="global-tab-main" onClick={() => openWorkspace(id)}>{label}</button></Tooltip><button className="global-tab-close" aria-label={`关闭任务 ${id} 标签`} onClick={() => closeTab(id)}><CloseIcon size={14} /></button></div> })}</div></nav>
-    <div className="global-actions"><Tooltip content={theme === 'light' ? '切换至深色模式' : '切换至浅色模式'}><button className="header-icon" aria-label={theme === 'light' ? '切换至深色模式' : '切换至浅色模式'} onClick={onThemeToggle}>{theme === 'light' ? <MoonIcon size={19} /> : <SunnyIcon size={19} />}</button></Tooltip><Tooltip content="通知中心"><button className="header-icon" aria-label={`通知中心，${unreadCount} 条未读`} onClick={onNotifications}><NotificationIcon size={19} />{unreadCount > 0 && <b>{unreadCount}</b>}</button></Tooltip><HeaderHelp onManageAccount={() => onOpenSettings('security')} /><Tooltip content="锁定屏幕"><button className="header-icon" aria-label="锁定屏幕" onClick={onLock}><LockOnIcon size={18} /></button></Tooltip><Dropdown options={accountOptions} trigger="click" placement="bottom-right" minColumnWidth={240} panelTopContent={<div className="account-summary"><img className="avatar avatar-photo" src={user.avatar} alt={`${user.name}头像`} /><div className="account-summary-copy"><strong>{user.name}</strong><small>工号 {user.employeeId}</small><small>{user.role} · {user.department}</small></div></div>} onClick={(item) => { if (item.value === 'logout') onLogout(); else onOpenSettings(item.value as SettingsSection) }}><button className="account-trigger"><img className="avatar avatar-photo" src={user.avatar} alt={`${user.name}头像`} /><span><strong>{user.name}</strong><small>{user.role}</small></span><ChevronDownIcon size={14} /></button></Dropdown></div>
+    <div className="global-actions"><Tooltip content={theme === 'light' ? '切换至深色模式' : '切换至浅色模式'}><button className="header-icon" aria-label={theme === 'light' ? '切换至深色模式' : '切换至浅色模式'} onClick={onThemeToggle}>{theme === 'light' ? <MoonIcon size={19} /> : <SunnyIcon size={19} />}</button></Tooltip><Tooltip content="通知中心"><button className="header-icon" aria-label={`通知中心，${unreadCount} 条未读`} onClick={onNotifications}><NotificationIcon size={19} />{unreadCount > 0 && <b>{unreadCount}</b>}</button></Tooltip><HeaderHelp onManageAccount={() => onOpenSettings('security')} /><Tooltip content="锁定屏幕"><button className="header-icon" aria-label="锁定屏幕" onClick={onLock}><LockOnIcon size={18} /></button></Tooltip><AccountMenu onSettings={onOpenSettings} beforeChange={beforeAccountChange}/></div>
   </header>
 }
 
@@ -1176,7 +1171,7 @@ function MedicalGraphic({ kind, taskId }: { kind: number; taskId: string }) {
   return <svg className="medical-graphic slice-graphic" viewBox="0 0 320 240" aria-hidden="true"><ellipse className="scan-halo" cx="160" cy="122" rx="124" ry="103" /><path className="scan-soft" d={shape} /><path className="scan-bone" d={kind === 0 ? 'M78 119c13-48 52-70 82-70s70 22 83 70c-8 50-46 76-83 76s-75-26-82-76Zm42-16c9-15 25-19 40-7 15-12 31-8 40 7 10 17 0 35-18 37-9 1-16-3-22-10-6 7-13 11-22 10-18-2-28-20-18-37Z' : kind === 1 ? 'M100 83c17-32 103-32 120 0l5 62c-11 35-35 56-65 56s-54-21-65-56l5-62Zm27 12c10-14 25-14 33 0 9-14 24-14 34 0-3 19-13 28-32 28s-31-9-35-28Z' : 'M104 74c31-31 82-20 96 22 10 29-2 64-29 80-30 18-65 5-78-25-11-27-6-56 11-77Z'} /><path className="scan-detail" d={kind === 0 ? 'M87 123h146M160 49v146M112 72c12 7 22 9 48 9s37-2 49-9' : kind === 1 ? 'M160 43v158M104 145h112M126 169c22 13 46 13 68 0' : 'M103 133h98M160 47v151M121 89c24-17 56-8 65 18'} /></svg>
 }
 
-function SettingsPage({ section, onSectionChange, onBack, returnLabel, user, onUserChange, themePreference, onThemePreferenceChange, notificationPreferences, onNotificationPreferencesChange, onLogout }: { section: SettingsSection; onSectionChange: (section: SettingsSection) => void; onBack: () => void; returnLabel: string; user: UserProfile; onUserChange: (user: UserProfile) => void; themePreference: ThemePreference; onThemePreferenceChange: (theme: ThemePreference) => void; notificationPreferences: NotificationPreferences; onNotificationPreferencesChange: (preferences: NotificationPreferences) => void; onLogout: () => void }) {
+export function SettingsPage({ section, onSectionChange, onBack, returnLabel, user, onUserChange, themePreference, onThemePreferenceChange, notificationPreferences, onNotificationPreferencesChange, onLogout }: { section: SettingsSection; onSectionChange: (section: SettingsSection) => void; onBack: () => void; returnLabel: string; user: UserProfile; onUserChange: (user: UserProfile) => Promise<void>; themePreference: ThemePreference; onThemePreferenceChange: (theme: ThemePreference) => void; notificationPreferences: NotificationPreferences; onNotificationPreferencesChange: (preferences: NotificationPreferences) => void; onLogout: () => void }) {
   const [editing, setEditing] = useState(false)
   const [profileDraft, setProfileDraft] = useState(user)
   const [profileError, setProfileError] = useState('')
@@ -1192,11 +1187,11 @@ function SettingsPage({ section, onSectionChange, onBack, returnLabel, user, onU
   const [verificationMethod, setVerificationMethod] = useState<'alipay' | 'wechat' | null>(null)
   const [verificationError, setVerificationError] = useState('')
   useEffect(() => { if (!editing) setProfileDraft(user) }, [editing, user])
-  const saveProfile = () => {
+  const saveProfile = async () => {
     const name = profileDraft.name.trim()
     if (!name) { setProfileError('姓名不能为空'); return }
     if (profileDraft.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profileDraft.email)) { setProfileError('请输入有效的电子邮箱'); return }
-    setProfileError(''); onUserChange({ ...profileDraft, name }); setEditing(false); void MessagePlugin.success('个人资料已保存')
+    try {await onUserChange({ ...profileDraft, name });setProfileError('');setEditing(false);void MessagePlugin.success('个人资料已保存')}catch(e){setProfileError((e as Error).message)}
   }
   const closePassword = () => { setPasswordVisible(false); setPasswords({ current: '', next: '', confirm: '' }); setPasswordError('') }
   const validatePassword = () => {
@@ -1216,12 +1211,10 @@ function SettingsPage({ section, onSectionChange, onBack, returnLabel, user, onU
     reader.onerror = () => setAvatarError('图片读取失败，请重新选择。')
     reader.readAsDataURL(file)
   }
-  const confirmAvatar = () => {
+  const confirmAvatar = async () => {
     if (!avatarFileName || avatarError) return
     const updated = { ...user, avatar: avatarPreview }
-    try { localStorage.setItem('clinivol-user-profile', JSON.stringify(updated)) }
-    catch { setAvatarError('图片无法保存，请选择更小的文件。'); return }
-    onUserChange(updated)
+    try { await onUserChange(updated) } catch(e) { setAvatarError((e as Error).message); return }
     setProfileDraft((draft) => ({ ...draft, avatar: avatarPreview }))
     setAvatarVisible(false)
     void MessagePlugin.success('头像已更新')
@@ -1237,8 +1230,8 @@ function SettingsPage({ section, onSectionChange, onBack, returnLabel, user, onU
     { key: 'preferences', label: '偏好设置', icon: <SettingIcon size={18} /> },
   ]
   return <div className="page settings-page"><section className="settings-heading"><Button variant="text" icon={<ChevronLeftIcon size={16} />} onClick={onBack}>{returnLabel}</Button></section><div className="settings-layout"><nav className="settings-nav" aria-label="账户设置导航">{navigation.map((item) => <button key={item.key} className={section === item.key ? 'settings-nav-item settings-nav-active' : 'settings-nav-item'} onClick={() => onSectionChange(item.key)}>{item.icon}<span>{item.label}</span></button>)}</nav><main className="settings-content">
-    {section === 'profile' && <section className="settings-section"><header><h2>个人资料</h2>{editing ? <div className="settings-actions"><Button variant="outline" onClick={() => { setProfileDraft(user); setProfileError(''); setEditing(false) }}>取消</Button><Button theme="primary" onClick={saveProfile}>保存</Button></div> : <Button theme="primary" variant="outline" onClick={() => setEditing(true)}>编辑资料</Button>}</header><div className="profile-overview"><div className="profile-avatar-control"><img src={user.avatar} alt={`${user.name}头像`} /><Button variant="text" theme="primary" onClick={openAvatar}>更换头像</Button></div><div><strong>{user.name}</strong><span>{user.role} · {user.department}</span></div></div><div className="settings-form-grid"><SettingField label="姓名" value={profileDraft.name} editable={editing} onChange={(value) => setProfileDraft((draft) => ({ ...draft, name: value }))} /><SettingField label="账号" value={user.employeeId} /><SettingField label="所属部门" value={user.department} /><SettingField label="岗位 / 角色" value={user.role} /><SettingField label="手机号码" value={profileDraft.phone} editable={editing} onChange={(value) => setProfileDraft((draft) => ({ ...draft, phone: value }))} /><SettingField label="电子邮箱" value={profileDraft.email} editable={editing} onChange={(value) => setProfileDraft((draft) => ({ ...draft, email: value }))} /></div>{profileError && <p className="settings-error" role="alert">{profileError}</p>}</section>}
-    {section === 'security' && <section className="settings-section"><header><h2>账户安全</h2></header><div className="settings-group"><div className="settings-group-title"><div><h3>登录密码</h3><p>定期更新密码有助于保护账号安全。</p></div><Button theme="primary" variant="outline" onClick={() => setPasswordVisible(true)}>修改密码</Button></div></div><div className="settings-group"><div className="settings-group-title"><div><h3>实名认证</h3><p>完成实名核验后，可用于需要身份确认的关键操作。</p></div><Button theme="primary" variant="outline" onClick={() => { setVerificationVisible(true); setVerificationError('') }}>去认证</Button></div><dl className="identity-summary"><div><dt>认证状态</dt><dd><Tag theme="warning" variant="light">未认证</Tag></dd></div><div><dt>认证方式</dt><dd>—</dd></div><div><dt>已认证姓名</dt><dd>—</dd></div><div><dt>认证完成时间</dt><dd>—</dd></div></dl></div><div className="settings-group"><div className="settings-group-title"><div><h3>登录安全</h3><p>最近登录：当前会话 · 本设备</p></div><Button theme="danger" variant="outline" onClick={onLogout}>退出当前登录</Button></div></div></section>}
+    {section === 'profile' && <section className="settings-section"><header><h2>个人资料</h2>{editing ? <div className="settings-actions"><Button variant="outline" onClick={() => { setProfileDraft(user); setProfileError(''); setEditing(false) }}>取消</Button><Button theme="primary" onClick={saveProfile}>保存</Button></div> : <Button theme="primary" variant="outline" onClick={() => setEditing(true)}>编辑资料</Button>}</header><div className="profile-overview"><div className="profile-avatar-control"><img src={user.avatar} alt={`${user.name}头像`} /><Button variant="text" theme="primary" onClick={openAvatar}>更换头像</Button></div><div><strong>{user.name}</strong><span>{user.role} · {user.department}</span></div></div><div className="settings-form-grid"><SettingField label="姓名" value={profileDraft.name} editable={editing} onChange={(value) => setProfileDraft((draft) => ({ ...draft, name: value }))} /><SettingField label="账号" value={user.employeeId} /><SettingField label="所属部门" value={user.department} /><SettingField label="岗位 / 角色" value={user.role} /><SettingField label="手机号码" value={user.phone} hint="在账户安全中验证后修改" /><SettingField label="电子邮箱" value={profileDraft.email} editable={editing} onChange={(value) => setProfileDraft((draft) => ({ ...draft, email: value }))} /></div>{profileError && <p className="settings-error" role="alert">{profileError}</p>}</section>}
+    {section === 'security' && <section className="settings-section"><header><h2>账户安全</h2></header><AccountSecurity/></section>}
     {section === 'preferences' && <section className="settings-section"><header><h2>偏好设置</h2></header><div className="settings-group"><h3>外观设置</h3><div className="theme-options" role="group" aria-label="外观主题">{([{ key: 'light', label: '浅色模式', icon: <SunnyIcon size={18} /> }, { key: 'dark', label: '深色模式', icon: <MoonIcon size={18} /> }, { key: 'system', label: '跟随系统', icon: <SettingIcon size={18} /> }] as const).map((item) => <button key={item.key} className={themePreference === item.key ? 'theme-option theme-option-active' : 'theme-option'} aria-pressed={themePreference === item.key} onClick={() => onThemePreferenceChange(item.key)}>{item.icon}<span>{item.label}</span></button>)}</div></div><div className="settings-group"><h3>语言设置</h3><div className="language-setting"><span>界面语言</span><strong>简体中文</strong><small>当前仅支持简体中文</small></div></div><div className="settings-group"><h3>通知偏好</h3><div className="preference-list">{([{ key: 'taskAssigned', label: '任务分配通知' }, { key: 'reviewResult', label: '审核结果通知' }, { key: 'doctorComments', label: '医生评论与回复通知' }, { key: 'systemMessages', label: '系统消息通知' }] as const).map((item) => <label key={item.key}><span>{item.label}</span><Switch value={notificationPreferences[item.key]} aria-checked={notificationPreferences[item.key]} onChange={(value) => onNotificationPreferencesChange({ ...notificationPreferences, [item.key]: value })} /></label>)}</div></div></section>}
   </main></div>
   <Dialog visible={avatarVisible} header="更换头像" width={460} footer={<div className="settings-dialog-actions"><Button variant="outline" onClick={closeAvatar}>取消</Button><Button theme="primary" disabled={!avatarFileName || Boolean(avatarError)} onClick={confirmAvatar}>确认更换</Button></div>} onClose={closeAvatar}><div className="avatar-upload"><img src={avatarPreview} alt="头像预览" /><div><Button variant="outline" onClick={() => avatarInputRef.current?.click()}>选择本地图片</Button><span>支持 JPG、PNG、WebP，文件不超过 2 MB。</span>{avatarFileName && <strong>{avatarFileName}</strong>}</div><input ref={avatarInputRef} className="avatar-file-input" type="file" accept="image/jpeg,image/png,image/webp" onClick={(event) => { event.currentTarget.value = '' }} onChange={(event) => handleAvatarFile(event.target.files?.[0])} />{avatarError && <p className="settings-error" role="alert">{avatarError}</p>}</div></Dialog>
@@ -1250,10 +1243,6 @@ function SettingField({ label, value, hint, editable = false, onChange }: { labe
   return <label className="setting-field"><span>{label}</span>{editable ? <Input value={value} placeholder="未填写" onChange={(next) => onChange?.(String(next))} /> : <div className="setting-readonly"><strong>{value || '未填写'}</strong>{hint && <small>{hint}</small>}</div>}</label>
 }
 
-function SignedOutScreen({ onReenter }: { onReenter: () => void }) {
-  return <div className="signed-out-screen"><section className="signed-out-panel"><BrandLogo compact /><UserCircleIcon size={48} /><h1>已退出当前账号</h1><p>当前会话已结束，本设备上的任务进度与个人偏好均已保留。</p><Button theme="primary" size="large" onClick={onReenter}>重新登录</Button></section></div>
-}
 
-function LockScreen({ user, onUnlock }: { user:UserProfile; onUnlock: () => void }) { return <div className="lock-screen"><div className="lock-panel"><BrandLogo compact /><img className="lock-avatar" src={user.avatar} alt={`${user.name}头像`}/><h2>已锁定</h2><p>{user.name} · {user.role}</p><Tag theme="warning" variant="light"><LockOnIcon size={14} />当前账号处于锁定状态</Tag><Input type="password" placeholder="请输入账号密码" /><Button theme="primary" block onClick={onUnlock}>解锁并返回</Button></div></div> }
 
 export default App

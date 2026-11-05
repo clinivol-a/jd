@@ -47,3 +47,8 @@ export const UserSafetyIcon = adaptIcon(Catalog.UserSafetyIcon)
 export const WorkFilledIcon = adaptIcon(Catalog.WorkFilledIcon)
 export const WorkIcon = adaptIcon(Catalog.WorkIcon)
 export const ZoomInIcon = adaptIcon(Catalog.ZoomInIcon)
+
+// Account authentication uses the same official icon adapter as the platform.
+export const CheckCircleIcon = adaptIcon(Catalog.CheckCircleIcon)
+export const ErrorCircleIcon = adaptIcon(Catalog.ErrorCircleIcon)
+export const MobileIcon = adaptIcon(Catalog.MobileIcon)

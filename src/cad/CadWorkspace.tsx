@@ -1,3 +1,4 @@
+import {useWorkspaceStorage} from '../auth/AuthContext'
 import { formatSavedTime } from '../dateTime'
 /* CAD workspace: extend CliniVol's existing Operate surface. The shared Header
  * stays mounted; a single tool row, compact model tree and contextual inspector
@@ -40,14 +41,15 @@ function CadCommandPanel({ title, onCancel, children, actions }: { title: string
 }
 
 export default function CadWorkspace({ task, onSubmit, onSubmitSalesperson, comments, reviewFocus, onReviewFocusConsumed, renderReviewPanel }: Props) {
-  const history = useCadHistory(() => readCadProject(task.id, task.approvedModel!.id, task.approvedModel!.version))
+  const storage=useWorkspaceStorage()
+  const history = useCadHistory(() => readCadProject(task.id, task.approvedModel!.id, task.approvedModel!.version,storage))
   const project = history.project; const setProject = history.commit
   const [selectedId, setSelectedId] = useState<string | null>(project.selectedId)
   const [activeTool, setActiveTool] = useState<string | null>(null)
   const [navMode, setNavMode] = useState('旋转')
   const [view, setView] = useState<CadViewState>({ projection: 'orthographic', edges: false, hasPrevious: false, cubeMatrix: 'rotateX(-20deg) rotateY(35deg)', cubeQuaternion: [0,0,0,1], shading: 'shaded', highQuality: false, boundary: false, normalToSketch: true })
   const [viewPrefs, setViewPrefs] = useState<{ objects: Record<string, Partial<Pick<CadObject, 'color' | 'opacity' | 'visible'>>>; planes: boolean; planeVisibility?: Partial<Record<string, boolean>> }>(() => {
-    try { const saved = JSON.parse(localStorage.getItem(`clinivol-cad-view-${task.id}`) ?? 'null'); if (saved && saved.objects && typeof saved.planes === 'boolean') return saved } catch { /* Keep project data separate. */ }
+    try { const saved = JSON.parse(storage.getItem(`clinivol-cad-view-${task.id}`) ?? 'null'); if (saved && saved.objects && typeof saved.planes === 'boolean') return saved } catch { /* Keep project data separate. */ }
     return { objects: {}, planes: false }
   })
   const [windowZoom, setWindowZoom] = useState(false)
@@ -100,15 +102,16 @@ export default function CadWorkspace({ task, onSubmit, onSubmitSalesperson, comm
   projectRef.current = project
   const persist = useCallback(() => {
     if (savedContentRef.current === cadProjectContent(projectRef.current)) return true
-    try { const saved = saveCadProject(projectRef.current); savedContentRef.current = cadProjectContent(saved); projectRef.current = saved; setSavedAt(saved.savedAt); setSaveState('saved'); return true }
+    try { const saved = saveCadProject(projectRef.current,storage); savedContentRef.current = cadProjectContent(saved); projectRef.current = saved; setSavedAt(saved.savedAt); setSaveState('saved'); return true }
     catch { setSaveState('failed'); return false }
   }, [])
   useEffect(() => {
     if (content === savedContentRef.current) { setSaveState('saved'); return }
     setSaveState('saving'); const timer = window.setTimeout(persist, 1000); return () => window.clearTimeout(timer)
   }, [content, persist])
-  useEffect(() => () => { if (savedContentRef.current !== cadProjectContent(projectRef.current)) { try { saveCadProject(projectRef.current) } catch { /* Preserve the previous successful save. */ } } }, [])
-  useEffect(() => { if (readOnly) { setActiveTool(null); setSketchDraft(null); setPendingPoints([]); setContext(null); setRename(null); extrudeReturnRef.current = null; const saved = readCadProject(task.id, task.approvedModel!.id, task.approvedModel!.version); savedContentRef.current = cadProjectContent(saved); history.reset(saved) } }, [readOnly, task.id, task.approvedModel])
+  useEffect(()=>{const flush=(e:Event)=>{(e as CustomEvent<{checks:Promise<boolean>[]}>) .detail.checks.push(Promise.resolve(persist()))};window.addEventListener('clinivol-before-account-change',flush);return()=>window.removeEventListener('clinivol-before-account-change',flush)},[persist])
+  useEffect(() => () => { if (savedContentRef.current !== cadProjectContent(projectRef.current)) { try { saveCadProject(projectRef.current,storage) } catch { /* Preserve the previous successful save. */ } } }, [])
+  useEffect(() => { if (readOnly) { setActiveTool(null); setSketchDraft(null); setPendingPoints([]); setContext(null); setRename(null); extrudeReturnRef.current = null; const saved = readCadProject(task.id, task.approvedModel!.id, task.approvedModel!.version,storage); savedContentRef.current = cadProjectContent(saved); history.reset(saved) } }, [readOnly, task.id, task.approvedModel])
   useEffect(() => { if (reviewFocus) { setCommentsOpen(true); setSelectedComment(reviewFocus.commentId ?? comments[0]?.id ?? null); onReviewFocusConsumed() } }, [reviewFocus, comments, onReviewFocusConsumed])
   useEffect(() => {
     if (!viewportRef.current) return
@@ -147,7 +150,7 @@ export default function CadWorkspace({ task, onSubmit, onSubmitSalesperson, comm
     window.addEventListener('keydown', key); return () => window.removeEventListener('keydown', key)
   }, [])
   useEffect(() => {
-    try { localStorage.setItem(`clinivol-cad-view-${task.id}`, JSON.stringify(viewPrefs)) } catch { /* UI settings stay usable in memory. */ }
+    try { storage.setItem(`clinivol-cad-view-${task.id}`, JSON.stringify(viewPrefs)) } catch { /* UI settings stay usable in memory. */ }
     sceneRef.current?.setReferencePlanes(viewPrefs.planes, viewPrefs.planeVisibility)
   }, [viewPrefs, task.id, loadState])
   sketchHandlerRef.current = (point) => {

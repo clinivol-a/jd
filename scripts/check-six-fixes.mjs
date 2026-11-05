@@ -62,7 +62,7 @@ function find(node){if(ts.isVariableDeclaration(node)&&node.name.getText(ast)===
 find(ast)
 const saveCode=ts.transpileModule('const saveTask='+saveSource,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText
 let savedState={'001':'2025-11-02T10:00:00'},taskState=[{id:'001',updated:'original'}],writes=[],shouldFail=false
-const save=new Function('localStorage','savedAt','workspaceMode','activeSeries','setDirty','setSavedAt','setTasks','MessagePlugin',saveCode+';return saveTask')(
+const save=new Function('storage','savedAt','workspaceMode','activeSeries','setDirty','setSavedAt','setTasks','MessagePlugin',saveCode+';return saveTask')(
  {setItem:(key,value)=>{if(shouldFail)throw new Error('quota');writes.push([key,JSON.parse(value)])}},savedState,{}, {},()=>{},update=>{savedState=update(savedState)},update=>{taskState=update(taskState)},{success:()=>{}})
 const started=Date.now();assert.equal(save('001',false),true)
 assert.ok(d.timestamp(savedState['001'])>=started&&d.timestamp(savedState['001'])<=Date.now())

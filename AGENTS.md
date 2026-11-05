@@ -143,3 +143,5 @@ shadow-1用于基础投影及指定轻量交互，shadow-2用于Dropdown/Popover
 44. AI十项均使用正常颜色并开放参数确认入口；当前未连接计算服务时如实反馈，不假报重建成功，不写入虚假蒙版。此规则替代旧AI统一禁用要求。锁屏复用当前账户照片及资料，Logo缩小并独立左上定位，保留凭证控件原位置。
 
 45. 日期时间按`design-system/component-rules.md`的Date & Time Formatting执行，统一复用`src/dateTime.ts`；跨年显示年份，审核/流转不使用相对时间，保存必须使用真实成功时间戳。设计阶段Tag使用官方icon属性，Icon14px、间距4px、24px高、14/22 Regular、左右8px/上下0、主题4px圆角；仅该组件内Icon为14px例外，不改变独立图标。审核记录不得混入任务分配/开始事件；这些活动仍保留在流转记录。按钮反色Token保持原语义，不强制纯白。
+
+46. 账号集成开发仅在隔离的 `feature/account-auth-integration` 分支进行，未获确认不得合入 design-handoff 或发布。前端不得根据 localStorage 中的角色自授权限；账户切换仅使用服务端已验证的会话，业务本地状态按账户隔离。验证码、扫码确认、密码重置和绑定须经服务端验证；通用网页扫码确认不冒充微信官方授权。缺少短信、微信或身份核验服务时不得伪造成功。local 认证适配器与合成账号不能作为生产认证服务。具体范围与验收见 `docs/auth/ACCOUNT_INTEGRATION.md`。

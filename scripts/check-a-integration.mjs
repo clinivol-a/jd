@@ -28,7 +28,9 @@ localStorage.setItem('clinivol-prototype-tasks',JSON.stringify(saved))
 const recovered=functions.getStoredTasks()
 assert.equal(recovered[0].status,'待审核');assert.equal(recovered[0].patient,'PERSISTED-PATIENT');assert.deepEqual(recovered[0].review,saved[0].review)
 assert.ok(!text.includes('labStorage')&&!text.includes('experimentalTasks')&&!text.includes('normalizeExperimentTask'))
-for(const file of ['cadProject.ts','CadScene.ts','cadCommands.ts','useCadHistory.ts','useCadPanels.ts'])assert.equal(fs.readFileSync('src/cad/'+file,'utf8'),execFileSync('git',['show','backup/a-before-project-dashboard-20261103:src/cad/'+file],{encoding:'utf8'}),`${file} business/geometry/persistence remains intact`)
+// Account integration intentionally injects Storage and keys undo caches by account; normalize only those changes.
+const normalizeAccountStorage=text=>text.replace(/^import \{use(?:WorkspaceStorage|Auth)\} from '\.\.\/auth\/AuthContext'\n/gm,'').replace(/^  const storage=useWorkspaceStorage\(\)\n/gm,'').replace(/^  const \{user\}=useAuth\(\);const accountId=user!\.id\n/gm,'').replace(/,\s*storage\s*:\s*Storage(?:\s*=\s*localStorage)?/g,'').replace(/storage\./g,'localStorage.').replace(/,\s*storage\)/g,')').replace(/accountId\+':'\+/g,'')
+for(const file of ['cadProject.ts','CadScene.ts','cadCommands.ts','useCadHistory.ts','useCadPanels.ts'])assert.equal(normalizeAccountStorage(fs.readFileSync('src/cad/'+file,'utf8')),normalizeAccountStorage(execFileSync('git',['show','backup/a-before-project-dashboard-20261103:src/cad/'+file],{encoding:'utf8'})),`${file} retains business/geometry logic after explicit account-storage injection`)
 for(const p of projects){assert.ok(p.hospital!=='—');assert.equal(p.dataOrigin,'demo');assert.equal(m.projectsFor(tasks.filter(t=>t.orderNo===p.id),events)[0].hospital,p.hospital)}
 const production=tasks.map(t=>({...t,dataOrigin:'production'}));assert.ok(m.projectsFor(production,events).every(p=>p.hospital==='—'),'demo hospitals never fill missing production fields')
 const withHospital=production.map(t=>({...t,hospital:'已确认医院字段'}));assert.ok(m.projectsFor(withHospital,events).every(p=>p.hospital==='已确认医院字段'))

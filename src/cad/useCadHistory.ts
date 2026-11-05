@@ -1,3 +1,4 @@
+import {useAuth} from '../auth/AuthContext'
 import { useCallback, useEffect, useReducer } from 'react'
 import type { CadProject } from './cadProject'
 import { cadProjectContent } from './cadProject'
@@ -16,11 +17,12 @@ export function cadHistoryReducer(state: CadHistory, action: CadHistoryAction): 
 }
 const sessions = new Map<string, CadHistory>()
 export function useCadHistory(initial: () => CadProject) {
+  const {user}=useAuth();const accountId=user!.id
   const [history, dispatch] = useReducer(cadHistoryReducer, undefined, () => {
-    const present = initial(), cached = sessions.get(present.taskId)
+    const present = initial(), cached = sessions.get(accountId+':'+present.taskId)
     return cached && cadProjectContent(cached.present) === cadProjectContent(present) ? { ...cached, present: { ...cached.present, savedAt: present.savedAt, version: present.version } } : { present, past: [], future: [] }
   })
-  useEffect(() => { sessions.set(history.present.taskId, history); if (sessions.size > 12) sessions.delete(sessions.keys().next().value!) }, [history])
+  useEffect(() => { sessions.set(accountId+':'+history.present.taskId, history); if (sessions.size > 12) sessions.delete(sessions.keys().next().value!) }, [history])
   const commit = useCallback((update: Update, mergeKey?: string) => dispatch({ type: 'commit', update, mergeKey, at: Date.now() }), [])
   const reset = useCallback((project: CadProject) => dispatch({ type: 'reset', project }), [])
   return { project: history.present, commit, reset, undo: () => dispatch({ type: 'undo' }), redo: () => dispatch({ type: 'redo' }), canUndo: !!history.past.length, canRedo: !!history.future.length }

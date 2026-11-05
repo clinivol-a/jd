@@ -1,3 +1,4 @@
+import {useWorkspaceStorage} from '../auth/AuthContext'
 import { useEffect, useRef, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 
@@ -6,9 +7,9 @@ type Layout = { left: number; right: number; leftOpen: boolean; rightOpen: boole
 type PanelOptions = { storageKey: string; left: number; right: number; labels: [string, string] }
 const defaults: PanelOptions = { storageKey: 'clinivol-cad-panel-layout', left: 280, right: 304, labels: ['调整 CAD 模型树宽度','调整 CAD 属性面板宽度'] }
 const minimum = { left: 184, right: 252 }
-const readLayout = (hasSelection: boolean, options: PanelOptions): Layout => {
+const readLayout = (hasSelection: boolean, options: PanelOptions, storage:Storage): Layout => {
   try {
-    const saved = JSON.parse(localStorage.getItem(options.storageKey) ?? 'null') as Partial<Layout> | null
+    const saved = JSON.parse(storage.getItem(options.storageKey) ?? 'null') as Partial<Layout> | null
     if (saved) return { left: Math.max(184, Math.min(480, Number(saved.left) || options.left)), right: Math.max(252, Math.min(480, Number(saved.right) || options.right)), leftOpen: saved.leftOpen !== false, rightOpen: hasSelection && saved.rightOpen !== false }
   } catch { /* UI preferences do not affect the CAD project. */ }
   return { left: options.left, right: options.right, leftOpen: true, rightOpen: hasSelection }
@@ -16,7 +17,8 @@ const readLayout = (hasSelection: boolean, options: PanelOptions): Layout => {
 
 /** UI-only panel preferences: resizing never writes or dirties the CAD project. */
 export function useCadPanels(hasSelection: boolean, options = defaults) {
-  const [layout, setLayout] = useState(() => readLayout(hasSelection, options))
+  const storage=useWorkspaceStorage()
+  const [layout, setLayout] = useState(() => readLayout(hasSelection, options,storage))
   const [available, setAvailable] = useState(window.innerWidth)
   const [resizing, setResizing] = useState<Side | null>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
@@ -31,7 +33,7 @@ export function useCadPanels(hasSelection: boolean, options = defaults) {
   }, [])
   useEffect(() => {
     if (resizing) return
-    try { localStorage.setItem(options.storageKey, JSON.stringify(layout)) } catch { /* Retain in-memory preferences if storage is unavailable. */ }
+    try { storage.setItem(options.storageKey, JSON.stringify(layout)) } catch { /* Retain in-memory preferences if storage is unavailable. */ }
   }, [layout, resizing, options.storageKey])
   const toggle = (side: Side, open: boolean, manual = true) => {
     if (side === 'right' && manual) manualRightClosed.current = !open

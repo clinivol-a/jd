@@ -1,3 +1,4 @@
+import {useWorkspaceStorage} from '../auth/AuthContext'
 import { useState } from 'react'
 import type { KeyboardEvent, MouseEvent } from 'react'
 import { Button, Dialog, Input, MessagePlugin, Tooltip } from 'tdesign-react'
@@ -24,21 +25,22 @@ function validCamera(value: unknown): value is CadCamera {
 export default function CadViewControls({ view, taskId, onAction, onCapture, onRestore }: {
   view: CadViewState; taskId: string; onAction: (action: string) => void; onCapture: () => CadCamera | undefined; onRestore: (camera: CadCamera) => void
 }) {
+  const storage=useWorkspaceStorage()
   const [namedOpen, setNamedOpen] = useState(false)
   const [name, setName] = useState('')
   const [named, setNamed] = useState<NamedView[]>(() => {
-    try { const saved = JSON.parse(localStorage.getItem(`clinivol-cad-named-views-${taskId}`) ?? '[]'); return Array.isArray(saved) ? saved.filter((item) => typeof item?.name === 'string' && validCamera(item.camera)).slice(0,20) : [] } catch { return [] }
+    try { const saved = JSON.parse(storage.getItem(`clinivol-cad-named-views-${taskId}`) ?? '[]'); return Array.isArray(saved) ? saved.filter((item) => typeof item?.name === 'string' && validCamera(item.camera)).slice(0,20) : [] } catch { return [] }
   })
   const saveNamed = () => {
     const camera = onCapture(); const trimmed = name.trim()
     if (!trimmed || !camera) return
     if (named.some((item) => item.name === trimmed)) { void MessagePlugin.warning('该视角名称已存在，请使用其他名称'); return }
     const next = [...named, { name: trimmed, camera }].slice(-20)
-    try { localStorage.setItem(`clinivol-cad-named-views-${taskId}`, JSON.stringify(next)); setNamed(next); setName(''); void MessagePlugin.success('视角已保存到本机') } catch { void MessagePlugin.error('视角保存失败，请检查本地存储空间') }
+    try { storage.setItem(`clinivol-cad-named-views-${taskId}`, JSON.stringify(next)); setNamed(next); setName(''); void MessagePlugin.success('视角已保存到本机') } catch { void MessagePlugin.error('视角保存失败，请检查本地存储空间') }
   }
   const deleteNamed = (name: string) => {
     const next = named.filter((item) => item.name !== name)
-    try { localStorage.setItem(`clinivol-cad-named-views-${taskId}`, JSON.stringify(next)); setNamed(next) } catch { void MessagePlugin.error('视角删除失败，请重试') }
+    try { storage.setItem(`clinivol-cad-named-views-${taskId}`, JSON.stringify(next)); setNamed(next) } catch { void MessagePlugin.error('视角删除失败，请重试') }
   }
   const action = (id: string) => { if (id === 'named') { setNamedOpen(true); return } onAction(id) }
   const label = (text: string, checked = false, settings = false) => <span className="cad-view-menu-label"><span className="cad-menu-check">{checked ? <CheckIcon size={16} /> : settings ? <SettingIcon size={16} /> : null}</span><span>{text}</span></span>

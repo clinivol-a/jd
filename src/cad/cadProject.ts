@@ -28,46 +28,46 @@ export function initialCadProject(taskId: string, modelId: string, upstreamVersi
     { ...object('guide', '导向模板', 'guide', '#d9a35d', false), opacity: .5, material: '树脂（示例）' },
   ] }
 }
-export function readCadProject(taskId: string, modelId: string, upstreamVersion: string): CadProject {
+export function readCadProject(taskId: string, modelId: string, upstreamVersion: string, storage: Storage = localStorage): CadProject {
   try {
-    const value = JSON.parse(localStorage.getItem(projectKey(taskId)) ?? 'null') as CadProject | null
+    const value = JSON.parse(storage.getItem(projectKey(taskId)) ?? 'null') as CadProject | null
     if (value?.schema === 1 && value.taskId === taskId && value.upstreamModelId === modelId && Array.isArray(value.objects) && Array.isArray(value.features) && Array.isArray(value.sketches)) return value
   } catch { /* Keep the stored value intact if it cannot be read. */ }
   return initialCadProject(taskId, modelId, upstreamVersion)
 }
-export function saveCadProject(project: CadProject): CadProject {
-  const previous = localStorage.getItem(projectKey(project.taskId))
+export function saveCadProject(project: CadProject, storage:Storage=localStorage): CadProject {
+  const previous = storage.getItem(projectKey(project.taskId))
   if (previous) {
     const saved = JSON.parse(previous) as CadProject
     if (saved.schema === 1 && saved.savedAt && cadProjectContent(saved) === cadProjectContent(project)) return saved
   }
   const saved = { ...project, savedAt: new Date().toISOString() }
-  localStorage.setItem(projectKey(project.taskId), JSON.stringify(saved))
+  storage.setItem(projectKey(project.taskId), JSON.stringify(saved))
   return saved
 }
 export function cadProjectContent(project: CadProject) {
   return JSON.stringify({ taskId: project.taskId, upstreamModelId: project.upstreamModelId, objects: project.objects, sketches: project.sketches, features: project.features })
 }
-export function readCadSnapshots(taskId: string): CadSnapshot[] {
-  try { const value = JSON.parse(localStorage.getItem(snapshotKey(taskId)) ?? '[]'); return Array.isArray(value) ? value : [] } catch { return [] }
+export function readCadSnapshots(taskId: string, storage:Storage=localStorage): CadSnapshot[] {
+  try { const value = JSON.parse(storage.getItem(snapshotKey(taskId)) ?? '[]'); return Array.isArray(value) ? value : [] } catch { return [] }
 }
-export function nextCadVersion(taskId: string) { return `V${String(readCadSnapshots(taskId).length + 1).padStart(2, '0')}` }
-export function snapshotCadSubmission(taskId: string): string {
-  const project = JSON.parse(localStorage.getItem(projectKey(taskId)) ?? 'null') as CadProject | null
+export function nextCadVersion(taskId: string, storage:Storage=localStorage) { return `V${String(readCadSnapshots(taskId,storage).length + 1).padStart(2, '0')}` }
+export function snapshotCadSubmission(taskId: string, storage:Storage=localStorage): string {
+  const project = JSON.parse(storage.getItem(projectKey(taskId)) ?? 'null') as CadProject | null
   if (!project?.savedAt) throw new Error('CAD 工程尚未保存，请返回工作区重试。')
-  const snapshots = readCadSnapshots(taskId)
-  const version = nextCadVersion(taskId)
+  const snapshots = readCadSnapshots(taskId,storage)
+  const version = nextCadVersion(taskId,storage)
   const frozen = { ...project, version }
   const snapshot: CadSnapshot = { id: newCadId(), version, at: new Date().toISOString(), reason: 'submitted', project: frozen }
   // Store the immutable snapshot before updating the current project pointer.
-  localStorage.setItem(snapshotKey(taskId), JSON.stringify([...snapshots, snapshot]))
-  try { localStorage.setItem(projectKey(taskId), JSON.stringify(frozen)) } catch (error) {
-    localStorage.setItem(snapshotKey(taskId), JSON.stringify(snapshots)); throw error
+  storage.setItem(snapshotKey(taskId), JSON.stringify([...snapshots, snapshot]))
+  try { storage.setItem(projectKey(taskId), JSON.stringify(frozen)) } catch (error) {
+    storage.setItem(snapshotKey(taskId), JSON.stringify(snapshots)); throw error
   }
   return version
 }
-export function restoreCadSnapshot(snapshot: CadSnapshot, current: CadProject) {
-  return saveCadProject({ ...structuredClone(snapshot.project), version: current.version })
+export function restoreCadSnapshot(snapshot: CadSnapshot, current: CadProject, storage:Storage=localStorage) {
+  return saveCadProject({ ...structuredClone(snapshot.project), version: current.version },storage)
 }
 export type CadMetrics = { bounds: [number, number, number]; area: number; volume: number | null; triangles: number }
 export type CadPreview = { tool: string; targetId: string; distance: number; diameter: number; depth: number; radius: number; direction: number; offset: number; sketch?: CadSketch }
