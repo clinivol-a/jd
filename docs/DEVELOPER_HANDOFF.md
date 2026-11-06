@@ -47,3 +47,11 @@ App.tsx负责持久化、主题、导航、任务Tabs、账号、通知与审核
 新增 `GET /api/auth/registration/context`：读取当前设备的限时注册验证上下文（已验证手机号、一次性proof），仅用于衔接未注册短信登录/首次扫码，非业务授权。`POST register` 服务端强制密码格式，使用scrypt；publicAccount只返回hasPassword，不返回hash/salt。会话内部区分credentials与scan来源；解绑撤销scan来源会话、候选授权及未完成扫码，保留独立验证的其他凭证会话。
 
 真实短信投递、微信官方身份、生产会话与权限存储、管理员审批接口和自然人唯一身份核验仍需后端接入。当前本地审批控制台服务于销售测试场景，不能视为真实管理员认证；医生等工作台未在此分支扩展。详见 `docs/auth/AUTH_V1_AUDIT.md` 的逐项证据及边界。
+
+
+### 2026-11-06账号定向修正补充
+未注册短信登录返回registrationRequired但前端必须留页提示，用户点击立即注册才读取限时context。注册提交改为organizationId，服务端目录解析名称，未知/待核实单位不可注册为正式单位。GET organizations返回source:isolated-demo目录；POST organizations/request持久保存pending申请，不直接创建单位。正式目录接口由未来管理员后端实现。
+
+所有otp/send均需security/start或security/verify签发的设备、手机号、用途绑定permit，90秒一次性；验证码5分钟、60秒重发、5次校验，手机号及IP频控。当前挑战为隔离本地服务端计算校验，不等于正式反机器人服务。
+
+scan/create增加provider=wechat|wecom；未绑定且本地可信fixture有手机号时返回注册context或显式绑定候选，否则短信验证。渠道凭证独立，业务账号复用。official IdentityProviders的start/verify契约保留，但尚未连接官方配置/回调流程，缺服务返回503。provider成员身份绝不直接赋平台权限。当前交付分支及原A页面不变；详见docs/auth/TARGETED_AUTH_20261106.md。

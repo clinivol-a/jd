@@ -29,14 +29,16 @@ export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=re
     const localOrigin=/^http:\/\/(localhost|127\.0\.0\.1):5210$/.test(requestOrigin||'');const forwarded=req.headers['x-forwarded-host'];
     if(!devConsoleKey||!service.testConsole||process.env.NODE_ENV==='production'||req.headers['cf-connecting-ip']||req.headers.forwarded||req.headers['x-forwarded-proto']==='https'||!localOrigin||forwarded&&!/^(localhost|127\.0\.0\.1):5210$/.test(String(forwarded))||req.headers['x-clinivol-dev-console']!==devConsoleKey)throw new AuthFailure('接口不存在。',404)
     if(req.method!=='POST')throw new AuthFailure('请求方式不支持。',405)
-    if(action==='dev/state')result=service.testState(d)
+    if(action==='dev/risk')result=service.testRisk(d,body)
+    else if(action==='dev/state')result=service.testState(d)
     else if(action==='dev/review')result=service.testReview(body)
     else if(action==='dev/reset-sales')result=service.resetSales(d)
     else if(action==='dev/reset')result=service.testReset()
     else throw new AuthFailure('接口不存在。',404)
     res.end(JSON.stringify(result));return
    }
-   if(req.method==='GET'&&action==='registration/context')result=service.registrationContext(d)
+   if(req.method==='GET'&&action==='organizations')result=service.organizations()
+   else if(req.method==='GET'&&action==='registration/context')result=service.registrationContext(d)
    else if(req.method==='GET'&&action==='demo-scan/registration')result=service.demoRegistration(d)
    else if(req.method==='GET'&&action==='session')result=service.session(d)
    else if(req.method==='GET'&&action==='scan/status')result=service.pollScan(d,url.searchParams.get('id'))
@@ -45,6 +47,10 @@ export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=re
      case 'status/continue':result=service.continueStatus(d);break
      case 'login/password':result=service.passwordLogin(d,body);break
      case 'login/sms':result=service.smsLogin(d,body);break
+     case 'organizations/request':result=service.requestOrganization(d,body);break
+     case 'security/start':result=service.riskStart(d,body);break
+     case 'security/verify':result=service.riskVerify(d,body);break
+     case 'wecom/start':result=await service.identityProviders.start('wecom',{deviceId:d.id});break
      case 'otp/send':result=await service.sendCode(d,body);break
      case 'otp/verify':result=service.verifyCode(d,body);break
      case 'register':result=service.register(d,body);break
@@ -62,7 +68,7 @@ export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=re
      case 'scan/consume':result=service.demoMode?service.demoConsume(d,body.id):service.pollScan(d,body.id,true);break
      case 'demo-scan/resolve':result=service.demoResolve(d,body);break
      case 'demo-scan/bind':result=service.demoBind(d,body);break
-     case 'wechat/start':throw new AuthFailure('微信官方登录尚未配置，请使用账号扫码确认或手机号登录。',503)
+     case 'wechat/start':result=await service.identityProviders.start('wechat',{deviceId:d.id});break
      case 'wechat/bind':throw new AuthFailure('微信授权身份尚未接入，不能建立未经验证的绑定。',503)
      case 'wechat/unbind':result=service.unbindWechat(d,body);break
      case 'phone/change':result=service.changePhone(d,body);break

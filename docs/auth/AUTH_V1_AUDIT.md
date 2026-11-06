@@ -1,4 +1,6 @@
-# 账号体系 V1.0 最终逻辑审计
+# 账号体系 V1.0 历史基线审计
+
+> 本报告记录03b7057时的证据。最新定向修正已取消短信新用户自动跳转，并新增可信模拟手机号、单位目录、安全验证与企业微信，活动规则与新验收见[TARGETED_AUTH_20261106.md](TARGETED_AUTH_20261106.md)。下文旧结果不作为最新版验收。
 
 日期：2026-11-06。工作目录：`clinivol-a-account-integration`；分支：`feature/account-auth-integration`。仅认证代码、测试及文档变化，未改原A业务页面、锁屏、Token；未部署、未推送或更新design-handoff。
 
