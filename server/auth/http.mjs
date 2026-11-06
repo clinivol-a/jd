@@ -53,10 +53,11 @@ export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=re
      case 'lock':result=service.lock(d);break
      case 'unlock':result=service.unlock(d,body);break
      case 'scan/create':result=service.createScan(d,body);break
-     case 'scan/inspect':result=service.inspectScan(d,body);break
-     case 'scan/confirm':result=service.confirmScan(d,body);break
+     case 'scan/inspect':result=service.demoMode?service.demoInspect(d,body):service.inspectScan(d,body);break
+     case 'scan/confirm':result=service.demoMode?service.demoConfirm(d,body):service.confirmScan(d,body);break
      case 'scan/cancel':result=service.cancelScan(d,body);break
-     case 'scan/consume':result=service.pollScan(d,body.id,true);break
+     case 'scan/consume':result=service.demoMode?service.demoConsume(d,body.id):service.pollScan(d,body.id,true);break
+     case 'demo-scan/bind':result=service.demoBind(d,body);break
      case 'wechat/start':throw new AuthFailure('微信官方登录尚未配置，请使用账号扫码确认或手机号登录。',503)
      case 'wechat/bind':throw new AuthFailure('微信授权身份尚未接入，不能建立未经验证的绑定。',503)
      case 'wechat/unbind':result=service.unbindWechat(d,body);break
@@ -71,8 +72,9 @@ export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=re
 if(process.argv[1]&&fileURLToPath(import.meta.url)===resolve(process.argv[1])){
  const directory=resolve(process.env.AUTH_DATA_DIR||'.local/auth'),mode=process.env.AUTH_MODE||'disabled',origin=process.env.AUTH_PUBLIC_ORIGIN||'http://127.0.0.1:5210'
  const consoleEnabled=mode==='local'&&process.env.AUTH_DEV_CONSOLE==='1'&&!process.env.AUTH_PUBLIC_ORIGIN&&process.env.NODE_ENV!=='production'
- const service=new AuthService({directory,mode,testConsole:consoleEnabled,publicOrigin:process.env.AUTH_PUBLIC_ORIGIN||'',smsProvider:mode==='local'&&process.env.AUTH_TEST_SMS==='1'?async(phone,code,purpose)=>writeFileSync(join(directory,'sms-outbox.json'),JSON.stringify({phone,code,purpose,at:Date.now()}),{mode:0o600}):undefined})
+ const service=new AuthService({directory,mode,testConsole:consoleEnabled,demoMode:process.env.AUTH_DEMO_MODE==='1'&&mode==='local'&&process.env.NODE_ENV!=='production',scanOrigin:process.env.AUTH_SCAN_ORIGIN||'',publicOrigin:process.env.AUTH_PUBLIC_ORIGIN||'',smsProvider:mode==='local'&&process.env.AUTH_TEST_SMS==='1'?async(phone,code,purpose)=>writeFileSync(join(directory,'sms-outbox.json'),JSON.stringify({phone,code,purpose,at:Date.now()}),{mode:0o600}):undefined})
  if(mode==='local')service.seedLocal()
  let devConsoleKey='';if(consoleEnabled){service.migrateTestScenario();devConsoleKey=random();writeFileSync(join(directory,'dev-console-key'),devConsoleKey,{mode:0o600})}
+ if(service.demoMode&&process.env.AUTH_SCAN_ORIGIN){const lan=new URL(process.env.AUTH_SCAN_ORIGIN);if(!/^192\.168\.|^10\.|^172\.(1[6-9]|2\d|3[01])\./.test(lan.hostname))throw new Error('LAN demo requires a private network address');createAuthServer(service,{origin:lan.origin,secure:false}).listen(Number(lan.port),lan.hostname,()=>console.log('Isolated LAN scan listener: '+lan.origin))}
  const port=Number(process.env.AUTH_PORT||5211);createAuthServer(service,{origin,devConsoleKey}).listen(port,'127.0.0.1',()=>console.log(`Auth server listening on 127.0.0.1:${port}; mode=${mode}. Local test credentials, when enabled: .local/auth/test-credentials.json`))
 }

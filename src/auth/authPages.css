@@ -82,3 +82,12 @@ html[data-auth-screen='true'],html[data-auth-screen='true'] body,html[data-auth-
 .auth-sales-app{--layout-sidebar-width:224px;--layout-sidebar-collapsed-width:64px;}
 
 .auth-shell .auth-code-feedback,.auth-security-form .auth-code-feedback{min-height:22px;margin:8px 0 0;font:400 14px/22px var(--cv-font-family);color:var(--td-text-color-secondary);}.auth-shell .auth-code-feedback.error,.auth-security-form .auth-code-feedback.error{color:var(--td-error-color);}.auth-shell .auth-code-feedback.success,.auth-security-form .auth-code-feedback.success{color:var(--td-success-color);}
+
+.auth-back-actions{display:flex;align-items:center;gap:24px;min-height:0;}.auth-back-actions:empty{display:none;}
+.auth-shell .auth-back.t-button,.auth-shell .auth-back.t-button:hover{display:inline-flex;align-items:center;gap:4px;padding:0;height:32px;min-width:0;}
+.auth-shell .auth-back .t-button__text{margin:0;}.auth-shell .auth-back .t-icon{margin:0;flex-shrink:0;}
+.auth-confirm-group{display:flex;flex-direction:column;gap:12px;}.auth-confirm-group .agreement-field{margin:0;}
+.auth-result .auth-status-person{color:var(--td-text-color-secondary);margin:16px 0 8px;}.auth-result>p{margin:0 0 24px;}
+.auth-integration-lock{gap:16px;}.auth-integration-lock>.t-avatar{margin-bottom:0;}.auth-integration-lock>h2,.auth-integration-lock>p{transform:none;margin:0;}.auth-integration-lock>h2{line-height:32px;}.auth-integration-lock .auth-lock-input{width:100%;margin:12px 0 4px;}.auth-integration-lock .t-input{margin:0;}.auth-integration-lock .t-input__tips{position:static;transform:none;margin:8px 0 0;font:400 14px/22px var(--cv-font-family);text-align:left;}.auth-integration-lock>.t-button{width:100%;}
+
+.auth-scan-link{display:inline-block;margin-top:12px;color:var(--td-text-color-link);}
