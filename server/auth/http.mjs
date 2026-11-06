@@ -31,11 +31,13 @@ export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=re
     if(req.method!=='POST')throw new AuthFailure('请求方式不支持。',405)
     if(action==='dev/state')result=service.testState(d)
     else if(action==='dev/review')result=service.testReview(body)
+    else if(action==='dev/reset-sales')result=service.resetSales(d)
     else if(action==='dev/reset')result=service.testReset()
     else throw new AuthFailure('接口不存在。',404)
     res.end(JSON.stringify(result));return
    }
-   if(req.method==='GET'&&action==='session')result=service.session(d)
+   if(req.method==='GET'&&action==='demo-scan/registration')result=service.demoRegistration(d)
+   else if(req.method==='GET'&&action==='session')result=service.session(d)
    else if(req.method==='GET'&&action==='scan/status')result=service.pollScan(d,url.searchParams.get('id'))
    else if(req.method==='POST'){
     switch(action){
@@ -57,6 +59,7 @@ export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=re
      case 'scan/confirm':result=service.demoMode?service.demoConfirm(d,body):service.confirmScan(d,body);break
      case 'scan/cancel':result=service.cancelScan(d,body);break
      case 'scan/consume':result=service.demoMode?service.demoConsume(d,body.id):service.pollScan(d,body.id,true);break
+     case 'demo-scan/resolve':result=service.demoResolve(d,body);break
      case 'demo-scan/bind':result=service.demoBind(d,body);break
      case 'wechat/start':throw new AuthFailure('微信官方登录尚未配置，请使用账号扫码确认或手机号登录。',503)
      case 'wechat/bind':throw new AuthFailure('微信授权身份尚未接入，不能建立未经验证的绑定。',503)
