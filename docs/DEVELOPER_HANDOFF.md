@@ -39,3 +39,11 @@ App.tsx负责持久化、主题、导航、任务Tabs、账号、通知与审核
 ## 规范与验收
 
 先读AGENTS.md及design-system四份规范；运行tokens.css、tokens.json、dateTime.ts为实现依据。日期和Tag组件例外以最新component-rules为准。验收见ACCEPTANCE_CHECKLIST；数据/接口见DATA_AND_API_HANDOFF。
+
+
+## 账号集成开发分支 V1.0 补充（2026-11-06）
+本节仅说明隔离账号集成分支，不改变原设计交付Tag或已发布基线。注册必须手机验证、必填密码及确认、资料、管理员审核；批准前没有业务会话。批准后同账号支持短信与密码登录，扫码绑定增加凭证、不重复审核。原A工作区通过服务端会话门控最小包裹接入，业务数据仍为原前端演示数据。
+
+新增 `GET /api/auth/registration/context`：读取当前设备的限时注册验证上下文（已验证手机号、一次性proof），仅用于衔接未注册短信登录/首次扫码，非业务授权。`POST register` 服务端强制密码格式，使用scrypt；publicAccount只返回hasPassword，不返回hash/salt。会话内部区分credentials与scan来源；解绑撤销scan来源会话、候选授权及未完成扫码，保留独立验证的其他凭证会话。
+
+真实短信投递、微信官方身份、生产会话与权限存储、管理员审批接口和自然人唯一身份核验仍需后端接入。当前本地审批控制台服务于销售测试场景，不能视为真实管理员认证；医生等工作台未在此分支扩展。详见 `docs/auth/AUTH_V1_AUDIT.md` 的逐项证据及边界。

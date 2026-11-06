@@ -36,7 +36,8 @@ export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=re
     else throw new AuthFailure('接口不存在。',404)
     res.end(JSON.stringify(result));return
    }
-   if(req.method==='GET'&&action==='demo-scan/registration')result=service.demoRegistration(d)
+   if(req.method==='GET'&&action==='registration/context')result=service.registrationContext(d)
+   else if(req.method==='GET'&&action==='demo-scan/registration')result=service.demoRegistration(d)
    else if(req.method==='GET'&&action==='session')result=service.session(d)
    else if(req.method==='GET'&&action==='scan/status')result=service.pollScan(d,url.searchParams.get('id'))
    else if(req.method==='POST'){

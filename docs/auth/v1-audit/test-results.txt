@@ -1,0 +1,45 @@
+$ node --experimental-strip-types --test tests/auth-service.test.mjs tests/auth-http.test.mjs tests/auth-storage.test.mjs tests/auth-console.test.mjs tests/auth-demo-scan.test.mjs
+✔ console shows only backend-generated device codes; wrong/expired/consumed codes and resend are enforced (27.925375ms)
+✔ Chen keeps A identity; Li registers uniquely, is reviewed server-side and obtains only sales session (55.51575ms)
+✔ legacy approved sales seed is privately archived once, without modifying Chen (34.921458ms)
+✔ management routes are inaccessible without explicit local dev proxy capability and always disabled for public origin (86.439125ms)
+✔ parallel resend does not issue two simultaneously valid codes (0.16475ms)
+✔ production runtime rejects dev management even with a valid development proxy header (27.990083ms)
+✔ first scan binds verified phone; repeat scan logs into same account without fake WeChat OAuth (38.75275ms)
+✔ phone-first account can bind current identity; conflicts, cancelled sessions and production adapter are rejected (27.653209ms)
+✔ unregistered scan follows registration while remaining pending, and only verified sales approval grants sales access (64.526542ms)
+✔ Li fresh scan resolves unregistered phone, carries one-use proof through registration, gates approval and reuses binding (55.023041ms)
+✔ existing phone is resolved for explicit binding without registration or changing original identity/status (25.983542ms)
+✔ V1 new scan registration requires password; approved identity supports password, SMS and repeat scan without duplicate account (70.804458ms)
+✔ V1 unbinding revokes scan-derived desktop sessions while retaining independently verified credentials (23.123833ms)
+✔ V1 binding a scan identity already assigned to another account is rejected without merging (25.964125ms)
+✔ V1 pending scan candidates cannot regain access through continue after unlink, and disabled bound accounts remain blocked (48.348916ms)
+✔ V1 registration rechecks demo identity uniqueness after confirmation and does not create a duplicate bound account (30.447709ms)
+✔ HTTP desktop/mobile cookie sessions complete QR confirmation; CSRF and replay are rejected (89.651666ms)
+✔ V1 HTTP SMS registration context rejects missing password and never authorizes a pending applicant (34.110833ms)
+✔ server authenticates credentials and masks public accounts without leaking hashes (77.931292ms)
+✔ account switch requires a verified target session; logout preserves other valid session (99.207667ms)
+✔ pending and disabled credentials only reach a status page, never a business session (259.421583ms)
+✔ lock requires verified password; role and permission cannot be changed by profile payload (115.813833ms)
+✔ scan confirmation uses two independent devices and password verification (70.142708ms)
+✔ expired, cancelled and refreshed QR sessions cannot complete or be replaced (204.919ms)
+✔ account deauthorization before desktop consumption does not grant access (67.97725ms)
+✔ SMS proof is device-bound, purpose-bound, short-lived and one-use (44.878833ms)
+✔ password-required registration is pending and cannot grant roles or duplicate a phone (69.208125ms)
+✔ password reset revokes all sessions of only the verified account (184.737417ms)
+✔ binding uses a server-verified identity and existing phone proof, never creates a second account (45.473667ms)
+✔ local adapter refuses implicit production use and missing services do not fake success (0.192834ms)
+✔ V1 rejects missing, empty and weak registration passwords before consuming a valid phone proof (67.39625ms)
+✔ V1 unregistered SMS login carries a device-bound expiring registration context without creating an account (45.206334ms)
+✔ V1 approved accounts support both SMS and password; changing password rejects old credentials and revokes sessions (238.916ms)
+✔ V1 shared registration/recovery/change form policy rejects blank, mismatched and malformed passwords (0.218458ms)
+✔ only Chen receives a non-destructive copy of legacy A data; all later writes are account-scoped (0.440208ms)
+✔ a captured old-account adapter stays bound when a new account mounts and cleanup saves (0.07175ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1691.759125
