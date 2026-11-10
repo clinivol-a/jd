@@ -175,3 +175,5 @@
 .sales-dashboard .attention-card .t-table tbody tr {
   height: var(--dashboard-data-row-height);
 }
+
+.sales-invite-url { max-width:100%; overflow-wrap:anywhere; }

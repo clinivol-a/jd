@@ -578,7 +578,7 @@ export default function SalesWorkspace() {
     { key: "title", label: "职称" },
     {
       key: "recent",
-      label: "最近业务",
+      label: "最近更新时间",
       render: (r: Row) => {
         const at = data.events.find((e) => e.target === r.id)?.at;
         return at ? formatDynamicTime(at) : "暂无记录";
@@ -592,12 +592,12 @@ export default function SalesWorkspace() {
     },
     {
       key: "status",
-      label: "资质审核",
+      label: "资质审核状态",
       render: (r: Row) => <Status value={String(r.status)} />,
     },
     {
       key: "owner",
-      label: "销售关联",
+      label: "负责销售",
       render: (r: Row) =>
         r.owner === account.id
           ? "已关联 · 李明"
@@ -1033,123 +1033,18 @@ export default function SalesWorkspace() {
             </Button>
           </>,
         )}
-        <Tabs
-          value={detail || "hospitals"}
-          onChange={(v) => go("customers/" + v)}
-        >
-          <Tabs.TabPanel value="hospitals" label="医院客户" />
-          <Tabs.TabPanel value="doctors" label="医生档案" />
-          <Tabs.TabPanel value="linked" label="我的关联医生" />
-          <Tabs.TabPanel value="requests" label="建档与关联申请" />
-        </Tabs>
         <div className="sales-filters">
-          <Input
-            clearable
-            value={search}
-            onChange={setSearch}
-            placeholder="搜索医院或医生"
-          />
-          <Select
-            clearable
-            placeholder="科室"
-            value={deptFilter || undefined}
-            onChange={(v) => setDeptFilter(String(v || ""))}
-            options={[
-              ...new Set(data.hospitals.flatMap((h) => h.departments)),
-            ].map((value) => ({ value, label: value }))}
-          />
-          <Select
-            clearable
-            placeholder="资质审核状态"
-            value={filter || undefined}
-            onChange={(v) => setFilter(String(v || ""))}
-            options={["草稿", "待审核", "审核通过", "审核退回"].map(
-              (value) => ({ value, label: value }),
-            )}
-          />
+          <Input clearable value={search} onChange={setSearch} placeholder="搜索医生姓名或手机号"/>
+          <Select placeholder="全部医院" clearable value={hospitalFilter || undefined} options={data.hospitals.map(h=>({value:h.id,label:h.name}))} onChange={v=>{setHospitalFilter(String(v||""));setDeptFilter("");}}/>
+          <Select placeholder="全部科室" clearable value={deptFilter || undefined} options={[...new Set(data.hospitals.filter(h=>!hospitalFilter||h.id===hospitalFilter).flatMap(h=>h.departments))].map(value=>({value,label:value}))} onChange={v=>setDeptFilter(String(v||""))}/>
+          <Select placeholder="全部状态" clearable value={filter || undefined} options={["草稿","待审核","审核通过","审核退回"].map(value=>({value,label:value}))} onChange={v=>setFilter(String(v||""))}/>
+          <Button theme="default" variant="outline" onClick={()=>{setSearch("");setHospitalFilter("");setDeptFilter("");setFilter("");}}>重置筛选</Button>
         </div>
-        <div className="sales-list-table">
-          {detail === "requests" ? (
-            <>
-              <h3 className="sales-list-subheading">专属码待建档</h3>
-              <Grid
-                rows={data.doctors.filter(
-                  (d) => d.source.startsWith("CV-SALES-") && !d.owner,
-                )}
-                fields={doctorFields}
-              />
-              <h3 className="sales-list-subheading">关联审批申请</h3>
-              <RequestList data={data} />
-            </>
-          ) : detail === "doctors" || detail === "linked" ? (
-            <Grid
-              rows={data.doctors.filter(
-                (d) =>
-                  (detail !== "linked" || d.owner === account.id) &&
-                  d.name.includes(search) &&
-                  (!filter || d.status === filter) &&
-                  (!deptFilter || d.department === deptFilter),
-              )}
-              fields={doctorFields}
-            />
-          ) : (
-            <Grid
-              rows={data.hospitals
-                .filter(
-                  (h) =>
-                    h.name.includes(search) &&
-                    (!deptFilter || h.departments.includes(deptFilter)),
-                )
-                .map((h) => ({
-                  ...h,
-                  owner: "李明",
-                  doctors: data.doctors.filter((d) => d.hospitalId === h.id)
-                    .length,
-                  count: orders.filter(
-                    (o) => o.hospitalId === h.id && o.status === "处理中",
-                  ).length,
-                  departmentsCount: h.departments.length,
-                }))}
-              fields={[
-                { key: "name", label: "医院名称" },
-                { key: "region", label: "区域" },
-                { key: "id", label: "医院编号" },
-                { key: "owner", label: "负责销售" },
-                { key: "departmentsCount", label: "科室数" },
-                { key: "doctors", label: "医生数" },
-                { key: "count", label: "处理中订单" },
-                {
-                  key: "recent",
-                  label: "最近业务",
-                  render: (r) => {
-                    const at = orders
-                      .filter((o) => o.hospitalId === r.id)
-                      .map((o) => o.updated)
-                      .sort()
-                      .at(-1);
-                    return at ? formatDynamicTime(at) : "暂无记录";
-                  },
-                },
-                {
-                  key: "actions",
-                  label: "操作",
-                  render: (r) => (
-                    <Button
-                      variant="text"
-                      onClick={() => go("hospital/" + r.id)}
-                    >
-                      查看详情
-                    </Button>
-                  ),
-                },
-              ]}
-            />
-          )}
-        </div>
+        <Grid rows={data.doctors.filter(d=>(!d.owner||d.owner===account.id)&&data.hospitals.some(h=>h.id===d.hospitalId&&h.departments.includes(d.department))&&(d.name.includes(search)||d.phone.includes(search))&&(!hospitalFilter||d.hospitalId===hospitalFilter)&&(!deptFilter||d.department===deptFilter)&&(!filter||d.status===filter))} fields={doctorFields}/>
       </Card>
     );
   else if (section === "hospital") {
-    const hospital = data.hospitals.find((h) => h.id === detail);
+    const hospital = account.permissions.includes("hospital.directory.read") ? data.hospitals.find((h) => h.id === detail) : undefined;
     content = hospital ? (
       <>
         <Back onClick={() => go("customers")}>返回客户管理</Back>
@@ -1193,7 +1088,7 @@ export default function SalesWorkspace() {
       <DoctorEditor
         key={detail || "new"}
         data={data}
-        initial={data.doctors.find((d) => d.id === detail)}
+        initial={data.doctors.find((d) => d.id === detail && (!d.owner || d.owner === account.id))}
         save={(d) => {
           if (commit({ type: "doctor-save", value: d })) go("doctor/" + d.id);
         }}
@@ -1201,7 +1096,7 @@ export default function SalesWorkspace() {
       />
     );
   else if (section === "doctor") {
-    const d = data.doctors.find((d) => d.id === detail);
+    const d = data.doctors.find((d) => d.id === detail && (!d.owner || d.owner === account.id));
     content = d ? (
       <>
         <Back onClick={() => go("customers/doctors")}>返回客户管理</Back>
@@ -1217,13 +1112,7 @@ export default function SalesWorkspace() {
                   >
                     编辑资料
                   </Button>
-                  <Button
-                    theme="primary"
-                    disabled={d.status !== "审核通过" || d.owner !== account.id}
-                    onClick={() => go("order-new/" + d.id)}
-                  >
-                    创建订单
-                  </Button>
+                  <Button theme="primary" disabled={!["草稿","审核退回"].includes(d.status)||!d.name||!d.phone||!d.certificate||!d.materials.length} onClick={()=>commit({type:"doctor-submit",target:d.id})}>{d.status==="审核退回"?"重新提交审核":"提交审核"}</Button>
                 </>
               ) : (
                 <Button onClick={() => applyRequest("归属变更", d.id)}>
@@ -1242,7 +1131,10 @@ export default function SalesWorkspace() {
                   ["医院", h(d.hospitalId)],
                   ["科室", d.department],
                   ["职称", d.title],
-                  ["资质状态", <Status value={d.status} />],
+                  ["联系电话", d.phone ? d.phone.replace(/(\d{3})\d{4}/,"$1****") : "未提供"],
+                  ["执业证书编号", d.certificate || "未提供"],
+                  ["建档来源",d.source],
+                  ["最近更新",data.events.find(e=>e.target===d.id)?.at ? formatAuditTime(data.events.find(e=>e.target===d.id)!.at) : "暂无记录"],
                   [
                     "负责销售",
                     d.owner === account.id
@@ -1258,25 +1150,6 @@ export default function SalesWorkspace() {
                   </div>
                 ))}
               </dl>
-              <p>
-                手机号：
-                {d.phone ? d.phone.replace(/(\d{3})\d{4}/, "$1****") : "未提供"}
-              </p>
-              <p>
-                关联：
-                {d.owner === account.id
-                  ? "李明"
-                  : d.owner
-                    ? "其他销售"
-                    : "待关联"}{" "}
-                · 来源：{d.source}
-              </p>
-              <Button
-                disabled={!["草稿", "审核退回"].includes(d.status)}
-                onClick={() => commit({ type: "doctor-submit", target: d.id })}
-              >
-                提交审核
-              </Button>
             </Tabs.TabPanel>
             <Tabs.TabPanel value="files" label="资质材料">
               {d.owner && d.owner !== account.id ? (
@@ -1442,7 +1315,8 @@ export default function SalesWorkspace() {
                   ["病例编号", o.caseId],
                   ["医院", h(o.hospitalId)],
                   ["需求医生", doc(o.doctorId)],
-                  ["服务", o.service],
+                  ["科室", o.department],
+                  ["业务服务项目", o.service],
                   ["数量", o.quantity],
                   ["预计交付", o.due],
                   ["创建日期", formatDate(o.created)],
@@ -1455,9 +1329,6 @@ export default function SalesWorkspace() {
                 ))}
               </dl>
               {o.reason && <p className="sales-error">{o.reason}</p>}
-              <Button onClick={() => go("case/" + o.caseId)}>
-                查看病例与关联订单
-              </Button>
             </Tabs.TabPanel>
             <Tabs.TabPanel value="progress" label="专业进度">
               {o.stages.length ? (
@@ -1477,22 +1348,7 @@ export default function SalesWorkspace() {
             <Tabs.TabPanel value="files" label="资料附件">
               <Files owner={account.id} value={o.materials} readonly />
             </Tabs.TabPanel>
-            <Tabs.TabPanel value="delivery" label="交付与确认">
-              <ul className="timeline sales-log">{logs(o.id)}</ul>
-              {!data.events.some((e) => e.target === o.id) && (
-                <Empty description="暂无交付确认记录" />
-              )}
-            </Tabs.TabPanel>
             <Tabs.TabPanel value="activity" label="操作记录">
-              <Button
-                onClick={() => {
-                  setTarget(o.id);
-                  setModal("业务跟进");
-                  setReason("");
-                }}
-              >
-                记录业务跟进
-              </Button>
               <ul className="timeline sales-log">{logs(o.id)}</ul>
             </Tabs.TabPanel>
           </Tabs>

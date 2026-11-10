@@ -35,8 +35,6 @@ export function SalesInviteDialog({
   visible,
   onClose,
   hospitals,
-  count,
-  pending,
 }: {
   visible: boolean;
   onClose: () => void;
@@ -65,12 +63,13 @@ export function SalesInviteDialog({
       footer={false}
       onClose={onClose}
     >
-      <div className="sales-invite">
+      <div className="sales-invite"><p>邀请医生完善建档资料</p>
         {invite ? (
           <>
             <QRCode value={invite.url} size={196} type="svg" />
             <p>邀请码：{invite.code}</p>
-            <Button
+            <p className="sales-invite-url">{invite.url}</p>
+            <Button theme="primary"
               onClick={() =>
                 void navigator.clipboard
                   .writeText(invite.url)
@@ -80,23 +79,15 @@ export function SalesInviteDialog({
                   )
               }
             >
-              复制邀请链接
+              复制链接
             </Button>
             <a href={invite.url} target="_blank" rel="noreferrer">
               打开邀请入口
             </a>
-            <p>
-              {invite.lan
-                ? "同一 Wi-Fi 下扫码提交联系信息；由销售补充资质，管理员审核后建立关联。"
-                : "当前仅监听本机。手机扫码需要开启局域网监听；可先在本机打开邀请入口。"}
-            </p>
           </>
         ) : (
           <Empty description={error || "正在读取邀请入口…"} />
         )}
-        <p>
-          已关联医生 {count} 位 · 待建档 {pending} 位
-        </p>
       </div>
     </Dialog>
   );
