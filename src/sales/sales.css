@@ -1,141 +1,106 @@
+/* Sales-only composition; shell, cards, typography and tables inherit Scheme A. */
 .sales-app {
   --layout-sidebar-width: 224px;
+  --layout-sidebar-collapsed-width: 64px;
   height: 100vh;
   overflow: hidden;
-  color: var(--td-text-color-primary);
   background: var(--td-bg-color-page);
 }
-.sales-layout {
+.sales-app > .sales-layout {
   height: calc(100vh - 56px);
 }
-.sales-layout > main {
-  min-width: 0;
-  flex: 1;
-  overflow: auto;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+.sales-page > .t-button:first-child {
+  margin-bottom: 20px;
 }
-.sales-heading {
+.sales-actions-inline,
+.sales-actions,
+.list-page-heading > div {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 16px;
-}
-.sales-heading h1 {
-  font:
-    500 24px/32px "PingFang SC",
-    sans-serif;
-  margin: 0;
-}
-.sales-heading > div,
-.sales-actions {
-  display: flex;
   gap: 12px;
 }
-.sales-muted,
-.sales-files p,
-.sales-info > div > span:first-child {
-  color: var(--td-text-color-secondary);
+.sales-actions {
+  margin-top: 24px;
 }
-.sales-layout p {
-  margin: 0 0 12px;
+.sales-dashboard {
+  padding: 0;
 }
-.sales-layout h3 {
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 500;
+.sales-dashboard .dashboard-grid {
+  align-items: stretch;
+}
+.sales-stat-activator {
+  min-width: 0;
+  cursor: pointer;
+}
+.sales-stat-activator:focus-visible {
+  outline: 2px solid var(--td-brand-color);
+  outline-offset: 2px;
 }
 .sales-filters {
   display: flex;
   align-items: center;
-  gap: 12px;
   flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 24px;
 }
 .sales-filters > .t-input__wrap,
 .sales-filters > .t-select__wrap,
 .sales-filters > .t-date-picker {
   width: 190px;
 }
-.sales-layout .t-card {
-  border-radius: var(--cv-card-radius);
-  box-shadow: none;
-  flex-shrink: 0;
+.sales-page .unified-list-card > .t-card__body > .t-tabs {
+  padding: 0 24px;
 }
-.sales-layout .t-card__body {
+.sales-list-table {
   min-width: 0;
 }
-.sales-layout .t-table {
-  font:
-    400 14px/22px "PingFang SC",
-    sans-serif;
+.sales-page .project-info-card .list-page-heading {
+  padding: 0 0 20px;
+  min-height: 0;
 }
-.sales-layout .t-table__content {
+.sales-page .project-info-card .list-page-heading h1 {
+  font-size: var(--cv-font-size-title-medium);
+  line-height: var(--cv-line-height-title-medium);
+}
+.sales-page .t-table__content {
   overflow-x: auto;
 }
-.sales-info {
-  display: grid;
-  gap: 0;
-  margin: 20px 0;
+.sales-page .t-button--variant-text.t-button--theme-primary:hover {
+  background: transparent;
 }
-.sales-info > div {
-  display: grid;
-  grid-template-columns: 140px 1fr;
-  gap: 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--td-component-stroke);
+.sales-page .t-button--variant-text {
+  color: var(--td-brand-color);
 }
-.sales-info > div:last-child {
-  border-bottom: 0;
-}
-.sales-log {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.sales-log > li {
-  padding: 16px 0;
-  border-bottom: 1px solid var(--td-component-stroke);
-}
-.sales-log > li:last-child {
-  border-bottom: 0;
-}
-.sales-log strong {
-  font-weight: 500;
-}
-.sales-log p {
-  color: var(--td-text-color-secondary);
-  margin-top: 8px;
-}
-.sales-files > div {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.sales-files p {
-  margin-top: 8px;
-}
-.sales-upload {
-  display: inline-flex;
-  padding: 6px 16px;
-  border: 1px solid var(--td-component-border);
-  border-radius: var(--td-radius-default);
-  cursor: pointer;
-}
-.sales-upload input {
-  max-width: 240px;
-  margin-left: 8px;
-}
-.sales-error {
-  color: var(--td-error-color);
+.sales-page .t-form {
+  max-width: 760px;
 }
 .sales-order-form {
   margin-top: 24px;
 }
-.sales-layout .t-form {
-  max-width: 760px;
+.sales-page .t-steps {
+  margin-top: 24px;
+}
+.sales-error {
+  color: var(--td-error-color);
+}
+.sales-muted,
+.sales-files p {
+  color: var(--td-text-color-secondary);
+}
+.sales-files > div {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+.sales-files p {
+  margin-top: 8px;
+}
+.sales-log {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
 }
 .sales-test-toggle {
   position: fixed;
@@ -143,23 +108,6 @@
   bottom: 16px;
   z-index: 120;
 }
-.sales-actions {
-  margin-top: 24px;
-}
-@media (max-width: 1100px) {
-  .sales-layout > main {
-    padding: 16px;
-  }
-  .sales-heading {
-    flex-wrap: wrap;
-  }
-}
-@media (max-width: 760px) {
-  .sales-info > div {
-    grid-template-columns: 100px 1fr;
-  }
-}
-
 .sales-invite {
   display: flex;
   align-items: center;
@@ -192,40 +140,38 @@
   margin: 16px 0;
 }
 
-.sales-progress-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin: 12px 0;
+.sales-table-scroll {
+  max-width: 100%;
 }
-.sales-layout .t-card__title {
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 500;
+.sales-stat-label {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-
-.sales-dashboard {
-  width: 100%;
-  padding: 0;
+.sales-stat-activator .stat-card-head {
+  gap: 8px;
 }
-.sales-actions-inline {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-.sales-stat-activator {
-  cursor: pointer;
-}
-.sales-stat-activator:focus-visible {
-  outline: 2px solid var(--td-brand-color);
-  outline-offset: 2px;
-}
-.sales-dashboard .dashboard-grid {
-  align-items: stretch;
-}
-.sales-dashboard .recent-card,
-.sales-dashboard .attention-card {
-  min-height: 300px;
+.sales-stat-activator .stat-card-head i {
+  flex: 0 0 32px;
 }
 
-.sales-stat-activator{min-width:0}.sales-stat-activator>.t-card{height:100%;cursor:pointer}
+.sales-list-subheading {
+  padding: 20px 24px;
+}
+.sales-section-body {
+  padding: 24px;
+}
+
+.sales-dashboard .recent-card .sales-table-scroll,
+.sales-dashboard .attention-card .sales-table-scroll {
+  min-height: calc(
+    var(--dashboard-table-head-height) + 3 * var(--dashboard-data-row-height) +
+      12px
+  );
+}
+.sales-dashboard .recent-card .t-table tbody tr,
+.sales-dashboard .attention-card .t-table tbody tr {
+  height: var(--dashboard-data-row-height);
+}

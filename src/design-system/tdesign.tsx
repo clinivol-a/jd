@@ -52,3 +52,6 @@ export const ZoomInIcon = adaptIcon(Catalog.ZoomInIcon)
 export const CheckCircleIcon = adaptIcon(Catalog.CheckCircleIcon)
 export const ErrorCircleIcon = adaptIcon(Catalog.ErrorCircleIcon)
 export const MobileIcon = adaptIcon(Catalog.MobileIcon)
+
+// Sales order creation: official filled file-plus, distinct from review-return.
+export const FileAddFilledIcon = adaptIcon(Catalog.FileAddFilledIcon)
