@@ -1,0 +1,279 @@
+.sales-app {
+  --layout-sidebar-width: 224px;
+  height: 100vh;
+  overflow: hidden;
+  color: var(--td-text-color-primary);
+  background: var(--td-bg-color-page);
+}
+.sales-layout {
+  display: flex;
+  height: calc(100vh - 56px);
+  min-height: 0;
+}
+.sales-layout > aside {
+  width: 224px;
+  flex-shrink: 0;
+  background: var(--td-bg-color-container);
+  border-right: 1px solid var(--td-component-stroke);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0;
+}
+.sales-layout > aside.is-collapsed {
+  width: 64px;
+}
+.sales-layout .t-default-menu {
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+}
+.sales-layout .t-menu {
+  width: 100%;
+  border: 0;
+}
+.sales-app
+  .sales-layout
+  .t-default-menu
+  .t-menu__item.t-is-active:not(.t-is-disabled) {
+  background: var(--td-brand-color);
+  color: var(--td-text-color-anti);
+}
+.sales-layout > main {
+  min-width: 0;
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.sales-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.sales-heading h1 {
+  font:
+    500 24px/32px "PingFang SC",
+    sans-serif;
+  margin: 0;
+}
+.sales-heading > div,
+.sales-actions {
+  display: flex;
+  gap: 12px;
+}
+.sales-muted,
+.sales-files p,
+.sales-info > div > span:first-child {
+  color: var(--td-text-color-secondary);
+}
+.sales-layout p {
+  margin: 0 0 12px;
+}
+.sales-layout h3 {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+}
+.sales-stats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+}
+.sales-stats > button {
+  border: 0;
+  border-radius: var(--cv-card-radius);
+  padding: 24px;
+  text-align: left;
+  background: var(--td-bg-color-container);
+  color: var(--td-text-color-primary);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font:
+    400 14px/22px "PingFang SC",
+    sans-serif;
+}
+.sales-stats strong {
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 400;
+}
+.sales-stats > button:hover {
+  background: var(--td-bg-color-container-hover);
+}
+.sales-stats > button:focus-visible {
+  outline: 2px solid var(--td-brand-color);
+}
+.sales-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.sales-filters > .t-input__wrap,
+.sales-filters > .t-select__wrap,
+.sales-filters > .t-date-picker {
+  width: 190px;
+}
+.sales-layout .t-card {
+  border-radius: var(--cv-card-radius);
+  box-shadow: none;
+  flex-shrink: 0;
+}
+.sales-layout .t-card__body {
+  min-width: 0;
+}
+.sales-layout .t-table {
+  font:
+    400 14px/22px "PingFang SC",
+    sans-serif;
+}
+.sales-layout .t-table__content {
+  overflow-x: auto;
+}
+.sales-info {
+  display: grid;
+  gap: 0;
+  margin: 20px 0;
+}
+.sales-info > div {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--td-component-stroke);
+}
+.sales-info > div:last-child {
+  border-bottom: 0;
+}
+.sales-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sales-log > li {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--td-component-stroke);
+}
+.sales-log > li:last-child {
+  border-bottom: 0;
+}
+.sales-log strong {
+  font-weight: 500;
+}
+.sales-log p {
+  color: var(--td-text-color-secondary);
+  margin-top: 8px;
+}
+.sales-files > div {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.sales-files p {
+  margin-top: 8px;
+}
+.sales-upload {
+  display: inline-flex;
+  padding: 6px 16px;
+  border: 1px solid var(--td-component-border);
+  border-radius: var(--td-radius-default);
+  cursor: pointer;
+}
+.sales-upload input {
+  max-width: 240px;
+  margin-left: 8px;
+}
+.sales-error {
+  color: var(--td-error-color);
+}
+.sales-order-form {
+  margin-top: 24px;
+}
+.sales-layout .t-form {
+  max-width: 760px;
+}
+.sales-test-toggle {
+  position: fixed;
+  right: 24px;
+  bottom: 16px;
+  z-index: 120;
+}
+.sales-actions {
+  margin-top: 24px;
+}
+@media (max-width: 1100px) {
+  .sales-stats {
+    gap: 12px;
+  }
+  .sales-stats > button {
+    padding: 16px;
+  }
+  .sales-layout > main {
+    padding: 16px;
+  }
+  .sales-heading {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 760px) {
+  .sales-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .sales-layout > aside {
+    width: 64px;
+  }
+  .sales-info > div {
+    grid-template-columns: 100px 1fr;
+  }
+}
+
+.sales-invite {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 16px;
+}
+.sales-invite p {
+  margin: 0;
+  color: var(--td-text-color-secondary);
+}
+.sales-invite-page {
+  max-width: 480px;
+  margin: 32px auto;
+  padding: 24px;
+  color: var(--td-text-color-primary);
+  background: var(--td-bg-color-container);
+}
+.sales-invite-page > img {
+  width: 140px;
+}
+.sales-invite-page > label {
+  display: block;
+  margin: 16px 0;
+}
+.sales-invite-page h1 {
+  font-size: 24px;
+  line-height: 32px;
+}
+.sales-invite-page p {
+  margin: 16px 0;
+}
+
+.sales-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 12px 0;
+}
+.sales-layout .t-card__title {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+}
