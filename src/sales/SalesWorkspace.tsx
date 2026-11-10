@@ -22,6 +22,11 @@ import {
   FileIcon,
   ListDemandIcon,
   NotificationIcon,
+  TaskFilledIcon,
+  WorkFilledIcon,
+  TimeFilledIcon,
+  AssignmentErrorFilledIcon,
+  TaskCheckedFilledIcon,
   MenuFoldIcon,
   MenuUnfoldIcon,
 } from "../design-system/tdesign";
@@ -85,8 +90,10 @@ function Status({ value }: { value: string }) {
 function Grid({
   rows,
   fields,
+  paginate = true,
 }: {
   rows: Row[];
+  paginate?: boolean;
   fields: {
     key: string;
     label: string;
@@ -97,8 +104,13 @@ function Grid({
   useEffect(() => setPage(1), [rows.length]);
   return (
     <Table
+      className="app-table"
+      size="small"
+      hover
+      bordered={false}
+      tableLayout="fixed"
       rowKey="id"
-      data={rows.slice((page - 1) * 6, page * 6)}
+      data={paginate ? rows.slice((page - 1) * 6, page * 6) : rows}
       columns={fields.map((c) => ({
         colKey: c.key,
         title: c.label,
@@ -106,14 +118,18 @@ function Grid({
         ellipsis: true,
         cell: c.render ? ({ row }: { row: Row }) => c.render!(row) : undefined,
       }))}
-      pagination={{
-        current: page,
-        pageSize: 6,
-        total: rows.length,
-        showJumper: true,
-        showPageSize: false,
-        onCurrentChange: setPage,
-      }}
+      pagination={
+        paginate
+          ? {
+              current: page,
+              pageSize: 6,
+              total: rows.length,
+              showJumper: true,
+              showPageSize: false,
+              onCurrentChange: setPage,
+            }
+          : undefined
+      }
       empty={<Empty description="暂无符合条件的记录" />}
     />
   );
@@ -510,15 +526,23 @@ export default function SalesWorkspace() {
       (!to || formatDate(o.created) <= to),
   );
   const filteredOrders =
-    detail === "active"
-      ? matching.filter((x) => m.active.some((o) => o.id === x.id))
-      : detail === "todos"
-        ? matching.filter((x) => m.todos.some((o) => o.id === x.id))
-        : detail === "new"
-          ? matching.filter((x) => m.newOrders.some((o) => o.id === x.id))
-          : detail === "completed"
-            ? matching.filter((x) => m.completed.some((o) => o.id === x.id))
-            : matching;
+    detail === "pending"
+      ? matching.filter((o) => ["草稿", "待补资料"].includes(o.status))
+      : detail === "processing"
+        ? matching.filter((o) => o.status === "处理中")
+        : detail === "confirming"
+          ? matching.filter((o) => o.status === "待客户确认")
+          : detail === "active"
+            ? matching.filter((x) => m.active.some((o) => o.id === x.id))
+            : detail === "todos"
+              ? matching.filter((x) => m.todos.some((o) => o.id === x.id))
+              : detail === "new"
+                ? matching.filter((x) => m.newOrders.some((o) => o.id === x.id))
+                : detail === "completed"
+                  ? matching.filter((x) =>
+                      m.completed.some((o) => o.id === x.id),
+                    )
+                  : matching;
   const todos = [
     ...data.doctors
       .filter((d) => ["草稿", "审核退回"].includes(d.status) && !d.owner)
@@ -679,71 +703,201 @@ export default function SalesWorkspace() {
         }
       />
     );
-  else if (section === "home")
+  else if (section === "home") {
+    const hour = new Date().getHours(),
+      greeting =
+        hour >= 5 && hour < 12 ? "上午好" : hour < 18 ? "下午好" : "晚上好";
+    const pending = orders.filter((o) =>
+        ["草稿", "待补资料"].includes(o.status),
+      ),
+      processing = orders.filter((o) => o.status === "处理中"),
+      confirming = orders.filter((o) => o.status === "待客户确认");
+    const stats = [
+      {
+        label: "待处理订单",
+        rows: pending,
+        route: "pending",
+        note: "待提交与资料补充",
+        Icon: TaskFilledIcon,
+        tone: "pending",
+      },
+      {
+        label: "进行中订单",
+        rows: processing,
+        route: "processing",
+        note: "专业设计处理中",
+        Icon: WorkFilledIcon,
+        tone: "progress",
+      },
+      {
+        label: "待确认订单",
+        rows: confirming,
+        route: "confirming",
+        note: "等待客户确认",
+        Icon: TimeFilledIcon,
+        tone: "review",
+      },
+      {
+        label: "本月新增订单",
+        rows: m.newOrders,
+        route: "new",
+        note: "本月创建",
+        Icon: AssignmentErrorFilledIcon,
+        tone: "returned",
+      },
+      {
+        label: "本月已完成订单",
+        rows: m.completed,
+        route: "completed",
+        note: "本月完成",
+        Icon: TaskCheckedFilledIcon,
+        tone: "complete",
+      },
+    ];
     content = (
-      <>
-        {header(
-          `你好，${account.name}`,
-          <>
-            <Button onClick={() => go("doctor-new")}>新建医生档案</Button>
-            <Button theme="primary" onClick={() => go("order-new")}>
-              新建订单
-            </Button>
-          </>,
-        )}
-        <p className="sales-muted">
-          当前有 {m.todos.length} 张订单需要处理，
-          {orders.filter((o) => o.status === "待补资料").length}{" "}
-          张订单等待资料补充。
-        </p>
-        <div className="sales-stats">
-          {[
-            ["关联医生", m.doctors.length, "customers/linked"],
-            ["进行中订单", m.active.length, "orders/active"],
-            ["待我处理", todos.length, "todos"],
-            ["本月新增订单", m.newOrders.length, "orders/new"],
-            ["本月已完成订单", m.completed.length, "orders/completed"],
-          ].map(([name, count, r]) => (
-            <button key={String(r)} onClick={() => go(String(r))}>
-              <span>{name}</span>
-              <strong>{count}</strong>
-              <span>查看明细 →</span>
-            </button>
+      <div className="dashboard-page sales-dashboard">
+        <section className="dashboard-welcome">
+          <div className="dashboard-welcome-copy">
+            <h1>
+              {greeting}，{account.name}
+            </h1>
+            <p>
+              今天有 {todos.length} 项业务需要处理，
+              {orders.filter((o) => o.status === "待补资料").length}{" "}
+              张订单等待资料补充。
+            </p>
+          </div>
+          <time className="dashboard-date-text">
+            {new Intl.DateTimeFormat("zh-CN", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              weekday: "long",
+            }).format(new Date())}
+          </time>
+        </section>
+        <section className="stat-grid" aria-label="销售订单统计">
+          {stats.map(({ label, rows, route, note, Icon, tone }) => (
+            <div key={route} className="sales-stat-activator"
+              role="button"
+              tabIndex={0}
+              aria-label={label + " " + rows.length}
+              onClick={() => go("orders/" + route)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  go("orders/" + route);
+                }
+              }}
+            ><Card bordered={false} className={"stat-card stat-"+tone}>
+              <div className="stat-card-head">
+                <span>{label}</span>
+                <i>
+                  <Icon size={20} />
+                </i>
+              </div>
+              <strong>{rows.length}</strong>
+              <small>{note}</small>
+            </Card></div>
           ))}
-        </div>
-        <Card title="我的待办">
-          <Grid rows={todos} fields={todoFields} />
-        </Card>
-        <Card title="近期订单">
-          <Grid
-            rows={[...orders]
-              .sort((a, b) => b.updated.localeCompare(a.updated))
-              .slice(0, 6)}
-            fields={orderFields.filter((x) =>
-              [
-                "id",
-                "name",
-                "hospitalId",
-                "doctorId",
-                "status",
-                "updated",
-                "actions",
-              ].includes(x.key),
-            )}
-          />
-        </Card>
-        <Card title="近期业务动态">
-          <ul className="sales-log">
-            {data.events.length ? (
-              logs()
-            ) : (
-              <Empty description="尚无新的业务操作" />
-            )}
-          </ul>
-        </Card>
-      </>
+        </section>
+        <section className="dashboard-grid">
+          <Card bordered={false} className="dashboard-card task-card">
+            <div className="section-heading">
+              <h2>近期订单</h2>
+              <div className="sales-actions-inline">
+                <Button theme="primary" onClick={() => go("order-new")}>
+                  新建订单
+                </Button>
+                <Button
+                  theme="primary"
+                  variant="text"
+                  onClick={() => go("orders")}
+                >
+                  查看全部
+                </Button>
+              </div>
+            </div>
+            <Grid
+              paginate={false}
+              rows={[...orders]
+                .sort((a, b) => b.updated.localeCompare(a.updated))
+                .slice(0, 6)}
+              fields={orderFields.filter((f) =>
+                [
+                  "id",
+                  "hospitalId",
+                  "name",
+                  "doctorId",
+                  "service",
+                  "status",
+                  "created",
+                  "due",
+                  "actions",
+                ].includes(f.key),
+              )}
+            />
+          </Card>
+          <Card bordered={false} className="dashboard-card recent-card">
+            <div className="section-heading">
+              <h2>我的待办</h2>
+            </div>
+            <Grid
+              paginate={false}
+              rows={todos.slice(0, 6)}
+              fields={todoFields.filter((f) =>
+                ["name", "type", "at", "actions"].includes(f.key),
+              )}
+            />
+          </Card>
+          <Card bordered={false} className="dashboard-card attention-card">
+            <div className="section-heading">
+              <h2>近期业务动态</h2>
+              <Button
+                variant="text"
+                theme="primary"
+                onClick={() => go("notifications")}
+              >
+                查看全部
+              </Button>
+            </div>
+            <Grid
+              paginate={false}
+              rows={data.events.slice(0, 6)}
+              fields={[
+                { key: "title", label: "业务变化" },
+                { key: "detail", label: "内容" },
+                {
+                  key: "at",
+                  label: "时间",
+                  render: (r) => formatDynamicTime(String(r.at)),
+                },
+                {
+                  key: "actions",
+                  label: "操作",
+                  render: (r) => (
+                    <Button
+                      variant="text"
+                      theme="primary"
+                      onClick={() =>
+                        go(
+                          data.orders.some((o) => o.id === r.target)
+                            ? "order/" + r.target
+                            : "doctor/" + r.target,
+                        )
+                      }
+                    >
+                      查看详情
+                    </Button>
+                  ),
+                },
+              ]}
+            />
+          </Card>
+        </section>
+      </div>
     );
-  else if (section === "todos")
+  } else if (section === "todos")
     content = (
       <>
         {header(
@@ -1436,7 +1590,11 @@ export default function SalesWorkspace() {
         }
       />
       <div
-        className={collapsed ? "sales-layout nav-collapsed" : "sales-layout"}
+        className={
+          collapsed
+            ? "platform-shell sales-layout nav-collapsed"
+            : "platform-shell sales-layout"
+        }
       >
         <aside
           className={collapsed ? "business-nav is-collapsed" : "business-nav"}
@@ -1449,10 +1607,8 @@ export default function SalesWorkspace() {
           >
             {[
               ["home", "工作台", HomeIcon],
-              ["customers", "客户管理", UserCircleIcon],
               ["orders", "订单管理", FileIcon],
-              ["performance", "业绩统计", ListDemandIcon],
-              ["notifications", "消息通知", NotificationIcon],
+              ["customers", "客户管理", UserCircleIcon],
             ].map(([value, label, Icon]) => {
               const I = Icon as typeof HomeIcon;
               return (
@@ -1470,18 +1626,22 @@ export default function SalesWorkspace() {
               );
             })}
           </Menu>
-          <Button
-            variant="text"
-            aria-label={collapsed ? "展开导航" : "收起导航"}
-            onClick={() => setCollapsed(!collapsed)}
-            icon={
-              collapsed ? (
+          <Tooltip
+            content={collapsed ? "展开导航" : "收起导航"}
+            placement="right"
+          >
+            <button
+              className="nav-collapse"
+              aria-label={collapsed ? "展开导航" : "收起导航"}
+              onClick={() => setCollapsed(!collapsed)}
+            >
+              {collapsed ? (
                 <MenuUnfoldIcon size={18} />
               ) : (
                 <MenuFoldIcon size={18} />
-              )
-            }
-          />
+              )}
+            </button>
+          </Tooltip>
         </aside>
         <main>{content}</main>
       </div>
