@@ -1,3 +1,4 @@
+import { InviteProof } from "./sales-invite-proof.mjs";
 import { randomBytes, randomUUID } from "node:crypto";
 import { networkInterfaces } from "node:os";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -7,6 +8,7 @@ export function salesDemoPlugin(
   authOrigin = "http://127.0.0.1:5211",
   storageFile = new URL("../.local/sales-invitations.json", import.meta.url),
 ) {
+  const proofService = new InviteProof();
   let server,
     records = { invites: [], leads: [] };
   const file = storageFile;
@@ -44,11 +46,11 @@ export function salesDemoPlugin(
             let text = "";
             for await (const chunk of req) {
               text += chunk;
-              if (text.length > 8192) throw new Error("资料过长。");
+              if (text.length > 29 * 1024 * 1024) throw new Error("资料过长。");
             }
             body = JSON.parse(text || "{}");
           }
-          if (action === "public") {
+          if (action.startsWith("public")) {
             const invite = records.invites.find(
               (i) => i.token === url.searchParams.get("token"),
             );
@@ -59,6 +61,60 @@ export function salesDemoPlugin(
                 code: invite.code,
                 hospitals: invite.hospitals,
               });
+            if (action === "public-code")
+              return send(200, proofService.send(invite.token, body.phone));
+            if (action === "public-verify")
+              return send(
+                200,
+                proofService.verify(invite.token, body.phone, body.code),
+              );
+            const verified = proofService.check(invite.token, body.proof);
+            body.phone = verified.phone;
+            if (action === "public-upload") {
+              const f = body.file;
+              if (
+                !f ||
+                !/\.(png|jpe?g|pdf|txt)$/i.test(f.name || "") ||
+                !f.content ||
+                f.content.length > 28 * 1024 * 1024
+              )
+                throw Error("请选择20MB以内的图片或PDF文件。");
+              const content = Buffer.from(f.content, "base64");
+              if (content.length > 20 * 1024 * 1024)
+                throw Error("文件超过20MB。");
+              const id = randomUUID();
+              (records.files ||= []).push({
+                id,
+                owner: invite.owner,
+                phone: verified.phone,
+                content: content.toString("base64"),
+                name: f.name,
+                category: ["identity", "practice", "other"].includes(f.category)
+                  ? f.category
+                  : "other",
+                uploadedAt: new Date().toISOString(),
+                uploadedBy: String(body.name || "资料提交人"),
+                type: {
+                  png: "image/png",
+                  jpg: "image/jpeg",
+                  jpeg: "image/jpeg",
+                  pdf: "application/pdf",
+                  txt: "text/plain",
+                }[f.name.split(".").at(-1).toLowerCase()],
+              });
+              await persist();
+              return send(200, {
+                id,
+                name: f.name,
+                size: content.length,
+                type: f.type,
+                category: f.category || "other",
+                uploadedAt: new Date().toISOString(),
+                uploadedBy: body.name || "资料提交人",
+                status: "success",
+                storage: "invitation",
+              });
+            }
             const hospital = invite.hospitals.find(
               (h) => h.id === body.hospitalId,
             );
@@ -71,15 +127,61 @@ export function salesDemoPlugin(
             if (body.phone && !/^1[3-9]\d{9}$/.test(body.phone))
               throw new Error("手机号格式不正确。");
             const duplicate = records.leads.find(
-              (l) =>
-                l.owner === invite.owner && l.phone && l.phone === body.phone,
+              (l) => l.phone && l.phone === body.phone,
             );
-            if (duplicate) return send(200, { id: duplicate.id });
+            if (duplicate && duplicate.owner !== invite.owner)
+              throw Error("此手机号已有建档归属，请联系负责销售处理。");
+            const materials = (body.materials || []).flatMap((f) => {
+              const stored = records.files?.find(
+                (x) =>
+                  x.id === f.id &&
+                  x.owner === invite.owner &&
+                  x.phone === verified.phone,
+              );
+              return stored
+                ? [
+                    {
+                      id: stored.id,
+                      name: stored.name,
+                      size: Buffer.from(stored.content, "base64").length,
+                      type: stored.type,
+                      category: stored.category || "other",
+                      uploadedAt: stored.uploadedAt,
+                      uploadedBy: stored.uploadedBy,
+                      status: "success",
+                      storage: "invitation",
+                    },
+                  ]
+                : [];
+            });
+            if (duplicate) {
+              Object.assign(duplicate, {
+                name: body.name.trim(),
+                hospitalId: hospital.id,
+                department: body.department,
+                title: String(body.title || ""),
+                certificate: String(body.certificate || ""),
+                materials: [
+                  ...(duplicate.materials || []),
+                  ...materials.filter(
+                    (f) => !duplicate.materials?.some((x) => x.id === f.id),
+                  ),
+                ],
+                at: new Date().toISOString(),
+                phoneVerified: true,
+              });
+              await persist();
+              return send(200, { id: duplicate.id });
+            }
             const lead = {
               id: randomUUID(),
               owner: invite.owner,
               name: body.name.trim(),
-              phone: body.phone || "",
+              phone: verified.phone,
+              phoneVerified: true,
+              title: String(body.title || ""),
+              certificate: String(body.certificate || ""),
+              materials,
               hospitalId: hospital.id,
               department: body.department,
               code: invite.code,
@@ -96,6 +198,30 @@ export function salesDemoPlugin(
           const user = session.user;
           if (!user || user.role !== "sales" || session.locked)
             return send(403, { error: "请使用已登录销售账号。" });
+          if (action === "codes" && req.method === "GET") {
+            const remote = req.socket.remoteAddress || "";
+            if (!["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(remote))
+              return send(403, { error: "仅本机测试控制台可读取验证码。" });
+            return send(200, {
+              codes: proofService.inbox(
+                records.invites
+                  .filter((i) => i.owner === user.id)
+                  .map((i) => i.token),
+              ),
+            });
+          }
+          if (action === "file" && req.method === "GET") {
+            const f = records.files?.find(
+              (x) => x.id === url.searchParams.get("id"),
+            );
+            if (!f || f.owner !== user.id)
+              return send(404, { error: "文件不可用或无访问权限。" });
+            res.setHeader("X-Content-Type-Options", "nosniff");
+            res.setHeader("Content-Type", f.type || "application/octet-stream");
+            res.setHeader("Cache-Control", "no-store");
+            res.end(Buffer.from(f.content, "base64"));
+            return;
+          }
           if (action === "invite" && req.method === "POST") {
             let invite = records.invites.find((i) => i.owner === user.id);
             if (!invite) {
@@ -109,6 +235,8 @@ export function salesDemoPlugin(
               records.invites.push(invite);
               await persist();
             }
+            invite.hospitals = body.hospitals;
+            await persist();
             const ip = Object.values(networkInterfaces())
               .flat()
               .find(

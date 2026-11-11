@@ -39,3 +39,12 @@ test("fixture migration is idempotent and preserves existing actions, attachment
     1,
   );
 });
+test('V2 statuses migrate without rewriting audit actors, timestamps, ownership or attachments',()=>{
+ const d=seedSales('li',new Date('2026-11-10T10:00:00'));d.fixtureRevision=2;
+ d.orders[0].status='待受理';d.orders[1].status='待补资料';d.orders[2].status='待客户确认';
+ d.events=[{id:'immutable',at:'2026-10-01T08:00:00Z',actor:'已记录审核人',title:'历史审核',target:d.orders[0].id,detail:'保留原文',read:true}];
+ d.orders[1].materials=[{id:'existing-real-blob',name:'retained.pdf'}];
+ const result=migrateSales(d);assert.equal(result.orders[0].status,'待审核');assert.equal(result.orders[1].status,'审核退回');assert.equal(result.orders[2].status,'处理中');assert.equal(result.orders[2].confirmationRequired,true);
+ assert.deepEqual(result.events.find(e=>e.id==='immutable'),d.events[0]);assert.deepEqual(result.orders[1].materials,d.orders[1].materials);
+ assert.equal(new Set(result.projects.map(p=>p.id)).size,result.projects.length);assert.deepEqual(migrateSales(result),result);
+});

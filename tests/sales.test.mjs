@@ -60,8 +60,23 @@ test("doctor draft, upload metadata, submission, admin return/resubmit/pass and 
     ...d.doctors[4],
     name: "新增医生",
     certificate: "SYN-001",
+    phone: "13900008881",
+    title: "主任医师",
     materials: [
-      { id: "file", name: "qual.pdf", size: 10, type: "application/pdf" },
+      {
+        id: "identity",
+        name: "id.png",
+        size: 10,
+        type: "image/png",
+        category: "identity",
+      },
+      {
+        id: "file",
+        name: "qual.pdf",
+        size: 10,
+        type: "application/pdf",
+        category: "practice",
+      },
     ],
   };
   d = transition(d, { type: "doctor-save", value: doctor }, false, now);
@@ -147,12 +162,7 @@ test("order draft-submit-accept-stage-confirm-complete, no shortcuts and no fabr
   );
   d = transition(d, { type: "order-stage", target: "NEW" }, true, now);
   d = transition(d, { type: "order-stage", target: "NEW" }, true, now);
-  d = transition(
-    d,
-    { type: "order-advance", target: "NEW", value: "待客户确认" },
-    true,
-    now,
-  );
+  d = transition(d, { type: "order-confirm", target: "NEW" }, true, now);
   d = transition(
     d,
     { type: "order-advance", target: "NEW", value: "已完成" },
@@ -226,7 +236,7 @@ test("calendar months use local dates at the UTC month boundary", () => {
 });
 test("administrator rejection requires a reason and sales cannot cancel", () => {
   const d = seedSales("li", now),
-    o = d.orders.find((o) => o.status === "待受理");
+    o = d.orders.find((o) => o.status === "待审核");
   assert.throws(() =>
     transition(
       d,
@@ -256,5 +266,164 @@ test("administrator rejection requires a reason and sales cannot cancel", () => 
       now,
     ).orders.find((x) => x.id === o.id).status,
     "已取消",
+  );
+});
+test("permission grants are scoped per action, self approval and wrong account fail", () => {
+  let d = seedSales("li", now);
+  d = transition(
+    d,
+    {
+      type: "request",
+      value: {
+        id: "r",
+        kind: "历史访问",
+        target: d.orders.at(-2).id,
+        reason: "查阅",
+      },
+    },
+    false,
+    now,
+  );
+  const c = { type: "request-review", target: "r", value: "通过" };
+  assert.throws(() =>
+    transition(
+      d,
+      c,
+      { id: "li", permissions: ["doctor.assignment.review"] },
+      now,
+    ),
+  );
+  assert.throws(() =>
+    transition(d, c, { id: "li", permissions: ["order.history.review"] }, now),
+  );
+  assert.throws(() =>
+    transition(
+      d,
+      c,
+      { id: "intruder", permissions: ["order.history.review"] },
+      now,
+    ),
+  );
+  // Manager dataset contains only granted applicant requests, self-review remains blocked.
+  d.requests[0].applicant = "subordinate";
+  const approved = transition(
+    d,
+    c,
+    { id: "li", name: "主管", permissions: ["order.history.review"] },
+    now,
+  );
+  assert.equal(approved.requests[0].reviewer, "li");
+  assert.equal(approved.events[0].actor, "主管");
+  assert.throws(() =>
+    transition(
+      d,
+      { ...c, value: "退回" },
+      { id: "li", permissions: ["order.history.review"] },
+      now,
+    ),
+  );
+});
+test("doctor reassignment does not rewrite historical order owner or ID associations", () => {
+  let d = seedSales("li", now);
+  d.orders[0].ownerSalesId = "li";
+  const o = structuredClone(d.orders[0]);
+  d.requests.push({
+    id: "transfer",
+    target: o.doctorId,
+    kind: "归属变更",
+    reason: "区域调整",
+    applicant: "other",
+    newOwner: "other",
+    oldOwner: "li",
+    status: "待审核",
+    at: now.toISOString(),
+  });
+  d = transition(
+    d,
+    { type: "request-review", target: "transfer", value: "通过" },
+    true,
+    now,
+  );
+  assert.equal(d.doctors.find((x) => x.id === o.doctorId).owner, "other");
+  assert.deepEqual(d.orders[0], o);
+  assert.ok(canReadOrder(d, d.orders[0], now));
+});
+test("incomplete draft is saved but atomic submit fails without partial state", () => {
+  const d = seedSales("li", now),
+    doctor = {
+      ...d.doctors[4],
+      id: "draft",
+      phone: "",
+      hospitalId: "",
+      department: "",
+      certificate: "",
+      materials: [],
+    };
+  const saved = transition(
+    d,
+    { type: "doctor-save", value: doctor },
+    false,
+    now,
+  );
+  assert.equal(saved.doctors.at(-1).status, "草稿");
+  assert.throws(() =>
+    transition(d, { type: "doctor-save-submit", value: doctor }, false, now),
+  );
+  assert.equal(
+    d.doctors.some((x) => x.id === "draft"),
+    false,
+  );
+});
+test("six order states; acceptance creates stable project/task IDs; completion requires confirmation", () => {
+  let d = seedSales("li", now);
+  let o = {
+    ...d.orders[3],
+    id: "order-closed-loop",
+    service: "手术导板设计",
+    materials: [{ id: "proof" }],
+  };
+  d = transition(d, { type: "order-save", value: o }, false, now);
+  d = transition(d, { type: "order-submit", target: o.id }, false, now);
+  d = transition(
+    d,
+    { type: "order-advance", target: o.id, value: "处理中" },
+    true,
+    now,
+  );
+  const saved = d.orders.find((x) => x.id === o.id);
+  assert.equal(saved.projectId, "SP-" + o.id);
+  assert.equal(saved.taskIds.length, 2);
+  assert.equal(d.projects[0].caseId, o.caseId);
+  assert.throws(() =>
+    transition(
+      d,
+      { type: "order-advance", target: o.id, value: "已完成" },
+      true,
+      now,
+    ),
+  );
+  d = transition(d, { type: "order-stage", target: o.id }, true, now);
+  d = transition(d, { type: "order-stage", target: o.id }, true, now);
+  assert.throws(() =>
+    transition(
+      d,
+      { type: "order-advance", target: o.id, value: "已完成" },
+      true,
+      now,
+    ),
+  );
+  d = transition(d, { type: "order-confirm", target: o.id }, true, now);
+  d = transition(
+    d,
+    { type: "order-advance", target: o.id, value: "已完成" },
+    true,
+    now,
+  );
+  assert.equal(d.orders.find((x) => x.id === o.id).status, "已完成");
+  assert.equal(d.projects.length, 1);
+  assert.equal(new Set(saved.taskIds).size, 2);
+  assert.equal(
+    d.events.some((e) => e.title.includes("等待解锁")),
+    false,
   );
 });

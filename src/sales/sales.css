@@ -68,7 +68,7 @@
 .sales-page .t-button--variant-text.t-button--theme-primary:hover {
   background: transparent;
 }
-.sales-page .t-button--variant-text {
+.sales-page .t-button--variant-text:not(.sales-back) {
   color: var(--td-brand-color);
 }
 .sales-page .t-form {
@@ -176,4 +176,45 @@
   height: var(--dashboard-data-row-height);
 }
 
-.sales-invite-url { max-width:100%; overflow-wrap:anywhere; }
+.sales-invite-url {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.sales-title-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sales-stage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+.sales-stage-icons {
+  display: flex;
+  gap: 4px;
+}
+.sales-doctor-form {
+  margin-top: 24px;
+}
+.sales-doctor-form h3 {
+  margin: 24px 0 16px;
+}
+.sales-attachment-record {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+  color: var(--td-text-color-secondary);
+}
+
+.sales-back.t-button {
+  margin-bottom: 16px;
+  padding-left: 0;
+  color: var(--td-text-color-secondary);
+}
+.sales-readonly {
+  color: var(--td-text-color-secondary);
+}

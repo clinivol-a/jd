@@ -20,30 +20,49 @@ export async function saveFile(owner: string, file: File): Promise<Attachment> {
       tx.oncomplete = () => ok();
       tx.onerror = () => no(tx.error);
     });
-    return { id, name: file.name, size: file.size, type: file.type };
+    return {
+      id,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      uploadedAt: new Date().toISOString(),
+      uploadedBy: owner,
+      status: "success",
+      storage: "browser",
+    };
   } finally {
     db.close();
   }
 }
-export async function openFile(owner: string, a: Attachment) {
+export async function getFile(owner: string, a: Attachment): Promise<Blob> {
+  if (a.storage === "invitation") {
+    const response = await fetch(
+      "/api/sales-demo/file?id=" + encodeURIComponent(a.id),
+    );
+    if (!response.ok) throw Error("文件不可用或无访问权限。");
+    return response.blob();
+  }
   const db = await database();
   try {
-    const file = await new Promise<Blob>((ok, no) => {
+    return await new Promise<Blob>((ok, no) => {
       const r = db
         .transaction("files")
         .objectStore("files")
         .get(owner + ":" + a.id);
       r.onsuccess = () =>
-        r.result ? ok(r.result) : no(new Error("本浏览器未保存此文件。"));
+        r.result ? ok(r.result) : no(Error("本浏览器未保存此文件。"));
       r.onerror = () => no(r.error);
     });
-    const url = URL.createObjectURL(file);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = a.name;
-    anchor.click();
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
   } finally {
     db.close();
   }
+}
+export async function openFile(owner: string, a: Attachment) {
+  const file = await getFile(owner, a);
+  const url = URL.createObjectURL(file),
+    anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = a.name;
+  anchor.click();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
 }

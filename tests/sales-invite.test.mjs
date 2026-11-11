@@ -79,12 +79,73 @@ test("local invitation transport scopes sales sessions, validates source and que
       ).status,
       403,
     );
-    const result = await post(
-      "public?token=" + token,
-      { name: "合成医生", hospitalId: "h", department: "口腔科" },
-      "",
+    const phone = "13900008882";
+    assert.equal(
+      (await post("public-code?token=" + token, { phone }, "")).status,
+      200,
     );
+    const inbox = await (
+      await fetch(base + "codes", { headers: { cookie: "sales" } })
+    ).json();
+    assert.equal(inbox.codes[0].phone, phone);
+    assert.equal(
+      (
+        await post(
+          "public-verify?token=" + token,
+          { phone, code: "000000" },
+          "",
+        )
+      ).status,
+      400,
+    );
+    const proof = (
+      await (
+        await post(
+          "public-verify?token=" + token,
+          { phone, code: inbox.codes[0].code },
+          "",
+        )
+      ).json()
+    ).proof;
+    const upload = await (
+      await post(
+        "public-upload?token=" + token,
+        {
+          proof,
+          file: {
+            name: "proof.txt",
+            type: "text/plain",
+            content: Buffer.from("fixture proof").toString("base64"),
+          },
+        },
+        "",
+      )
+    ).json();
+    assert.equal(upload.storage, "invitation");
+    const downloaded = await fetch(base + "file?id=" + upload.id, {
+      headers: { cookie: "sales" },
+    });
+    assert.equal(await downloaded.text(), "fixture proof");
+    assert.equal((await fetch(base + "file?id=" + upload.id)).status, 403);
+    const payload = {
+      proof,
+      name: "合成医生",
+      hospitalId: "h",
+      department: "口腔科",
+      materials: [upload],
+    };
+    const result = await post("public?token=" + token, payload, "");
     assert.equal(result.status, 200);
+    assert.equal(
+      (
+        await post(
+          "public?token=" + token,
+          { ...payload, name: "合成医生更新" },
+          "",
+        )
+      ).status,
+      200,
+    );
     const list = await (
       await fetch(base + "leads", { headers: { cookie: "sales" } })
     ).json();
@@ -92,6 +153,8 @@ test("local invitation transport scopes sales sessions, validates source and que
     assert.equal(list.leads[0].owner, "li");
     assert.equal(list.leads[0].code, issued.code);
     assert.equal(list.leads[0].status, undefined);
+    assert.equal(list.leads[0].phoneVerified, true);
+    assert.equal(list.leads[0].materials[0].id, upload.id);
     assert.equal(plugin.apply, "serve");
   } finally {
     await new Promise((r) => server.close(r));

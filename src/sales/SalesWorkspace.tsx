@@ -1,4 +1,8 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "../design-system/tdesign";
+import { SalesAttachments } from "./SalesAttachments";
+import { RangeControl } from "../projects/RangeControl";
+import { StageLabel } from "../projects/ProjectPages";
+import type { TaskType } from "../App";
 import { migrateSales } from "./migrate";
 import { useEffect, useState, useRef } from "react";
 import {
@@ -18,7 +22,6 @@ import {
   Menu,
   MessagePlugin,
   Tooltip,
-  Upload,
 } from "tdesign-react";
 import {
   HomeIcon,
@@ -57,16 +60,15 @@ import type {
   Command,
   Request as SalesRequest,
 } from "./model";
-import { saveFile, openFile } from "./files";
+import { openFile } from "./files";
 import "./sales.css";
 import { SalesInviteDialog, readInviteLeads } from "./SalesInvite";
 type Row = Record<string, unknown>;
 const settings = ["profile", "security", "preferences"] as const;
 const statusTheme = (s: string) =>
-  s.includes("退回") || s === "待补资料"
+  s.includes("退回") || s === "审核退回"
     ? "danger"
-    : (s.includes("审核") && s !== "审核通过") ||
-        ["待受理", "待客户确认"].includes(s)
+    : (s.includes("审核") && s !== "审核通过") || ["待审核"].includes(s)
       ? "warning"
       : s === "已完成" || s === "审核通过" || s === "通过"
         ? "success"
@@ -92,7 +94,11 @@ function Grid({
   rows,
   fields,
   paginate = true,
+  savedPage,
+  onPage,
 }: {
+  savedPage?: number;
+  onPage?: (page: number) => void;
   rows: Row[];
   paginate?: boolean;
   fields: {
@@ -101,9 +107,23 @@ function Grid({
     render?: (row: Row) => React.ReactNode;
   }[];
 }) {
-  const [page, setPage] = useState(1);
+  const [localPage, setLocalPage] = useState(1);
+  const page = Math.max(
+    1,
+    Math.min(savedPage ?? localPage, Math.ceil(rows.length / 6) || 1),
+  );
+  const setPage = (value: number) => {
+    setLocalPage(value);
+    onPage?.(value);
+  };
   const rowIdentity = rows.map((r) => String(r.id)).join("|");
-  useEffect(() => setPage(1), [rowIdentity]);
+  const previousRows = useRef(rowIdentity);
+  useEffect(() => {
+    if (previousRows.current !== rowIdentity) {
+      setPage(1);
+      previousRows.current = rowIdentity;
+    }
+  }, [rowIdentity]);
   const width = (key: string) =>
     ({
       id: 150,
@@ -177,79 +197,24 @@ function Files({
   readonly?: boolean;
   onBusyChange?: (busy: boolean) => void;
 }) {
-  const [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
-  useEffect(() => {
-    onBusyChange?.(busy);
-  }, [busy, onBusyChange]);
   return (
-    <div className="sales-files">
-      {!readonly && (
-        <>
-          <Upload
-            autoUpload={false}
-            files={[]}
-            multiple
-            disabled={busy}
-            showUploadProgress={false}
-            onSelectChange={async (files) => {
-              setBusy(true);
-              setError("");
-              try {
-                const added = [];
-                for (const file of files)
-                  added.push(await saveFile(owner, file));
-                onChange?.([...value, ...added]);
-              } catch (e) {
-                setError((e as Error).message);
-              } finally {
-                setBusy(false);
-              }
-            }}
-          >
-            <Button theme="default" variant="outline" disabled={busy}>
-              选择资料
-            </Button>
-          </Upload>
-          <p>PDF / PNG / JPG / DICOM / NIfTI / ZIP / TXT，单文件≤20MB。</p>
-        </>
-      )}
-      {busy && <span>正在保存文件…</span>}
-      {error && (
-        <p role="alert" className="sales-error">
-          {error} 请重新选择文件重试。
-        </p>
-      )}
-      {value.map((f) => (
-        <div key={f.id}>
-          <Button
-            variant="text"
-            onClick={() =>
-              void openFile(owner, f).catch((e) =>
-                MessagePlugin.error(e.message),
-              )
-            }
-          >
-            {f.name}
-          </Button>
-          <span>{(f.size / 1024).toFixed(1)} KB · 已保存在本浏览器</span>
-          {!readonly && (
-            <Button
-              variant="text"
-              onClick={() => onChange?.(value.filter((x) => x.id !== f.id))}
-            >
-              移除
-            </Button>
-          )}
-        </div>
-      ))}
-    </div>
+    <SalesAttachments
+      owner={owner}
+      value={value}
+      onChange={onChange}
+      readonly={readonly}
+      onBusyChange={onBusyChange}
+    />
   );
 }
+
 export default function SalesWorkspace() {
   const auth = useAuth(),
     account = auth.user!,
     storage = useWorkspaceStorage();
+  const [inviteCodes, setInviteCodes] = useState<
+    { phone: string; code: string; expiresAt: string }[]
+  >([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false),
     [noticeFilter, setNoticeFilter] = useState("全部");
   const [data, setData] = useState<SalesData>(() => {
@@ -285,6 +250,58 @@ export default function SalesWorkspace() {
     [from, setFrom] = useState(""),
     [to, setTo] = useState(""),
     [month, setMonth] = useState(localMonth(new Date()));
+  const [listPages, setListPages] = useState<Record<string, number>>(() => {
+    try {
+      return JSON.parse(storage.getItem("sales-list-pages") || "{}");
+    } catch {
+      return {};
+    }
+  });
+  const rememberPage = (key: string, page: number) =>
+    setListPages((previous) => {
+      const next = { ...previous, [key]: page };
+      storage.setItem("sales-list-pages", JSON.stringify(next));
+      return next;
+    });
+  const [keyword, setKeyword] = useState("");
+  useEffect(() => {
+    const timer = setTimeout(() => setKeyword(search.trim()), 250);
+    return () => clearTimeout(timer);
+  }, [search]);
+  const reviewPermissions = account.permissions.filter((p) =>
+    ["doctor.assignment.review", "order.history.review"].includes(p),
+  );
+  const canReview = reviewPermissions.length > 0;
+  const [homeRange, setHomeRange] = useState<[string, string]>(() => {
+    const end = new Date(),
+      start = new Date();
+    start.setMonth(start.getMonth() - 3);
+    return [formatDate(start.toISOString()), formatDate(end.toISOString())];
+  });
+  const filterSignature = JSON.stringify([
+    keyword,
+    filter,
+    hospitalFilter,
+    deptFilter,
+    serviceFilter,
+    from,
+    to,
+  ]);
+  const previousFilter = useRef({ route, signature: filterSignature });
+  useEffect(() => {
+    if (
+      previousFilter.current.route === route &&
+      previousFilter.current.signature !== filterSignature
+    ) {
+      const key = route.startsWith("customers")
+        ? "doctors"
+        : route.startsWith("orders")
+          ? "orders"
+          : "";
+      if (key) rememberPage(key, 1);
+    }
+    previousFilter.current = { route, signature: filterSignature };
+  }, [route, filterSignature]);
   const [modal, setModal] = useState(""),
     [reason, setReason] = useState(""),
     [target, setTarget] = useState(""),
@@ -320,7 +337,17 @@ export default function SalesWorkspace() {
     try {
       if (admin && !import.meta.env.DEV)
         throw new Error("当前环境不允许测试审批。");
-      const next = transition(data, c, admin);
+      const next = transition(
+        data,
+        c,
+        admin
+          ? true
+          : {
+              id: account.id,
+              name: account.name,
+              permissions: account.permissions,
+            },
+      );
       storage.setItem("sales-v1", JSON.stringify(next));
       setData(next);
       void MessagePlugin.success("操作已保存");
@@ -341,11 +368,39 @@ export default function SalesWorkspace() {
           let next = current;
           for (const lead of leads) {
             const did = "D-LEAD-" + lead.id;
-            if (
-              next.doctors.some((d) => d.id === did) ||
-              (lead.phone && next.doctors.some((d) => d.phone === lead.phone))
-            )
+            const existing = next.doctors.find(
+              (d) => d.id === did || (lead.phone && d.phone === lead.phone),
+            );
+            if (existing) {
+              if (existing.owner && existing.owner !== account.id) continue;
+              if (
+                ["待审核", "审核通过"].includes(existing.status) ||
+                (existing.updatedAt &&
+                  new Date(existing.updatedAt) >= new Date(lead.at))
+              )
+                continue;
+              next = transition(
+                next,
+                {
+                  type: "doctor-save",
+                  value: {
+                    ...existing,
+                    title: existing.title || lead.title || "",
+                    certificate: existing.certificate || lead.certificate || "",
+                    materials: [
+                      ...existing.materials,
+                      ...(lead.materials || []).filter(
+                        (f) => !existing.materials.some((x) => x.id === f.id),
+                      ),
+                    ],
+                    phoneVerified: lead.phoneVerified,
+                  },
+                },
+                false,
+                new Date(lead.at),
+              );
               continue;
+            }
             next = transition(
               next,
               {
@@ -356,11 +411,13 @@ export default function SalesWorkspace() {
                   phone: lead.phone,
                   hospitalId: lead.hospitalId,
                   department: lead.department,
-                  title: "",
-                  certificate: "",
+                  title: lead.title || "",
+                  certificate: lead.certificate || "",
                   status: "草稿",
                   owner: null,
-                  materials: [],
+                  materials: lead.materials || [],
+                  phoneVerified: lead.phoneVerified,
+                  invitedBy: account.id,
                   reason: "",
                   source: lead.code,
                 },
@@ -423,6 +480,7 @@ export default function SalesWorkspace() {
   };
   const openStat = (category: string) => {
     delete filterCache.current["orders/" + category];
+    rememberPage("orders", 1);
     go("orders/" + category);
   };
   useEffect(() => {
@@ -532,7 +590,30 @@ export default function SalesWorkspace() {
       label: "需求医生",
       render: (r: Row) => doc(String(r.doctorId)),
     },
-    { key: "service", label: "服务类型" },
+    {
+      key: "service",
+      label: "设计阶段",
+      render: (r: Row) => (
+        <div className="sales-stage-icons">
+          {(
+            (r.plannedStages as string[]) ||
+            (r.stages as Order["stages"])?.map((s) => s.name) ||
+            []
+          ).map((stage) => (
+            <StageLabel
+              key={stage}
+              stage={
+                (stage === "CAD设计"
+                  ? "CAD 设计"
+                  : stage === "3D打印"
+                    ? "3D 打印"
+                    : stage) as TaskType
+              }
+            />
+          ))}
+        </div>
+      ),
+    },
     {
       key: "status",
       label: "状态",
@@ -567,6 +648,12 @@ export default function SalesWorkspace() {
       ),
     },
   ];
+  const doctorPhone = (phone: string, owner: unknown) =>
+    phone
+      ? owner === account.id
+        ? phone
+        : phone.replace(/(\d{3})\d{4}/, "$1****")
+      : "未提供";
   const doctorFields = [
     { key: "name", label: "医生姓名" },
     {
@@ -587,8 +674,7 @@ export default function SalesWorkspace() {
     {
       key: "phone",
       label: "联系电话",
-      render: (r: Row) =>
-        r.phone ? String(r.phone).replace(/(\d{3})\d{4}/, "$1****") : "未提供",
+      render: (r: Row) => doctorPhone(String(r.phone || ""), r.owner),
     },
     {
       key: "status",
@@ -600,7 +686,7 @@ export default function SalesWorkspace() {
       label: "负责销售",
       render: (r: Row) =>
         r.owner === account.id
-          ? "已关联 · 李明"
+          ? "已关联 · " + account.name
           : r.owner
             ? "已有其他销售"
             : "待关联",
@@ -618,24 +704,58 @@ export default function SalesWorkspace() {
         </Button>
       ),
     },
-  ];
+  ].sort(
+    (a, b) =>
+      [
+        "name",
+        "phone",
+        "hospitalId",
+        "department",
+        "title",
+        "status",
+        "owner",
+        "recent",
+        "actions",
+      ].indexOf(a.key) -
+      [
+        "name",
+        "phone",
+        "hospitalId",
+        "department",
+        "title",
+        "status",
+        "owner",
+        "recent",
+        "actions",
+      ].indexOf(b.key),
+  );
   const matching = orders.filter(
     (o) =>
-      (!search || [o.id, o.name, o.caseId].some((x) => x.includes(search))) &&
+      (!keyword || [o.id, o.name, o.caseId].some((x) => x.includes(keyword))) &&
       (!filter || o.status === filter) &&
       (!hospitalFilter || o.hospitalId === hospitalFilter) &&
       (!deptFilter || o.department === deptFilter) &&
-      (!serviceFilter || o.service === serviceFilter) &&
+      (!serviceFilter ||
+        (o.plannedStages || o.stages.map((s) => s.name)).includes(
+          serviceFilter,
+        )) &&
       (!from || formatDate(o.created) >= from) &&
       (!to || formatDate(o.created) <= to),
   );
   const filteredOrders =
     detail === "pending"
-      ? matching.filter((o) => ["草稿", "待补资料"].includes(o.status))
+      ? matching.filter((o) => ["草稿", "审核退回"].includes(o.status))
       : detail === "processing"
         ? matching.filter((o) => o.status === "处理中")
         : detail === "confirming"
-          ? matching.filter((o) => o.status === "待客户确认")
+          ? matching.filter(
+              (o) =>
+                o.status === "处理中" &&
+                o.confirmationRequired &&
+                !o.confirmedAt &&
+                o.stages.length > 0 &&
+                o.stages.every((s) => s.status === "已完成"),
+            )
           : detail === "active"
             ? matching.filter((x) => m.active.some((o) => o.id === x.id))
             : detail === "todos"
@@ -649,7 +769,12 @@ export default function SalesWorkspace() {
                   : matching;
   const todos = [
     ...data.doctors
-      .filter((d) => ["草稿", "审核退回"].includes(d.status) && !d.owner)
+      .filter(
+        (d) =>
+          ["草稿", "审核退回"].includes(d.status) &&
+          (!d.owner || d.owner === account.id) &&
+          (!d.createdBy || d.createdBy === account.id),
+      )
       .map((d) => ({
         id: d.id,
         type: "医生资料" + d.status,
@@ -668,18 +793,12 @@ export default function SalesWorkspace() {
     })),
   ];
   const todoFields = [
-    { key: "type", label: "类型" },
-    { key: "name", label: "关联业务" },
-    { key: "hospital", label: "医院" },
+    { key: "type", label: "事项类型" },
+    { key: "name", label: "事项名称" },
     {
       key: "at",
       label: "产生时间",
       render: (r: Row) => (r.at ? formatDynamicTime(String(r.at)) : "暂无记录"),
-    },
-    {
-      key: "status",
-      label: "状态",
-      render: (r: Row) => <Status value={String(r.status)} />,
     },
     {
       key: "actions",
@@ -689,8 +808,9 @@ export default function SalesWorkspace() {
           variant="text"
           onClick={() =>
             go(
-              (data.doctors.some((d) => d.id === r.id) ? "doctor/" : "order/") +
-                r.id,
+              (data.doctors.some((d) => d.id === r.id)
+                ? "doctor-new/"
+                : "order-new/") + r.id,
             )
           }
         >
@@ -739,10 +859,12 @@ export default function SalesWorkspace() {
       />
       <Select
         clearable
-        placeholder="服务类型"
+        placeholder="设计阶段"
         value={serviceFilter || undefined}
         onChange={(v) => setServiceFilter(String(v || ""))}
-        options={services.map((value) => ({ value, label: value }))}
+        options={["三维重建", "CAD设计", "有限元分析", "3D打印"].map(
+          (value) => ({ value, label: value }),
+        )}
       />
       <DatePicker
         placeholder="开始日期"
@@ -770,9 +892,16 @@ export default function SalesWorkspace() {
       </Button>
     </div>
   );
-  const logs = (tid?: string) =>
+  const logs = (tid?: string, kind?: "follow" | "review") =>
     data.events
-      .filter((e) => !tid || e.target === tid)
+      .filter(
+        (e) =>
+          (!tid || e.target === tid) &&
+          (!kind ||
+            (kind === "follow"
+              ? e.title === "业务跟进"
+              : e.title.includes("审核"))),
+      )
       .map((e) => (
         <li className="timeline-item" key={e.id}>
           <i />
@@ -785,7 +914,7 @@ export default function SalesWorkspace() {
           </div>
         </li>
       ));
-  const header = (title: string, actions?: React.ReactNode) => (
+  const header = (title: React.ReactNode, actions?: React.ReactNode) => (
     <div className="list-page-heading">
       <h1>{title}</h1>
       <div>{actions}</div>
@@ -817,10 +946,17 @@ export default function SalesWorkspace() {
       greeting =
         hour >= 5 && hour < 12 ? "上午好" : hour < 18 ? "下午好" : "晚上好";
     const pending = orders.filter((o) =>
-        ["草稿", "待补资料"].includes(o.status),
+        ["草稿", "审核退回"].includes(o.status),
       ),
       processing = orders.filter((o) => o.status === "处理中"),
-      confirming = orders.filter((o) => o.status === "待客户确认");
+      confirming = orders.filter(
+        (o) =>
+          o.status === "处理中" &&
+          o.confirmationRequired &&
+          !o.confirmedAt &&
+          o.stages.length > 0 &&
+          o.stages.every((s) => s.status === "已完成"),
+      );
     const stats = [
       {
         label: "待处理订单",
@@ -842,7 +978,7 @@ export default function SalesWorkspace() {
         label: "待确认订单",
         rows: confirming,
         route: "confirming",
-        note: "等待客户确认",
+        note: "专业阶段完成，等待结果确认",
         Icon: TimeFilledIcon,
         tone: "review",
       },
@@ -872,7 +1008,7 @@ export default function SalesWorkspace() {
             </h1>
             <p>
               今天有 {todos.length} 项业务需要处理，
-              {orders.filter((o) => o.status === "待补资料").length}{" "}
+              {orders.filter((o) => o.status === "审核退回").length}{" "}
               张订单等待资料补充。
             </p>
           </div>
@@ -914,9 +1050,11 @@ export default function SalesWorkspace() {
             <div className="section-heading">
               <h2>近期订单</h2>
               <div className="sales-actions-inline">
-                <Button theme="primary" onClick={() => go("order-new")}>
-                  新建订单
-                </Button>
+                <RangeControl
+                  period="custom"
+                  range={homeRange}
+                  onChange={(_period, range) => setHomeRange(range)}
+                />
                 <Button
                   theme="primary"
                   variant="text"
@@ -930,6 +1068,11 @@ export default function SalesWorkspace() {
             <Grid
               paginate={false}
               rows={[...orders]
+                .filter(
+                  (o) =>
+                    formatDate(o.created) >= homeRange[0] &&
+                    formatDate(o.created) <= homeRange[1],
+                )
                 .sort((a, b) => b.updated.localeCompare(a.updated))
                 .slice(0, 6)}
               fields={orderFields.filter((f) =>
@@ -1033,18 +1176,111 @@ export default function SalesWorkspace() {
             </Button>
           </>,
         )}
-        <div className="sales-filters">
-          <Input clearable value={search} onChange={setSearch} placeholder="搜索医生姓名或手机号"/>
-          <Select placeholder="全部医院" clearable value={hospitalFilter || undefined} options={data.hospitals.map(h=>({value:h.id,label:h.name}))} onChange={v=>{setHospitalFilter(String(v||""));setDeptFilter("");}}/>
-          <Select placeholder="全部科室" clearable value={deptFilter || undefined} options={[...new Set(data.hospitals.filter(h=>!hospitalFilter||h.id===hospitalFilter).flatMap(h=>h.departments))].map(value=>({value,label:value}))} onChange={v=>setDeptFilter(String(v||""))}/>
-          <Select placeholder="全部状态" clearable value={filter || undefined} options={["草稿","待审核","审核通过","审核退回"].map(value=>({value,label:value}))} onChange={v=>setFilter(String(v||""))}/>
-          <Button theme="default" variant="outline" onClick={()=>{setSearch("");setHospitalFilter("");setDeptFilter("");setFilter("");}}>重置筛选</Button>
-        </div>
-        <Grid rows={data.doctors.filter(d=>(!d.owner||d.owner===account.id)&&data.hospitals.some(h=>h.id===d.hospitalId&&h.departments.includes(d.department))&&(d.name.includes(search)||d.phone.includes(search))&&(!hospitalFilter||d.hospitalId===hospitalFilter)&&(!deptFilter||d.department===deptFilter)&&(!filter||d.status===filter))} fields={doctorFields}/>
+        {canReview && (
+          <Tabs
+            value={detail === "approvals" ? "approvals" : "doctors"}
+            onChange={(v) => go("customers/" + v)}
+          >
+            <Tabs.TabPanel value="doctors" label="医生档案" />
+            <Tabs.TabPanel value="approvals" label="业务审批" />
+          </Tabs>
+        )}
+        {detail === "approvals" ? (
+          canReview ? (
+            <BusinessApprovals
+              data={data}
+              permissions={account.permissions}
+              commit={(c) => commit(c)}
+            />
+          ) : (
+            <Empty description="无业务审批权限" />
+          )
+        ) : (
+          <>
+            <div className="sales-filters">
+              <Input
+                clearable
+                value={search}
+                onChange={setSearch}
+                placeholder="搜索医生姓名或手机号"
+              />
+              <Select
+                placeholder="全部医院"
+                clearable
+                value={hospitalFilter || undefined}
+                options={data.hospitals.map((h) => ({
+                  value: h.id,
+                  label: h.name,
+                }))}
+                onChange={(v) => {
+                  setHospitalFilter(String(v || ""));
+                  setDeptFilter("");
+                }}
+              />
+              <Select
+                placeholder="全部科室"
+                clearable
+                value={deptFilter || undefined}
+                options={[
+                  ...new Set(
+                    data.hospitals
+                      .filter((h) => !hospitalFilter || h.id === hospitalFilter)
+                      .flatMap((h) => h.departments),
+                  ),
+                ].map((value) => ({ value, label: value }))}
+                onChange={(v) => setDeptFilter(String(v || ""))}
+              />
+              <Select
+                placeholder="全部状态"
+                clearable
+                value={filter || undefined}
+                options={["草稿", "待审核", "审核通过", "审核退回"].map(
+                  (value) => ({ value, label: value }),
+                )}
+                onChange={(v) => setFilter(String(v || ""))}
+              />
+              <Button
+                theme="default"
+                variant="outline"
+                onClick={() => {
+                  setSearch("");
+                  setHospitalFilter("");
+                  setDeptFilter("");
+                  setFilter("");
+                }}
+              >
+                重置筛选
+              </Button>
+            </div>
+            <Grid
+              key="doctor-list"
+              savedPage={listPages.doctors || 1}
+              onPage={(p) => rememberPage("doctors", p)}
+              rows={data.doctors.filter(
+                (d) =>
+                  (!d.owner || d.owner === account.id) &&
+                  (!d.createdBy || d.createdBy === account.id) &&
+                  (data.hospitals.some(
+                    (h) =>
+                      h.id === d.hospitalId &&
+                      h.departments.includes(d.department),
+                  ) ||
+                    (!d.hospitalId && d.createdBy === account.id)) &&
+                  (d.name.includes(keyword) || d.phone.includes(keyword)) &&
+                  (!hospitalFilter || d.hospitalId === hospitalFilter) &&
+                  (!deptFilter || d.department === deptFilter) &&
+                  (!filter || d.status === filter),
+              )}
+              fields={doctorFields}
+            />
+          </>
+        )}
       </Card>
     );
   else if (section === "hospital") {
-    const hospital = account.permissions.includes("hospital.directory.read") ? data.hospitals.find((h) => h.id === detail) : undefined;
+    const hospital = account.permissions.includes("hospital.directory.read")
+      ? data.hospitals.find((h) => h.id === detail)
+      : undefined;
     content = hospital ? (
       <>
         <Back onClick={() => go("customers")}>返回客户管理</Back>
@@ -1088,41 +1324,74 @@ export default function SalesWorkspace() {
       <DoctorEditor
         key={detail || "new"}
         data={data}
-        initial={data.doctors.find((d) => d.id === detail && (!d.owner || d.owner === account.id))}
-        save={(d) => {
-          if (commit({ type: "doctor-save", value: d })) go("doctor/" + d.id);
+        initial={data.doctors.find(
+          (d) => d.id === detail && (!d.owner || d.owner === account.id),
+        )}
+        save={(d, submit) => {
+          if (
+            commit({
+              type: submit ? "doctor-save-submit" : "doctor-save",
+              value: d,
+            })
+          )
+            go("doctor/" + d.id);
         }}
         cancel={() => go("customers/doctors")}
       />
     );
   else if (section === "doctor") {
-    const d = data.doctors.find((d) => d.id === detail && (!d.owner || d.owner === account.id));
+    const d = data.doctors.find(
+      (d) => d.id === detail && (!d.owner || d.owner === account.id),
+    );
     content = d ? (
       <>
         <Back onClick={() => go("customers/doctors")}>返回客户管理</Back>
         <Card bordered={false} className="project-info-card">
           {header(
-            d.name,
+            <span className="sales-title-status">
+              {d.name}
+              <Status value={d.status} />
+            </span>,
             <>
-              {!d.owner || d.owner === account.id ? (
+              {["草稿", "审核退回"].includes(d.status) &&
+              (!d.owner || d.owner === account.id) ? (
                 <>
                   <Button
                     disabled={!["草稿", "审核退回"].includes(d.status)}
                     onClick={() => go("doctor-new/" + d.id)}
                   >
-                    编辑资料
+                    {d.status === "审核退回" ? "修改资料" : "编辑资料"}
                   </Button>
-                  <Button theme="primary" disabled={!["草稿","审核退回"].includes(d.status)||!d.name||!d.phone||!d.certificate||!d.materials.length} onClick={()=>commit({type:"doctor-submit",target:d.id})}>{d.status==="审核退回"?"重新提交审核":"提交审核"}</Button>
+                  <Button
+                    theme="primary"
+                    disabled={
+                      !["草稿", "审核退回"].includes(d.status) ||
+                      !d.name ||
+                      !/^1[3-9]\d{9}$/.test(d.phone) ||
+                      !d.title ||
+                      !d.certificate ||
+                      !d.hospitalId ||
+                      !d.department ||
+                      !d.materials.some((f) => f.category === "identity") ||
+                      !d.materials.some(
+                        (f) => f.category === "practice" || !f.category,
+                      )
+                    }
+                    onClick={() =>
+                      commit({ type: "doctor-submit", target: d.id })
+                    }
+                  >
+                    {d.status === "审核退回" ? "重新提交审核" : "提交审核"}
+                  </Button>
                 </>
               ) : (
-                <Button onClick={() => applyRequest("归属变更", d.id)}>
-                  申请归属变更
-                </Button>
+                <span className="sales-readonly">
+                  {d.status === "待审核" ? "审核处理中" : "资质资料只读"}
+                </span>
               )}
             </>,
           )}
 
-          <Status value={d.status} />
           <Tabs defaultValue="basic">
             <Tabs.TabPanel label="基本资料" value="basic">
               <dl className="project-info-grid">
@@ -1131,10 +1400,17 @@ export default function SalesWorkspace() {
                   ["医院", h(d.hospitalId)],
                   ["科室", d.department],
                   ["职称", d.title],
-                  ["联系电话", d.phone ? d.phone.replace(/(\d{3})\d{4}/,"$1****") : "未提供"],
+                  ["联系电话", doctorPhone(d.phone || "", d.owner)],
                   ["执业证书编号", d.certificate || "未提供"],
-                  ["建档来源",d.source],
-                  ["最近更新",data.events.find(e=>e.target===d.id)?.at ? formatAuditTime(data.events.find(e=>e.target===d.id)!.at) : "暂无记录"],
+                  ["建档来源", d.source],
+                  [
+                    "最近更新",
+                    data.events.find((e) => e.target === d.id)?.at
+                      ? formatAuditTime(
+                          data.events.find((e) => e.target === d.id)!.at,
+                        )
+                      : "暂无记录",
+                  ],
                   [
                     "负责销售",
                     d.owner === account.id
@@ -1157,7 +1433,12 @@ export default function SalesWorkspace() {
               ) : (
                 <>
                   <p>证书编号：{d.certificate}</p>
-                  <Files owner={account.id} value={d.materials} readonly />
+                  <SalesAttachments
+                    owner={account.id}
+                    ownerName={account.name}
+                    value={d.materials}
+                    readonly
+                  />
                 </>
               )}
             </Tabs.TabPanel>
@@ -1195,21 +1476,11 @@ export default function SalesWorkspace() {
               >
                 记录跟进
               </Button>
-              <ul className="timeline sales-log">{logs(d.id)}</ul>
+              <ul className="timeline sales-log">{logs(d.id, "follow")}</ul>
             </Tabs.TabPanel>
             <Tabs.TabPanel value="reviews" label="审核记录">
               {d.reason && <p className="sales-error">{d.reason}</p>}
-              <ul className="timeline sales-log">
-                {data.events
-                  .filter((e) => e.target === d.id && e.title.includes("审核"))
-                  .map((e) => (
-                    <li className="timeline-item" key={e.id}>
-                      <i />
-                      {e.title} · {formatAuditTime(e.at)} · {e.actor}
-                      <p>{e.detail}</p>
-                    </li>
-                  ))}
-              </ul>
+              <ul className="timeline sales-log">{logs(d.id, "review")}</ul>
             </Tabs.TabPanel>
           </Tabs>
         </Card>
@@ -1237,7 +1508,13 @@ export default function SalesWorkspace() {
         )}
         {tools}
         <div className="sales-list-table">
-          <Grid rows={filteredOrders} fields={orderFields} />
+          <Grid
+            key={"order-list:" + detail}
+            savedPage={listPages.orders || 1}
+            onPage={(p) => rememberPage("orders", p)}
+            rows={filteredOrders}
+            fields={orderFields}
+          />
         </div>
       </Card>
     );
@@ -1250,7 +1527,7 @@ export default function SalesWorkspace() {
           (o) =>
             o.id === detail &&
             canReadOrder(data, o) &&
-            ["草稿", "待补资料"].includes(o.status),
+            ["草稿", "审核退回"].includes(o.status),
         )}
         doctorId={
           data.doctors.some((d) => d.id === detail) ? detail : undefined
@@ -1265,7 +1542,7 @@ export default function SalesWorkspace() {
             storage.setItem("sales-v1", JSON.stringify(next));
             setData(next);
             void MessagePlugin.success(
-              submit ? "订单已提交，等待受理" : "草稿已保存",
+              submit ? "订单已提交，等待审核" : "草稿已保存",
             );
             go("order/" + o.id);
           } catch (e) {
@@ -1294,17 +1571,19 @@ export default function SalesWorkspace() {
         <Back onClick={() => go("orders")}>返回订单管理</Back>
         <Card bordered={false} className="project-info-card">
           {header(
-            o.name,
+            <span className="sales-title-status">
+              {o.name}
+              <Status value={o.status} />
+            </span>,
             <>
-              {["草稿", "待补资料"].includes(o.status) && (
+              {["草稿", "审核退回"].includes(o.status) && (
                 <Button theme="primary" onClick={() => go("order-new/" + o.id)}>
-                  继续完善
+                  {o.status === "审核退回" ? "修改后重新提交" : "继续编辑"}
                 </Button>
               )}
             </>,
           )}
 
-          <Status value={o.status} />
           <Tabs defaultValue="overview">
             <Tabs.TabPanel value="overview" label="订单概览">
               <dl className="project-info-grid">
@@ -1317,6 +1596,11 @@ export default function SalesWorkspace() {
                   ["需求医生", doc(o.doctorId)],
                   ["科室", o.department],
                   ["业务服务项目", o.service],
+                  [
+                    "设计阶段",
+                    (o.plannedStages || o.stages.map((s) => s.name)).join("、"),
+                  ],
+                  ["关联工程项目", o.projectId || "尚未受理建立"],
                   ["数量", o.quantity],
                   ["预计交付", o.due],
                   ["创建日期", formatDate(o.created)],
@@ -1332,21 +1616,54 @@ export default function SalesWorkspace() {
             </Tabs.TabPanel>
             <Tabs.TabPanel value="progress" label="专业进度">
               {o.stages.length ? (
-                o.stages.map((s) => (
-                  <section className="project-stage" key={s.name}>
-                    <div className="project-stage-title">
-                      <h3>{s.name}</h3>
-                      <Status value={s.status} />
-                    </div>
-                    <p>专业进度只读</p>
-                  </section>
-                ))
+                <div className="sales-stage-grid">
+                  {o.stages.map((s) => (
+                    <section className="project-stage" key={s.name}>
+                      <div className="project-stage-title">
+                        <h3>{s.name}</h3>
+                        <Status value={s.status} />
+                      </div>
+                      <p>负责人：{s.owner || "尚未分配"}</p>
+                      <p>
+                        {s.description ||
+                          (s.status === "已完成"
+                            ? "阶段已完成"
+                            : "专业进度只读")}
+                      </p>
+                      <p>任务编号：{s.taskId || "尚未建立"}</p>
+                      {s.artifactId &&
+                        o.materials.some((f) => f.id === s.artifactId) && (
+                          <div className="project-stage-actions">
+                            <Button
+                              theme="default"
+                              variant="outline"
+                              onClick={() =>
+                                void openFile(
+                                  account.id,
+                                  o.materials.find(
+                                    (f) => f.id === s.artifactId,
+                                  )!,
+                                ).catch((e) => MessagePlugin.error(e.message))
+                              }
+                            >
+                              查看成果
+                            </Button>
+                          </div>
+                        )}
+                    </section>
+                  ))}
+                </div>
               ) : (
                 <Empty description="尚未受理分配专业任务" />
               )}
             </Tabs.TabPanel>
             <Tabs.TabPanel value="files" label="资料附件">
-              <Files owner={account.id} value={o.materials} readonly />
+              <SalesAttachments
+                owner={account.id}
+                ownerName={account.name}
+                value={o.materials}
+                readonly
+              />
             </Tabs.TabPanel>
             <Tabs.TabPanel value="activity" label="操作记录">
               <ul className="timeline sales-log">{logs(o.id)}</ul>
@@ -1871,6 +2188,33 @@ export default function SalesWorkspace() {
               onChange={setReason}
               placeholder="退回或补件原因"
             />
+            <h3>邀请建档验证码</h3>
+            <Button
+              theme="default"
+              variant="outline"
+              onClick={() =>
+                void fetch("/api/sales-demo/codes")
+                  .then(async (r) => {
+                    const body = await r.json();
+                    if (!r.ok) throw Error(body.error);
+                    setInviteCodes(body.codes);
+                  })
+                  .catch((e) => MessagePlugin.error(e.message))
+              }
+            >
+              刷新邀请验证码
+            </Button>
+            {inviteCodes.map((c) => (
+              <p key={c.phone}>
+                {c.phone} · {c.code} · {formatAuditTime(c.expiresAt)} 到期
+                <Button
+                  variant="text"
+                  onClick={() => void navigator.clipboard.writeText(c.code)}
+                >
+                  复制
+                </Button>
+              </p>
+            ))}
             <h3>待审核医生</h3>
             {data.doctors
               .filter((d) => d.status === "待审核")
@@ -1910,19 +2254,15 @@ export default function SalesWorkspace() {
               ))}
             <h3>订单推进</h3>
             {orders
-              .filter((o) =>
-                ["待受理", "处理中", "待客户确认"].includes(o.status),
-              )
+              .filter((o) => ["待审核", "处理中"].includes(o.status))
               .map((o) => (
                 <div key={o.id}>
                   <p>
                     {o.id} · {o.status}
                   </p>
-                  {(o.status === "待受理"
-                    ? ["处理中", "待补资料", "已取消"]
-                    : o.status === "处理中"
-                      ? ["待客户确认"]
-                      : ["已完成", "处理中"]
+                  {(o.status === "待审核"
+                    ? ["处理中", "审核退回", "已取消"]
+                    : ["已完成", "已取消"]
                   ).map((s) => (
                     <Button
                       key={s}
@@ -1942,6 +2282,16 @@ export default function SalesWorkspace() {
                       {s === "已取消" ? "拒绝受理" : s}
                     </Button>
                   ))}
+                  {o.status === "处理中" && (
+                    <Button
+                      aria-label={o.id + " 确认结果"}
+                      onClick={() =>
+                        commit({ type: "order-confirm", target: o.id }, true)
+                      }
+                    >
+                      确认结果
+                    </Button>
+                  )}
                   {o.status === "处理中" && (
                     <Button
                       aria-label={o.id + " 完成当前专业阶段"}
@@ -1973,7 +2323,12 @@ export default function SalesWorkspace() {
                   <Button
                     onClick={() =>
                       commit(
-                        { type: "request-review", target: r.id, value: "退回" },
+                        {
+                          type: "request-review",
+                          target: r.id,
+                          value: "退回",
+                          reason,
+                        },
                         true,
                       )
                     }
@@ -2006,7 +2361,11 @@ function RequestList({ data }: { data: SalesData }) {
           label: "原销售",
           render: (r) => (r.oldOwner ? "其他销售" : "未关联"),
         },
-        { key: "newOwner", label: "申请销售", render: () => "李明" },
+        {
+          key: "newOwner",
+          label: "申请销售",
+          render: (r) => String(r.newOwner),
+        },
         { key: "reviewer", label: "审批人" },
         {
           key: "reviewedAt",
@@ -2037,47 +2396,59 @@ function DoctorEditor({
 }: {
   data: SalesData;
   initial?: Doctor;
-  save: (d: Doctor) => void;
+  save: (d: Doctor, submit: boolean) => void;
   cancel: () => void;
 }) {
   const [d, set] = useState<Doctor>(
-      initial || {
-        id: "D-" + id(),
-        name: "",
-        phone: "",
-        hospitalId: "",
-        department: "",
-        title: "",
-        certificate: "",
-        status: "草稿",
-        owner: null,
-        materials: [],
-        reason: "",
-        source: "销售建档",
-      },
-    ),
-    [error, setError] = useState(""),
-    [uploading, setUploading] = useState(false);
-  const field = (key: keyof Doctor, label: string) => (
-    <Field
-      label={label}
-      error={
-        error &&
-        ["name", "title"].includes(String(key)) &&
-        !String(d[key]).trim()
-          ? "请填写" + label
-          : error && key === "phone" && d.phone && !/^1\d{10}$/.test(d.phone)
-            ? "请输入有效的11位手机号"
-            : undefined
-      }
-      requiredMark={key === "name" || key === "title"}
-    >
-      <>
-        <Input
-          value={String(d[key])}
-          onChange={(v) => set({ ...d, [key]: v })}
-        />
-      </>
+    initial || {
+      id: "D-" + id(),
+      name: "",
+      phone: "",
+      hospitalId: "",
+      department: "",
+      title: "",
+      certificate: "",
+      status: "草稿",
+      owner: null,
+      materials: [],
+      reason: "",
+      source: "销售建档",
+      createdBy: data.ownerId,
+    },
+  );
+  const [errors, setErrors] = useState<Record<string, string>>({}),
+    [busySlots, setBusySlots] = useState<Record<string, boolean>>({});
+  const busy = Object.values(busySlots).some(Boolean);
+  const setUploadBusy = (slot: string, value: boolean) =>
+    setBusySlots((previous) => ({ ...previous, [slot]: value }));
+  const submit = (review: boolean) => {
+    const e: Record<string, string> = {};
+    if (!d.name.trim()) e.name = "请填写真实姓名";
+    if (d.phone && !/^1[3-9]\d{9}$/.test(d.phone)) e.phone = "请输入有效手机号";
+    if (review) {
+      if (!d.phone) e.phone = "请填写联系手机号";
+      for (const [key, label] of [
+        ["hospitalId", "所属医院"],
+        ["department", "所属科室"],
+        ["title", "职称"],
+        ["certificate", "执业证书编号"],
+      ])
+        if (!String(d[key as keyof Doctor] || "").trim())
+          e[key] = "请填写" + label;
+      if (!d.materials.some((f) => f.category === "identity"))
+        e.identity = "请上传身份证明照片";
+      if (!d.materials.some((f) => f.category === "practice" || !f.category))
+        e.practice = "请上传执业证明材料";
+    }
+    setErrors(e);
+    if (!Object.keys(e).length) save(d, review);
+  };
+  const field = (
+    key: "name" | "phone" | "title" | "certificate",
+    label: string,
+  ) => (
+    <Field label={label} requiredMark error={errors[key]}>
+      <Input value={d[key]} onChange={(v) => set({ ...d, [key]: v })} />
     </Field>
   );
   return (
@@ -2086,75 +2457,91 @@ function DoctorEditor({
       <Card bordered={false} className="project-info-card">
         <h2>{initial ? "编辑" : "新建"}医生档案</h2>
         <Form
+          className="sales-doctor-form"
           labelAlign="top"
-          onSubmit={() => {
-            if (
-              !d.name.trim() ||
-              !d.hospitalId ||
-              !d.department ||
-              !d.title.trim() ||
-              (d.phone && !/^1\d{10}$/.test(d.phone))
-            ) {
-              setError("请完整填写姓名、医院、科室及职称。");
-              return;
-            }
-            save(d);
-          }}
+          onSubmit={() => submit(true)}
         >
+          <h3>基本资料</h3>
           {field("name", "真实姓名")}
           {field("phone", "联系手机号")}
-          <Field
-            label="授权医院"
-            requiredMark
-            error={error && !d.hospitalId ? "请选择医院" : undefined}
-          >
-            <>
-              <Select
-                value={d.hospitalId}
-                options={data.hospitals.map((h) => ({
-                  value: h.id,
-                  label: h.name,
-                }))}
-                onChange={(v) =>
-                  set({ ...d, hospitalId: String(v), department: "" })
-                }
-              />
-            </>
+          <h3>执业信息</h3>
+          <Field label="所属医院" requiredMark error={errors.hospitalId}>
+            <Select
+              value={d.hospitalId}
+              options={data.hospitals.map((h) => ({
+                value: h.id,
+                label: h.name,
+              }))}
+              onChange={(v) =>
+                set({ ...d, hospitalId: String(v), department: "" })
+              }
+            />
           </Field>
-          <Field
-            label="科室"
-            requiredMark
-            error={error && !d.department ? "请选择科室" : undefined}
-          >
-            <>
-              <Select
-                value={d.department}
-                options={(
-                  data.hospitals.find((h) => h.id === d.hospitalId)
-                    ?.departments || []
-                ).map((value) => ({ value, label: value }))}
-                onChange={(v) => set({ ...d, department: String(v) })}
-              />
-            </>
+          <Field label="所属科室" requiredMark error={errors.department}>
+            <Select
+              value={d.department}
+              options={(
+                data.hospitals.find((h) => h.id === d.hospitalId)
+                  ?.departments || []
+              ).map((value) => ({ value, label: value }))}
+              onChange={(v) => set({ ...d, department: String(v) })}
+            />
           </Field>
-          {field("title", "职称 / 专业方向")}
+          {field("title", "职称")}
           {field("certificate", "执业证书编号")}
-          <p>负责销售：李明 · 安徽区域</p>
-          <Field label="执业及身份证明资料">
-            <>
-              <Files
-                owner={data.ownerId}
-                onBusyChange={setUploading}
-                value={d.materials}
-                onChange={(materials) => set({ ...d, materials })}
-              />
-            </>
+          <h3>证明材料</h3>
+          <Field label="身份证明照片" requiredMark error={errors.identity}>
+            <SalesAttachments
+              owner={data.ownerId}
+              value={d.materials}
+              category="identity"
+              images
+              onBusyChange={(value) => setUploadBusy("identity", value)}
+              onChange={(materials) => set({ ...d, materials })}
+            />
+          </Field>
+          <Field label="医师执业证明照片" error={errors.practice}>
+            <SalesAttachments
+              owner={data.ownerId}
+              value={d.materials}
+              category="practice"
+              images
+              onBusyChange={(value) => setUploadBusy("practice", value)}
+              onChange={(materials) => set({ ...d, materials })}
+            />
+          </Field>
+          <Field label="PDF及其他证明文件">
+            <SalesAttachments
+              owner={data.ownerId}
+              value={d.materials}
+              category="other"
+              onBusyChange={(value) => setUploadBusy("other", value)}
+              onChange={(materials) =>
+                set({
+                  ...d,
+                  materials: materials.map((f) =>
+                    f.type === "application/pdf" && f.category === "other"
+                      ? { ...f, category: "practice" as const }
+                      : f,
+                  ),
+                })
+              }
+            />
           </Field>
           {d.reason && <p className="sales-error">{d.reason}</p>}
-
-          <Button type="submit" theme="primary" disabled={uploading}>
-            保存草稿
-          </Button>
+          <div className="sales-actions">
+            <Button
+              theme="default"
+              variant="outline"
+              disabled={busy}
+              onClick={() => submit(false)}
+            >
+              保存草稿
+            </Button>
+            <Button theme="primary" type="submit" disabled={busy}>
+              {d.status === "审核退回" ? "重新提交审核" : "提交审核"}
+            </Button>
+          </div>
         </Form>
       </Card>
     </>
@@ -2524,6 +2911,7 @@ function Back({
 }) {
   return (
     <Button
+      className="sales-back"
       variant="text"
       theme="default"
       icon={<ChevronLeftIcon size={16} />}
@@ -2554,5 +2942,86 @@ function Field({
     >
       <>{children}</>
     </Form.FormItem>
+  );
+}
+
+function BusinessApprovals({
+  data,
+  permissions,
+  commit,
+}: {
+  data: SalesData;
+  permissions: string[];
+  commit: (c: Command) => boolean;
+}) {
+  const [reason, setReason] = useState("");
+  const rows = data.requests.filter((r) =>
+    permissions.includes(
+      r.kind === "历史访问"
+        ? "order.history.review"
+        : "doctor.assignment.review",
+    ),
+  );
+  return (
+    <section className="sales-section-body">
+      <h3>业务审批</h3>
+      <Input
+        value={reason}
+        onChange={setReason}
+        placeholder="审批说明（退回必填）"
+      />
+      <Grid
+        rows={rows}
+        fields={[
+          { key: "kind", label: "申请类型" },
+          { key: "target", label: "关联记录" },
+          { key: "oldOwner", label: "原销售" },
+          { key: "newOwner", label: "申请销售" },
+          { key: "reason", label: "申请原因" },
+          {
+            key: "status",
+            label: "状态",
+            render: (r) => <Status value={String(r.status)} />,
+          },
+          {
+            key: "actions",
+            label: "操作",
+            render: (r) =>
+              r.status === "待审核" ? (
+                <>
+                  <Button
+                    variant="text"
+                    onClick={() =>
+                      commit({
+                        type: "request-review",
+                        target: String(r.id),
+                        value: "通过",
+                        reason,
+                      })
+                    }
+                  >
+                    通过
+                  </Button>
+                  <Button
+                    variant="text"
+                    onClick={() =>
+                      commit({
+                        type: "request-review",
+                        target: String(r.id),
+                        value: "退回",
+                        reason,
+                      })
+                    }
+                  >
+                    退回
+                  </Button>
+                </>
+              ) : (
+                <span>已处理</span>
+              ),
+          },
+        ]}
+      />
+    </section>
   );
 }
