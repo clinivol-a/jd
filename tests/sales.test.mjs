@@ -1,8 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { loadTs } from "../scripts/load-ts.mjs";
-const { seedSales, transition, canReadOrder, visibleOrders, metrics } =
-  loadTs("src/sales/model.ts");
+import { seedSales, transition, canReadOrder, visibleOrders, metrics } from "../src/sales/model.ts";
 const now = new Date("2026-11-09T12:00:00");
 test("five card queries derive from visible records; another owner has an isolated dataset", () => {
   const d = seedSales("li", now),
@@ -34,7 +32,7 @@ test("3/6 month rolling visibility and grants are enforced on direct detail acce
         reason: "跟进未完结订单",
       },
     },
-    false,
+    {id:"li",permissions:["order.history.request"]},
     now,
   );
   assert.throws(() =>
@@ -125,7 +123,7 @@ test("order draft-submit-accept-stage-confirm-complete, no shortcuts and no fabr
     id: "NEW",
     service: "手术导板设计",
     materials: [
-      { id: "file", name: "clinical.pdf", size: 10, type: "application/pdf" },
+      { id: "file", name: "imaging.zip", size: 10, type: "application/zip", storage:"browser", status:"success" },
     ],
   };
   d = transition(d, { type: "order-save", value: o }, false, now);
@@ -281,7 +279,7 @@ test("permission grants are scoped per action, self approval and wrong account f
         reason: "查阅",
       },
     },
-    false,
+    {id:"li",permissions:["order.history.request"]},
     now,
   );
   const c = { type: "request-review", target: "r", value: "通过" };
@@ -380,7 +378,7 @@ test("six order states; acceptance creates stable project/task IDs; completion r
     ...d.orders[3],
     id: "order-closed-loop",
     service: "手术导板设计",
-    materials: [{ id: "proof" }],
+    materials: [{ id: "proof",name:"series.dcm",size:10,type:"application/dicom",storage:"browser",status:"success" }],
   };
   d = transition(d, { type: "order-save", value: o }, false, now);
   d = transition(d, { type: "order-submit", target: o.id }, false, now);

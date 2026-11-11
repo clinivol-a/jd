@@ -1,3 +1,4 @@
+import { designStages, orderErrors } from "./orderRules.mjs";
 export type DoctorStatus = "草稿" | "待审核" | "审核通过" | "审核退回";
 export type OrderStatus =
   | "草稿"
@@ -17,7 +18,7 @@ export type Attachment = {
   name: string;
   size: number;
   type: string;
-  category?: "identity" | "practice" | "other";
+  category?: "identity" | "practice" | "other" | "imaging" | "order-other";
   uploadedAt?: string;
   uploadedBy?: string;
   status?: "success";
@@ -41,7 +42,14 @@ export type Doctor = {
   updatedAt?: string;
   phoneVerified?: boolean;
 };
-export type Case = { id: string; doctorId: string; summary: string };
+export type Case = {
+  id: string;
+  doctorId: string;
+  summary: string;
+  patientName?: string;
+  hospitalId?: string;
+  department?: string;
+};
 export type Order = {
   id: string;
   name: string;
@@ -52,6 +60,8 @@ export type Order = {
   service: string;
   quantity: number;
   requirements: string;
+  clinicalRequirements?: string;
+  designRequirements?: string;
   due: string;
   created: string;
   updated: string;
@@ -82,6 +92,7 @@ export type Event = {
   title: string;
   detail: string;
   read: boolean;
+  stage?: string;
 };
 export type Request = {
   id: string;
@@ -200,7 +211,10 @@ export function seedSales(ownerId: string, now = new Date()): SalesData {
     .map((d, i) => ({
       id: `CASE-S-${i + 1}`,
       doctorId: d.id,
-      summary: "脱敏设计需求",
+      summary: "用于修复规划的合成临床病例。",
+      patientName: "演示患者" + (i + 1),
+      hospitalId: d.hospitalId,
+      department: d.department,
     }));
   const states: OrderStatus[] = [
     "处理中",
@@ -224,7 +238,11 @@ export function seedSales(ownerId: string, now = new Date()): SalesData {
       department: d.department,
       service: services[i % 5],
       quantity: 1,
-      requirements: "按临床需求说明整理设计资料。",
+      requirements: [
+        "评估下颌骨缺损范围与邻近结构关系，提供数字模型供修复方案讨论。",
+        "规划导板定位区域和固定孔位，避让牙根及神经管，供医生确认。",
+        "结合肢体外形和活动范围规划支具贴合区域，保留必要的减压空间。",
+      ][i % 3],
       due: at(-7).slice(0, 10),
       created,
       updated: created,
@@ -421,7 +439,7 @@ export function transition(
   } else if (c.type === "case-create") {
     const v = c.value as Case;
     if (!v.summary.trim()) fail("请填写病例需求摘要。");
-    if(d.cases.some(x=>x.id===v.id)) fail("病例编号已存在。");
+    if (d.cases.some((x) => x.id === v.id)) fail("病例编号已存在。");
     if (
       !d.doctors.some(
         (x) =>
@@ -431,9 +449,33 @@ export function transition(
       )
     )
       fail("只能为本人已关联医生创建病例。");
-    d.cases.push(v);
+    const relatedDoctor = d.doctors.find((x) => x.id === v.doctorId)!;
+    d.cases.push({
+      ...v,
+      hospitalId: relatedDoctor.hospitalId,
+      department: relatedDoctor.department,
+    });
     target = v.id;
     title = "病例已创建";
+  } else if (c.type === "case-fill") {
+    const v = c.value as Case;
+    const clinicalCase = d.cases.find((x) => x.id === v.id);
+    const linkedDoctor = d.doctors.find((x) => x.id === clinicalCase?.doctorId);
+    if (
+      !clinicalCase ||
+      linkedDoctor?.owner !== d.ownerId ||
+      linkedDoctor.status !== "审核通过"
+    )
+      fail("无病例编辑权限。");
+    if (!v.patientName?.trim()) fail("请填写患者姓名。");
+    if (
+      clinicalCase!.patientName &&
+      clinicalCase!.patientName !== (v.patientName || "").trim()
+    )
+      fail("不能更改已有病例的患者身份。");
+    clinicalCase!.patientName = (v.patientName || "").trim();
+    target = v.id;
+    title = "病例资料已补充";
   } else if (c.type === "order-save") {
     const v = c.value as Order;
     if (!Number.isInteger(v.quantity) || v.quantity < 1)
@@ -467,14 +509,18 @@ export function transition(
       status: old?.status || "草稿",
       projectId: old?.projectId,
       taskIds: old?.taskIds,
-      plannedStages: old?.plannedStages || [
-        "三维重建",
-        ...(v.service === "模型打印"
-          ? ["3D打印"]
-          : ["手术导板设计", "支具设计", "矫形具设计"].includes(v.service)
-            ? ["CAD设计"]
-            : []),
-      ],
+      clinicalRequirements: v.clinicalRequirements ?? v.requirements,
+      designRequirements: v.designRequirements ?? old?.designRequirements ?? "",
+      plannedStages: v.plannedStages
+        ? designStages.filter((stage) => v.plannedStages!.includes(stage))
+        : old?.plannedStages || [
+            "三维重建",
+            ...(v.service === "模型打印"
+              ? ["3D打印"]
+              : ["手术导板设计", "支具设计", "矫形具设计"].includes(v.service)
+                ? ["CAD设计"]
+                : []),
+          ],
       confirmationRequired: old?.confirmationRequired ?? true,
       confirmedAt: old?.confirmedAt,
       stages: old?.stages || [],
@@ -485,7 +531,7 @@ export function transition(
     d.orders = d.orders.filter((x) => x.id !== v.id);
     d.orders.push(safe);
     target = v.id;
-    title = "订单草稿已保存";
+    title = old ? "订单草稿已保存" : "订单已创建";
   } else if (c.type === "order-submit") {
     if (
       !order ||
@@ -493,13 +539,12 @@ export function transition(
       !["草稿", "审核退回"].includes(order.status)
     )
       fail("当前订单不可提交。");
-    if (
-      !order!.name ||
-      !order!.requirements ||
-      !order!.due ||
-      !order!.materials.length
-    )
-      fail("请补齐订单名称、需求、交付日期及资料。");
+    const errors = orderErrors(
+      order!,
+      d.cases.find((x) => x.id === order!.caseId)?.patientName,
+      now,
+    );
+    if (Object.keys(errors).length) fail(Object.values(errors)[0]);
     order!.status = "待审核";
     order!.updated = at;
     title = "订单已提交";
@@ -510,7 +555,10 @@ export function transition(
     if (!current) fail("没有可完成的专业阶段。");
     current!.status = "已完成";
     const next = order!.stages.find((x) => x.status === "未开始");
-    if (next) next.status = "进行中";
+    if (next) {
+      next.status = "进行中";
+      next.owner = "隔离设计团队";
+    }
     order!.updated = at;
     title = current!.name + "阶段已完成";
   } else if (c.type === "order-advance") {
@@ -535,10 +583,13 @@ export function transition(
     order!.status = c.value as OrderStatus;
     order!.reason = detail;
     order!.updated = at;
+    if (c.value === "处理中" && !order!.plannedStages?.includes("三维重建"))
+      fail("受理前需确认已审核的上游成果或补齐三维重建阶段。");
     if (c.value === "处理中" && !order!.stages.length)
       order!.stages = (order!.plannedStages || ["三维重建"]).map((name, i) => ({
         name,
         status: i === 0 ? "进行中" : "未开始",
+        owner: i === 0 ? "隔离设计团队" : undefined,
       }));
     if (c.value === "处理中" && !order!.projectId) {
       const projectId = "SP-" + order!.id;
@@ -575,8 +626,22 @@ export function transition(
   } else if (c.type === "request") {
     const v = c.value as Request;
     if (!v.reason.trim()) fail("请填写申请原因。");
-    if(!["归属变更","历史访问","建档关联"].includes(v.kind)) fail("申请类型无效。");
-    if(v.kind!=="历史访问"&&!d.doctors.some(x=>x.id===v.target&&d.hospitals.some(h=>h.id===x.hospitalId&&h.departments.includes(x.department)))) fail("医生不在授权目录。");
+    if (v.kind === "历史访问" && !canApprove("order.history.request"))
+      fail("无历史访问申请权限。");
+    if (!["归属变更", "历史访问", "建档关联"].includes(v.kind))
+      fail("申请类型无效。");
+    if (
+      v.kind !== "历史访问" &&
+      !d.doctors.some(
+        (x) =>
+          x.id === v.target &&
+          d.hospitals.some(
+            (h) =>
+              h.id === x.hospitalId && h.departments.includes(x.department),
+          ),
+      )
+    )
+      fail("医生不在授权目录。");
     if (
       v.kind === "历史访问" &&
       !d.orders.some(
@@ -659,6 +724,8 @@ export function transition(
     title,
     detail,
     read: !admin,
+    stage:
+      c.type === "order-stage" ? title.replace("阶段已完成", "") : undefined,
   });
   return d;
 }

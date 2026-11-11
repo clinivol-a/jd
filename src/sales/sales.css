@@ -218,3 +218,42 @@
 .sales-readonly {
   color: var(--td-text-color-secondary);
 }
+
+/* Orders reuse the incumbent project list/detail DOM and component rhythm. */
+.sales-order-list-card > .t-card__body {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 104px);
+}
+.sales-order-list-card .sales-table-scroll {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.sales-order-list-card .project-pagination { margin-top: auto; }
+.sales-order-page .sales-order-filters { align-items: center; }
+.sales-order-filters .project-filter-date { max-width: 100%; }
+.sales-order-link.t-button { padding-inline: 0; }
+.sales-order-page .t-table td:last-child,
+.sales-app .project-home-card .project-data-table td:last-child { text-align: left; }
+.sales-order-control { width: 100%; min-width: 0; }
+.sales-order-control > .t-select__wrap,
+.sales-order-control > .t-date-picker,
+.sales-order-control > .t-input-number { width: 100%; }
+.sales-case-choice { display: flex; align-items: center; gap: 8px; }
+.sales-case-choice > .t-select__wrap { flex: 1; min-width: 0; }
+.sales-case-choice > .t-button { flex-shrink: 0; }
+.sales-order-confirm { margin-bottom: 24px; }
+.sales-order-file-table { margin-top: 20px; }
+.sales-order-preview { max-width: 100%; max-height: 65vh; object-fit: contain; }
+.sales-order-pdf { width: 100%; height: 65vh; border: 0; }
+.sales-order-submitted > td {
+  animation: sales-order-feedback 3.5s ease-out forwards;
+}
+@keyframes sales-order-feedback {
+  0%, 35% { background-color: var(--td-brand-color-light); }
+  100% { background-color: var(--td-bg-color-container); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sales-order-submitted > td { animation: none; background: var(--td-brand-color-light); }
+}

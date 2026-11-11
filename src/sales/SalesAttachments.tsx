@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Upload, Button, Dialog, MessagePlugin } from "tdesign-react";
 import type { UploadFile } from "tdesign-react";
+import type { UploadRef } from "tdesign-react/es/upload/interface";
 import type { Attachment } from "./model";
 import { saveFile, getFile, openFile } from "./files";
 import { formatAuditTime } from "../dateTime";
@@ -12,6 +13,8 @@ type Props = {
   readonly?: boolean;
   category?: Attachment["category"];
   images?: boolean;
+  accept?: string;
+  validate?: (file: File) => string;
   onBusyChange?: (busy: boolean) => void;
   save?: (file: File, category: Attachment["category"]) => Promise<Attachment>;
   load?: (file: Attachment) => Promise<Blob>;
@@ -24,11 +27,14 @@ export function SalesAttachments({
   readonly,
   category,
   images,
+  accept,
+  validate,
   onBusyChange,
   save,
   load,
 }: Props) {
-  const selected = category
+  const orderUpload = category === "imaging" || category === "order-other";
+  const selected = orderUpload ? value : category
     ? value.filter((f) =>
         images
           ? f.type.startsWith("image/") &&
@@ -41,6 +47,8 @@ export function SalesAttachments({
     : value;
   const [files, setFiles] = useState<UploadFile[]>([]),
     [preview, setPreview] = useState("");
+  const uploadRef = useRef<UploadRef>(null);
+  const [failed, setFailed] = useState(false);
   const uploading = useRef(0);
   const latest = useRef(value);
   latest.current = value;
@@ -81,12 +89,16 @@ export function SalesAttachments({
     try {
       const raw = f?.raw;
       if (!raw) throw new Error("无法读取所选文件，请重新选择。");
+      const validation = validate?.(raw);
+      if (validation) throw new Error(validation);
       const stored = save
         ? await save(raw, category)
         : await saveFile(owner, raw);
       const record = {
         ...stored,
         category:
+          !category?.startsWith("order") &&
+          category !== "imaging" &&
           raw.type === "application/pdf"
             ? ("practice" as const)
             : category || ("other" as const),
@@ -115,10 +127,14 @@ export function SalesAttachments({
     <div className="sales-attachments">
       {!readonly && (
         <Upload
+          ref={uploadRef}
+          onFail={() => setFailed(true)}
+          onSuccess={() => setFailed(false)}
           theme={images ? "image" : "file"}
           multiple
-          accept={images ? "image/png,image/jpeg" : undefined}
+          accept={accept || (images ? "image/png,image/jpeg" : undefined)}
           files={files}
+          onChange={orderUpload ? setFiles : undefined}
           requestMethod={persist}
           showUploadProgress
           onRemove={({ file }) => {
@@ -131,6 +147,16 @@ export function SalesAttachments({
             {images ? "选择照片" : "选择文件"}
           </Button>
         </Upload>
+      )}
+      {!readonly && orderUpload && failed && (
+        <Button
+          variant="text"
+          theme="primary"
+          disabled={uploading.current > 0}
+          onClick={() => uploadRef.current?.uploadFiles()}
+        >
+          重新上传
+        </Button>
       )}
       {readonly && selected.length === 0 && <p>暂无附件</p>}
       {(readonly ? selected : []).map((f) => (

@@ -4,7 +4,7 @@ export function migrateSales(input: SalesData): SalesData {
   const data = structuredClone(input) as SalesData & {
     fixtureRevision?: number;
   };
-  if (data.fixtureRevision === 3) return data;
+  if (data.fixtureRevision === 4) return data;
   const names = ["林致远", "周明哲", "许文博", "方景行", "陆承安", "徐嘉宁"];
   const legacy = ["林医生", "周医生", "许医生", "方医生", "陆医生", "徐医生"];
   data.hospitals.forEach((h) => {
@@ -20,7 +20,22 @@ export function migrateSales(input: SalesData): SalesData {
       doctor.createdBy = data.ownerId;
     doctor.updatedAt ||= data.events.find((e) => e.target === doctor.id)?.at;
   }
+  for (const clinicalCase of data.cases) {
+    const doctor = data.doctors.find((d) => d.id === clinicalCase.doctorId);
+    clinicalCase.hospitalId ||= doctor?.hospitalId;
+    clinicalCase.department ||= doctor?.department;
+    if (/^CASE-S-\d+$/.test(clinicalCase.id) && !clinicalCase.patientName)
+      clinicalCase.patientName = "演示患者" + clinicalCase.id.split("-").at(-1);
+  }
   for (const order of data.orders) {
+    order.clinicalRequirements ??= order.requirements;
+    order.designRequirements ??= "";
+    if (
+      /^SO-\d{4}-\d{4}$/.test(order.id) &&
+      order.clinicalRequirements === "按临床需求说明整理设计资料。"
+    )
+      order.clinicalRequirements =
+        "评估目标部位的骨性结构和缺损范围，提供数字模型用于医生制定修复方案。";
     const previous = String(order.status);
     if (previous === "待受理") order.status = "待审核";
     if (previous === "待补资料") order.status = "审核退回";
@@ -45,13 +60,14 @@ export function migrateSales(input: SalesData): SalesData {
         stage.taskId ||= order.projectId + "-T" + (i + 1);
         return stage.taskId;
       });
-      if (!data.projects.some(p=>p.id===order.projectId)) data.projects.push({
-        id: order.projectId,
-        orderId: order.id,
-        caseId: order.caseId,
-        taskIds: order.taskIds,
-        source: "isolated-sales",
-      });
+      if (!data.projects.some((p) => p.id === order.projectId))
+        data.projects.push({
+          id: order.projectId,
+          orderId: order.id,
+          caseId: order.caseId,
+          taskIds: order.taskIds,
+          source: "isolated-sales",
+        });
     }
 
     if (
@@ -84,6 +100,6 @@ export function migrateSales(input: SalesData): SalesData {
       new Date(b.at).getTime() - new Date(a.at).getTime() ||
       a.id.localeCompare(b.id),
   );
-  data.fixtureRevision = 3;
+  data.fixtureRevision = 4;
   return data;
 }

@@ -1,3 +1,4 @@
+import { orderErrors } from "../src/sales/orderRules.mjs";
 import { InviteProof } from "./sales-invite-proof.mjs";
 import { randomBytes, randomUUID } from "node:crypto";
 import { networkInterfaces } from "node:os";
@@ -198,6 +199,21 @@ export function salesDemoPlugin(
           const user = session.user;
           if (!user || user.role !== "sales" || session.locked)
             return send(403, { error: "请使用已登录销售账号。" });
+          if (action === "order-validate" && req.method === "POST") {
+            if (body.ownerId !== user.id)
+              return send(403, { error: "订单账号不匹配。" });
+            const errors = orderErrors(
+              body.order || {},
+              body.patientName,
+              new Date(),
+            );
+            return send(Object.keys(errors).length ? 422 : 200, { errors });
+          }
+          if (action === "order-history-request" && req.method === "POST") {
+            if (!user.permissions?.includes("order.history.request"))
+              return send(403, { error: "无历史访问申请权限。" });
+            return send(503, { error: "历史访问申请需接入正式订单授权服务。" });
+          }
           if (action === "codes" && req.method === "GET") {
             const remote = req.socket.remoteAddress || "";
             if (!["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(remote))

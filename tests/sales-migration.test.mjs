@@ -1,8 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { loadTs } from "../scripts/load-ts.mjs";
-const { seedSales } = loadTs("src/sales/model.ts"),
-  { migrateSales } = loadTs("src/sales/migrate.ts");
+import { seedSales } from "../src/sales/model.ts";
+import { migrateSales } from "../src/sales/migrate.ts";
 test("fixture migration is idempotent and preserves existing actions, attachments, IDs and custom people", () => {
   const d = seedSales("li", new Date("2026-11-10T10:00:00"));
   d.events.push({

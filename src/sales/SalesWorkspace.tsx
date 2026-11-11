@@ -1,8 +1,8 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "../design-system/tdesign";
 import { SalesAttachments } from "./SalesAttachments";
+import { OrderEditor, OrderDetail, OrderIcons } from "./OrderPages";
+import { localDate } from "./orderRules.mjs";
 import { RangeControl } from "../projects/RangeControl";
-import { StageLabel } from "../projects/ProjectPages";
-import type { TaskType } from "../App";
 import { migrateSales } from "./migrate";
 import { useEffect, useState, useRef } from "react";
 import {
@@ -17,7 +17,7 @@ import {
   Table,
   Tag,
   Tabs,
-  Steps,
+  Pagination,
   DatePicker,
   Menu,
   MessagePlugin,
@@ -56,11 +56,9 @@ import type {
   SalesData,
   Doctor,
   Order,
-  Attachment,
   Command,
   Request as SalesRequest,
 } from "./model";
-import { openFile } from "./files";
 import "./sales.css";
 import { SalesInviteDialog, readInviteLeads } from "./SalesInvite";
 type Row = Record<string, unknown>;
@@ -96,8 +94,14 @@ function Grid({
   paginate = true,
   savedPage,
   onPage,
+  pageSize = 6,
+  orderMode = false,
+  highlight,
 }: {
   savedPage?: number;
+  pageSize?: number;
+  orderMode?: boolean;
+  highlight?: string;
   onPage?: (page: number) => void;
   rows: Row[];
   paginate?: boolean;
@@ -110,7 +114,7 @@ function Grid({
   const [localPage, setLocalPage] = useState(1);
   const page = Math.max(
     1,
-    Math.min(savedPage ?? localPage, Math.ceil(rows.length / 6) || 1),
+    Math.min(savedPage ?? localPage, Math.ceil(rows.length / pageSize) || 1),
   );
   const setPage = (value: number) => {
     setLocalPage(value);
@@ -145,13 +149,18 @@ function Grid({
           fields.reduce((sum, c) => sum + width(c.key), 0) +
           "px)"
         }
-        className="app-table"
-        size="small"
+        className={orderMode ? "app-table project-data-table" : "app-table"}
+        rowClassName={({ row }) =>
+          orderMode && row.id === highlight ? "sales-order-submitted" : ""
+        }
+        size={orderMode ? "medium" : "small"}
         hover
         bordered={false}
         tableLayout="fixed"
         rowKey="id"
-        data={paginate ? rows.slice((page - 1) * 6, page * 6) : rows}
+        data={
+          paginate ? rows.slice((page - 1) * pageSize, page * pageSize) : rows
+        }
         columns={fields.map((c) => ({
           colKey: c.key,
           title: c.label,
@@ -160,7 +169,8 @@ function Grid({
           fixed:
             c.key === "actions"
               ? "right"
-              : c.key === "id" && fields[0]?.key === "id"
+              : (orderMode && ["id", "hospitalId", "name"].includes(c.key)) ||
+                  (c.key === "id" && fields[0]?.key === "id")
                 ? "left"
                 : undefined,
           cell: c.render
@@ -168,7 +178,7 @@ function Grid({
             : undefined,
         }))}
         pagination={
-          paginate
+          paginate && !orderMode
             ? {
                 current: page,
                 pageSize: 6,
@@ -181,33 +191,20 @@ function Grid({
         }
         empty={<Empty description="暂无符合条件的记录" />}
       />
+      {paginate && orderMode && (
+        <div className="project-pagination">
+          <Pagination
+            current={page}
+            pageSize={pageSize}
+            total={rows.length}
+            showPageSize={false}
+            onCurrentChange={setPage}
+          />
+        </div>
+      )}
     </div>
   );
 }
-function Files({
-  owner,
-  value = [],
-  onChange,
-  readonly = false,
-  onBusyChange,
-}: {
-  owner: string;
-  value: Attachment[];
-  onChange?: (v: Attachment[]) => void;
-  readonly?: boolean;
-  onBusyChange?: (busy: boolean) => void;
-}) {
-  return (
-    <SalesAttachments
-      owner={owner}
-      value={value}
-      onChange={onChange}
-      readonly={readonly}
-      onBusyChange={onBusyChange}
-    />
-  );
-}
-
 export default function SalesWorkspace() {
   const auth = useAuth(),
     account = auth.user!,
@@ -302,6 +299,12 @@ export default function SalesWorkspace() {
     }
     previousFilter.current = { route, signature: filterSignature };
   }, [route, filterSignature]);
+  const [highlightOrder, setHighlightOrder] = useState("");
+  useEffect(() => {
+    if (!highlightOrder) return;
+    const timer = setTimeout(() => setHighlightOrder(""), 3500);
+    return () => clearTimeout(timer);
+  }, [highlightOrder]);
   const [modal, setModal] = useState(""),
     [reason, setReason] = useState(""),
     [target, setTarget] = useState(""),
@@ -528,7 +531,9 @@ export default function SalesWorkspace() {
     role: roleName(account),
   };
   const m = metrics(data),
-    orders = visibleOrders(data),
+    orders = visibleOrders(data).sort(
+      (a, b) => Date.parse(b.created) - Date.parse(a.created),
+    ),
     h = (hid: string) => data.hospitals.find((h) => h.id === hid)?.name || "",
     doc = (did: string) => data.doctors.find((x) => x.id === did)?.name || "";
   const [section, detail, caseRoute] = route.split("/"),
@@ -578,7 +583,7 @@ export default function SalesWorkspace() {
   };
   const orderFields = [
     { key: "id", label: "订单编号" },
-    { key: "name", label: "订单名称" },
+    { key: "name", label: "手术项目名称" },
     { key: "caseId", label: "病例编号" },
     {
       key: "hospitalId",
@@ -594,24 +599,12 @@ export default function SalesWorkspace() {
       key: "service",
       label: "设计阶段",
       render: (r: Row) => (
-        <div className="sales-stage-icons">
-          {(
+        <OrderIcons
+          stages={
             (r.plannedStages as string[]) ||
-            (r.stages as Order["stages"])?.map((s) => s.name) ||
-            []
-          ).map((stage) => (
-            <StageLabel
-              key={stage}
-              stage={
-                (stage === "CAD设计"
-                  ? "CAD 设计"
-                  : stage === "3D打印"
-                    ? "3D 打印"
-                    : stage) as TaskType
-              }
-            />
-          ))}
-        </div>
+            (r.stages as Order["stages"]).map((s) => s.name)
+          }
+        />
       ),
     },
     {
@@ -641,6 +634,7 @@ export default function SalesWorkspace() {
         <Button
           variant="text"
           theme="primary"
+          className="sales-order-link"
           onClick={() => go("order/" + r.id)}
         >
           查看详情
@@ -742,6 +736,10 @@ export default function SalesWorkspace() {
       (!from || formatDate(o.created) >= from) &&
       (!to || formatDate(o.created) <= to),
   );
+  const orderEnd = localDate();
+  const policyStart = new Date();
+  policyStart.setMonth(policyStart.getMonth() - data.policy.months);
+  const orderStart = localDate(policyStart);
   const filteredOrders =
     detail === "pending"
       ? matching.filter((o) => ["草稿", "审核退回"].includes(o.status))
@@ -819,75 +817,95 @@ export default function SalesWorkspace() {
       ),
     },
   ];
+  const resetOrders = () => {
+    filterCache.current["orders"]={search:"",filter:"",hospitalFilter:"",deptFilter:"",serviceFilter:"",from:"",to:""};
+    setSearch("");
+    setFilter("");
+    setHospitalFilter("");
+    setDeptFilter("");
+    setServiceFilter("");
+    setFrom("");
+    setTo("");
+    rememberPage("orders", 1);
+    if (route.startsWith("orders/")) go("orders");
+  };
   const tools = (
-    <div className="sales-filters">
-      <Input
-        clearable
-        value={search}
-        onChange={setSearch}
-        placeholder="搜索编号、名称或病例"
-      />
-      <Select
-        clearable
-        value={filter || undefined}
-        onChange={(v) => setFilter(String(v || ""))}
-        placeholder="订单状态"
-        options={orderStatuses.map((value) => ({ value, label: value }))}
-      />
-      <Select
-        clearable
-        placeholder="医院"
-        value={hospitalFilter || undefined}
-        onChange={(v) => {
-          setHospitalFilter(String(v || ""));
-          setDeptFilter("");
-        }}
-        options={data.hospitals.map((h) => ({ label: h.name, value: h.id }))}
-      />
-      <Select
-        clearable
-        placeholder="科室"
-        value={deptFilter || undefined}
-        onChange={(v) => setDeptFilter(String(v || ""))}
-        options={[
-          ...new Set(
-            data.hospitals
-              .filter((h) => !hospitalFilter || h.id === hospitalFilter)
-              .flatMap((h) => h.departments),
-          ),
-        ].map((value) => ({ value, label: value }))}
-      />
-      <Select
-        clearable
-        placeholder="设计阶段"
-        value={serviceFilter || undefined}
-        onChange={(v) => setServiceFilter(String(v || ""))}
-        options={["三维重建", "CAD设计", "有限元分析", "3D打印"].map(
-          (value) => ({ value, label: value }),
-        )}
-      />
-      <DatePicker
-        placeholder="开始日期"
-        value={from}
-        onChange={(v) => setFrom(String(v))}
-      />
-      <DatePicker
-        placeholder="结束日期"
-        value={to}
-        onChange={(v) => setTo(String(v))}
-      />
-      <Button
-        onClick={() => {
-          setSearch("");
-          setFilter("");
-          setHospitalFilter("");
-          setDeptFilter("");
-          setServiceFilter("");
-          setFrom("");
-          setTo("");
-          if (route.startsWith("orders/")) go("orders");
-        }}
-      >
+    <div className="project-filters sales-order-filters">
+      <label>
+        <span>订单编号 / 名称</span>
+        <Input
+          clearable
+          value={search}
+          onChange={setSearch}
+          placeholder="搜索编号、名称或病例"
+        />
+      </label>
+      <div className="project-filter-date">
+        <span>创建时间范围</span>
+        <RangeControl
+          period="custom"
+          range={[from, to]}
+          minDate={orderStart}
+          maxDate={orderEnd}
+          allowedMonths={data.policy.months}
+          onChange={(_, r) => {
+            setFrom(r[0]);
+            setTo(r[1]);
+          }}
+        />
+      </div>
+      <label>
+        <span>医院</span>
+        <Select
+          clearable
+          value={hospitalFilter || undefined}
+          onChange={(v) => {
+            setHospitalFilter(String(v || ""));
+            setDeptFilter("");
+          }}
+          placeholder="全部医院"
+          options={data.hospitals.map((h) => ({ value: h.id, label: h.name }))}
+        />
+      </label>
+      <label>
+        <span>科室</span>
+        <Select
+          clearable
+          value={deptFilter || undefined}
+          onChange={(v) => setDeptFilter(String(v || ""))}
+          placeholder="全部科室"
+          options={[
+            ...new Set(
+              data.hospitals
+                .filter((h) => !hospitalFilter || h.id === hospitalFilter)
+                .flatMap((h) => h.departments),
+            ),
+          ].map((value) => ({ value, label: value }))}
+        />
+      </label>
+      <label>
+        <span>设计阶段</span>
+        <Select
+          clearable
+          value={serviceFilter || undefined}
+          onChange={(v) => setServiceFilter(String(v || ""))}
+          placeholder="全部阶段"
+          options={["三维重建", "CAD设计", "有限元分析", "3D打印"].map(
+            (value) => ({ value, label: value }),
+          )}
+        />
+      </label>
+      <label>
+        <span>订单状态</span>
+        <Select
+          clearable
+          value={filter || undefined}
+          onChange={(v) => setFilter(String(v || ""))}
+          placeholder="全部状态"
+          options={orderStatuses.map((value) => ({ value, label: value }))}
+        />
+      </label>
+      <Button variant="outline" onClick={resetOrders}>
         重置筛选
       </Button>
     </div>
@@ -1049,16 +1067,25 @@ export default function SalesWorkspace() {
           >
             <div className="section-heading">
               <h2>近期订单</h2>
-              <div className="sales-actions-inline">
+              <div className="project-home-controls">
                 <RangeControl
                   period="custom"
                   range={homeRange}
+                  minDate={orderStart}
+                  maxDate={orderEnd}
+                  allowedMonths={data.policy.months}
                   onChange={(_period, range) => setHomeRange(range)}
                 />
                 <Button
                   theme="primary"
                   variant="text"
-                  onClick={() => go("orders")}
+                  onClick={() => {
+                    resetOrders();
+                    filterCache.current["orders"]={search:"",filter:"",hospitalFilter:"",deptFilter:"",serviceFilter:"",from:homeRange[0],to:homeRange[1]};
+                    setFrom(homeRange[0]);
+                    setTo(homeRange[1]);
+                    go("orders");
+                  }}
                 >
                   查看全部
                   <ChevronRightIcon size={15} />
@@ -1067,6 +1094,7 @@ export default function SalesWorkspace() {
             </div>
             <Grid
               paginate={false}
+              orderMode
               rows={[...orders]
                 .filter(
                   (o) =>
@@ -1075,19 +1103,30 @@ export default function SalesWorkspace() {
                 )
                 .sort((a, b) => b.updated.localeCompare(a.updated))
                 .slice(0, 6)}
-              fields={orderFields.filter((f) =>
-                [
-                  "id",
-                  "hospitalId",
-                  "name",
-                  "doctorId",
-                  "service",
-                  "status",
-                  "created",
-                  "due",
-                  "actions",
-                ].includes(f.key),
-              )}
+              fields={[
+                "id",
+                "hospitalId",
+                "name",
+                "caseId",
+                "service",
+                "status",
+                "created",
+                "due",
+                "actions",
+              ].map((key) => {
+                const field = orderFields.find((f) => f.key === key)!;
+                return {
+                  ...field,
+                  label:
+                    key === "status"
+                      ? "当前进展"
+                      : key === "created"
+                        ? "创建时间"
+                        : key === "due"
+                          ? "预计交付时间"
+                          : field.label,
+                };
+              })}
             />
           </Card>
           <Card bordered={false} className="dashboard-card recent-card">
@@ -1490,33 +1529,30 @@ export default function SalesWorkspace() {
     );
   } else if (section === "orders")
     content = (
-      <Card bordered={false} className="unified-list-card">
-        {header(
-          "订单管理",
-          <>
-            <Button
-              variant="text"
-              theme="primary"
-              onClick={() => go("history")}
-            >
-              历史访问申请
-            </Button>
+      <div className="project-page sales-order-page">
+        <Card
+          bordered={false}
+          className="project-list-card sales-order-list-card"
+        >
+          <div className="project-page-heading">
+            <h1>订单管理</h1>
             <Button theme="primary" onClick={() => go("order-new")}>
               新建订单
             </Button>
-          </>,
-        )}
-        {tools}
-        <div className="sales-list-table">
+          </div>
+          {tools}
           <Grid
             key={"order-list:" + detail}
+            orderMode
+            pageSize={12}
+            highlight={highlightOrder}
             savedPage={listPages.orders || 1}
             onPage={(p) => rememberPage("orders", p)}
             rows={filteredOrders}
             fields={orderFields}
           />
-        </div>
-      </Card>
+        </Card>
+      </div>
     );
   else if (section === "order-new")
     content = (
@@ -1534,19 +1570,68 @@ export default function SalesWorkspace() {
         }
         caseId={caseRoute}
         createCase={(value) => commit({ type: "case-create", value })}
-        save={(o, submit) => {
+        save={async (o, submit, patientName) => {
           try {
-            let next = transition(data, { type: "order-save", value: o });
+            if (submit) {
+              const response = await fetch("/api/sales-demo/order-validate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  ownerId: account.id,
+                  order: o,
+                  patientName,
+                }),
+              });
+              const result = await response.json();
+              if (!response.ok)
+                throw Error(
+                  Object.values(result.errors || {}).join(" ") ||
+                    result.error ||
+                    "无法核验订单，请稍后重试。",
+                );
+            }
+            const authority = {
+              id: account.id,
+              name: account.name,
+              permissions: account.permissions,
+            };
+            let next = data;
+            const clinicalCase = data.cases.find((c) => c.id === o.caseId);
+            if (clinicalCase && !clinicalCase.patientName && patientName)
+              next = transition(
+                next,
+                {
+                  type: "case-fill",
+                  value: { ...clinicalCase, patientName },
+                },
+                authority,
+              );
+            next = transition(
+              next,
+              { type: "order-save", value: o },
+              authority,
+            );
             if (submit)
-              next = transition(next, { type: "order-submit", target: o.id });
+              next = transition(
+                next,
+                { type: "order-submit", target: o.id },
+                authority,
+              );
             storage.setItem("sales-v1", JSON.stringify(next));
             setData(next);
             void MessagePlugin.success(
               submit ? "订单已提交，等待审核" : "草稿已保存",
             );
-            go("order/" + o.id);
+            if (submit) {
+              resetOrders();
+              setHighlightOrder(o.id);
+              go("orders");
+              document.querySelector(".main-content")?.scrollTo({ top: 0 });
+            } else go("order/" + o.id);
+            return true;
           } catch (e) {
             void MessagePlugin.error((e as Error).message);
+            return false;
           }
         }}
         cancel={() => go("orders")}
@@ -1562,115 +1647,21 @@ export default function SalesWorkspace() {
           该订单不在当前授权时间窗口内。
           {o.status !== "已完成" ? "订单尚未完结，需申请临时访问或移交。" : ""}
         </p>
-        <Button onClick={() => applyRequest("历史访问", o.id)}>
-          申请临时访问
-        </Button>
+        {account.permissions.includes("order.history.request") && (
+          <Button onClick={() => applyRequest("历史访问", o.id)}>
+            申请临时访问
+          </Button>
+        )}
       </Card>
     ) : (
-      <>
-        <Back onClick={() => go("orders")}>返回订单管理</Back>
-        <Card bordered={false} className="project-info-card">
-          {header(
-            <span className="sales-title-status">
-              {o.name}
-              <Status value={o.status} />
-            </span>,
-            <>
-              {["草稿", "审核退回"].includes(o.status) && (
-                <Button theme="primary" onClick={() => go("order-new/" + o.id)}>
-                  {o.status === "审核退回" ? "修改后重新提交" : "继续编辑"}
-                </Button>
-              )}
-            </>,
-          )}
-
-          <Tabs defaultValue="overview">
-            <Tabs.TabPanel value="overview" label="订单概览">
-              <dl className="project-info-grid">
-                {[
-                  ["订单名称", o.name],
-                  ["最近更新时间", formatAuditTime(o.updated)],
-                  ["订单编号", o.id],
-                  ["病例编号", o.caseId],
-                  ["医院", h(o.hospitalId)],
-                  ["需求医生", doc(o.doctorId)],
-                  ["科室", o.department],
-                  ["业务服务项目", o.service],
-                  [
-                    "设计阶段",
-                    (o.plannedStages || o.stages.map((s) => s.name)).join("、"),
-                  ],
-                  ["关联工程项目", o.projectId || "尚未受理建立"],
-                  ["数量", o.quantity],
-                  ["预计交付", o.due],
-                  ["创建日期", formatDate(o.created)],
-                  ["需求", o.requirements],
-                ].map(([k, v]) => (
-                  <div key={k}>
-                    <dt>{k}</dt>
-                    <dd>{v}</dd>
-                  </div>
-                ))}
-              </dl>
-              {o.reason && <p className="sales-error">{o.reason}</p>}
-            </Tabs.TabPanel>
-            <Tabs.TabPanel value="progress" label="专业进度">
-              {o.stages.length ? (
-                <div className="sales-stage-grid">
-                  {o.stages.map((s) => (
-                    <section className="project-stage" key={s.name}>
-                      <div className="project-stage-title">
-                        <h3>{s.name}</h3>
-                        <Status value={s.status} />
-                      </div>
-                      <p>负责人：{s.owner || "尚未分配"}</p>
-                      <p>
-                        {s.description ||
-                          (s.status === "已完成"
-                            ? "阶段已完成"
-                            : "专业进度只读")}
-                      </p>
-                      <p>任务编号：{s.taskId || "尚未建立"}</p>
-                      {s.artifactId &&
-                        o.materials.some((f) => f.id === s.artifactId) && (
-                          <div className="project-stage-actions">
-                            <Button
-                              theme="default"
-                              variant="outline"
-                              onClick={() =>
-                                void openFile(
-                                  account.id,
-                                  o.materials.find(
-                                    (f) => f.id === s.artifactId,
-                                  )!,
-                                ).catch((e) => MessagePlugin.error(e.message))
-                              }
-                            >
-                              查看成果
-                            </Button>
-                          </div>
-                        )}
-                    </section>
-                  ))}
-                </div>
-              ) : (
-                <Empty description="尚未受理分配专业任务" />
-              )}
-            </Tabs.TabPanel>
-            <Tabs.TabPanel value="files" label="资料附件">
-              <SalesAttachments
-                owner={account.id}
-                ownerName={account.name}
-                value={o.materials}
-                readonly
-              />
-            </Tabs.TabPanel>
-            <Tabs.TabPanel value="activity" label="操作记录">
-              <ul className="timeline sales-log">{logs(o.id)}</ul>
-            </Tabs.TabPanel>
-          </Tabs>
-        </Card>
-      </>
+      <OrderDetail
+        order={o}
+        data={data}
+        ownerName={account.name}
+        onBack={() => go("orders")}
+        onEdit={() => go("order-new/" + o.id)}
+        status={<Status value={o.status} />}
+      />
     );
   } else if (section === "case") {
     const c = data.cases.find(
@@ -1711,7 +1702,9 @@ export default function SalesWorkspace() {
       <Empty description="病例不在授权范围" />
     );
   } else if (section === "history")
-    content = (
+    content = !account.permissions.includes("order.history.request") ? (
+      <Empty description="无历史访问申请权限" />
+    ) : (
       <>
         <Back onClick={() => go("orders")}>返回订单管理</Back>
         <Card bordered={false} className="project-info-card">
@@ -2547,361 +2540,6 @@ function DoctorEditor({
     </>
   );
 }
-function OrderEditor({
-  data,
-  initial,
-  doctorId,
-  caseId,
-  createCase,
-  save,
-  cancel,
-}: {
-  data: SalesData;
-  initial?: Order;
-  doctorId?: string;
-  caseId?: string;
-  createCase: (value: {
-    id: string;
-    doctorId: string;
-    summary: string;
-  }) => boolean;
-  save: (o: Order, submit: boolean) => void;
-  cancel: () => void;
-}) {
-  const [caseOpen, setCaseOpen] = useState(false),
-    [caseSummary, setCaseSummary] = useState("");
-  const [step, setStep] = useState(0),
-    [error, setError] = useState(""),
-    [uploading, setUploading] = useState(false);
-  const [o, set] = useState<Order>(() => {
-    const d = data.doctors.find((d) => d.id === doctorId);
-    return (
-      initial || {
-        id: "SO-" + id().slice(0, 8),
-        name: "",
-        caseId: caseId || "",
-        doctorId: d?.id || "",
-        hospitalId: d?.hospitalId || "",
-        department: d?.department || "",
-        service: services[0],
-        quantity: 1,
-        requirements: "",
-        due: "",
-        created: new Date().toISOString(),
-        updated: new Date().toISOString(),
-        businessDate: new Date().toISOString(),
-        status: "草稿",
-        materials: [],
-        reason: "",
-        stages: [],
-      }
-    );
-  });
-  const next = () => {
-    if (
-      step === 0 &&
-      (!o.name.trim() || !o.caseId || !o.doctorId || !o.requirements.trim())
-    ) {
-      setError("请完成客户、病例、名称及需求摘要。");
-      return;
-    }
-    if (
-      step === 1 &&
-      (!o.due || !Number.isInteger(o.quantity) || o.quantity < 1)
-    ) {
-      setError("请填写有效数量及交付日期。");
-      return;
-    }
-    if (step === 2 && !o.materials.length) {
-      setError("请上传至少一份需求资料。");
-      return;
-    }
-    setError("");
-    setStep(step + 1);
-  };
-  return (
-    <>
-      <Back onClick={cancel}>返回订单管理</Back>
-      <Card bordered={false} className="project-info-card">
-        <h2>新建订单</h2>
-        <Steps current={step}>
-          {["客户与病例", "服务需求", "资料上传", "确认并提交"].map((title) => (
-            <Steps.StepItem key={title} title={title} />
-          ))}
-        </Steps>
-        <Form className="sales-order-form" labelAlign="top">
-          {step === 0 && (
-            <>
-              <Field
-                label="医院"
-                error={error && !o.hospitalId ? "请完成医院" : undefined}
-                requiredMark
-              >
-                <>
-                  <Select
-                    value={o.hospitalId}
-                    options={data.hospitals.map((h) => ({
-                      value: h.id,
-                      label: h.name,
-                    }))}
-                    onChange={(v) =>
-                      set({
-                        ...o,
-                        hospitalId: String(v),
-                        department: "",
-                        doctorId: "",
-                        caseId: "",
-                      })
-                    }
-                  />
-                </>
-              </Field>
-              <Field
-                label="科室"
-                error={error && !o.department ? "请完成科室" : undefined}
-                requiredMark
-              >
-                <>
-                  <Select
-                    value={o.department}
-                    options={(
-                      data.hospitals.find((h) => h.id === o.hospitalId)
-                        ?.departments || []
-                    ).map((value) => ({ value, label: value }))}
-                    onChange={(v) =>
-                      set({
-                        ...o,
-                        department: String(v),
-                        doctorId: "",
-                        caseId: "",
-                      })
-                    }
-                  />
-                </>
-              </Field>
-              <Field
-                label="需求医生"
-                error={error && !o.doctorId ? "请完成需求医生" : undefined}
-                requiredMark
-              >
-                <>
-                  <Select
-                    value={o.doctorId}
-                    options={data.doctors
-                      .filter(
-                        (d) =>
-                          d.owner === data.ownerId &&
-                          d.status === "审核通过" &&
-                          d.hospitalId === o.hospitalId &&
-                          d.department === o.department,
-                      )
-                      .map((d) => ({ value: d.id, label: d.name }))}
-                    onChange={(v) =>
-                      set({ ...o, doctorId: String(v), caseId: "" })
-                    }
-                  />
-                </>
-              </Field>
-              <Field
-                label="已有病例"
-                error={error && !o.caseId ? "请完成已有病例" : undefined}
-                requiredMark
-              >
-                <>
-                  <Select
-                    value={o.caseId}
-                    options={data.cases
-                      .filter((c) => c.doctorId === o.doctorId)
-                      .map((c) => ({ value: c.id, label: c.id }))}
-                    onChange={(v) => set({ ...o, caseId: String(v) })}
-                  />
-                </>
-              </Field>
-              <Button disabled={!o.doctorId} onClick={() => setCaseOpen(true)}>
-                新建病例
-              </Button>
-              <p>新订单仅关联病例信息。</p>
-              <Field
-                label="订单名称"
-                error={error && !o.name ? "请完成订单名称" : undefined}
-                requiredMark
-              >
-                <>
-                  <Input
-                    value={o.name}
-                    onChange={(v) => set({ ...o, name: v })}
-                  />
-                </>
-              </Field>
-              <Field
-                label="临床需求摘要"
-                error={
-                  error && !o.requirements ? "请完成临床需求摘要" : undefined
-                }
-                requiredMark
-              >
-                <>
-                  <Input
-                    value={o.requirements}
-                    onChange={(v) => set({ ...o, requirements: v })}
-                  />
-                </>
-              </Field>
-            </>
-          )}
-          {step === 1 && (
-            <>
-              <Field
-                label="服务项目"
-                error={error && !o.service ? "请完成服务项目" : undefined}
-              >
-                <>
-                  <Select
-                    value={o.service}
-                    options={services.map((value) => ({ value, label: value }))}
-                    onChange={(v) => set({ ...o, service: String(v) })}
-                  />
-                </>
-              </Field>
-              <Field
-                label="需求数量"
-                requiredMark
-                error={
-                  error && (!Number.isInteger(o.quantity) || o.quantity < 1)
-                    ? "请输入正整数"
-                    : undefined
-                }
-              >
-                <>
-                  <Input
-                    type="number"
-                    value={String(o.quantity)}
-                    onChange={(v) => set({ ...o, quantity: Number(v) })}
-                  />
-                </>
-              </Field>
-              <Field
-                label="预计交付日期"
-                requiredMark
-                error={error && !o.due ? "请完成预计交付日期" : undefined}
-              >
-                <>
-                  <DatePicker
-                    value={o.due}
-                    onChange={(v) => set({ ...o, due: String(v) })}
-                  />
-                </>
-              </Field>
-              <Field label="设计用途与特殊说明">
-                <>
-                  <Input
-                    value={o.requirements}
-                    onChange={(v) => set({ ...o, requirements: v })}
-                  />
-                </>
-              </Field>
-            </>
-          )}
-          {step === 2 && (
-            <Files
-              owner={data.ownerId}
-              onBusyChange={setUploading}
-              value={o.materials}
-              onChange={(materials) => set({ ...o, materials })}
-            />
-          )}{" "}
-          {step === 3 && (
-            <dl className="project-info-grid">
-              {[
-                [
-                  "医院",
-                  data.hospitals.find((h) => h.id === o.hospitalId)?.name,
-                ],
-                [
-                  "需求医生",
-                  data.doctors.find((d) => d.id === o.doctorId)?.name,
-                ],
-                ["病例编号", o.caseId],
-                ["订单名称", o.name],
-                ["服务项目", o.service],
-                ["数量", o.quantity],
-                ["预计交付", o.due],
-                ["临床需求", o.requirements],
-                ["资料", o.materials.map((f) => f.name).join("、")],
-              ].map(([k, v]) => (
-                <div key={k}>
-                  <dt>{k}</dt>
-                  <dd>{v}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
-          {step === 2 && error && !o.materials.length && (
-            <p className="sales-error" role="alert">
-              请上传至少一份需求资料。
-            </p>
-          )}
-          <div className="sales-actions">
-            {step > 0 && (
-              <Button
-                theme="default"
-                variant="outline"
-                onClick={() => setStep(step - 1)}
-              >
-                上一步
-              </Button>
-            )}
-            <Button
-              theme="default"
-              variant="outline"
-              disabled={uploading}
-              onClick={() => save(o, false)}
-            >
-              保存草稿
-            </Button>
-            {step < 3 ? (
-              <Button theme="primary" onClick={next} disabled={uploading}>
-                下一步
-              </Button>
-            ) : (
-              <Button
-                theme="primary"
-                onClick={() => save(o, true)}
-                disabled={uploading}
-              >
-                提交订单
-              </Button>
-            )}
-          </div>
-        </Form>
-      </Card>
-      <Dialog
-        visible={caseOpen}
-        header="新建病例"
-        onClose={() => setCaseOpen(false)}
-        onConfirm={() => {
-          const c = {
-            id: "CASE-" + id().slice(0, 8),
-            doctorId: o.doctorId,
-            summary: caseSummary,
-          };
-          if (createCase(c)) {
-            set({ ...o, caseId: c.id });
-            setCaseSummary("");
-            setCaseOpen(false);
-          }
-        }}
-      >
-        <Input
-          value={caseSummary}
-          onChange={setCaseSummary}
-          placeholder="填写脱敏病例需求摘要"
-        />
-      </Dialog>
-    </>
-  );
-}
-
 function Back({
   children,
   onClick,
