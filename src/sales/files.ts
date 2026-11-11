@@ -1,4 +1,5 @@
 /** Isolated prototype attachments, genuinely persisted as Blobs in IndexedDB. No medical cloud upload. */
+import { fixtureBytes } from "./orderFixtures.mjs";
 import type { Attachment } from "./model";
 const database = () =>
   new Promise<IDBDatabase>((resolve, reject) => {
@@ -35,6 +36,11 @@ export async function saveFile(owner: string, file: File): Promise<Attachment> {
   }
 }
 export async function getFile(owner: string, a: Attachment): Promise<Blob> {
+  if (a.storage === "demo-fixture") {
+    if (a.uploadedBy !== owner) throw Error("文件不可用或无访问权限。");
+    const kind = a.type === "application/pdf" ? 1 : a.type.startsWith("image/") ? 2 : 0;
+    return new Blob([fixtureBytes(kind) as Uint8Array<ArrayBuffer>], {type:a.type});
+  }
   if (a.storage === "invitation") {
     const response = await fetch(
       "/api/sales-demo/file?id=" + encodeURIComponent(a.id),

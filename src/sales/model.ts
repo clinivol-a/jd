@@ -1,3 +1,4 @@
+import { orderFixtures, syntheticPatients, stageTeams } from "./orderFixtures.mjs";
 import { designStages, orderErrors } from "./orderRules.mjs";
 export type DoctorStatus = "草稿" | "待审核" | "审核通过" | "审核退回";
 export type OrderStatus =
@@ -22,7 +23,7 @@ export type Attachment = {
   uploadedAt?: string;
   uploadedBy?: string;
   status?: "success";
-  storage?: "browser" | "invitation";
+  storage?: "browser" | "invitation" | "demo-fixture";
 };
 export type Doctor = {
   id: string;
@@ -47,6 +48,8 @@ export type Case = {
   doctorId: string;
   summary: string;
   patientName?: string;
+  patientRef?: string;
+  clinicalType?: string;
   hospitalId?: string;
   department?: string;
 };
@@ -70,6 +73,11 @@ export type Order = {
   materials: Attachment[];
   reason: string;
   ownerSalesId?: string;
+  createdBy?: string;
+  demoScenario?: string;
+  submittedAt?: string;
+  reviewedAt?: string;
+  completedAt?: string;
   projectId?: string;
   taskIds?: string[];
   plannedStages?: string[];
@@ -82,6 +90,8 @@ export type Order = {
     owner?: string;
     description?: string;
     artifactId?: string;
+    startedAt?: string;
+    completedAt?: string;
   }[];
 };
 export type Event = {
@@ -123,7 +133,7 @@ export type SalesData = {
     orderId: string;
     caseId: string;
     taskIds: string[];
-    source: "isolated-sales";
+    source: "isolated-sales" | "engineer-verified";
   }[];
   policy: {
     months: 3 | 6;
@@ -154,8 +164,6 @@ export function localMonth(value: string | Date) {
     : "";
 }
 export function seedSales(ownerId: string, now = new Date()): SalesData {
-  const at = (days: number) =>
-    new Date(now.getTime() - days * 86400000).toISOString();
   const hospitals = [
     {
       id: "H-A",
@@ -177,12 +185,12 @@ export function seedSales(ownerId: string, now = new Date()): SalesData {
     },
   ];
   const doctors: Doctor[] = [
-    "林医生",
-    "周医生",
-    "许医生",
-    "方医生",
-    "陆医生",
-    "徐医生",
+    "林致远",
+    "周明哲",
+    "许文博",
+    "方景行",
+    "陆承安",
+    "徐嘉宁",
   ].map((name, i) => ({
     id: `D-${i + 1}`,
     name,
@@ -212,62 +220,22 @@ export function seedSales(ownerId: string, now = new Date()): SalesData {
       id: `CASE-S-${i + 1}`,
       doctorId: d.id,
       summary: "用于修复规划的合成临床病例。",
-      patientName: "演示患者" + (i + 1),
+      patientName: syntheticPatients[i],
+      patientRef: `PAT-S-${i+1}`,
+      clinicalType: "骨性结构修复",
       hospitalId: d.hospitalId,
       department: d.department,
     }));
-  const states: OrderStatus[] = [
-    "处理中",
-    "审核退回",
-    "处理中",
-    "草稿",
-    "待审核",
-    "已完成",
-    "处理中",
-    "已完成",
-  ];
-  const orders: Order[] = states.map((status, i) => {
-    const d = doctors[i % 2],
-      created = at(i < 6 ? i + 1 : 140 + i);
-    return {
-      id: `SO-${now.getFullYear()}-${String(i + 1).padStart(4, "0")}`,
-      name: ["颌骨修复数字模型", "手术导板需求", "康复支具方案"][i % 3],
-      caseId: cases[i % 2].id,
-      doctorId: d.id,
-      hospitalId: d.hospitalId,
-      department: d.department,
-      service: services[i % 5],
-      quantity: 1,
-      requirements: [
-        "评估下颌骨缺损范围与邻近结构关系，提供数字模型供修复方案讨论。",
-        "规划导板定位区域和固定孔位，避让牙根及神经管，供医生确认。",
-        "结合肢体外形和活动范围规划支具贴合区域，保留必要的减压空间。",
-      ][i % 3],
-      due: at(-7).slice(0, 10),
-      created,
-      updated: created,
-      businessDate: created,
-      status,
-      materials: [],
-      confirmationRequired: i === 2,
-      ownerSalesId: ownerId,
-      reason: status === "审核退回" ? "请补充临床需求说明。" : "",
-      stages:
-        status === "处理中" && i !== 2
-          ? [{ name: "三维重建", status: "进行中" }]
-          : i === 2 || status === "已完成"
-            ? [{ name: "三维重建", status: "已完成" }]
-            : [],
-    };
-  });
+  const fixture = orderFixtures(ownerId, doctors.slice(0,2), cases, now);
   return {
     schema: 1,
     ownerId,
     hospitals,
     doctors,
     cases,
-    orders,
-    events: [],
+    orders: fixture.orders,
+    events: fixture.events,
+    projects: fixture.projects,
     requests: [],
     policy: { months: 3, basis: "businessDate", managerIds: [] },
   };
@@ -454,6 +422,7 @@ export function transition(
       ...v,
       hospitalId: relatedDoctor.hospitalId,
       department: relatedDoctor.department,
+      patientRef: v.patientRef || "PAT-" + v.id,
     });
     target = v.id;
     title = "病例已创建";
@@ -506,6 +475,7 @@ export function transition(
       hospitalId: doc!.hospitalId,
       department: doc!.department,
       ownerSalesId: old?.ownerSalesId || d.ownerId,
+      createdBy: old?.createdBy || actor.id,
       status: old?.status || "草稿",
       projectId: old?.projectId,
       taskIds: old?.taskIds,
@@ -532,6 +502,11 @@ export function transition(
     d.orders.push(safe);
     target = v.id;
     title = old ? "订单草稿已保存" : "订单已创建";
+  } else if (c.type === "order-delete") {
+    if (!order || order.status !== "草稿" || !canReadOrder(d, order, now) || (!admin && !actor.permissions.includes("order.draft.delete") && (order.createdBy || order.ownerSalesId || d.ownerId) !== actor.id)) fail("无订单草稿删除权限。");
+    d.orders = d.orders.filter(o => o.id !== target);
+    title = "订单草稿已删除";
+    detail = order!.name;
   } else if (c.type === "order-submit") {
     if (
       !order ||
@@ -546,6 +521,7 @@ export function transition(
     );
     if (Object.keys(errors).length) fail(Object.values(errors)[0]);
     order!.status = "待审核";
+    order!.submittedAt = at;
     order!.updated = at;
     title = "订单已提交";
   } else if (c.type === "order-stage") {
@@ -554,13 +530,18 @@ export function transition(
     const current = order!.stages.find((x) => x.status === "进行中");
     if (!current) fail("没有可完成的专业阶段。");
     current!.status = "已完成";
+    current!.completedAt = at;
     const next = order!.stages.find((x) => x.status === "未开始");
     if (next) {
       next.status = "进行中";
-      next.owner = "隔离设计团队";
+      next.owner ||= stageTeams[designStages.indexOf(next.name)];
+      next.startedAt = at;
+
     }
     order!.updated = at;
-    title = current!.name + "阶段已完成";
+    d.events.unshift({id:id(),at,actor:current!.owner || "管理员",target,title:current!.name+"任务已完成",detail:"",read:false,stage:current!.name});
+    if(next) d.events.unshift({id:id(),at,actor:next.owner!,target,title:next.name+"任务已开始",detail:"",read:false,stage:next.name});
+    return d;
   } else if (c.type === "order-advance") {
     if (!admin || !order || !canReadOrder(d, order, now))
       fail("无测试管理员操作权限。");
@@ -589,7 +570,8 @@ export function transition(
       order!.stages = (order!.plannedStages || ["三维重建"]).map((name, i) => ({
         name,
         status: i === 0 ? "进行中" : "未开始",
-        owner: i === 0 ? "隔离设计团队" : undefined,
+        owner: stageTeams[designStages.indexOf(name)],
+        startedAt: i === 0 ? at : undefined,
       }));
     if (c.value === "处理中" && !order!.projectId) {
       const projectId = "SP-" + order!.id;
@@ -607,7 +589,18 @@ export function transition(
         source: "isolated-sales",
       });
     }
-    title = c.value === "处理中" ? "订单审核通过并受理" : `订单${c.value}`;
+    if (["处理中", "审核退回"].includes(String(c.value))) order!.reviewedAt = at;
+    if (c.value === "已完成") order!.completedAt = at;
+    title = c.value === "处理中" ? "订单审核通过" : `订单${c.value}`;
+    if (c.value === "处理中") {
+      for (const stage of order!.stages) {
+        stage.owner ||= stageTeams[designStages.indexOf(stage.name)];
+        if (stage.status === "进行中") { stage.startedAt ||= at; d.events.unshift({id:id(),at,actor:stage.owner,target,title:stage.name+"任务已开始",detail:"",read:false,stage:stage.name}); }
+      }
+      d.events.splice(order!.stages.filter(s=>s.status==="进行中").length,0,{id:id(),at,actor:"管理员（隔离测试）",target,title:"专业任务已分配",detail:order!.stages.map(s=>s.name+"："+s.owner).join("；"),read:false});
+      d.events.splice(order!.stages.filter(s=>s.status==="进行中").length+1,0,{id:id(),at,actor:"管理员（隔离测试）",target,title,detail,read:false});
+      return d;
+    }
   } else if (c.type === "order-confirm") {
     if (
       !admin ||

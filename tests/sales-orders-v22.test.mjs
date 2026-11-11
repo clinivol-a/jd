@@ -111,7 +111,7 @@ test("one case may serve multiple orders; acceptance remains isolated and assign
   assert.ok(accepted.stages[0].owner);
   assert.equal(accepted.stages[1].status, "未开始");
   assert.equal(
-    data.events.filter((e) => e.target === order.id && e.stage).length,
+    data.events.filter((e) => e.target === order.id && e.title.includes("已完成")).length,
     0,
   );
   const another = { ...order, id: "V22-SECOND" };

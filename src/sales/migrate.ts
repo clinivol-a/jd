@@ -4,7 +4,7 @@ export function migrateSales(input: SalesData): SalesData {
   const data = structuredClone(input) as SalesData & {
     fixtureRevision?: number;
   };
-  if (data.fixtureRevision === 4) return data;
+  if (data.fixtureRevision === 5) return data;
   const names = ["林致远", "周明哲", "许文博", "方景行", "陆承安", "徐嘉宁"];
   const legacy = ["林医生", "周医生", "许医生", "方医生", "陆医生", "徐医生"];
   data.hospitals.forEach((h) => {
@@ -25,7 +25,9 @@ export function migrateSales(input: SalesData): SalesData {
     clinicalCase.hospitalId ||= doctor?.hospitalId;
     clinicalCase.department ||= doctor?.department;
     if (/^CASE-S-\d+$/.test(clinicalCase.id) && !clinicalCase.patientName)
-      clinicalCase.patientName = "演示患者" + clinicalCase.id.split("-").at(-1);
+      clinicalCase.patientName = ["沈嘉宁", "顾清禾"][Number(clinicalCase.id.split("-").at(-1))-1];
+    if (/^CASE-S-[12]$/.test(clinicalCase.id) && /^演示患者[12]$/.test(clinicalCase.patientName || "")) clinicalCase.patientName = ["沈嘉宁", "顾清禾"][Number(clinicalCase.id.split("-").at(-1))-1];
+    clinicalCase.patientRef ||= "PAT-" + clinicalCase.id;
   }
   for (const order of data.orders) {
     order.clinicalRequirements ??= order.requirements;
@@ -54,52 +56,18 @@ export function migrateSales(input: SalesData): SalesData {
               ? ["3D打印"]
               : []),
         ];
-    if (order.stages.length && !order.projectId) {
-      order.projectId = "SP-" + order.id;
-      order.taskIds = order.stages.map((stage, i) => {
-        stage.taskId ||= order.projectId + "-T" + (i + 1);
-        return stage.taskId;
-      });
-      if (!data.projects.some((p) => p.id === order.projectId))
-        data.projects.push({
-          id: order.projectId,
-          orderId: order.id,
-          caseId: order.caseId,
-          taskIds: order.taskIds,
-          source: "isolated-sales",
-        });
-    }
+    const events = data.events.filter(e=>e.target===order.id);
+    const created = events.filter(e=>e.title==="订单已创建" && Number.isFinite(Date.parse(e.at))).sort((a,b)=>Date.parse(a.at)-Date.parse(b.at))[0];
+    if (!Number.isFinite(Date.parse(order.created)) && created) order.created=created.at;
+    const latest = events.filter(e=>Number.isFinite(Date.parse(e.at))).sort((a,b)=>Date.parse(b.at)-Date.parse(a.at))[0];
+    if (latest && (!Number.isFinite(Date.parse(order.updated)) || Date.parse(order.updated)<Date.parse(latest.at))) order.updated=latest.at;
 
-    if (
-      !/^SO-\d{4}-\d{4}$/.test(order.id) ||
-      data.events.some((e) => e.target === order.id)
-    )
-      continue;
-    data.events.push({
-      id: "sales-fixture-created:" + order.id,
-      at: order.created,
-      actor: "业务资料导入",
-      target: order.id,
-      title: "订单已创建",
-      detail: order.name,
-      read: true,
-    });
-    if (order.status !== "草稿")
-      data.events.push({
-        id: "sales-fixture-state:" + order.id,
-        at: order.updated,
-        actor: "业务资料导入",
-        target: order.id,
-        title: "订单" + order.status,
-        detail: order.name,
-        read: false,
-      });
   }
   data.events.sort(
     (a, b) =>
       new Date(b.at).getTime() - new Date(a.at).getTime() ||
       a.id.localeCompare(b.id),
   );
-  data.fixtureRevision = 4;
+  data.fixtureRevision = 5;
   return data;
 }

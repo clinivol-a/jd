@@ -1,3 +1,4 @@
+import { addOrderScenario } from "./orderFixtures.mjs";
 import { ChevronLeftIcon, ChevronRightIcon } from "../design-system/tdesign";
 import { SalesAttachments } from "./SalesAttachments";
 import { OrderEditor, OrderDetail, OrderIcons } from "./OrderPages";
@@ -40,7 +41,7 @@ import {
 import { GlobalHeader, SettingsPage } from "../App";
 import { useAuth, useWorkspaceStorage } from "../auth/AuthContext";
 import { roleName } from "../auth/AccountMenu";
-import { formatAuditTime, formatDynamicTime, formatDate } from "../dateTime";
+import { formatAuditTime, formatDynamicTime, formatDate, formatDateTime } from "../dateTime";
 import {
   seedSales,
   transition,
@@ -136,9 +137,9 @@ function Grid({
       doctorId: 100,
       service: 170,
       status: 115,
-      actions: 110,
-      created: 130,
-      updated: 140,
+      actions: orderMode ? 150 : 110,
+      created: orderMode ? 180 : 130,
+      updated: orderMode ? 180 : 140,
       due: 130,
     })[key] || 120;
   return (
@@ -305,6 +306,8 @@ export default function SalesWorkspace() {
     const timer = setTimeout(() => setHighlightOrder(""), 3500);
     return () => clearTimeout(timer);
   }, [highlightOrder]);
+  const [deleteOrderId, setDeleteOrderId] = useState("");
+  const [scenarioConfirm, setScenarioConfirm] = useState(false);
   const [modal, setModal] = useState(""),
     [reason, setReason] = useState(""),
     [target, setTarget] = useState(""),
@@ -562,6 +565,7 @@ export default function SalesWorkspace() {
     const key = eventTarget(event.target);
     return String(
       event.detail ||
+        data.events.find(e=>e.target===key&&e.title==="订单草稿已删除")?.detail ||
         data.orders.find((o) => o.id === key)?.name ||
         data.doctors.find((d) => d.id === key)?.name ||
         key,
@@ -571,6 +575,7 @@ export default function SalesWorkspace() {
     if (event.id) commit({ type: "read", target: String(event.id) });
     const key = eventTarget(event.target);
     const order = data.orders.find((o) => o.id === key);
+    if (!order && data.events.some(e=>e.target===key&&e.title==="订单草稿已删除")) { void MessagePlugin.info("订单草稿已删除，操作记录已保留。"); return; }
     go(
       order
         ? canReadOrder(data, order)
@@ -595,6 +600,7 @@ export default function SalesWorkspace() {
       label: "需求医生",
       render: (r: Row) => doc(String(r.doctorId)),
     },
+    {key:"patient",label:"患者",render:(r:Row)=>data.cases.find(c=>c.id===r.caseId)?.patientName || "未记录"},
     {
       key: "service",
       label: "设计阶段",
@@ -614,32 +620,23 @@ export default function SalesWorkspace() {
     },
     {
       key: "created",
-      label: "创建日期",
-      render: (r: Row) => formatDate(String(r.created)),
+      label: "创建时间",
+      render: (r: Row) => formatDateTime(String(r.created)),
     },
     {
       key: "updated",
       label: "最近更新",
-      render: (r: Row) => formatDynamicTime(String(r.updated)),
+      render: (r: Row) => formatDateTime(String(r.updated)),
     },
     {
       key: "due",
       label: "预计交付",
-      render: (r: Row) => formatDate(String(r.due)),
+      render: (r: Row) => r.due ? formatDate(String(r.due)) : "尚未安排",
     },
     {
       key: "actions",
       label: "操作",
-      render: (r: Row) => (
-        <Button
-          variant="text"
-          theme="primary"
-          className="sales-order-link"
-          onClick={() => go("order/" + r.id)}
-        >
-          查看详情
-        </Button>
-      ),
+      render: (r: Row) => <div className="sales-order-row-actions"><Button variant="text" theme="primary" className="sales-order-link" onClick={() => go("order/" + r.id)}>查看详情</Button>{r.status === "草稿" && ((r.createdBy || r.ownerSalesId || account.id) === account.id || account.permissions.includes("order.draft.delete")) && <Button variant="text" theme="danger" className="sales-order-link" onClick={()=>setDeleteOrderId(String(r.id))}>删除</Button>}</div>,
     },
   ];
   const doctorPhone = (phone: string, owner: unknown) =>
@@ -1101,13 +1098,14 @@ export default function SalesWorkspace() {
                     formatDate(o.created) >= homeRange[0] &&
                     formatDate(o.created) <= homeRange[1],
                 )
-                .sort((a, b) => b.updated.localeCompare(a.updated))
+                .sort((a, b) => Date.parse(b.updated) - Date.parse(a.updated))
                 .slice(0, 6)}
               fields={[
                 "id",
                 "hospitalId",
                 "name",
-                "caseId",
+                "doctorId",
+                "patient",
                 "service",
                 "status",
                 "created",
@@ -2067,6 +2065,8 @@ export default function SalesWorkspace() {
           全部标记为已读
         </Button>
       </Drawer>
+      <Dialog visible={!!deleteOrderId} header="删除订单草稿？" confirmBtn={{content:"删除",theme:"danger"}} cancelBtn={{content:"取消",theme:"default",variant:"outline"}} onClose={()=>setDeleteOrderId("")} onConfirm={()=>{if(commit({type:"order-delete",target:deleteOrderId})){setDeleteOrderId("");}}}>删除后，该订单草稿将无法恢复，请确认是否继续。</Dialog>
+      {import.meta.env.DEV && <Dialog visible={scenarioConfirm} header="载入销售订单演示场景？" onClose={()=>setScenarioConfirm(false)} onConfirm={()=>{try {const next=addOrderScenario(data);storage.setItem("sales-v1",JSON.stringify(next));setData(next);setScenarioConfirm(false);setTestOpen(false);resetOrders();go("home");void MessagePlugin.success("演示场景已载入，原有订单和病例保留");}catch(e){void MessagePlugin.error((e as Error).message);}}}>增加具有完整状态记录的合成订单及病例。保留现有医生、订单、病例、文件及账号数据，不重复覆盖已载入场景。</Dialog>}
       <SalesInviteDialog
         visible={modal === "专属码"}
         onClose={() => setModal("")}
@@ -2139,6 +2139,7 @@ export default function SalesWorkspace() {
             <p>
               仅修改当前销售的本地合成业务数据，不修改真实账号权限或工程师数据。
             </p>
+            <Button variant="outline" onClick={()=>setScenarioConfirm(true)}>载入V2.3销售订单场景</Button>
             <h3>历史可见窗口（演示配置）</h3>
             <Select
               value={data.policy.months}

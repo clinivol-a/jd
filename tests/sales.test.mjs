@@ -16,7 +16,7 @@ test("five card queries derive from visible records; another owner has an isolat
 });
 test("3/6 month rolling visibility and grants are enforced on direct detail access", () => {
   let d = seedSales("li", now);
-  const old = d.orders.at(-2);
+  const old = d.orders.at(-1);
   assert.equal(canReadOrder(d, old, now), false);
   d.policy.months = 6;
   assert.equal(canReadOrder(d, old, now), true);
@@ -54,6 +54,7 @@ test("3/6 month rolling visibility and grants are enforced on direct detail acce
 });
 test("doctor draft, upload metadata, submission, admin return/resubmit/pass and unique owner", () => {
   let d = seedSales("li", now);
+  const beforeEventCount = d.events.length;
   const doctor = {
     ...d.doctors[4],
     name: "新增医生",
@@ -114,13 +115,15 @@ test("doctor draft, upload metadata, submission, admin return/resubmit/pass and 
       now,
     ),
   );
-  assert.equal(d.events.length, 5);
+  assert.equal(d.events.length - beforeEventCount, 5);
 });
 test("order draft-submit-accept-stage-confirm-complete, no shortcuts and no fabricated future events", () => {
   let d = seedSales("li", now);
   let o = {
     ...d.orders[3],
     id: "NEW",
+    plannedStages: ["三维重建","CAD设计"],
+    confirmationRequired: true,
     service: "手术导板设计",
     materials: [
       { id: "file", name: "imaging.zip", size: 10, type: "application/zip", storage:"browser", status:"success" },
@@ -172,7 +175,7 @@ test("order draft-submit-accept-stage-confirm-complete, no shortcuts and no fabr
     metrics(d, now).completed.some((o) => o.id === "NEW"),
     true,
   );
-  assert.equal(d.events.filter((e) => e.target === "NEW").length, 7);
+  assert.equal(d.events.filter((e) => e.target === "NEW").length, 10);
 });
 test("unauthorized hospital, duplicate doctor phone and restricted order writes fail", () => {
   const d = seedSales("li", now);
@@ -184,7 +187,7 @@ test("unauthorized hospital, duplicate doctor phone and restricted order writes 
       now,
     ),
   );
-  const order = d.orders.at(-2);
+  const order = d.orders.at(-1);
   assert.throws(() =>
     transition(d, { type: "order-save", value: order }, false, now),
   );
@@ -275,7 +278,7 @@ test("permission grants are scoped per action, self approval and wrong account f
       value: {
         id: "r",
         kind: "历史访问",
-        target: d.orders.at(-2).id,
+        target: d.orders.at(-1).id,
         reason: "查阅",
       },
     },
@@ -377,6 +380,8 @@ test("six order states; acceptance creates stable project/task IDs; completion r
   let o = {
     ...d.orders[3],
     id: "order-closed-loop",
+    plannedStages: ["三维重建","CAD设计"],
+    confirmationRequired: true,
     service: "手术导板设计",
     materials: [{ id: "proof",name:"series.dcm",size:10,type:"application/dicom",storage:"browser",status:"success" }],
   };
@@ -391,7 +396,7 @@ test("six order states; acceptance creates stable project/task IDs; completion r
   const saved = d.orders.find((x) => x.id === o.id);
   assert.equal(saved.projectId, "SP-" + o.id);
   assert.equal(saved.taskIds.length, 2);
-  assert.equal(d.projects[0].caseId, o.caseId);
+  assert.equal(d.projects.find(p=>p.orderId===o.id).caseId, o.caseId);
   assert.throws(() =>
     transition(
       d,
@@ -418,7 +423,7 @@ test("six order states; acceptance creates stable project/task IDs; completion r
     now,
   );
   assert.equal(d.orders.find((x) => x.id === o.id).status, "已完成");
-  assert.equal(d.projects.length, 1);
+  assert.equal(d.projects.filter(p=>p.orderId===o.id).length, 1);
   assert.equal(new Set(saved.taskIds).size, 2);
   assert.equal(
     d.events.some((e) => e.title.includes("等待解锁")),

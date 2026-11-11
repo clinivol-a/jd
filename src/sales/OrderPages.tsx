@@ -32,7 +32,7 @@ import { ChevronLeftIcon } from "../design-system/tdesign";
 import { InfoCircleIcon as OfficialInfoCircleIcon } from "tdesign-icons-react";
 import { adaptIcon } from "../design-system/CliniVolIcon";
 const InfoCircleIcon = adaptIcon(OfficialInfoCircleIcon);
-import { formatDate, formatAuditTime } from "../dateTime";
+import { formatDate, formatAuditTime, formatDateTime } from "../dateTime";
 import { getFile, openFile } from "./files";
 
 export function OrderIcons({ stages }: { stages: string[] }) {
@@ -146,6 +146,7 @@ export function OrderEditor({
     [caseError, setCaseError] = useState(false);
   const [caseName, setCaseName] = useState(""),
     [caseSummary, setCaseSummary] = useState("");
+  const [clinicalType, setClinicalType] = useState("");
   const linkedCase = data.cases.find((c) => c.id === o.caseId);
   const [patientName, setPatientName] = useState(linkedCase?.patientName || "");
   const update = (fields: Partial<Order>) => {
@@ -302,6 +303,7 @@ export function OrderEditor({
                 />
               </Field>
               <Field label="病例编号" required error={errors.caseId}>
+                <Tooltip content="已存在的病例可被多个订单引用，新增服务无需重复建档。"><span aria-label="病例编号说明"><InfoCircleIcon size={16} /></span></Tooltip>
                 <div className="sales-case-choice">
                   <Select
                     aria-label="病例编号"
@@ -424,15 +426,12 @@ export function OrderEditor({
           {step === 2 && (
             <>
               <Field label="医学影像" required error={errors.materials}>
-                <p className="sales-muted">
-                  支持
-                  DICOM（.dcm/.dicom）文件组、NIfTI（.nii/.nii.gz）及保留序列目录结构的
-                  ZIP。当前本地附件单个文件上限20MB；大体量影像需由影像服务导入。
-                </p>
                 <SalesAttachments
                   owner={data.ownerId}
                   value={imagingFiles}
                   category="imaging"
+                  help="支持 DICOM、NIfTI 或 ZIP 影像文件；单文件不超过20MB。"
+                  helpTooltip="大体积影像请通过影像服务导入。"
                   accept=".dcm,.dicom,.nii,.nii.gz,.zip"
                   validate={(file) =>
                     /\.(dcm|dicom|nii|nii\.gz|zip)$/i.test(file.name)
@@ -564,6 +563,7 @@ export function OrderEditor({
             department: o.department,
             patientName: caseName.trim(),
             summary: caseSummary.trim(),
+            clinicalType: clinicalType.trim(),
           };
           if (createCase(clinicalCase)) {
             update({ caseId: clinicalCase.id });
@@ -575,6 +575,8 @@ export function OrderEditor({
         }}
       >
         <Form labelAlign="top">
+          <Field label="所属医院"><Input readonly value={data.hospitals.find(h=>h.id===o.hospitalId)?.name || ""} /></Field>
+          <Field label="临床部位或病例类型"><Input aria-label="临床部位或病例类型" value={clinicalType} onChange={setClinicalType} /></Field>
           <Field
             label="患者姓名"
             required
@@ -708,25 +710,12 @@ export function OrderDetail({
             <OrderIcons stages={stages} />
           </Info>
           <Info label="业务服务项目">{order.service}</Info>
-          <Info label="预计交付日期">{formatDate(order.due)}</Info>
-          <Info label="创建日期">{formatDate(order.created)}</Info>
-          <Info label="最近更新时间">{formatAuditTime(order.updated)}</Info>
+          <Info label="预计交付日期">{order.due ? formatDate(order.due) : "尚未安排"}</Info>
+          <Info label="创建时间">{formatDateTime(order.created)}</Info>
+          <Info label="最近更新时间">{formatDateTime(order.updated)}</Info>
           <Info label="关联工程项目">
-            {project ? (
-              <>
-                <span>{project.id}</span>
-                {project.source === "isolated-sales" && (
-                  <span className="sales-muted">（独立演示项目）</span>
-                )}
-              </>
-            ) : (
-              "尚未关联"
-            )}{" "}
-            <Tooltip content="订单受理后，由管理员建立或关联用于专业设计的工程项目。">
-              <span aria-label="关联工程项目说明">
-                <InfoCircleIcon size={16} />
-              </span>
-            </Tooltip>
+            {project?.source === "engineer-verified" ? project.id : "尚未建立工程项目"}{" "}
+            <Tooltip content="该订单关联的专业设计工程项目。"><span aria-label="关联工程项目说明"><InfoCircleIcon size={16} /></span></Tooltip>
           </Info>
           <Info label="需求数量">{order.quantity}</Info>
           <Info label="报价">待核定</Info>
@@ -741,8 +730,7 @@ export function OrderDetail({
       </Card>
       <Card bordered={false} className="project-stages-card">
         <div className="section-heading">
-          <h2>专业进度</h2>
-          <span>{stages.length} 个专业阶段</span>
+          <h2>设计阶段</h2>
         </div>
         <div className="project-stages">
           {stages.map((name, index) => {
@@ -779,7 +767,13 @@ export function OrderDetail({
                         ? "等待订单审核受理"
                         : !assigned
                           ? "等待专业任务分配"
-                          : "任务正在处理中")}
+                          : state === "未开始"
+                            ? "已分配，等待前序成果确认后开始"
+                            : state === "待审核"
+                              ? "成果已提交，等待审核"
+                              : state === "审核退回"
+                                ? "审核退回，需根据意见修改"
+                                : "任务正在处理中")}
                 </p>
                 <div className="project-stage-actions">
                   {artifact && (
@@ -809,7 +803,7 @@ export function OrderDetail({
           tableLayout="fixed"
           empty="暂无已上传附件"
           columns={[
-            { colKey: "name", title: "文件名", ellipsis: true, width: 220 },
+            { colKey: "name", title: "文件名", ellipsis: true, width: 220, cell: ({row}) => <Button variant="text" theme="primary" onClick={()=> { if(row.type==="application/pdf" || row.type.startsWith("image/")) void showFile(row); else void openFile(data.ownerId,row).catch(e=>MessagePlugin.error(e.message)); }}>{row.name}</Button> },
             {
               colKey: "category",
               title: "类别",
@@ -842,7 +836,7 @@ export function OrderDetail({
               title: "上传时间",
               width: 150,
               cell: ({ row }) =>
-                row.uploadedAt ? formatAuditTime(row.uploadedAt) : "未记录",
+                row.uploadedAt ? formatDateTime(row.uploadedAt) : "未记录",
             },
             {
               colKey: "status",
@@ -900,7 +894,7 @@ export function OrderDetail({
                   </strong>
                   <p>
                     <span className="timeline-meta">
-                      {formatAuditTime(event.at)} ·{" "}
+                      {formatDateTime(event.at)} ·{" "}
                       {event.actor === data.ownerId
                         ? ownerName
                         : event.actor.replace("（隔离测试）", "")}

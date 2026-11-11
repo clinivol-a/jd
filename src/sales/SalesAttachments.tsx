@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Upload, Button, Dialog, MessagePlugin } from "tdesign-react";
+import { Upload, Button, Dialog, MessagePlugin, Tooltip } from "tdesign-react";
+import { UploadIcon, InfoCircleIcon } from "tdesign-icons-react";
 import type { UploadFile } from "tdesign-react";
 import type { UploadRef } from "tdesign-react/es/upload/interface";
 import type { Attachment } from "./model";
@@ -8,6 +9,8 @@ import { formatAuditTime } from "../dateTime";
 type Props = {
   owner: string;
   ownerName?: string;
+  help?: string;
+  helpTooltip?: string;
   value: Attachment[];
   onChange?: (files: Attachment[]) => void;
   readonly?: boolean;
@@ -22,6 +25,8 @@ type Props = {
 export function SalesAttachments({
   owner,
   ownerName,
+  help,
+  helpTooltip,
   value = [],
   onChange,
   readonly,
@@ -47,6 +52,7 @@ export function SalesAttachments({
     : value;
   const [files, setFiles] = useState<UploadFile[]>([]),
     [preview, setPreview] = useState("");
+  const [previewType, setPreviewType] = useState("image");
   const uploadRef = useRef<UploadRef>(null);
   const [failed, setFailed] = useState(false);
   const uploading = useRef(0);
@@ -58,20 +64,21 @@ export function SalesAttachments({
     void Promise.all(
       selected.map(async (f) => {
         let url = "";
-        if (images) {
+        let readable = true;
+        if (images || orderUpload) {
           try {
             const blob = await (load ? load(f) : getFile(owner, f));
             if (active) {
               url = URL.createObjectURL(blob);
               urls.push(url);
             }
-          } catch {}
+          } catch { readable = false; }
         }
         return {
           ...f,
           url,
-          status: "success" as const,
-          response: { id: f.id },
+          status: !orderUpload || (f.status === "success" && readable) ? "success" as const : "fail" as const,
+          response: { id: f.id, ...(!readable && orderUpload ? {error:"已保存文件不可读取，请重新上传。"}: {}) },
         };
       }),
     ).then((rows) => {
@@ -123,29 +130,49 @@ export function SalesAttachments({
       onBusyChange?.(uploading.current > 0);
     }
   };
+  const view = async (f: Attachment) => {
+    try { if (f.type === "application/pdf" || f.type.startsWith("image/")) {
+      const blob=await (load ? load(f) : getFile(owner,f));
+      if(preview)URL.revokeObjectURL(preview);
+      setPreviewType(f.type==="application/pdf" ? "pdf" : "image");setPreview(URL.createObjectURL(blob));
+    } else await openFile(owner,f); } catch(e){void MessagePlugin.error((e as Error).message);}
+  };
   return (
-    <div className="sales-attachments">
+    <div className="sales-attachments" onClickCapture={orderUpload ? e=>{
+      const anchor=(e.target as Element).closest("a");
+      if(!anchor)return;
+      const row=files.find(f=>f.url===anchor.getAttribute("href"));
+      const record=selected.find(f=>f.id===row?.id);
+      if(record){e.preventDefault();e.stopPropagation();void view(record);}
+    }:undefined}>
       {!readonly && (
         <Upload
           ref={uploadRef}
           onFail={() => setFailed(true)}
           onSuccess={() => setFailed(false)}
-          theme={images ? "image" : "file"}
+          theme={images ? "image" : orderUpload ? "file-flow" : "file"}
           multiple
           accept={accept || (images ? "image/png,image/jpeg" : undefined)}
           files={files}
-          onChange={orderUpload ? setFiles : undefined}
+          onChange={orderUpload ? next=>{setFiles(next);setFailed(next.some(f=>f.status==="fail"));} : undefined}
           requestMethod={persist}
+          useMockProgress={false}
           showUploadProgress
           onRemove={({ file }) => {
-            if (!file?.id) return;
+            if (!file) return;
+            if (orderUpload) {
+              const remaining = files.filter(f => file.id ? f.id !== file.id : f.name !== file.name);
+              setFiles(remaining);
+              setFailed(remaining.some(f => f.status === "fail"));
+            }
+            if (!file.id) return;
             latest.current = latest.current.filter((f) => f.id !== file.id);
             onChange?.(latest.current);
           }}
         >
-          <Button theme="default" variant="outline">
+          <div><Button theme="default" variant="outline" icon={orderUpload ? <UploadIcon /> : undefined}>
             {images ? "选择照片" : "选择文件"}
-          </Button>
+          </Button>{help && <p className="sales-upload-help">{help}{helpTooltip && <Tooltip content={helpTooltip}><span aria-label="影像导入说明"><InfoCircleIcon size={16} /></span></Tooltip>}</p>}</div>
         </Upload>
       )}
       {!readonly && orderUpload && failed && (
@@ -165,9 +192,7 @@ export function SalesAttachments({
             variant="text"
             theme="primary"
             onClick={() =>
-              void openFile(owner, f).catch((e) =>
-                MessagePlugin.error(e.message),
-              )
+              orderUpload ? void view(f) : void openFile(owner, f).catch((e) => MessagePlugin.error(e.message))
             }
           >
             {f.name}
@@ -205,11 +230,7 @@ export function SalesAttachments({
           setPreview("");
         }}
       >
-        <img
-          alt="证明资料"
-          src={preview}
-          style={{ maxWidth: "100%", maxHeight: "65vh", objectFit: "contain" }}
-        />
+        {previewType === "pdf" ? <iframe title="订单附件PDF预览" src={preview} className="sales-attachment-pdf" /> : <img alt="附件预览" src={preview} className="sales-attachment-preview" />}
       </Dialog>
     </div>
   );

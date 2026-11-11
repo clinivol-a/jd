@@ -22,7 +22,7 @@ test("fixture migration is idempotent and preserves existing actions, attachment
   const result = migrateSales(d);
   assert.deepEqual(
     result.events.find((e) => e.id === "actual"),
-    d.events[0],
+    d.events.find(e=>e.id==="actual"),
   );
   assert.equal(result.doctors.at(-1).name, "方医生");
   assert.equal(result.doctors.at(-1).materials[0].id, "blob");
@@ -35,7 +35,7 @@ test("fixture migration is idempotent and preserves existing actions, attachment
   assert.ok(result.events.length > 1);
   assert.equal(
     result.events.filter((e) => e.target === d.orders[0].id).length,
-    1,
+    d.events.filter(e=>e.target===d.orders[0].id).length,
   );
 });
 test('V2 statuses migrate without rewriting audit actors, timestamps, ownership or attachments',()=>{
