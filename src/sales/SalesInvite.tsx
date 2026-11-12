@@ -24,6 +24,8 @@ export type InviteLead = {
   certificate?: string;
   materials?: Attachment[];
   phoneVerified?: boolean;
+  submittedBy?: string;
+  submissionMode?: string;
 };
 async function request(path: string, body?: unknown) {
   const r = await fetch("/api/sales-demo/" + path, {
@@ -75,8 +77,9 @@ export function SalesInviteDialog({
         {invite ? (
           <>
             <QRCode value={invite.url} size={196} type="svg" />
-            <p>邀请码：{invite.code}</p>
-            <p className="sales-invite-url">{invite.url}</p>
+            <p>微信扫码，填写医生建档资料</p>
+            <p>也可复制邀请链接，通过浏览器填写。</p>
+            <div className="sales-invite-actions">
             <Button
               theme="primary"
               onClick={() =>
@@ -84,15 +87,14 @@ export function SalesInviteDialog({
                   .writeText(invite.url)
                   .then(() => MessagePlugin.success("邀请链接已复制"))
                   .catch(() =>
-                    MessagePlugin.error("无法复制，请手动复制链接。"),
+                    MessagePlugin.error("无法复制，请检查浏览器剪贴板权限后重试。"),
                   )
               }
             >
               复制链接
             </Button>
-            <a href={invite.url} target="_blank" rel="noreferrer">
-              打开邀请入口
-            </a>
+            <Button theme="default" variant="outline" onClick={()=>{const url=new URL(invite.url);url.host=location.host;url.protocol=location.protocol;url.searchParams.set("assisted","1");window.open(url.href,"_blank","noopener,noreferrer");}}>打开邀请入口</Button>
+            </div>
           </>
         ) : (
           <Empty description={error || "正在读取邀请入口…"} />
@@ -103,6 +105,7 @@ export function SalesInviteDialog({
 }
 export function SalesInvitePage() {
   const token = new URLSearchParams(location.search).get("token") || "";
+  const assisted = new URLSearchParams(location.search).get("assisted") === "1";
   const [info, setInfo] = useState<{
       salesName: string;
       code: string;
@@ -144,6 +147,7 @@ export function SalesInvitePage() {
     });
     const stored = await request(path("public-upload"), {
       proof,
+      assisted,
       name,
       file: { name: file.name, type: file.type, category, content },
     });
@@ -176,6 +180,7 @@ export function SalesInvitePage() {
               }
               setBusy(true);
               void request(path("public"), {
+                assisted,
                 proof,
                 name,
                 phone,

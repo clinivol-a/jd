@@ -284,3 +284,18 @@
 .sales-app .app-table .sales-order-link.t-button--theme-danger:not(:disabled):not(.t-is-disabled):active { color: var(--td-error-color-active); }
 
 .sales-app .app-table .sales-order-link.sales-order-file-name.t-button:not(:disabled):not(.t-is-disabled) { color: var(--td-text-color-primary); }
+
+/* V2.5 customer surfaces reuse project list/detail rhythm. */
+.sales-customer-list-card .project-filters { padding-inline: 24px; }
+.sales-doctor-form .sales-doctor-section { margin-top: var(--td-comp-margin-xxl); }
+.sales-doctor-form .sales-doctor-section h3 { margin: 0 0 var(--td-comp-margin-l); }
+.sales-doctor-form .sales-doctor-section + .sales-doctor-section { margin-top: var(--td-comp-margin-xxl); }
+.sales-doctor-form > .sales-actions { margin-top: var(--td-comp-margin-xl); }
+.sales-proof-group + .sales-proof-group { margin-top: var(--td-comp-margin-xl); }
+.sales-proof-group > h3 { margin: 0 0 var(--td-comp-margin-l); }
+.sales-invite .t-qrcode { margin-block: var(--td-comp-margin-l); }
+.sales-invite-actions { display: flex; justify-content: center; gap: var(--td-comp-margin-m); }
+
+.sales-doctor-detail-card .section-heading { padding: 0; min-height: 32px; margin-bottom: var(--td-comp-margin-xl); }
+.sales-doctor-detail-card .project-info-grid { margin-top: 0; }
+.sales-customer-list-card .sales-order-link.t-button { border-inline-width: 0; }

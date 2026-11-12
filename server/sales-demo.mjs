@@ -69,6 +69,15 @@ export function salesDemoPlugin(
                 200,
                 proofService.verify(invite.token, body.phone, body.code),
               );
+            let submittedBy = "资料提交人";
+            let submissionMode = "invite";
+            if (body.assisted) {
+              const sessionResponse = await fetch(authOrigin + "/api/auth/session", {headers:{cookie:req.headers.cookie || ""}});
+              const session = await sessionResponse.json();
+              if (!session.user || session.locked || session.user.role !== "sales" || session.user.id !== invite.owner) return send(403,{error:"请使用负责销售账号协助建档。"});
+              submittedBy = session.user.name;
+              submissionMode = "sales-assisted";
+            }
             const verified = proofService.check(invite.token, body.proof);
             body.phone = verified.phone;
             if (action === "public-upload") {
@@ -111,7 +120,7 @@ export function salesDemoPlugin(
                 type: f.type,
                 category: f.category || "other",
                 uploadedAt: new Date().toISOString(),
-                uploadedBy: body.name || "资料提交人",
+                uploadedBy: submissionMode === "sales-assisted" ? submittedBy : body.name || "资料提交人",
                 status: "success",
                 storage: "invitation",
               });
@@ -170,6 +179,7 @@ export function salesDemoPlugin(
                 ],
                 at: new Date().toISOString(),
                 phoneVerified: true,
+                submittedBy, submissionMode,
               });
               await persist();
               return send(200, { id: duplicate.id });
@@ -180,6 +190,7 @@ export function salesDemoPlugin(
               name: body.name.trim(),
               phone: verified.phone,
               phoneVerified: true,
+              submittedBy, submissionMode,
               title: String(body.title || ""),
               certificate: String(body.certificate || ""),
               materials,

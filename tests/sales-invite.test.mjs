@@ -146,6 +146,8 @@ test("local invitation transport scopes sales sessions, validates source and que
       ).status,
       200,
     );
+    assert.equal((await post("public?token="+token,{...payload,assisted:true},"")).status,403);
+    assert.equal((await post("public?token="+token,{...payload,assisted:true},"sales")).status,200);
     const list = await (
       await fetch(base + "leads", { headers: { cookie: "sales" } })
     ).json();
@@ -154,6 +156,8 @@ test("local invitation transport scopes sales sessions, validates source and que
     assert.equal(list.leads[0].code, issued.code);
     assert.equal(list.leads[0].status, undefined);
     assert.equal(list.leads[0].phoneVerified, true);
+    assert.equal(list.leads[0].submittedBy,"李明");
+    assert.equal(list.leads[0].submissionMode,"sales-assisted");
     assert.equal(list.leads[0].materials[0].id, upload.id);
     assert.equal(plugin.apply, "serve");
   } finally {

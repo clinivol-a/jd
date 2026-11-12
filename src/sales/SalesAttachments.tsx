@@ -39,14 +39,18 @@ export function SalesAttachments({
   load,
 }: Props) {
   const orderUpload = category === "imaging" || category === "order-other";
+  const proofUpload = ["identity", "practice", "other"].includes(category || "");
+  const nativeFlow = orderUpload || proofUpload;
   const selected = orderUpload ? value : category
     ? value.filter((f) =>
         images
           ? f.type.startsWith("image/") &&
             (f.category === category ||
               (!f.category && category === "practice"))
+          : images === false
+            ? !f.type.startsWith("image/") && f.category === category
           : category === "other"
-            ? !f.type.startsWith("image/")
+            ? f.category === "other" || !f.category
             : f.category === category,
       )
     : value;
@@ -65,9 +69,11 @@ export function SalesAttachments({
       selected.map(async (f) => {
         let url = "";
         let readable = true;
-        if (images || orderUpload) {
+        let raw: File | undefined;
+        if (images || nativeFlow) {
           try {
             const blob = await (load ? load(f) : getFile(owner, f));
+            if (images) raw = new File([blob], f.name, { type: f.type });
             if (active) {
               url = URL.createObjectURL(blob);
               urls.push(url);
@@ -77,12 +83,13 @@ export function SalesAttachments({
         return {
           ...f,
           url,
-          status: !orderUpload || (f.status === "success" && readable) ? "success" as const : "fail" as const,
-          response: { id: f.id, ...(!readable && orderUpload ? {error:"已保存文件不可读取，请重新上传。"}: {}) },
+          raw,
+          status: !nativeFlow || (f.status === "success" && readable) ? "success" as const : "fail" as const,
+          response: { id: f.id, ...(!readable && nativeFlow ? {error:"已保存文件不可读取，请重新上传。"}: {}) },
         };
       }),
     ).then((rows) => {
-      if (active) setFiles(rows);
+      if (active) { setFiles(rows); if (nativeFlow) setFailed(rows.some(f=>f.status==="fail")); }
     });
     return () => {
       active = false;
@@ -103,12 +110,7 @@ export function SalesAttachments({
         : await saveFile(owner, raw);
       const record = {
         ...stored,
-        category:
-          !category?.startsWith("order") &&
-          category !== "imaging" &&
-          raw.type === "application/pdf"
-            ? ("practice" as const)
-            : category || ("other" as const),
+        category: category || ("other" as const),
       };
       latest.current = [...latest.current, record];
       onChange?.(latest.current);
@@ -138,7 +140,7 @@ export function SalesAttachments({
     } else await openFile(owner,f); } catch(e){void MessagePlugin.error((e as Error).message);}
   };
   return (
-    <div className="sales-attachments" onClickCapture={orderUpload ? e=>{
+    <div className="sales-attachments" onClickCapture={nativeFlow ? e=>{
       const anchor=(e.target as Element).closest("a");
       if(!anchor)return;
       const row=files.find(f=>f.url===anchor.getAttribute("href"));
@@ -149,18 +151,18 @@ export function SalesAttachments({
         <Upload
           ref={uploadRef}
           onFail={() => setFailed(true)}
-          onSuccess={() => setFailed(false)}
-          theme={images ? "image" : orderUpload ? "file-flow" : "file"}
+          theme={nativeFlow ? "file-flow" : images ? "image" : "file"}
+          showThumbnail={!!images}
           multiple
           accept={accept || (images ? "image/png,image/jpeg" : undefined)}
           files={files}
-          onChange={orderUpload ? next=>{setFiles(next);setFailed(next.some(f=>f.status==="fail"));} : undefined}
+          onChange={nativeFlow ? next=>{setFiles(next);setFailed(next.some(f=>f.status==="fail"));} : undefined}
           requestMethod={persist}
           useMockProgress={false}
           showUploadProgress
           onRemove={({ file }) => {
             if (!file) return;
-            if (orderUpload) {
+            if (nativeFlow) {
               const remaining = files.filter(f => file.id ? f.id !== file.id : f.name !== file.name);
               setFiles(remaining);
               setFailed(remaining.some(f => f.status === "fail"));
@@ -170,12 +172,12 @@ export function SalesAttachments({
             onChange?.(latest.current);
           }}
         >
-          <div><Button theme="default" variant="outline" icon={orderUpload ? <UploadIcon /> : undefined}>
-            {images ? "选择照片" : "选择文件"}
+          <div><Button theme="default" variant="outline" icon={<UploadIcon />}>
+            选择文件
           </Button>{help && <p className="sales-upload-help">{help}{helpTooltip && <Tooltip content={helpTooltip}><span aria-label="影像导入说明"><InfoCircleIcon size={16} /></span></Tooltip>}</p>}</div>
         </Upload>
       )}
-      {!readonly && orderUpload && failed && (
+      {!readonly && nativeFlow && failed && (
         <Button
           variant="text"
           theme="primary"
@@ -192,7 +194,7 @@ export function SalesAttachments({
             variant="text"
             theme="primary"
             onClick={() =>
-              orderUpload ? void view(f) : void openFile(owner, f).catch((e) => MessagePlugin.error(e.message))
+              void view(f)
             }
           >
             {f.name}
@@ -206,14 +208,12 @@ export function SalesAttachments({
               "未记录上传人"}{" "}
             · {f.uploadedAt ? formatAuditTime(f.uploadedAt) : "未记录上传时间"}
           </span>
-          <span>已保存</span>
-          {images && (
+          <span>已保存</span><Button variant="text" theme="primary" onClick={()=>void openFile(owner,f).catch(e=>MessagePlugin.error(e.message))}>下载</Button>
+          {(f.type === "application/pdf" || f.type.startsWith("image/")) && (
             <Button
               variant="text"
               onClick={() =>
-                void (load ? load(f) : getFile(owner, f))
-                  .then((blob) => setPreview(URL.createObjectURL(blob)))
-                  .catch((e) => MessagePlugin.error(e.message))
+                void view(f)
               }
             >
               预览

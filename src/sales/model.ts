@@ -200,7 +200,7 @@ export function seedSales(ownerId: string, now = new Date()): SalesData {
     name,
     hospitalId: hospitals[i % 3].id,
     department: hospitals[i % 3].departments[0],
-    phone: "",
+    phone: "1990000100" + (i + 1),
     title: i % 2 ? "副主任医师" : "主治医师",
     certificate: `DEMO-QUAL-${i + 1}`,
     status: (

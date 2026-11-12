@@ -430,3 +430,14 @@ test("six order states; acceptance creates stable project/task IDs; completion r
     false,
   );
 });
+test('other PDF cannot satisfy practice proof; the same format in practice region can',()=>{
+ let d=seedSales('li',now);
+ const doctor={...d.doctors[4],phone:'19900001992',name:'分类验收',title:'主治医师',certificate:'QA-CATEGORY',materials:[{id:'id',name:'id.png',type:'image/png',size:10,category:'identity'},{id:'other',name:'other.pdf',type:'application/pdf',size:10,category:'other'}]};
+ d=transition(d,{type:'doctor-save',value:doctor},false,now);
+ assert.throws(()=>transition(d,{type:'doctor-submit',target:doctor.id},false,now));
+ doctor.materials.push({id:'practice',name:'practice.pdf',type:'application/pdf',size:10,category:'practice'});
+ d=transition(d,{type:'doctor-save',value:doctor},false,now);
+ d=transition(d,{type:'doctor-submit',target:doctor.id},false,now);
+ assert.equal(d.doctors.find(x=>x.id===doctor.id).status,'待审核');
+ assert.equal(d.doctors.find(x=>x.id===doctor.id).materials.find(x=>x.id==='other').category,'other');
+});

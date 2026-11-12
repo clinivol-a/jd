@@ -47,3 +47,13 @@ test('V2 statuses migrate without rewriting audit actors, timestamps, ownership 
  assert.deepEqual(result.events.find(e=>e.id==='immutable'),d.events[0]);assert.deepEqual(result.orders[1].materials,d.orders[1].materials);
  assert.equal(new Set(result.projects.map(p=>p.id)).size,result.projects.length);assert.deepEqual(migrateSales(result),result);
 });
+test('V2.5 fills only identified fixture missing phones and preserves entered contacts',()=>{
+ const d=seedSales('li',new Date('2026-11-12T10:00:00'));d.fixtureRevision=8;
+ d.doctors[0].phone='';d.doctors[1].phone='19900009999';
+ d.doctors.push({...d.doctors[0],id:'user-created',phone:'',name:'用户填写医生'});
+ const result=migrateSales(d);
+ assert.equal(result.doctors[0].phone,'19900001001');
+ assert.equal(result.doctors[1].phone,'19900009999');
+ assert.equal(result.doctors.at(-1).phone,'');
+ assert.deepEqual(migrateSales(result),result);
+});

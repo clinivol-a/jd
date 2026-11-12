@@ -4,7 +4,7 @@ export function migrateSales(input: SalesData): SalesData {
   const data = structuredClone(input) as SalesData & {
     fixtureRevision?: number;
   };
-  if (data.fixtureRevision === 7) return data;
+  if (data.fixtureRevision === 9) return data;
   const names = ["林致远", "周明哲", "许文博", "方景行", "陆承安", "徐嘉宁"];
   const legacy = ["林医生", "周医生", "许医生", "方医生", "陆医生", "徐医生"];
   data.hospitals.forEach((h) => {
@@ -20,6 +20,10 @@ export function migrateSales(input: SalesData): SalesData {
       doctor.createdBy = data.ownerId;
     doctor.updatedAt ||= data.events.find((e) => e.target === doctor.id)?.at;
   }
+  data.doctors.forEach((d)=>{
+    const index = Number(d.id.replace("D-","")) - 1;
+    if (!d.phone && index>=0 && index<names.length && d.name===names[index] && d.certificate===`DEMO-QUAL-${index+1}`) d.phone="1990000100"+(index+1);
+  });
   for (const clinicalCase of data.cases) {
     const doctor = data.doctors.find((d) => d.id === clinicalCase.doctorId);
     clinicalCase.hospitalId ||= doctor?.hospitalId;
@@ -72,6 +76,6 @@ export function migrateSales(input: SalesData): SalesData {
       new Date(b.at).getTime() - new Date(a.at).getTime() ||
       a.id.localeCompare(b.id),
   );
-  data.fixtureRevision = 7;
+  data.fixtureRevision = 9;
   return data;
 }
