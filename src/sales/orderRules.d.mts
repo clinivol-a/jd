@@ -7,3 +7,5 @@ export function orderErrors(
   patientName: string | undefined,
   now?: Date,
 ): Record<string, string>;
+
+export function confirmedDelivery(order: Partial<Order>): string;

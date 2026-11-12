@@ -1,3 +1,4 @@
+import { confirmedDelivery } from "./orderRules.mjs";
 import { useEffect, useMemo, useState } from "react";
 import {
   Button,
@@ -285,11 +286,11 @@ export function OrderEditor({
                   }}
                 />
               </Field>
-              <Field label="需求医生" required error={errors.doctorId}>
+              <Field label="医生" required error={errors.doctorId}>
                 <Select
-                  aria-label="需求医生"
+                  aria-label="医生"
                   value={o.doctorId}
-                  placeholder="选择需求医生"
+                  placeholder="选择医生"
                   options={data.doctors
                     .filter(
                       (d) =>
@@ -401,14 +402,14 @@ export function OrderEditor({
                   onChange={(v) => update({ quantity: Number(v) })}
                 />
               </Field>
-              <Field label="预计交付日期" required error={errors.due}>
+              <Field label="期望完成时间" required error={errors.due}>
                 <DatePicker
-                  value={o.due}
-                  inputProps={{ placeholder: "选择预计交付日期" }}
+                  value={o.requestedDueDate ?? o.due}
+                  inputProps={{ placeholder: "选择期望完成时间" }}
                   disableDate={(date) =>
                     localDate(new Date(date)) <= localDate()
                   }
-                  onChange={(value) => update({ due: String(value) })}
+                  onChange={(value) => update({ requestedDueDate: String(value), due: String(value) })}
                 />
               </Field>
               <Field label="设计需求或特殊要求">
@@ -472,7 +473,7 @@ export function OrderEditor({
                 ],
                 ["科室", o.department],
                 [
-                  "需求医生",
+                  "医生",
                   data.doctors.find((d) => d.id === o.doctorId)?.name,
                 ],
                 ["病例编号", o.caseId],
@@ -483,7 +484,7 @@ export function OrderEditor({
                 ["设计阶段", <OrderIcons stages={o.plannedStages || []} />],
                 ["设计需求", o.designRequirements || "未填写"],
                 ["需求数量", String(o.quantity)],
-                ["预计交付日期", o.due],
+                ["期望完成时间", o.requestedDueDate ?? o.due],
                 [
                   "医学影像",
                   o.materials
@@ -588,7 +589,7 @@ export function OrderEditor({
               onChange={setCaseName}
             />
           </Field>
-          <Field label="需求医生">
+          <Field label="医生">
             <Input
               readonly
               value={data.doctors.find((d) => d.id === o.doctorId)?.name || ""}
@@ -631,9 +632,7 @@ export function OrderDetail({
   status: ReactNode;
 }) {
   const clinicalCase = data.cases.find((c) => c.id === order.caseId);
-  const project = data.projects?.find(
-    (p) => p.id === order.projectId && p.orderId === order.id,
-  );
+  const project = data.projects?.find(p=>p.id===order.projectId && p.orderId===order.id);
   const events = data.events
     .filter((e) => e.target === order.id)
     .sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
@@ -701,7 +700,7 @@ export function OrderDetail({
             {data.hospitals.find((h) => h.id === order.hospitalId)?.name}
           </Info>
           <Info label="科室">{order.department}</Info>
-          <Info label="需求医生">
+          <Info label="医生">
             {data.doctors.find((d) => d.id === order.doctorId)?.name}
           </Info>
           <Info label="患者姓名">{clinicalCase?.patientName || "未记录"}</Info>
@@ -710,13 +709,9 @@ export function OrderDetail({
             <OrderIcons stages={stages} />
           </Info>
           <Info label="业务服务项目">{order.service}</Info>
-          <Info label="预计交付日期">{order.due ? formatDate(order.due) : "尚未安排"}</Info>
+          <Info label="预计交付时间">{confirmedDelivery(order) ? formatDate(confirmedDelivery(order)) : "待排期"}</Info>
           <Info label="创建时间">{formatDateTime(order.created)}</Info>
           <Info label="最近更新时间">{formatDateTime(order.updated)}</Info>
-          <Info label="关联工程项目">
-            {project?.source === "engineer-verified" ? project.id : "尚未建立工程项目"}{" "}
-            <Tooltip content="该订单关联的专业设计工程项目。"><span aria-label="关联工程项目说明"><InfoCircleIcon size={16} /></span></Tooltip>
-          </Info>
           <Info label="需求数量">{order.quantity}</Info>
           <Info label="报价">待核定</Info>
           <Info label="临床需求" wide>
@@ -744,7 +739,7 @@ export function OrderDetail({
               (f) => f.id === stage?.artifactId && f.status === "success",
             );
             return (
-              <section className="project-stage" key={name}>
+              <section className="project-stage sales-design-stage" key={name}>
                 <div className="project-stage-title">
                   <h3>
                     {String(index + 1).padStart(2, "0")} {name}
@@ -775,7 +770,7 @@ export function OrderDetail({
                                 ? "审核退回，需根据意见修改"
                                 : "任务正在处理中")}
                 </p>
-                <div className="project-stage-actions">
+                <div className="project-stage-actions" hidden={!artifact}>
                   {artifact && (
                     <Button
                       variant="outline"
@@ -803,7 +798,7 @@ export function OrderDetail({
           tableLayout="fixed"
           empty="暂无已上传附件"
           columns={[
-            { colKey: "name", title: "文件名", ellipsis: true, width: 220, cell: ({row}) => <Button variant="text" theme="primary" onClick={()=> { if(row.type==="application/pdf" || row.type.startsWith("image/")) void showFile(row); else void openFile(data.ownerId,row).catch(e=>MessagePlugin.error(e.message)); }}>{row.name}</Button> },
+            { colKey: "name", title: "文件名", ellipsis: true, width: 220, cell: ({row}) => <Button className="sales-order-link" variant="text" theme="primary" onClick={()=> { if(row.type==="application/pdf" || row.type.startsWith("image/")) void showFile(row); else void openFile(data.ownerId,row).catch(e=>MessagePlugin.error(e.message)); }}>{row.name}</Button> },
             {
               colKey: "category",
               title: "类别",
@@ -854,7 +849,7 @@ export function OrderDetail({
                   {(row.type === "application/pdf" ||
                     row.type.startsWith("image/")) && (
                     <Button
-                      variant="text"
+                      className="sales-order-link" variant="text"
                       theme="primary"
                       onClick={() => void showFile(row)}
                     >
@@ -862,7 +857,7 @@ export function OrderDetail({
                     </Button>
                   )}
                   <Button
-                    variant="text"
+                    className="sales-order-link" variant="text"
                     theme="primary"
                     onClick={() =>
                       void openFile(data.ownerId, row).catch((e) =>

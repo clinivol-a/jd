@@ -4,7 +4,7 @@ export function migrateSales(input: SalesData): SalesData {
   const data = structuredClone(input) as SalesData & {
     fixtureRevision?: number;
   };
-  if (data.fixtureRevision === 5) return data;
+  if (data.fixtureRevision === 6) return data;
   const names = ["林致远", "周明哲", "许文博", "方景行", "陆承安", "徐嘉宁"];
   const legacy = ["林医生", "周医生", "许医生", "方医生", "陆医生", "徐医生"];
   data.hospitals.forEach((h) => {
@@ -30,6 +30,7 @@ export function migrateSales(input: SalesData): SalesData {
     clinicalCase.patientRef ||= "PAT-" + clinicalCase.id;
   }
   for (const order of data.orders) {
+    order.requestedDueDate ??= order.due; // Preserve legacy sales input without asserting company scheduling.
     order.clinicalRequirements ??= order.requirements;
     order.designRequirements ??= "";
     if (
@@ -68,6 +69,6 @@ export function migrateSales(input: SalesData): SalesData {
       new Date(b.at).getTime() - new Date(a.at).getTime() ||
       a.id.localeCompare(b.id),
   );
-  data.fixtureRevision = 5;
+  data.fixtureRevision = 6;
   return data;
 }

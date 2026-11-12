@@ -31,14 +31,14 @@ export function orderErrors(order, patientName, now = new Date()) {
     errors.patientName = "病例尚未记录患者姓名，请补充病例资料。";
   if (!Number.isInteger(order.quantity) || order.quantity < 1)
     errors.quantity = "请输入正整数。";
-  const due = order.due || "";
+  const due = order.requestedDueDate ?? order.due ?? "";
   if (
     !/^\d{4}-\d{2}-\d{2}$/.test(due) ||
     !Number.isFinite(Date.parse(due)) ||
     new Date(due).toISOString().slice(0, 10) !== due ||
     due <= localDate(now)
   )
-    errors.due = "请选择晚于今天的有效交付日期。";
+    errors.due = "请选择晚于今天的有效期望完成日期。";
   const chosen = order.plannedStages || [];
   if (
     !chosen.length ||
@@ -56,4 +56,10 @@ export function orderErrors(order, patientName, now = new Date()) {
   )
     errors.materials = "请上传已保存的医学影像资料。";
   return errors;
+}
+
+/** Only an explicit schedule confirmation may be shown as promised delivery. */
+export function confirmedDelivery(order) {
+  const date = order.confirmedDeliveryDate;
+  return date && order.deliveryConfirmedAt && order.deliveryConfirmedBy && /^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(Date.parse(date)) && new Date(date).toISOString().slice(0,10) === date ? date : "";
 }

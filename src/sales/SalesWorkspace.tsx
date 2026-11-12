@@ -2,7 +2,7 @@ import { addOrderScenario } from "./orderFixtures.mjs";
 import { ChevronLeftIcon, ChevronRightIcon } from "../design-system/tdesign";
 import { SalesAttachments } from "./SalesAttachments";
 import { OrderEditor, OrderDetail, OrderIcons } from "./OrderPages";
-import { localDate } from "./orderRules.mjs";
+import { confirmedDelivery, localDate } from "./orderRules.mjs";
 import { RangeControl } from "../projects/RangeControl";
 import { migrateSales } from "./migrate";
 import { useEffect, useState, useRef } from "react";
@@ -26,6 +26,8 @@ import {
 } from "tdesign-react";
 import {
   HomeIcon,
+  TaskIcon,
+  UserBusinessIcon,
   UserCircleIcon,
   FileIcon,
   ListDemandIcon,
@@ -166,7 +168,8 @@ function Grid({
           colKey: c.key,
           title: c.label,
           width: width(c.key),
-          ellipsis: true,
+          align: "left" as const,
+          ellipsis: c.key !== "actions",
           fixed:
             c.key === "actions"
               ? "right"
@@ -190,7 +193,7 @@ function Grid({
               }
             : undefined
         }
-        empty={<Empty description="暂无符合条件的记录" />}
+        empty={<Empty description={orderMode ? undefined : "暂无符合条件的记录"} />}
       />
       {paginate && orderMode && (
         <div className="project-pagination">
@@ -224,7 +227,10 @@ export default function SalesWorkspace() {
   });
   useEffect(() => {
     try {
-      storage.setItem("sales-v1", JSON.stringify(data));
+      // Re-read at mount/HMR so another open tab's newer schedule is not overwritten.
+      const latest = JSON.parse(storage.getItem("sales-v1") || "null");
+      const initial = latest?.schema === 1 && latest.ownerId === account.id ? migrateSales(latest) : data;
+      storage.setItem("sales-v1", JSON.stringify(initial));
     } catch {
       void MessagePlugin.error("无法保存销售工作状态，请检查浏览器存储空间。");
     }
@@ -597,7 +603,7 @@ export default function SalesWorkspace() {
     },
     {
       key: "doctorId",
-      label: "需求医生",
+      label: "医生",
       render: (r: Row) => doc(String(r.doctorId)),
     },
     {key:"patient",label:"患者",render:(r:Row)=>data.cases.find(c=>c.id===r.caseId)?.patientName || "未记录"},
@@ -615,8 +621,13 @@ export default function SalesWorkspace() {
     },
     {
       key: "status",
-      label: "状态",
+      label: "订单状态",
       render: (r: Row) => <Status value={String(r.status)} />,
+    },
+    {
+      key: "updated",
+      label: "最近更新时间",
+      render: (r: Row) => formatDateTime(String(r.updated)),
     },
     {
       key: "created",
@@ -624,14 +635,9 @@ export default function SalesWorkspace() {
       render: (r: Row) => formatDateTime(String(r.created)),
     },
     {
-      key: "updated",
-      label: "最近更新",
-      render: (r: Row) => formatDateTime(String(r.updated)),
-    },
-    {
       key: "due",
-      label: "预计交付",
-      render: (r: Row) => r.due ? formatDate(String(r.due)) : "尚未安排",
+      label: "预计交付时间",
+      render: (r: Row) => confirmedDelivery(r) ? formatDate(confirmedDelivery(r)) : "待排期",
     },
     {
       key: "actions",
@@ -855,51 +861,51 @@ export default function SalesWorkspace() {
         <span>医院</span>
         <Select
           clearable
-          value={hospitalFilter || undefined}
+          value={hospitalFilter}
           onChange={(v) => {
             setHospitalFilter(String(v || ""));
-            setDeptFilter("");
+            if (!data.hospitals.some(h=>(!v || h.id===String(v)) && h.departments.includes(deptFilter))) setDeptFilter("");
           }}
           placeholder="全部医院"
-          options={data.hospitals.map((h) => ({ value: h.id, label: h.name }))}
+          options={[{value:"", label:"全部医院"}, ...data.hospitals.map((h) => ({ value: h.id, label: h.name }))]}
         />
       </label>
       <label>
         <span>科室</span>
         <Select
           clearable
-          value={deptFilter || undefined}
+          value={deptFilter}
           onChange={(v) => setDeptFilter(String(v || ""))}
           placeholder="全部科室"
-          options={[
+          options={[{value:"",label:"全部科室"}, ...[
             ...new Set(
               data.hospitals
                 .filter((h) => !hospitalFilter || h.id === hospitalFilter)
                 .flatMap((h) => h.departments),
             ),
-          ].map((value) => ({ value, label: value }))}
+          ].map((value) => ({ value, label: value }))]}
         />
       </label>
       <label>
         <span>设计阶段</span>
         <Select
           clearable
-          value={serviceFilter || undefined}
+          value={serviceFilter}
           onChange={(v) => setServiceFilter(String(v || ""))}
           placeholder="全部阶段"
-          options={["三维重建", "CAD设计", "有限元分析", "3D打印"].map(
+          options={[{value:"",label:"全部阶段"}, ...["三维重建", "CAD设计", "有限元分析", "3D打印"].map(
             (value) => ({ value, label: value }),
-          )}
+          )]}
         />
       </label>
       <label>
         <span>订单状态</span>
         <Select
           clearable
-          value={filter || undefined}
+          value={filter}
           onChange={(v) => setFilter(String(v || ""))}
           placeholder="全部状态"
-          options={orderStatuses.map((value) => ({ value, label: value }))}
+          options={[{value:"",label:"全部状态"}, ...orderStatuses.map((value) => ({ value, label: value }))]}
         />
       </label>
       <Button variant="outline" onClick={resetOrders}>
@@ -1890,6 +1896,7 @@ export default function SalesWorkspace() {
   return (
     <div className="app sales-app">
       <GlobalHeader
+        showTaskTabs={false}
         screen={{ kind: "home" }}
         openTabs={[]}
         tasks={[]}
@@ -1925,8 +1932,8 @@ export default function SalesWorkspace() {
           >
             {[
               ["home", "工作台", HomeIcon],
-              ["orders", "订单管理", FileIcon],
-              ["customers", "客户管理", UserCircleIcon],
+              ["orders", "订单管理", TaskIcon],
+              ["customers", "客户管理", UserBusinessIcon],
             ].map(([value, label, Icon]) => {
               const I = Icon as typeof HomeIcon;
               return (
@@ -2276,6 +2283,7 @@ export default function SalesWorkspace() {
                       {s === "已取消" ? "拒绝受理" : s}
                     </Button>
                   ))}
+                  {o.status === "处理中" && <label>确认预计交付时间<DatePicker value={confirmedDelivery(o)} disableDate={date=>localDate(new Date(date))<localDate()} onChange={value=>{if(value)commit({type:"order-schedule",target:o.id,value:String(value)},true);}} /></label>}
                   {o.status === "处理中" && (
                     <Button
                       aria-label={o.id + " 确认结果"}

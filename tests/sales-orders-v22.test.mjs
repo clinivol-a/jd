@@ -63,10 +63,10 @@ test("submission rejects past/today/invalid dates, CAD without upstream and file
   const name = data.cases.find((c) => c.id === order.caseId).patientName;
   assert.deepEqual(orderErrors(order, name, now), {});
   for (const due of ["2026-11-10", localDate(now), "2026-02-30"]) {
-    assert.ok(orderErrors({ ...order, due }, name, now).due);
+    assert.ok(orderErrors({ ...order, due, requestedDueDate: due }, name, now).due);
     const d = transition(
       data,
-      { type: "order-save", value: { ...order, due } },
+      { type: "order-save", value: { ...order, due, requestedDueDate: due } },
       false,
       now,
     );
@@ -191,7 +191,7 @@ test("local service independently rejects unauthenticated, mismatched-owner, pas
     );
   try {
     const { order } = setup();
-    order.due = "2999-12-20";
+    order.due = "2999-12-20"; order.requestedDueDate = order.due;
     assert.equal(
       (
         await post(
@@ -224,7 +224,7 @@ test("local service independently rejects unauthenticated, mismatched-owner, pas
     );
     const response = await post("order-validate", {
       ownerId: "li",
-      order: { ...order, due: "2000-01-01" },
+      order: { ...order, due: "2000-01-01", requestedDueDate: "2000-01-01" },
       patientName: "合成患者",
     });
     assert.equal(response.status, 422);

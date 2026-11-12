@@ -68,7 +68,7 @@
 .sales-page .t-button--variant-text.t-button--theme-primary:hover {
   background: transparent;
 }
-.sales-page .t-button--variant-text:not(.sales-back) {
+.sales-page .t-button--variant-text.t-button--theme-primary:not(.sales-back) {
   color: var(--td-brand-color);
 }
 .sales-page .t-form {
@@ -233,7 +233,6 @@
 .sales-order-list-card .project-pagination { margin-top: auto; }
 .sales-order-page .sales-order-filters { align-items: center; }
 .sales-order-filters .project-filter-date { max-width: 100%; }
-.sales-order-link.t-button { padding-inline: 0; }
 .sales-order-page .t-table td:last-child,
 .sales-app .project-home-card .project-data-table td:last-child { text-align: left; }
 .sales-order-control { width: 100%; min-width: 0; }
@@ -259,11 +258,26 @@
 }
 
 .sales-order-row-actions { display: inline-flex; align-items: center; gap: 16px; }
-.sales-order-link.t-button:hover { background: transparent; }
 .sales-upload-help { margin: 4px 0 12px; color: var(--td-text-color-secondary); }
 .sales-attachment-preview { max-width: 100%; max-height: 65vh; object-fit: contain; }
 .sales-attachment-pdf { width: 100%; height: 65vh; border: 0; }
 
-.sales-app .sales-order-link.t-button { padding-inline: 0; }
-.sales-app .sales-order-link.t-button--theme-danger { color: var(--td-error-color); }
-.sales-app .sales-order-link.t-button--theme-danger:hover { color: var(--td-error-color-hover); background: transparent; }
+/* V2.4 order-only alignment: native table cell inset is shared by th and td. */
+.sales-app .project-data-table th:last-child,
+.sales-app .project-data-table td:last-child { text-align: left; }
+.sales-app .sales-order-link.t-button { padding: 0; min-width: 0; }
+.sales-app .sales-order-link.t-button--theme-danger:not(.t-is-disabled):focus-visible { color: var(--td-error-color); }
+.sales-app .sales-order-link.t-is-disabled { color: var(--td-text-color-disabled); }
+.sales-app .project-home-card .t-table__empty { min-height: 240px; padding-block: 72px; }
+.sales-app .sales-design-stage { gap: 12px; }
+.sales-app .sales-design-stage > p { margin: 0; }
+.sales-app .sales-design-stage .project-stage-actions[hidden] { display: none; }
+.sales-app .sales-order-file-table th,
+.sales-app .sales-order-file-table td { text-align: left; color: var(--td-text-color-primary); }
+
+.sales-app .global-actions { grid-column: 3; }
+/* Match the shared table action selector without changing engineer tables. */
+.sales-app .app-table .sales-order-link.t-button:not(:disabled):not(.t-is-disabled) { padding-inline: 0; color: var(--td-brand-color); background: transparent; }
+.sales-app .app-table .sales-order-link.t-button--theme-danger:not(:disabled):not(.t-is-disabled) { color: var(--td-error-color); }
+.sales-app .app-table .sales-order-link.t-button--theme-danger:not(:disabled):not(.t-is-disabled):hover { color: var(--td-error-color-hover); }
+.sales-app .app-table .sales-order-link.t-button--theme-danger:not(:disabled):not(.t-is-disabled):active { color: var(--td-error-color-active); }

@@ -1,5 +1,5 @@
 import { orderFixtures, syntheticPatients, stageTeams } from "./orderFixtures.mjs";
-import { designStages, orderErrors } from "./orderRules.mjs";
+import { localDate, designStages, orderErrors } from "./orderRules.mjs";
 export type DoctorStatus = "草稿" | "待审核" | "审核通过" | "审核退回";
 export type OrderStatus =
   | "草稿"
@@ -65,7 +65,11 @@ export type Order = {
   requirements: string;
   clinicalRequirements?: string;
   designRequirements?: string;
-  due: string;
+  due: string; // Legacy requested date; never an administrator-confirmed schedule.
+  requestedDueDate?: string;
+  confirmedDeliveryDate?: string;
+  deliveryConfirmedAt?: string;
+  deliveryConfirmedBy?: string;
   created: string;
   updated: string;
   businessDate: string;
@@ -472,6 +476,11 @@ export function transition(
       fail("当前订单不可修改。");
     const safe = {
       ...v,
+      requestedDueDate: v.requestedDueDate ?? v.due,
+      due: v.requestedDueDate ?? v.due,
+      confirmedDeliveryDate: old?.confirmedDeliveryDate,
+      deliveryConfirmedAt: old?.deliveryConfirmedAt,
+      deliveryConfirmedBy: old?.deliveryConfirmedBy,
       hospitalId: doc!.hospitalId,
       department: doc!.department,
       ownerSalesId: old?.ownerSalesId || d.ownerId,
@@ -542,6 +551,17 @@ export function transition(
     d.events.unshift({id:id(),at,actor:current!.owner || "管理员",target,title:current!.name+"任务已完成",detail:"",read:false,stage:current!.name});
     if(next) d.events.unshift({id:id(),at,actor:next.owner!,target,title:next.name+"任务已开始",detail:"",read:false,stage:next.name});
     return d;
+  } else if (c.type === "order-schedule") {
+    if (!admin || !order || !canReadOrder(d, order, now)) fail("无测试管理员操作权限。");
+    if (order!.status !== "处理中") fail("仅已受理的处理中订单可确认排期。");
+    const date = String(c.value || "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(Date.parse(date)) || new Date(date).toISOString().slice(0,10) !== date || date < localDate(now)) fail("请选择有效的预计交付时间。");
+    order!.confirmedDeliveryDate = date;
+    order!.deliveryConfirmedAt = at;
+    order!.deliveryConfirmedBy = "管理员（隔离测试）";
+    order!.updated = at;
+    title = "预计交付时间已确认";
+    detail = date;
   } else if (c.type === "order-advance") {
     if (!admin || !order || !canReadOrder(d, order, now))
       fail("无测试管理员操作权限。");

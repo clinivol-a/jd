@@ -55,3 +55,5 @@ export const MobileIcon = adaptIcon(Catalog.MobileIcon)
 
 // Sales order creation: official filled file-plus, distinct from review-return.
 export const FileAddFilledIcon = adaptIcon(Catalog.FileAddFilledIcon)
+
+export const UserBusinessIcon = adaptIcon(Catalog.UserBusinessIcon)
