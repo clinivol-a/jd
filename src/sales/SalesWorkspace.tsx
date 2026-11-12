@@ -21,6 +21,7 @@ import {
   Tabs,
   Pagination,
   DatePicker,
+  DateRangePicker,
   Menu,
   MessagePlugin,
   Tooltip,
@@ -318,6 +319,9 @@ export default function SalesWorkspace() {
   const [itemSearch,setItemSearch]=useState("");
   const [itemKeyword,setItemKeyword]=useState("");
   const [itemType,setItemType]=useState("");
+  const [itemDept,setItemDept]=useState("");
+  const [itemStage,setItemStage]=useState("");
+  const [itemDoctorStatus,setItemDoctorStatus]=useState("");
   const [itemStatus,setItemStatus]=useState("");
   const [itemFrom,setItemFrom]=useState("");
   const [itemTo,setItemTo]=useState("");
@@ -1070,9 +1074,8 @@ export default function SalesWorkspace() {
           <Card bordered={false} className="dashboard-card attention-card">
             <div className="section-heading">
               <h2>我的业务范围</h2>
-              <Button variant="text" theme="primary" onClick={()=>go("customers/doctors")}>查看客户管理<ChevronRightIcon size={15}/></Button>
+              <Button variant="text" theme="primary" onClick={()=>go("customers/doctors")}>查看全部<ChevronRightIcon size={15}/></Button>
             </div>
-            <p className="sales-scope-summary">负责医院 {business.hospitalCount} 家 · 授权科室 {business.departmentCount} 个 · 正式关联医生 {business.doctorCount} 位</p>
             <Grid paginate={false} rows={business.hospitals.slice(0,3)} fields={[
               {key:"name",label:"医院"},{key:"departmentCount",label:"授权科室"},{key:"doctorCount",label:"关联医生"},{key:"processingCount",label:"进行中订单"},
             ]}/>
@@ -1081,20 +1084,34 @@ export default function SalesWorkspace() {
       </div>
     );
   } else if (section === "todos") {
-    const resetItems=()=>{setItemSearch("");setItemKeyword("");setItemType("");setItemStatus("");setItemFrom("");setItemTo("");};
-    const itemRows=business.items.filter(i=>i.category===itemCategory&&(!itemKeyword||[i.name,i.object,i.target].some(v=>v.includes(itemKeyword)))&&(!itemType||i.type===itemType)&&(!itemStatus||i.status===itemStatus)&&(!itemFrom||formatDate(i.at)>=itemFrom)&&(!itemTo||formatDate(i.at)<=itemTo));
+    const resetItems=()=>{setItemSearch("");setItemKeyword("");setItemType("");setItemStatus("");setItemDept("");setItemStage("");setItemDoctorStatus("");setItemFrom("");setItemTo("");};
+    const fullItems=business.items.filter(i=>i.category===itemCategory).map(i=>{
+      const order=i.kind==="order"?orders.find(o=>o.id===i.target):undefined;
+      const doctor=data.doctors.find(d=>d.id===(order?.doctorId||i.target));
+      return {...order,id:i.id,orderId:order?.id||"",name:order?.name||"不适用",caseId:order?.caseId||"不适用",hospitalId:order?.hospitalId||doctor?.hospitalId||"",department:order?.department||doctor?.department||"",doctorId:doctor?.id||"",doctorName:doctor?.name||"",status:order?.status||"",doctorStatus:i.kind==="doctor"?doctor?.status||"":"",plannedStages:order?.plannedStages||order?.stages.map(s=>s.name)||[],stages:order?.stages||[],updated:order?.updated||doctor?.updatedAt||i.at,created:order?.created||"",route:i.route,category:i.category,operation:i.name,kind:i.kind};
+    });
+    const itemRows=fullItems.filter(i=>(!itemKeyword||[i.orderId,i.name,i.caseId,i.doctorName].some(v=>v.includes(itemKeyword)))&&(!itemType||i.hospitalId===itemType)&&(!itemDept||i.department===itemDept)&&(!itemStatus||i.status===itemStatus)&&(!itemDoctorStatus||i.doctorStatus===itemDoctorStatus)&&(!itemStage||i.plannedStages.includes(itemStage))&&(!itemFrom||formatDate(i.updated)>=itemFrom)&&(!itemTo||formatDate(i.updated)<=itemTo));
+    const itemFields=orderFields.map(field=>({ ...field,render:(row:Row)=>{
+      if(field.key==="actions")return <Button className="sales-order-link" theme="primary" variant="text" onClick={()=>go(String(row.route))}>{row.category==="需要处理"?"去处理":row.category==="待继续完成"?"继续编辑":"查看详情"}</Button>;
+      if(field.key==="id")return String(row.orderId||"不适用");
+      if(row.kind==="doctor"&&["patient","service","status","created","due"].includes(field.key))return "不适用";
+      return field.render?field.render(row):String(row[field.key]||"不适用");
+    }}));
+    itemFields.splice(itemFields.length-1,0,{key:"doctorStatus",label:"资质审核状态",render:(row:Row)=>row.doctorStatus?<Status value={String(row.doctorStatus)}/>:"不适用"},{key:"operation",label:"操作记录",render:(row:Row)=>String(row.operation)});
     content=<><Back onClick={()=>go("home")}>返回工作台</Back><div className="project-page sales-business-page"><Card bordered={false} className="project-list-card sales-order-list-card">
-      <div className="project-page-heading"><h1>业务事项</h1></div>
+      <div className="project-page-heading"><h1>我的待办</h1></div>
       <Tabs value={itemCategory} onChange={v=>{setItemCategory(String(v));resetItems();}}>{["需要处理","待继续完成","业务动态"].map(category=><Tabs.TabPanel key={category} value={category} label={category}/>)}</Tabs>
       <div className="project-filters">
-        <label><span>关键词</span><Input clearable value={itemSearch} onChange={setItemSearch} placeholder="搜索事项或关联对象"/></label>
-        <label><span>事项类型</span><Select value={itemType||"__all__"} onChange={v=>setItemType(allFilterValue(v))} options={[{value:"__all__",label:"全部"},...[...new Set(business.items.filter(i=>i.category===itemCategory).map(i=>i.type))].map(value=>({value,label:value}))]}/></label>
-        <label><span>处理状态</span><Select value={itemStatus||"__all__"} onChange={v=>setItemStatus(allFilterValue(v))} options={[{value:"__all__",label:"全部"},...[...new Set(business.items.filter(i=>i.category===itemCategory).map(i=>i.status))].map(value=>({value,label:value}))]}/></label>
-        <label><span>开始日期</span><DatePicker value={itemFrom} onChange={v=>setItemFrom(String(v||""))} clearable/></label>
-        <label><span>结束日期</span><DatePicker value={itemTo} onChange={v=>setItemTo(String(v||""))} clearable/></label>
+        <label><span>订单编号 / 名称</span><Input clearable value={itemSearch} onChange={setItemSearch} placeholder="搜索编号、名称、病例或医生"/></label>
+        <label><span>医院</span><Select value={itemType||"__all__"} onChange={v=>{setItemType(allFilterValue(v));setItemDept("");}} options={[{value:"__all__",label:"全部"},...data.hospitals.map(h=>({value:h.id,label:h.name}))]}/></label>
+        <label><span>科室</span><Select value={itemDept||"__all__"} onChange={v=>setItemDept(allFilterValue(v))} options={[{value:"__all__",label:"全部"},...[...new Set(data.hospitals.filter(h=>!itemType||h.id===itemType).flatMap(h=>h.departments))].map(value=>({value,label:value}))]}/></label>
+        <label><span>设计阶段</span><Select value={itemStage||"__all__"} onChange={v=>setItemStage(allFilterValue(v))} options={[{value:"__all__",label:"全部"},...["三维重建","CAD设计","有限元分析","3D打印"].map(value=>({value,label:value}))]}/></label>
+        <label><span>订单状态</span><Select value={itemStatus||"__all__"} onChange={v=>setItemStatus(allFilterValue(v))} options={[{value:"__all__",label:"全部"},...orderStatuses.map(value=>({value,label:value}))]}/></label>
+        <label><span>资质审核状态</span><Select value={itemDoctorStatus||"__all__"} onChange={v=>setItemDoctorStatus(allFilterValue(v))} options={[{value:"__all__",label:"全部"},...["草稿","待审核","审核退回","审核通过"].map(value=>({value,label:value}))]}/></label>
+        <label><span>最近更新时间范围</span><DateRangePicker value={[itemFrom,itemTo]} onChange={v=>{setItemFrom(String(v[0]||""));setItemTo(String(v[1]||""));}} clearable/></label>
         <Button variant="outline" onClick={resetItems}>重置筛选</Button>
       </div>
-      <Grid key={itemCategory} pageSize={12} orderMode rows={itemRows} fields={todoFields}/>
+      <Grid key={itemCategory} pageSize={12} orderMode rows={itemRows} fields={itemFields}/>
     </Card></div></>;
   }
   else if (section === "customers")
