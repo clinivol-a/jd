@@ -308,3 +308,5 @@
 .sales-customer-list-card .t-table__empty { padding-block:0; }
 .sales-customer-list-card .project-data-table table { min-width: 0; }
 .sales-invite-description { text-align: center; line-height: var(--td-line-height-body-medium); }
+.sales-customer-list-card > .t-card__body > .project-page-heading > div { display: flex; align-items: center; gap: var(--td-comp-margin-m); }
+.sales-invite-actions { margin-top: var(--td-comp-margin-m); }

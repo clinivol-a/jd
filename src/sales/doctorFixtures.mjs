@@ -45,3 +45,13 @@ export function doctorDraftDeleteError(data, doctor, actor) {
         return '档案已被订单引用，不能删除。';
     return '';
 }
+
+/** Creation history belongs only to identified synthetic fixtures; never invent user audit history. */
+export function ensureDoctorCreationEvents(data) {
+ for(const doctor of data.doctors){
+ const known=/^D26-\d+$/.test(doctor.id)||(/^D-[1-6]$/.test(doctor.id)&&doctor.certificate===`DEMO-QUAL-${doctor.id.slice(2)}`);
+ if(!known||data.events.some(e=>e.target===doctor.id&&e.title==='医生档案已创建'))continue;
+ data.events.push({id:`doctor-fixture:${doctor.id}:created`,target:doctor.id,at:'2026-11-08T08:00:00+08:00',actor:'李明',title:'医生档案已创建',detail:'',read:true});
+ }
+ return data;
+}

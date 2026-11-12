@@ -366,7 +366,7 @@ export function transition(
     d.doctors = d.doctors.filter((x) => x.id !== v.id);
     d.doctors.push(safe);
     target = v.id;
-    title = "医生档案已保存";
+    title = old ? "医生档案已保存" : "医生档案已创建";
   } else if (c.type === "doctor-delete") {
     const error=doctorDraftDeleteError(d,doctor,actor);if(error)fail(error);
     d.doctors=d.doctors.filter(x=>x.id!==target);title="医生草稿已删除";

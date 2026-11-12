@@ -1429,8 +1429,8 @@ export default function SalesWorkspace() {
           <Grid orderMode rows={orders.filter(o=>o.doctorId===d.id)} fields={orderFields.map(field=>field.key==="actions" ? {...field,render:(row:Row)=><Button className="sales-order-link" theme="primary" variant="text" onClick={()=>go("order/"+row.id)}>查看详情</Button>} : field)}/>
         </Card>
         <Card bordered={false} className="project-info-card sales-doctor-detail-card">
-          <div className="section-heading"><h2>审核记录</h2></div>
-          {data.events.some(e=>e.target===d.id&&e.title.includes("审核")) ? <ul className="timeline sales-log">{logs(d.id,"review")}</ul> : <Empty/>}
+          <div className="section-heading"><h2>操作记录</h2></div>
+          {data.events.some(e=>e.target===d.id) ? <ul className="timeline sales-log">{logs(d.id)}</ul> : <Empty/>}
         </Card>
       </>
     ) : (
