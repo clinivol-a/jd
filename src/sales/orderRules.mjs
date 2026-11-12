@@ -58,8 +58,11 @@ export function orderErrors(order, patientName, now = new Date()) {
   return errors;
 }
 
-/** Only an explicit schedule confirmation may be shown as promised delivery. */
+/** Approval accepts the agreed deadline; execution does not introduce another scheduling step. */
 export function confirmedDelivery(order) {
-  const date = order.confirmedDeliveryDate;
-  return date && order.deliveryConfirmedAt && order.deliveryConfirmedBy && /^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(Date.parse(date)) && new Date(date).toISOString().slice(0,10) === date ? date : "";
+  if (["草稿", "待审核", "审核退回"].includes(order.status)) return "";
+  const date = ["处理中", "已完成"].includes(order.status)
+    ? (order.requestedDueDate || order.due || order.confirmedDeliveryDate)
+    : order.confirmedDeliveryDate;
+  return date && /^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(Date.parse(date)) && new Date(date).toISOString().slice(0,10) === date ? date : "";
 }

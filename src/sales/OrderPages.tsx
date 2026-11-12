@@ -798,7 +798,7 @@ export function OrderDetail({
           tableLayout="fixed"
           empty="暂无已上传附件"
           columns={[
-            { colKey: "name", title: "文件名", ellipsis: true, width: 220, cell: ({row}) => <Button className="sales-order-link" variant="text" theme="primary" onClick={()=> { if(row.type==="application/pdf" || row.type.startsWith("image/")) void showFile(row); else void openFile(data.ownerId,row).catch(e=>MessagePlugin.error(e.message)); }}>{row.name}</Button> },
+            { colKey: "name", title: "文件名", ellipsis: true, width: 220, cell: ({row}) => <Button className="sales-order-link sales-order-file-name" variant="text" theme="primary" onClick={()=> { if(row.type==="application/pdf" || row.type.startsWith("image/")) void showFile(row); else void openFile(data.ownerId,row).catch(e=>MessagePlugin.error(e.message)); }}>{row.name}</Button> },
             {
               colKey: "category",
               title: "类别",

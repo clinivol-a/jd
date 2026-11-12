@@ -4,7 +4,7 @@ export function migrateSales(input: SalesData): SalesData {
   const data = structuredClone(input) as SalesData & {
     fixtureRevision?: number;
   };
-  if (data.fixtureRevision === 6) return data;
+  if (data.fixtureRevision === 7) return data;
   const names = ["林致远", "周明哲", "许文博", "方景行", "陆承安", "徐嘉宁"];
   const legacy = ["林医生", "周医生", "许医生", "方医生", "陆医生", "徐医生"];
   data.hospitals.forEach((h) => {
@@ -30,7 +30,8 @@ export function migrateSales(input: SalesData): SalesData {
     clinicalCase.patientRef ||= "PAT-" + clinicalCase.id;
   }
   for (const order of data.orders) {
-    order.requestedDueDate ??= order.due; // Preserve legacy sales input without asserting company scheduling.
+    order.requestedDueDate ??= order.due; // Preserve the sales/doctor agreed date.
+    if (["处理中", "已完成"].includes(order.status)) order.confirmedDeliveryDate = order.requestedDueDate || order.due || order.confirmedDeliveryDate;
     order.clinicalRequirements ??= order.requirements;
     order.designRequirements ??= "";
     if (
@@ -64,11 +65,13 @@ export function migrateSales(input: SalesData): SalesData {
     if (latest && (!Number.isFinite(Date.parse(order.updated)) || Date.parse(order.updated)<Date.parse(latest.at))) order.updated=latest.at;
 
   }
+  // Remove only the isolated scheduling action introduced by the superseded V2.4 test flow.
+  data.events = data.events.filter(e => !(e.title === "预计交付时间已确认" && e.actor === "管理员（隔离测试）"));
   data.events.sort(
     (a, b) =>
       new Date(b.at).getTime() - new Date(a.at).getTime() ||
       a.id.localeCompare(b.id),
   );
-  data.fixtureRevision = 6;
+  data.fixtureRevision = 7;
   return data;
 }

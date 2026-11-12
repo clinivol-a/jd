@@ -551,17 +551,6 @@ export function transition(
     d.events.unshift({id:id(),at,actor:current!.owner || "管理员",target,title:current!.name+"任务已完成",detail:"",read:false,stage:current!.name});
     if(next) d.events.unshift({id:id(),at,actor:next.owner!,target,title:next.name+"任务已开始",detail:"",read:false,stage:next.name});
     return d;
-  } else if (c.type === "order-schedule") {
-    if (!admin || !order || !canReadOrder(d, order, now)) fail("无测试管理员操作权限。");
-    if (order!.status !== "处理中") fail("仅已受理的处理中订单可确认排期。");
-    const date = String(c.value || "");
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(Date.parse(date)) || new Date(date).toISOString().slice(0,10) !== date || date < localDate(now)) fail("请选择有效的预计交付时间。");
-    order!.confirmedDeliveryDate = date;
-    order!.deliveryConfirmedAt = at;
-    order!.deliveryConfirmedBy = "管理员（隔离测试）";
-    order!.updated = at;
-    title = "预计交付时间已确认";
-    detail = date;
   } else if (c.type === "order-advance") {
     if (!admin || !order || !canReadOrder(d, order, now))
       fail("无测试管理员操作权限。");
@@ -581,6 +570,13 @@ export function transition(
         (order!.confirmationRequired && !order!.confirmedAt))
     )
       fail("请先完成专业阶段及必要的结果确认。");
+    if (c.value === "处理中") {
+      const agreed = order!.requestedDueDate || order!.due;
+      if (!agreed || !/^\d{4}-\d{2}-\d{2}$/.test(agreed) || !Number.isFinite(Date.parse(agreed)) || new Date(agreed).toISOString().slice(0,10) !== agreed) fail("请先确认订单约定的交付日期，无法满足时应审核退回。");
+      order!.confirmedDeliveryDate = agreed;
+      order!.deliveryConfirmedAt = at;
+      order!.deliveryConfirmedBy = "管理员（隔离测试）";
+    }
     order!.status = c.value as OrderStatus;
     order!.reason = detail;
     order!.updated = at;

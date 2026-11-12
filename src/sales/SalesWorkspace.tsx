@@ -2283,7 +2283,6 @@ export default function SalesWorkspace() {
                       {s === "已取消" ? "拒绝受理" : s}
                     </Button>
                   ))}
-                  {o.status === "处理中" && <label>确认预计交付时间<DatePicker value={confirmedDelivery(o)} disableDate={date=>localDate(new Date(date))<localDate()} onChange={value=>{if(value)commit({type:"order-schedule",target:o.id,value:String(value)},true);}} /></label>}
                   {o.status === "处理中" && (
                     <Button
                       aria-label={o.id + " 确认结果"}
