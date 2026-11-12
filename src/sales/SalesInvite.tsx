@@ -73,13 +73,13 @@ export function SalesInviteDialog({
       onClose={onClose}
     >
       <div className="sales-invite">
-        <p>邀请医生完善建档资料</p>
+
         {invite ? (
           <>
             <QRCode value={invite.url} size={196} type="svg" />
-            <p>微信扫码，填写医生建档资料</p>
-            <p>也可复制邀请链接，通过浏览器填写。</p>
-            <div className="sales-invite-actions">
+            <p>微信扫码填写医生建档资料。</p>
+            <p>也可复制链接，通过浏览器填写。</p>
+            <div className="sales-invite-actions"><Button theme="default" variant="outline" onClick={()=>{const url=new URL(invite.url);url.host=location.host;url.protocol=location.protocol;url.searchParams.set("assisted","1");window.open(url.href,"_blank","noopener,noreferrer");}}>打开邀请入口</Button>
             <Button
               theme="primary"
               onClick={() =>
@@ -93,7 +93,7 @@ export function SalesInviteDialog({
             >
               复制链接
             </Button>
-            <Button theme="default" variant="outline" onClick={()=>{const url=new URL(invite.url);url.host=location.host;url.protocol=location.protocol;url.searchParams.set("assisted","1");window.open(url.href,"_blank","noopener,noreferrer");}}>打开邀请入口</Button>
+
             </div>
           </>
         ) : (

@@ -314,6 +314,7 @@ export default function SalesWorkspace() {
     return () => clearTimeout(timer);
   }, [highlightOrder]);
   const [deleteOrderId, setDeleteOrderId] = useState("");
+  const [deleteDoctorId,setDeleteDoctorId]=useState("");
   const [scenarioConfirm, setScenarioConfirm] = useState(false);
   const [modal, setModal] = useState(""),
     [reason, setReason] = useState(""),
@@ -665,8 +666,8 @@ export default function SalesWorkspace() {
       key: "recent",
       label: "最近更新时间",
       render: (r: Row) => {
-        const at = data.events.find((e) => e.target === r.id)?.at;
-        return at ? formatDynamicTime(at) : "暂无记录";
+        const at = r.updatedAt || data.events.find((e) => e.target === r.id)?.at;
+        return at ? formatDynamicTime(String(at)) : "暂无记录";
       },
     },
     {
@@ -683,9 +684,9 @@ export default function SalesWorkspace() {
       key: "owner",
       label: "负责销售",
       render: (r: Row) =>
-        r.owner === account.id
+        r.status === "审核通过" && r.owner === account.id
           ? "已关联 · " + account.name
-          : r.owner
+          : r.status === "审核通过" && r.owner
             ? "已有其他销售"
             : "待关联",
     },
@@ -693,14 +694,14 @@ export default function SalesWorkspace() {
       key: "actions",
       label: "操作",
       render: (r: Row) => (
-        <Button
+        <div className="sales-order-row-actions"><Button
           className="sales-order-link"
           theme="primary"
           variant="text"
           onClick={() => go("doctor/" + r.id)}
         >
           查看详情
-        </Button>
+        </Button>{r.status==="草稿"&&(r.createdBy===account.id||account.permissions.includes("doctor.draft.delete"))&&<Button variant="text" theme="danger" className="sales-order-link" onClick={()=>setDeleteDoctorId(String(r.id))}>删除</Button>}</div>
       ),
     },
   ].sort(
@@ -1349,10 +1350,7 @@ export default function SalesWorkspace() {
         <Back onClick={() => go("customers/doctors")}>返回客户管理</Back>
         <Card bordered={false} className="project-info-card sales-doctor-detail-card">
           {doctorHeader(
-            <span className="sales-title-status">
-              基本资料
-              <Status value={d.status} />
-            </span>,
+            "基本资料",
             <>
               {["草稿", "审核退回"].includes(d.status) &&
               (!d.owner || d.owner === account.id) ? (
@@ -1386,9 +1384,7 @@ export default function SalesWorkspace() {
                   </Button>
                 </>
               ) : (
-                <span className="sales-readonly">
-                  {d.status === "待审核" ? "审核处理中" : "资质资料只读"}
-                </span>
+                null
               )}
             </>,
           )}
@@ -1396,6 +1392,7 @@ export default function SalesWorkspace() {
               <dl className="project-info-grid">
                 {[
                   ["医生", d.name],
+                  ["资质审核状态", <Status value={d.status}/>],
                   ["所属医院", h(d.hospitalId)],
                   ["所属科室", d.department],
                   ["职称", d.title],
@@ -1433,10 +1430,6 @@ export default function SalesWorkspace() {
         <Card bordered={false} className="project-info-card sales-doctor-detail-card">
           <div className="section-heading"><h2>关联订单</h2></div>
           <Grid orderMode rows={orders.filter(o=>o.doctorId===d.id)} fields={orderFields.map(field=>field.key==="actions" ? {...field,render:(row:Row)=><Button className="sales-order-link" theme="primary" variant="text" onClick={()=>go("order/"+row.id)}>查看详情</Button>} : field)}/>
-        </Card>
-        <Card bordered={false} className="project-info-card sales-doctor-detail-card">
-          <div className="section-heading"><h2>业务跟进</h2><Button theme="primary" variant="text" onClick={()=>{setTarget(d.id);setModal("业务跟进");setReason("");}}>记录跟进</Button></div>
-          {data.events.some(e=>e.target===d.id&&e.title==="业务跟进") ? <ul className="timeline sales-log">{logs(d.id,"follow")}</ul> : <Empty/>}
         </Card>
         <Card bordered={false} className="project-info-card sales-doctor-detail-card">
           <div className="section-heading"><h2>审核记录</h2></div>
@@ -1987,6 +1980,7 @@ export default function SalesWorkspace() {
           全部标记为已读
         </Button>
       </Drawer>
+      <Dialog visible={!!deleteDoctorId} header="删除医生档案草稿？" confirmBtn={{content:"删除",theme:"danger"}} cancelBtn={{content:"取消",theme:"default",variant:"outline"}} onClose={()=>setDeleteDoctorId("")} onConfirm={()=>{if(commit({type:"doctor-delete",target:deleteDoctorId}))setDeleteDoctorId("");}}>删除后，该草稿将无法恢复，请确认是否继续。</Dialog>
       <Dialog visible={!!deleteOrderId} header="删除订单草稿？" confirmBtn={{content:"删除",theme:"danger"}} cancelBtn={{content:"取消",theme:"default",variant:"outline"}} onClose={()=>setDeleteOrderId("")} onConfirm={()=>{if(commit({type:"order-delete",target:deleteOrderId})){setDeleteOrderId("");}}}>删除后，该订单草稿将无法恢复，请确认是否继续。</Dialog>
       {import.meta.env.DEV && <Dialog visible={scenarioConfirm} header="载入销售订单演示场景？" onClose={()=>setScenarioConfirm(false)} onConfirm={()=>{try {const next=addOrderScenario(data);storage.setItem("sales-v1",JSON.stringify(next));setData(next);setScenarioConfirm(false);setTestOpen(false);resetOrders();go("home");void MessagePlugin.success("演示场景已载入，原有订单和病例保留");}catch(e){void MessagePlugin.error((e as Error).message);}}}>增加具有完整状态记录的合成订单及病例。保留现有医生、订单、病例、文件及账号数据，不重复覆盖已载入场景。</Dialog>}
       <SalesInviteDialog

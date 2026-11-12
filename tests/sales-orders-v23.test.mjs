@@ -29,7 +29,7 @@ test('only creator drafts can be deleted, cases and other orders survive, audit 
 });
 test('migration repairs only known placeholder identities and reliable event times; no future history or project links fabricated',()=>{
  const d=seedSales('li',now);d.fixtureRevision=4;d.cases[0].patientName='演示患者1';d.cases[1].patientName='用户填写';d.orders[3].created='';d.orders[3].updated='';d.projects=[];d.orders[3].projectId=undefined;
- const old=structuredClone(d.events);const n=migrateSales(d);assert.equal(n.cases[0].patientName,'沈嘉宁');assert.equal(n.cases[1].patientName,'用户填写');assert.deepEqual(n.events.map(e=>e.id).sort(),old.map(e=>e.id).sort());assert.equal(n.projects.length,0);assert.equal(n.orders[3].projectId,undefined);assert.equal(n.orders[3].created,old.find(e=>e.target===n.orders[3].id&&e.title==='订单已创建').at);assert.deepEqual(migrateSales(n),n);
+ const old=structuredClone(d.events);const n=migrateSales(d);assert.equal(n.cases[0].patientName,'沈嘉宁');assert.equal(n.cases[1].patientName,'用户填写');assert.deepEqual(n.events.filter(e=>!e.id.startsWith("doctor-fixture:")).map(e=>e.id).sort(),old.map(e=>e.id).sort());assert.equal(n.projects.length,0);assert.equal(n.orders[3].projectId,undefined);assert.equal(n.orders[3].created,old.find(e=>e.target===n.orders[3].id&&e.title==='订单已创建').at);assert.deepEqual(migrateSales(n),n);
 });
 test('actual fixture file payloads have PDF, PNG and NIfTI headers and consistent declared sizes',()=>{
  assert.equal(new TextDecoder().decode(fixtureBytes(1).slice(0,8)),'%PDF-1.4');assert.deepEqual([...fixtureBytes(2).slice(0,8)],[137,80,78,71,13,10,26,10]);assert.equal(new DataView(fixtureBytes(0).buffer).getInt32(0,true),348);

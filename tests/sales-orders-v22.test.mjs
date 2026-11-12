@@ -144,8 +144,8 @@ test("ordinary sales cannot create historical access requests; migration preserv
   old.orders[0].requirements = "已填写的原始临床要求";
   const next = migrateSales(old);
   assert.equal(next.orders[0].clinicalRequirements, "已填写的原始临床要求");
-  assert.deepEqual(next.doctors, old.doctors);
-  assert.deepEqual(next.events, old.events);
+  for (const original of old.doctors) { const actual=next.doctors.find(x=>x.id===original.id); for (const key of ["id","name","phone","certificate","hospitalId","department","status"]) assert.equal(actual[key],original[key]); if(original.materials.length) assert.deepEqual(actual.materials,original.materials); }
+  assert.deepEqual(next.events.filter(e=>!e.id.startsWith("doctor-fixture:")), old.events.filter(e=>!e.id.startsWith("doctor-fixture:")));
   assert.deepEqual(migrateSales(next), next);
 });
 test("local service independently rejects unauthenticated, mismatched-owner, past-date and ungranted history requests", async () => {

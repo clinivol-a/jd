@@ -299,3 +299,10 @@
 .sales-doctor-detail-card .section-heading { padding: 0; min-height: 32px; margin-bottom: var(--td-comp-margin-xl); }
 .sales-doctor-detail-card .project-info-grid { margin-top: 0; }
 .sales-customer-list-card .sales-order-link.t-button { border-inline-width: 0; }
+/* Customer-only V2.6 rhythm; no order/global overrides. */
+.sales-doctor-detail-card .sales-proof-group > h3 { font: var(--td-font-body-medium); color: var(--td-text-color-secondary); }
+.sales-doctor-detail-card .t-empty { min-height: 280px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.sales-customer-list-card .t-empty { min-height: 280px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.sales-doctor-form .sales-doctor-section + .sales-doctor-section { margin-top:var(--td-comp-margin-xxxl); }
+
+.sales-customer-list-card .t-table__empty { padding-block:0; }

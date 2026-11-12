@@ -1,3 +1,4 @@
+import { doctorDraftDeleteError } from "./doctorFixtures.mjs";
 import { orderFixtures, syntheticPatients, stageTeams } from "./orderFixtures.mjs";
 import { localDate, designStages, orderErrors } from "./orderRules.mjs";
 export type DoctorStatus = "草稿" | "待审核" | "审核通过" | "审核退回";
@@ -366,6 +367,9 @@ export function transition(
     d.doctors.push(safe);
     target = v.id;
     title = "医生档案已保存";
+  } else if (c.type === "doctor-delete") {
+    const error=doctorDraftDeleteError(d,doctor,actor);if(error)fail(error);
+    d.doctors=d.doctors.filter(x=>x.id!==target);title="医生草稿已删除";
   } else if (c.type === "doctor-submit") {
     if (
       !doctor ||

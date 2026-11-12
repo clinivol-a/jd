@@ -1,10 +1,11 @@
+import { completeDoctorFixtures } from "./doctorFixtures.mjs";
 import type { SalesData } from "./model";
 /** Versioned synthetic fixture migration; never clears user actions or replays transitions. */
 export function migrateSales(input: SalesData): SalesData {
   const data = structuredClone(input) as SalesData & {
     fixtureRevision?: number;
   };
-  if (data.fixtureRevision === 9) return data;
+  if (data.fixtureRevision === 10) return data;
   const names = ["林致远", "周明哲", "许文博", "方景行", "陆承安", "徐嘉宁"];
   const legacy = ["林医生", "周医生", "许医生", "方医生", "陆医生", "徐医生"];
   data.hospitals.forEach((h) => {
@@ -71,11 +72,12 @@ export function migrateSales(input: SalesData): SalesData {
   }
   // Remove only the isolated scheduling action introduced by the superseded V2.4 test flow.
   data.events = data.events.filter(e => !(e.title === "预计交付时间已确认" && e.actor === "管理员（隔离测试）"));
+  completeDoctorFixtures(data);
   data.events.sort(
     (a, b) =>
       new Date(b.at).getTime() - new Date(a.at).getTime() ||
       a.id.localeCompare(b.id),
   );
-  data.fixtureRevision = 9;
+  data.fixtureRevision = 10;
   return data;
 }

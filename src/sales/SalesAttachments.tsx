@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Upload, Button, Dialog, MessagePlugin, Tooltip } from "tdesign-react";
+import { Upload, Button, Dialog, MessagePlugin, Tooltip, Empty } from "tdesign-react";
 import { UploadIcon, InfoCircleIcon } from "tdesign-icons-react";
 import type { UploadFile } from "tdesign-react";
 import type { UploadRef } from "tdesign-react/es/upload/interface";
@@ -187,7 +187,7 @@ export function SalesAttachments({
           重新上传
         </Button>
       )}
-      {readonly && selected.length === 0 && <p>暂无附件</p>}
+      {readonly && selected.length === 0 && <Empty/>}
       {(readonly ? selected : []).map((f) => (
         <div className="sales-attachment-record" key={f.id}>
           <Button
