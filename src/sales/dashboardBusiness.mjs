@@ -24,3 +24,10 @@ export function salesBusiness(data,orders) {
  const hospitals=data.hospitals.map(h=>({...h,departmentCount:h.departments.length,doctorCount:formal.filter(d=>d.hospitalId===h.id).length,processingCount:orders.filter(o=>o.hospitalId===h.id&&o.status==='处理中').length}));
  return {items,hospitals,hospitalCount:hospitals.length,departmentCount:hospitals.reduce((n,h)=>n+h.departmentCount,0),doctorCount:formal.length,requiredCount:items.filter(i=>i.category==='需要处理').length};
 }
+
+// Detail tabs use authorized orders only; homepage retains doctor and order todos.
+export function orderTodoItems(orders, category) {
+  const status = {'需要处理':'审核退回','待继续完成':'草稿'}[category];
+  return status ? orders.filter(order => order.status === status)
+    .sort((a,b) => time(b.updated)-time(a.updated) || a.id.localeCompare(b.id)) : [];
+}
