@@ -310,3 +310,8 @@
 .sales-invite-description { text-align: center; line-height: var(--td-line-height-body-medium); }
 .sales-customer-list-card > .t-card__body > .project-page-heading > div { display: flex; align-items: center; gap: var(--td-comp-margin-m); }
 .sales-invite-actions { margin-top: var(--td-comp-margin-m); }
+/* V2.7 changes the sales-only column count; original statistic components stay intact. */
+.sales-dashboard .stat-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+.sales-scope-summary { margin: 0; padding: 0 24px 12px; color: var(--td-text-color-secondary); }
+.sales-dashboard .recent-card,.sales-dashboard .attention-card { height:100%; }
+.sales-business-page .t-tabs__nav { padding-inline:24px; }

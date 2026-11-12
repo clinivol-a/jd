@@ -1,3 +1,4 @@
+import {dashboardOrderBuckets,salesBusiness} from "./dashboardBusiness.mjs";
 import { addOrderScenario } from "./orderFixtures.mjs";
 import { ChevronLeftIcon, ChevronRightIcon } from "../design-system/tdesign";
 import { SalesAttachments } from "./SalesAttachments";
@@ -313,6 +314,14 @@ export default function SalesWorkspace() {
     const timer = setTimeout(() => setHighlightOrder(""), 3500);
     return () => clearTimeout(timer);
   }, [highlightOrder]);
+  const [itemCategory,setItemCategory]=useState("需要处理");
+  const [itemSearch,setItemSearch]=useState("");
+  const [itemKeyword,setItemKeyword]=useState("");
+  const [itemType,setItemType]=useState("");
+  const [itemStatus,setItemStatus]=useState("");
+  const [itemFrom,setItemFrom]=useState("");
+  const [itemTo,setItemTo]=useState("");
+  useEffect(()=>{const timer=setTimeout(()=>setItemKeyword(itemSearch.trim()),250);return ()=>clearTimeout(timer);},[itemSearch]);
   const [deleteOrderId, setDeleteOrderId] = useState("");
   const [deleteDoctorId,setDeleteDoctorId]=useState("");
   const [scenarioConfirm, setScenarioConfirm] = useState(false);
@@ -742,82 +751,17 @@ export default function SalesWorkspace() {
   const policyStart = new Date();
   policyStart.setMonth(policyStart.getMonth() - data.policy.months);
   const orderStart = localDate(policyStart);
-  const filteredOrders =
-    detail === "pending"
-      ? matching.filter((o) => ["草稿", "审核退回"].includes(o.status))
-      : detail === "processing"
-        ? matching.filter((o) => o.status === "处理中")
-        : detail === "confirming"
-          ? matching.filter(
-              (o) =>
-                o.status === "处理中" &&
-                o.confirmationRequired &&
-                !o.confirmedAt &&
-                o.stages.length > 0 &&
-                o.stages.every((s) => s.status === "已完成"),
-            )
-          : detail === "active"
-            ? matching.filter((x) => m.active.some((o) => o.id === x.id))
-            : detail === "todos"
-              ? matching.filter((x) => m.todos.some((o) => o.id === x.id))
-              : detail === "new"
-                ? matching.filter((x) => m.newOrders.some((o) => o.id === x.id))
-                : detail === "completed"
-                  ? matching.filter((x) =>
-                      m.completed.some((o) => o.id === x.id),
-                    )
-                  : matching;
-  const todos = [
-    ...data.doctors
-      .filter(
-        (d) =>
-          ["草稿", "审核退回"].includes(d.status) &&
-          (!d.owner || d.owner === account.id) &&
-          (!d.createdBy || d.createdBy === account.id),
-      )
-      .map((d) => ({
-        id: d.id,
-        type: "医生资料" + d.status,
-        name: d.name,
-        hospital: h(d.hospitalId),
-        at: data.events.find((e) => e.target === d.id)?.at || "",
-        status: d.status,
-      })),
-    ...m.todos.map((o) => ({
-      id: o.id,
-      type: "订单" + o.status,
-      name: o.name,
-      hospital: h(o.hospitalId),
-      at: o.updated,
-      status: o.status,
-    })),
-  ];
-  const todoFields = [
-    { key: "type", label: "事项类型" },
-    { key: "name", label: "事项名称" },
-    {
-      key: "at",
-      label: "产生时间",
-      render: (r: Row) => (r.at ? formatDynamicTime(String(r.at)) : "暂无记录"),
-    },
-    {
-      key: "actions",
-      label: "操作",
-      render: (r: Row) => (
-        <Button
-          variant="text"
-          onClick={() =>
-            go(
-              (data.doctors.some((d) => d.id === r.id)
-                ? "doctor-new/"
-                : "order-new/") + r.id,
-            )
-          }
-        >
-          处理
-        </Button>
-      ),
-    },
+  const dashboardBuckets=dashboardOrderBuckets(orders,new Date(),data.events);
+  const business=salesBusiness(data,orders);
+  const filteredOrders=dashboardBuckets[detail] ? matching.filter(o=>dashboardBuckets[detail].some(x=>x.id===o.id)) : detail==="active" ? matching.filter(x=>m.active.some(o=>o.id===x.id)) : detail==="todos" ? matching.filter(x=>m.todos.some(o=>o.id===x.id)) : matching;
+  const todos=business.items.filter(i=>i.category!=="业务动态");
+  const todoFields=[
+    {key:"type",label:"事项类型"},
+    {key:"name",label:"事项名称"},
+    {key:"object",label:"关联对象"},
+    {key:"status",label:"状态",render:(r:Row)=><Tag variant="light">{String(r.status)}</Tag>},
+    {key:"at",label:"发生时间",render:(r:Row)=>r.at?formatDynamicTime(String(r.at)):"暂无记录"},
+    {key:"actions",label:"操作",render:(r:Row)=><Button className="sales-order-link" theme="primary" variant="text" onClick={()=>go(String(r.route))}>{r.category==="需要处理"?"去处理":r.category==="待继续完成"?"继续编辑":"查看详情"}</Button>},
   ];
   const resetOrders = () => {
     filterCache.current["orders"]={search:"",filter:"",hospitalFilter:"",deptFilter:"",serviceFilter:"",from:"",to:""};
@@ -966,54 +910,34 @@ export default function SalesWorkspace() {
     const hour = new Date().getHours(),
       greeting =
         hour >= 5 && hour < 12 ? "上午好" : hour < 18 ? "下午好" : "晚上好";
-    const pending = orders.filter((o) =>
-        ["草稿", "审核退回"].includes(o.status),
-      ),
-      processing = orders.filter((o) => o.status === "处理中"),
-      confirming = orders.filter(
-        (o) =>
-          o.status === "处理中" &&
-          o.confirmationRequired &&
-          !o.confirmedAt &&
-          o.stages.length > 0 &&
-          o.stages.every((s) => s.status === "已完成"),
-      );
     const stats = [
       {
         label: "待处理订单",
-        rows: pending,
+        rows: dashboardBuckets.pending,
         route: "pending",
-        note: "待提交与资料补充",
+        note: "草稿、待审核与审核退回",
         Icon: TaskFilledIcon,
         tone: "pending",
       },
       {
         label: "进行中订单",
-        rows: processing,
+        rows: dashboardBuckets.processing,
         route: "processing",
         note: "专业设计处理中",
         Icon: WorkFilledIcon,
         tone: "progress",
       },
       {
-        label: "待确认订单",
-        rows: confirming,
-        route: "confirming",
-        note: "专业阶段完成，等待结果确认",
-        Icon: TimeFilledIcon,
-        tone: "review",
-      },
-      {
         label: "本月新增订单",
-        rows: m.newOrders,
+        rows: dashboardBuckets.new,
         route: "new",
         note: "本月创建",
         Icon: FileAddFilledIcon,
-        tone: "returned",
+        tone: "progress",
       },
       {
         label: "本月已完成订单",
-        rows: m.completed,
+        rows: dashboardBuckets.completed,
         route: "completed",
         note: "本月完成",
         Icon: TaskCheckedFilledIcon,
@@ -1028,9 +952,7 @@ export default function SalesWorkspace() {
               {greeting}，{account.name}
             </h1>
             <p>
-              今天有 {todos.length} 项业务需要处理，
-              {orders.filter((o) => o.status === "审核退回").length}{" "}
-              张订单等待资料补充。
+              {business.requiredCount ? `当前有 ${business.requiredCount} 项业务需要处理。` : "当前没有需要处理的业务事项。"}
             </p>
           </div>
           <time className="dashboard-date-text">
@@ -1135,7 +1057,7 @@ export default function SalesWorkspace() {
           </Card>
           <Card bordered={false} className="dashboard-card recent-card">
             <div className="section-heading">
-              <h2>我的待办</h2>
+              <h2>我的待办</h2><Button variant="text" theme="primary" onClick={()=>{setItemCategory("需要处理");go("todos");}}>查看全部<ChevronRightIcon size={15}/></Button>
             </div>
             <Grid
               paginate={false}
@@ -1147,60 +1069,34 @@ export default function SalesWorkspace() {
           </Card>
           <Card bordered={false} className="dashboard-card attention-card">
             <div className="section-heading">
-              <h2>近期业务动态</h2>
-              <Button
-                variant="text"
-                theme="primary"
-                onClick={() => go("notifications")}
-              >
-                查看全部
-              </Button>
+              <h2>我的业务范围</h2>
+              <Button variant="text" theme="primary" onClick={()=>go("customers/doctors")}>查看客户管理<ChevronRightIcon size={15}/></Button>
             </div>
-            <Grid
-              paginate={false}
-              rows={data.events.slice(0, 3)}
-              fields={[
-                { key: "title", label: "业务变化" },
-                {
-                  key: "detail",
-                  label: "内容",
-                  render: (r) =>
-                    eventSummary({ target: r.target, detail: r.detail }),
-                },
-                {
-                  key: "at",
-                  label: "时间",
-                  render: (r) => formatDynamicTime(String(r.at)),
-                },
-                {
-                  key: "actions",
-                  label: "操作",
-                  render: (r) => (
-                    <Button
-                      variant="text"
-                      theme="primary"
-                      onClick={() => openEvent(r as Row & { target: unknown })}
-                    >
-                      查看详情
-                    </Button>
-                  ),
-                },
-              ]}
-            />
+            <p className="sales-scope-summary">负责医院 {business.hospitalCount} 家 · 授权科室 {business.departmentCount} 个 · 正式关联医生 {business.doctorCount} 位</p>
+            <Grid paginate={false} rows={business.hospitals.slice(0,3)} fields={[
+              {key:"name",label:"医院"},{key:"departmentCount",label:"授权科室"},{key:"doctorCount",label:"关联医生"},{key:"processingCount",label:"进行中订单"},
+            ]}/>
           </Card>
         </section>
       </div>
     );
-  } else if (section === "todos")
-    content = (
-      <>
-        <Back onClick={() => go("home")}>返回工作台</Back>
-        <Card bordered={false} className="unified-list-card">
-          {header("我的待办")}
-          <Grid rows={todos} fields={todoFields} />
-        </Card>
-      </>
-    );
+  } else if (section === "todos") {
+    const resetItems=()=>{setItemSearch("");setItemKeyword("");setItemType("");setItemStatus("");setItemFrom("");setItemTo("");};
+    const itemRows=business.items.filter(i=>i.category===itemCategory&&(!itemKeyword||[i.name,i.object,i.target].some(v=>v.includes(itemKeyword)))&&(!itemType||i.type===itemType)&&(!itemStatus||i.status===itemStatus)&&(!itemFrom||formatDate(i.at)>=itemFrom)&&(!itemTo||formatDate(i.at)<=itemTo));
+    content=<><Back onClick={()=>go("home")}>返回工作台</Back><div className="project-page sales-business-page"><Card bordered={false} className="project-list-card sales-order-list-card">
+      <div className="project-page-heading"><h1>业务事项</h1></div>
+      <Tabs value={itemCategory} onChange={v=>{setItemCategory(String(v));resetItems();}}>{["需要处理","待继续完成","业务动态"].map(category=><Tabs.TabPanel key={category} value={category} label={category}/>)}</Tabs>
+      <div className="project-filters">
+        <label><span>关键词</span><Input clearable value={itemSearch} onChange={setItemSearch} placeholder="搜索事项或关联对象"/></label>
+        <label><span>事项类型</span><Select value={itemType||"__all__"} onChange={v=>setItemType(allFilterValue(v))} options={[{value:"__all__",label:"全部"},...[...new Set(business.items.filter(i=>i.category===itemCategory).map(i=>i.type))].map(value=>({value,label:value}))]}/></label>
+        <label><span>处理状态</span><Select value={itemStatus||"__all__"} onChange={v=>setItemStatus(allFilterValue(v))} options={[{value:"__all__",label:"全部"},...[...new Set(business.items.filter(i=>i.category===itemCategory).map(i=>i.status))].map(value=>({value,label:value}))]}/></label>
+        <label><span>开始日期</span><DatePicker value={itemFrom} onChange={v=>setItemFrom(String(v||""))} clearable/></label>
+        <label><span>结束日期</span><DatePicker value={itemTo} onChange={v=>setItemTo(String(v||""))} clearable/></label>
+        <Button variant="outline" onClick={resetItems}>重置筛选</Button>
+      </div>
+      <Grid key={itemCategory} pageSize={12} orderMode rows={itemRows} fields={todoFields}/>
+    </Card></div></>;
+  }
   else if (section === "customers")
     content = (
       <Card bordered={false} className="project-list-card sales-order-list-card sales-customer-list-card">
