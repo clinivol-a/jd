@@ -8,7 +8,7 @@ import type {Session} from './client'
 import SalesWorkspace from '../sales/SalesWorkspace'
 import {SalesInvitePage} from '../sales/SalesInvite'
 import {roleName,AccountAvatar} from './AccountMenu'
-const DevConsole=import.meta.env.DEV?lazy(()=>import('./DevConsole')):null
+const DevConsole=(import.meta.env.DEV||import.meta.env.VITE_PRESENTATION_DEMO==='1')?lazy(()=>import('./DevConsole')):null
 const empty:Session={user:null,candidate:null,accounts:[],locked:false,capabilities:{wechat:false,sms:false,scan:false,mode:'unavailable'}}
 async function flushWorkspace(){const checks:Promise<boolean>[]=[];window.dispatchEvent(new CustomEvent('clinivol-before-account-change',{detail:{checks}}));if((await Promise.all(checks)).some(v=>!v))throw new Error('工程尚未保存成功，请先处理保存错误。')}
 export default function IntegrationRoot(){const [session,setSession]=useState<Session>(empty),[loading,setLoading]=useState(true),[error,setError]=useState(''),[route,setRoute]=useState(location.hash),[logoutOpen,setLogoutOpen]=useState(false),[unlock,setUnlock]=useState(''),[lockError,setLockError]=useState(''),[lockBusy,setLockBusy]=useState(false);const sessionRef=useRef(session);sessionRef.current=session
