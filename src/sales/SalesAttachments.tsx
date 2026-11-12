@@ -14,6 +14,7 @@ type Props = {
   value: Attachment[];
   onChange?: (files: Attachment[]) => void;
   readonly?: boolean;
+  emptyText?: string;
   category?: Attachment["category"];
   images?: boolean;
   accept?: string;
@@ -30,6 +31,7 @@ export function SalesAttachments({
   value = [],
   onChange,
   readonly,
+  emptyText,
   category,
   images,
   accept,
@@ -187,7 +189,7 @@ export function SalesAttachments({
           重新上传
         </Button>
       )}
-      {readonly && selected.length === 0 && <Empty/>}
+      {readonly && selected.length === 0 && (emptyText ? <p>{emptyText}</p> : <Empty/>)}
       {(readonly ? selected : []).map((f) => (
         <div className="sales-attachment-record" key={f.id}>
           <Button

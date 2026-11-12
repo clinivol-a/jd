@@ -647,12 +647,8 @@ export default function SalesWorkspace() {
       render: (r: Row) => <div className="sales-order-row-actions"><Button variant="text" theme="primary" className="sales-order-link" onClick={() => go("order/" + r.id)}>查看详情</Button>{r.status === "草稿" && ((r.createdBy || r.ownerSalesId || account.id) === account.id || account.permissions.includes("order.draft.delete")) && <Button variant="text" theme="danger" className="sales-order-link" onClick={()=>setDeleteOrderId(String(r.id))}>删除</Button>}</div>,
     },
   ];
-  const doctorPhone = (phone: string, owner: unknown) =>
-    phone
-      ? owner === account.id
-        ? phone
-        : phone.replace(/(\d{3})\d{4}/, "$1****")
-      : "未提供";
+  const doctorPhone = (phone: string, _owner: unknown) =>
+    phone ? phone.replace(/(\d{3})\d{4}(\d{4})/, "$1****$2") : "未提供";
   const doctorFields = [
     { key: "name", label: "医生" },
     {
@@ -939,8 +935,8 @@ export default function SalesWorkspace() {
           </div>
         </li>
       ));
-  const header = (title: React.ReactNode, actions?: React.ReactNode) => (
-    <div className="list-page-heading">
+  const header = (title: React.ReactNode, actions?: React.ReactNode, className="list-page-heading") => (
+    <div className={className}>
       <h1>{title}</h1>
       <div>{actions}</div>
     </div>
@@ -1207,7 +1203,7 @@ export default function SalesWorkspace() {
     );
   else if (section === "customers")
     content = (
-      <Card bordered={false} className="unified-list-card sales-order-list-card sales-customer-list-card">
+      <Card bordered={false} className="project-list-card sales-order-list-card sales-customer-list-card">
         {header(
           "客户管理",
           <>
@@ -1222,6 +1218,7 @@ export default function SalesWorkspace() {
               新建医生档案
             </Button>
           </>,
+          "project-page-heading",
         )}
         {canReview && (
           <Tabs
@@ -1425,7 +1422,7 @@ export default function SalesWorkspace() {
         </Card>
         <Card bordered={false} className="project-info-card sales-doctor-detail-card sales-doctor-materials">
           <div className="section-heading"><h2>资质材料</h2></div>
-          {d.owner && d.owner!==account.id ? <Empty description="无资质附件访问权限"/> : ([['identity','身份证明'],['practice','执业证明材料'],['other','其他附件']] as const).map(([category,label])=><section className="sales-proof-group" key={category}><h3>{label}</h3><SalesAttachments owner={account.id} ownerName={account.name} value={d.materials} category={category} readonly /></section>)}
+          {d.owner && d.owner!==account.id ? <Empty description="无资质附件访问权限"/> : ([['identity','身份证明'],['practice','执业证明材料'],['other','其他附件']] as const).map(([category,label])=><section className="sales-proof-group" key={category}><h3>{label}</h3><SalesAttachments owner={account.id} ownerName={account.name} value={d.materials} category={category} emptyText="暂无附件" readonly /></section>)}
         </Card>
         <Card bordered={false} className="project-info-card sales-doctor-detail-card">
           <div className="section-heading"><h2>关联订单</h2></div>

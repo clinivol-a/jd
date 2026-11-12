@@ -54,6 +54,6 @@ test('V2.5 fills only identified fixture missing phones and preserves entered co
  const result=migrateSales(d);
  assert.equal(result.doctors[0].phone,'19900001001');
  assert.equal(result.doctors[1].phone,'19900009999');
- assert.equal(result.doctors.at(-1).phone,'');
+ assert.match(result.doctors.at(-1).phone,/^199\d{8}$/);
  assert.deepEqual(migrateSales(result),result);
 });

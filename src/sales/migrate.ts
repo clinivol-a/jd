@@ -5,7 +5,17 @@ export function migrateSales(input: SalesData): SalesData {
   const data = structuredClone(input) as SalesData & {
     fixtureRevision?: number;
   };
-  if (data.fixtureRevision === 10) return data;
+  // Only this isolated sales demo store: fill absent test contacts, never overwrite entered numbers.
+  const usedPhones=new Set(data.doctors.map(d=>d.phone).filter(Boolean));
+  for(const doctor of data.doctors){
+    if(doctor.phone)continue;
+    let hash=0;for(const char of doctor.id)hash=(hash*31+char.charCodeAt(0))%100000000;
+    let phone=/^D-[1-6]$/.test(doctor.id)&&doctor.certificate===`DEMO-QUAL-${doctor.id.slice(2)}` ? "1990000100"+doctor.id.slice(2) : "199"+String(hash).padStart(8,"0");
+    while(usedPhones.has(phone)){hash=(hash+1)%100000000;phone="199"+String(hash).padStart(8,"0");}
+    doctor.phone=phone;usedPhones.add(phone);
+  }
+  if (data.fixtureRevision === 11) return data;
+  if (data.fixtureRevision === 10) {data.fixtureRevision=11;return data;}
   const names = ["林致远", "周明哲", "许文博", "方景行", "陆承安", "徐嘉宁"];
   const legacy = ["林医生", "周医生", "许医生", "方医生", "陆医生", "徐医生"];
   data.hospitals.forEach((h) => {
@@ -78,6 +88,6 @@ export function migrateSales(input: SalesData): SalesData {
       new Date(b.at).getTime() - new Date(a.at).getTime() ||
       a.id.localeCompare(b.id),
   );
-  data.fixtureRevision = 10;
+  data.fixtureRevision = 11;
   return data;
 }

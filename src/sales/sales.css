@@ -306,3 +306,5 @@
 .sales-doctor-form .sales-doctor-section + .sales-doctor-section { margin-top:var(--td-comp-margin-xxxl); }
 
 .sales-customer-list-card .t-table__empty { padding-block:0; }
+.sales-customer-list-card .project-data-table table { min-width: 0; }
+.sales-invite-description { text-align: center; line-height: var(--td-line-height-body-medium); }
