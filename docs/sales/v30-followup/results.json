@@ -1,0 +1,47 @@
+{
+  "stepMove": true,
+  "stepValidation": true,
+  "upload": {
+    "width": 760,
+    "cells": [
+      {
+        "text": "charruasoft-dicom-samples-ct.zip",
+        "whiteSpace": "normal",
+        "height": 47
+      },
+      {
+        "text": "22 Bytes",
+        "whiteSpace": "nowrap",
+        "height": 47
+      },
+      {
+        "text": "上传成功",
+        "whiteSpace": "nowrap",
+        "height": 47
+      },
+      {
+        "text": "删除",
+        "whiteSpace": "nowrap",
+        "height": 47
+      }
+    ]
+  },
+  "backPreservesValues": true,
+  "doctor": [
+    380,
+    380,
+    380,
+    380,
+    380,
+    380
+  ],
+  "narrow": [
+    648,
+    648,
+    648,
+    648,
+    648,
+    648
+  ],
+  "overflow": false
+}

@@ -15,7 +15,6 @@ import {
   Select,
   Steps,
   Table,
-  Textarea,
   Tooltip,
   MessagePlugin,
 } from "tdesign-react";
@@ -164,11 +163,9 @@ export function OrderEditor({
             "department",
             "doctorId",
             "patientName",
-            "name",
-            "clinicalRequirements",
           ]
         : page === 1
-          ? ["service", "quantity", "plannedStages", "due"]
+          ? ["name", "clinicalRequirements", "service", "quantity", "plannedStages", "due"]
           : page === 2
             ? ["materials"]
             : Object.keys(all);
@@ -219,7 +216,7 @@ export function OrderEditor({
           ))}
         </Steps>
         <Form
-          className="sales-order-form"
+          className={"sales-order-form"+(step===2?" sales-order-form-upload":"")}
           labelAlign="top"
           onSubmit={() => { if (step < 3) { if (validate(step)) setStep(step + 1); } else void saveOrder(true); }}
         >
@@ -283,6 +280,10 @@ export function OrderEditor({
                   onChange={value=>{setPatientName(value);setErrors(prev=>({...prev,patientName:""}));}}
                 />
               </Field>
+            </>
+          )}
+          {step === 1 && (
+            <>
               <Field label="手术项目名称" required error={errors.name}>
                 <Input
                   aria-label="手术项目名称"
@@ -297,10 +298,6 @@ export function OrderEditor({
               >
                 <ClinicalEditor owner={data.ownerId} value={o.clinicalContent!} error={errors.clinicalRequirements} onBusyChange={value=>setBusy(prev=>({...prev,clinical:value}))} onChange={content=>update({clinicalContent:content,clinicalRequirements:clinicalText(content),requirements:clinicalText(content)})}/>
               </Field>
-            </>
-          )}
-          {step === 1 && (
-            <>
               <Field label="业务服务项目" required error={errors.service}>
                 <Select
                   aria-label="业务服务项目"
@@ -346,16 +343,6 @@ export function OrderEditor({
                   onChange={(value) => update({ requestedDueDate: String(value), due: String(value) })}
                 />
               </Field>
-              <Field label="设计需求或特殊要求">
-                <Textarea
-                  aria-label="设计需求或特殊要求"
-                  value={o.designRequirements || ""}
-                  autosize={{ minRows: 3, maxRows: 8 }}
-                  onChange={(designRequirements) =>
-                    update({ designRequirements })
-                  }
-                />
-              </Field>
             </>
           )}
           {step === 2 && (
@@ -365,8 +352,7 @@ export function OrderEditor({
                   owner={data.ownerId}
                   value={imagingFiles}
                   category="imaging"
-                  help="支持 DICOM、NIfTI 或 ZIP 影像文件；单文件不超过20MB。"
-                  helpTooltip="大体积影像请通过影像服务导入。"
+                  help="支持 DICOM、NIfTI 或 ZIP 影像文件。"
                   accept=".dcm,.dicom,.nii,.nii.gz,.zip"
                   validate={(file) =>
                     /\.(dcm|dicom|nii|nii\.gz|zip)$/i.test(file.name)
@@ -415,7 +401,7 @@ export function OrderEditor({
                 ["临床需求", <ClinicalReadOnly owner={data.ownerId} value={o.clinicalContent} fallback={o.clinicalRequirements||o.requirements}/>],
                 ["业务服务项目", o.service],
                 ["设计阶段", <OrderIcons stages={o.plannedStages || []} />],
-                ["设计需求", o.designRequirements || "未填写"],
+                ...(o.designRequirements ? [["设计需求", o.designRequirements]] : []),
                 ["需求数量", String(o.quantity)],
                 ["期望完成时间", o.requestedDueDate ?? o.due],
                 [

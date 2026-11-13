@@ -16,10 +16,10 @@ export function DoctorFields({d,set,hospitals,owner,errors,phoneReadonly,onBusyC
     </Field>
   );
 return <>
-          <section className="sales-doctor-section"><h3>基本资料</h3>
+          <section className="sales-doctor-section sales-doctor-inputs"><h3>基本资料</h3>
           {field("name", "真实姓名")}
           {field("phone", "联系手机号")}
-          </section><section className="sales-doctor-section"><h3>执业信息</h3>
+          </section><section className="sales-doctor-section sales-doctor-inputs"><h3>执业信息</h3>
           <Field label="所属医院" requiredMark error={errors.hospitalId}>
             <Select
               value={d.hospitalId}

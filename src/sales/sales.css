@@ -339,3 +339,12 @@ html.sales-invite-document body,html.sales-invite-document #root {min-width:0;he
 .clinical-readonly ol {list-style:decimal;padding-left:24px;}
 .clinical-readonly figcaption {color:var(--td-text-color-secondary);}
 @media(max-width:1000px){.sales-page .sales-order-form{max-width:100%;}.sales-order-content{max-width:100%;}}
+
+/* Compact text fields share the order-entry measure; upload rows need more room. */
+.sales-page .sales-order-form.sales-order-form-upload {max-width:760px;}
+.sales-order-form-upload .t-upload__flow-table th:not(:first-child),
+.sales-order-form-upload .t-upload__flow-table td:not(:first-child) {white-space:nowrap;}
+.sales-order-form-upload .t-upload__flow-table th:last-child,
+.sales-order-form-upload .t-upload__flow-table td:last-child {min-width:80px;}
+.sales-app .sales-doctor-form .sales-doctor-inputs {width:100%;max-width:380px;}
+@media(max-width:1000px){.sales-app .sales-doctor-form .sales-doctor-inputs{max-width:100%;}}
