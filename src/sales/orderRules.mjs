@@ -62,7 +62,7 @@ export function orderErrors(order, patientName, now = new Date()) {
 export function confirmedDelivery(order) {
   if (["草稿", "待审核", "审核退回"].includes(order.status)) return "";
   const date = ["处理中", "已完成"].includes(order.status)
-    ? (order.requestedDueDate || order.due || order.confirmedDeliveryDate)
+    ? (order.confirmedDeliveryDate || order.requestedDueDate || order.due)
     : order.confirmedDeliveryDate;
   return date && /^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(Date.parse(date)) && new Date(date).toISOString().slice(0,10) === date ? date : "";
 }

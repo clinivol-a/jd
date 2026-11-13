@@ -68,13 +68,17 @@ export function OrderIcons({ stages }: { stages: string[] }) {
     </div>
   );
 }
+function CaseLabel(){
+ const [open,setOpen]=useState(false);
+ return <span className="sales-case-label">病例编号<Tooltip visible={open} onVisibleChange={setOpen} content="已存在的病例可被多个订单引用，新增服务无需重复建档。"><span tabIndex={0} onFocus={()=>setOpen(true)} onBlur={()=>setOpen(false)} aria-label="病例编号说明"><InfoCircleIcon size={16}/></span></Tooltip></span>;
+}
 function Field({
   label,
   error,
   required,
   children,
 }: {
-  label: string;
+  label: ReactNode;
   error?: string;
   required?: boolean;
   children: ReactNode;
@@ -303,8 +307,7 @@ export function OrderEditor({
                   onChange={(v) => changeDoctor(String(v))}
                 />
               </Field>
-              <Field label="病例编号" required error={errors.caseId}>
-                <Tooltip content="已存在的病例可被多个订单引用，新增服务无需重复建档。"><span aria-label="病例编号说明"><InfoCircleIcon size={16} /></span></Tooltip>
+              <Field label={<CaseLabel/>} required error={errors.caseId}>
                 <div className="sales-case-choice">
                   <Select
                     aria-label="病例编号"

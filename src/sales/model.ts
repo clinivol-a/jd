@@ -140,6 +140,7 @@ export type SalesData = {
     taskIds: string[];
     source: "isolated-sales" | "engineer-verified";
   }[];
+  presentationRevision?: number;
   policy: {
     months: 3 | 6;
     basis: "created" | "businessDate";

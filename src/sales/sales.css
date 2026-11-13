@@ -314,3 +314,7 @@
 .sales-dashboard .stat-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
 .sales-dashboard .recent-card,.sales-dashboard .attention-card { height:100%; }
 .sales-business-page .t-tabs__nav { padding-inline:24px; }
+
+.sales-case-label {display:inline-flex;align-items:center;gap:4px;}
+.sales-case-label > span {display:inline-flex;align-items:center;}
+.sales-case-label > span:focus-visible {outline:2px solid var(--td-brand-color);outline-offset:2px;}

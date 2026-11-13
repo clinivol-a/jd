@@ -1,4 +1,4 @@
-import {dashboardOrderBuckets,salesBusiness,orderTodoItems} from "./dashboardBusiness.mjs";
+import {dashboardOrderBuckets,salesBusiness} from "./dashboardBusiness.mjs";
 import { addOrderScenario } from "./orderFixtures.mjs";
 import { ChevronLeftIcon, ChevronRightIcon } from "../design-system/tdesign";
 import { SalesAttachments } from "./SalesAttachments";
@@ -6,6 +6,8 @@ import { OrderEditor, OrderDetail, OrderIcons } from "./OrderPages";
 import { confirmedDelivery, localDate } from "./orderRules.mjs";
 import { RangeControl } from "../projects/RangeControl";
 import { migrateSales } from "./migrate";
+import {ensurePresentationOrders} from "./presentationFixtures.mjs";
+const prepareSales=(data:SalesData)=>ensurePresentationOrders(migrateSales(data));
 import { useEffect, useState, useRef } from "react";
 import {
   Button,
@@ -225,15 +227,15 @@ export default function SalesWorkspace() {
   const [data, setData] = useState<SalesData>(() => {
     try {
       const d = JSON.parse(storage.getItem("sales-v1") || "null");
-      if (d?.schema === 1 && d.ownerId === account.id) return migrateSales(d);
+      if (d?.schema === 1 && d.ownerId === account.id) return prepareSales(d);
     } catch {}
-    return migrateSales(seedSales(account.id));
+    return prepareSales(seedSales(account.id));
   });
   useEffect(() => {
     try {
       // Re-read at mount/HMR so another open tab's newer schedule is not overwritten.
       const latest = JSON.parse(storage.getItem("sales-v1") || "null");
-      const initial = latest?.schema === 1 && latest.ownerId === account.id ? migrateSales(latest) : data;
+      const initial = latest?.schema === 1 && latest.ownerId === account.id ? prepareSales(latest) : data;
       storage.setItem("sales-v1", JSON.stringify(initial));
     } catch {
       void MessagePlugin.error("无法保存销售工作状态，请检查浏览器存储空间。");
@@ -316,12 +318,11 @@ export default function SalesWorkspace() {
     const timer = setTimeout(() => setHighlightOrder(""), 3500);
     return () => clearTimeout(timer);
   }, [highlightOrder]);
-  const [itemCategory,setItemCategory]=useState("需要处理");
+  const [itemCategory,setItemCategory]=useState("全部");
   const [itemSearch,setItemSearch]=useState("");
   const [itemKeyword,setItemKeyword]=useState("");
   const [itemType,setItemType]=useState("");
-  const [itemDept,setItemDept]=useState("");
-  const [itemStage,setItemStage]=useState("");
+  const [itemStatus,setItemStatus]=useState("");
   const [itemFrom,setItemFrom]=useState("");
   const [itemTo,setItemTo]=useState("");
   useEffect(()=>{const timer=setTimeout(()=>setItemKeyword(itemSearch.trim()),250);return ()=>clearTimeout(timer);},[itemSearch]);
@@ -757,14 +758,14 @@ export default function SalesWorkspace() {
   const dashboardBuckets=dashboardOrderBuckets(orders,new Date(),data.events);
   const business=salesBusiness(data,orders);
   const filteredOrders=dashboardBuckets[detail] ? matching.filter(o=>dashboardBuckets[detail].some(x=>x.id===o.id)) : detail==="active" ? matching.filter(x=>m.active.some(o=>o.id===x.id)) : detail==="todos" ? matching.filter(x=>m.todos.some(o=>o.id===x.id)) : matching;
-  const todos=business.items.filter(i=>i.category!=="业务动态");
+  const todos=business.items;
+  const openTodo=(row:Row)=>go(String(row.route));
   const todoFields=[
-    {key:"type",label:"事项类型",width:150},
-    {key:"name",label:"事项名称"},
-    {key:"object",label:"关联对象"},
-    {key:"status",label:"状态",render:(r:Row)=><Tag variant="light">{String(r.status)}</Tag>},
-    {key:"at",label:"发生时间",render:(r:Row)=>r.at?formatDynamicTime(String(r.at)):"暂无记录"},
-    {key:"actions",label:"操作",render:(r:Row)=><Button className="sales-order-link" theme="primary" variant="text" onClick={()=>go(String(r.route))}>{r.category==="需要处理"?"去处理":r.category==="待继续完成"?"继续编辑":"查看详情"}</Button>},
+    {key:"type",label:"业务类型",width:130},
+    {key:"object",label:"业务对象",width:200},
+    {key:"status",label:"当前状态",width:115,render:(r:Row)=><Status value={String(r.status)}/>},
+    {key:"at",label:"最近更新时间",width:140,render:(r:Row)=>r.at?formatDynamicTime(String(r.at)):"暂无记录"},
+    {key:"actions",label:"操作",render:(r:Row)=><Button className="sales-order-link" theme="primary" variant="text" onClick={()=>openTodo(r)}>{r.category==="需要处理"?"去处理":"继续编辑"}</Button>},
   ];
   const resetOrders = () => {
     filterCache.current["orders"]={search:"",filter:"",hospitalFilter:"",deptFilter:"",serviceFilter:"",from:"",to:""};
@@ -1060,13 +1061,13 @@ export default function SalesWorkspace() {
           </Card>
           <Card bordered={false} className="dashboard-card recent-card">
             <div className="section-heading">
-              <h2>我的待办</h2><Button variant="text" theme="primary" onClick={()=>{setItemCategory("需要处理");go("todos");}}>查看全部<ChevronRightIcon size={15}/></Button>
+              <h2>我的待办</h2><Button variant="text" theme="primary" onClick={()=>{setItemCategory("全部");setItemSearch("");setItemKeyword("");setItemType("");setItemStatus("");setItemFrom("");setItemTo("");go("todos");}}>查看全部<ChevronRightIcon size={15}/></Button>
             </div>
             <Grid
               paginate={false}
               rows={todos.slice(0, 3)}
               fields={todoFields.filter((f) =>
-                ["name", "type", "at", "actions"].includes(f.key),
+                f.key!=="type",
               )}
             />
           </Card>
@@ -1083,27 +1084,19 @@ export default function SalesWorkspace() {
       </div>
     );
   } else if (section === "todos") {
-    const resetItems=()=>{setItemSearch("");setItemKeyword("");setItemType("");setItemDept("");setItemStage("");setItemFrom("");setItemTo("");};
-    const fullItems=orderTodoItems(orders,itemCategory).map(order=>({
-      ...order,doctorName:data.doctors.find(d=>d.id===order.doctorId)?.name||"",
-      route:`order-new/${order.id}`,
-    }));
-    const itemRows=fullItems.filter(i=>(!itemKeyword||[i.id,i.name,i.caseId,i.doctorName].some(v=>v.includes(itemKeyword)))&&(!itemType||i.hospitalId===itemType)&&(!itemDept||i.department===itemDept)&&(!itemStage||(i.plannedStages||i.stages.map(s=>s.name)).includes(itemStage))&&(!itemFrom||formatDate(i.updated)>=itemFrom)&&(!itemTo||formatDate(i.updated)<=itemTo));
-    const itemFields=orderFields.map(field=>field.key==="actions"?{
-      ...field,render:(row:Row)=><Button className="sales-order-link" theme="primary" variant="text" onClick={()=>go(String(row.route))}>{itemCategory==="需要处理"?"去处理":"继续编辑"}</Button>
-    }:field);
+    const resetItems=()=>{setItemSearch("");setItemKeyword("");setItemType("");setItemStatus("");setItemFrom("");setItemTo("");};
+    const itemRows=todos.filter(i=>(itemCategory==="全部"||i.category===itemCategory)&&(!itemKeyword||[i.target,i.object].some(v=>v.includes(itemKeyword)))&&(!itemType||i.type===itemType)&&(!itemStatus||i.status===itemStatus)&&(!itemFrom||formatDate(i.at)>=itemFrom)&&(!itemTo||formatDate(i.at)<=itemTo));
     content=<><Back onClick={()=>go("home")}>返回工作台</Back><div className="project-page sales-business-page"><Card bordered={false} className="project-list-card sales-order-list-card">
       <div className="project-page-heading"><h1>我的待办</h1></div>
-      <Tabs value={itemCategory} onChange={v=>{setItemCategory(String(v));resetItems();}}>{["需要处理","待继续完成"].map(category=><Tabs.TabPanel key={category} value={category} label={category}/>)}</Tabs>
+      <Tabs value={itemCategory} onChange={v=>{setItemCategory(String(v));resetItems();}}>{["全部","需要处理","待继续完成"].map(category=><Tabs.TabPanel key={category} value={category} label={category}/>)}</Tabs>
       <div className="project-filters">
-        <label><span>订单编号 / 名称</span><Input clearable value={itemSearch} onChange={setItemSearch} placeholder="搜索编号、名称、病例或医生"/></label>
-        <label><span>医院</span><Select value={itemType||"__all__"} onChange={v=>{setItemType(allFilterValue(v));setItemDept("");}} options={[{value:"__all__",label:"全部"},...data.hospitals.map(h=>({value:h.id,label:h.name}))]}/></label>
-        <label><span>科室</span><Select value={itemDept||"__all__"} onChange={v=>setItemDept(allFilterValue(v))} options={[{value:"__all__",label:"全部"},...[...new Set(data.hospitals.filter(h=>!itemType||h.id===itemType).flatMap(h=>h.departments))].map(value=>({value,label:value}))]}/></label>
-        <label><span>设计阶段</span><Select value={itemStage||"__all__"} onChange={v=>setItemStage(allFilterValue(v))} options={[{value:"__all__",label:"全部"},...["三维重建","CAD设计","有限元分析","3D打印"].map(value=>({value,label:value}))]}/></label>
+        <label><span>关键词</span><Input clearable value={itemSearch} onChange={setItemSearch} placeholder="搜索业务对象名称或编号"/></label>
+        <label><span>业务类型</span><Select value={itemType||"__all__"} onChange={v=>setItemType(allFilterValue(v))} options={[{value:"__all__",label:"全部"},...['订单','医生档案'].map(value=>({value,label:value}))]}/></label>
+        <label><span>当前状态</span><Select value={itemStatus||"__all__"} onChange={v=>setItemStatus(allFilterValue(v))} options={[{value:"__all__",label:"全部"},...['审核退回','草稿'].map(value=>({value,label:value}))]}/></label>
         <label><span>最近更新时间范围</span><DateRangePicker value={[itemFrom,itemTo]} onChange={v=>{setItemFrom(String(v[0]||""));setItemTo(String(v[1]||""));}} clearable/></label>
         <Button variant="outline" onClick={resetItems}>重置筛选</Button>
       </div>
-      <Grid key={itemCategory} pageSize={12} orderMode rows={itemRows} fields={itemFields}/>
+      <Grid key={[itemCategory,itemKeyword,itemType,itemStatus,itemFrom,itemTo].join("|")} pageSize={12} orderMode rows={itemRows} fields={todoFields}/>
     </Card></div></>;
   }
   else if (section === "customers")
