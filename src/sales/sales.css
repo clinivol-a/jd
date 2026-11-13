@@ -116,6 +116,9 @@
   margin: 0;
   color: var(--td-text-color-secondary);
 }
+/* Standalone invitation owns document scrolling; workbench shells stay locked. */
+html.sales-invite-document {min-width:0;height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto;}
+html.sales-invite-document body,html.sales-invite-document #root {min-width:0;height:auto;min-height:100vh;overflow:visible;}
 .sales-invite-page {max-width:808px;margin:0 auto;padding:24px;color:var(--td-text-color-primary);background:var(--td-bg-color-container);min-height:100vh;}
 .sales-invite-brand {padding-bottom:var(--td-comp-margin-xxxl);}
 .sales-invite-brand img {width:140px;height:auto;}

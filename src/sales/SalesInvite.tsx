@@ -106,6 +106,10 @@ export function SalesInviteDialog({
   );
 }
 export function SalesInvitePage() {
+  useEffect(()=>{
+    document.documentElement.classList.add('sales-invite-document');
+    return()=>document.documentElement.classList.remove('sales-invite-document');
+  },[]);
   const token = new URLSearchParams(location.search).get("token") || "";
   const assisted = new URLSearchParams(location.search).get("assisted") === "1";
   const [info, setInfo] = useState<{
