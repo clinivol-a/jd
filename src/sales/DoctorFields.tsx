@@ -3,7 +3,9 @@ import type {Doctor,Hospital} from './model';
 import type {ComponentProps,ReactNode} from 'react';
 import {SalesAttachments} from './SalesAttachments';
 type Props={phoneReadonly?:boolean;d:Doctor;set:(d:Doctor)=>void;hospitals:Hospital[];owner:string;errors:Record<string,string>;onBusyChange:(slot:string,busy:boolean)=>void;save?:ComponentProps<typeof SalesAttachments>['save'];load?:ComponentProps<typeof SalesAttachments>['load']};
-function Field({label,error,requiredMark,children}:{label:string;error?:string;requiredMark?:boolean;children:ReactNode}){return <Form.FormItem label={label} requiredMark={requiredMark} status={error?'error':undefined} tips={error}>{children}</Form.FormItem>}
+// These fields are controlled by the shared doctor draft, not by FormItem value collection.
+// The fragment prevents FormItem from replacing Upload/Input values with its unnamed field state.
+function Field({label,error,requiredMark,children}:{label:string;error?:string;requiredMark?:boolean;children:ReactNode}){return <Form.FormItem label={label} requiredMark={requiredMark} status={error?'error':undefined} tips={error}><>{children}</></Form.FormItem>}
 export function DoctorFields({d,set,hospitals,owner,errors,phoneReadonly,onBusyChange:setUploadBusy,save,load}:Props){
   const field = (
     key: "name" | "phone" | "title" | "certificate",

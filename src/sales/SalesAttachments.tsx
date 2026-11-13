@@ -23,12 +23,14 @@ type Props = {
   save?: (file: File, category: Attachment["category"]) => Promise<Attachment>;
   load?: (file: Attachment) => Promise<Blob>;
 };
+// Keep the fallback stable: a new array here retriggers the file-loading effect on every render.
+const EMPTY_ATTACHMENTS: Attachment[] = [];
 export function SalesAttachments({
   owner,
   ownerName,
   help,
   helpTooltip,
-  value = [],
+  value = EMPTY_ATTACHMENTS,
   onChange,
   readonly,
   emptyText,
