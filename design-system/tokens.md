@@ -337,3 +337,14 @@ Dark使用同一TDesign文件既有Dark值：
 依赖版本：tdesign-react 1.18.4。实际编译样式`node_modules/tdesign-react/es/card/style/index.css`第9行：`.t-card`的`border-radius: var(--td-radius-medium)`；官方`es/style/index.css`第330行定义`--td-radius-medium: 6px`，因此无覆盖时Card最终默认圆角为**6px**。未发现独立的官方Card圆角变量；不要臆造Card专属TDesign Token。
 
 项目上次集成的运行CSS把同名medium映射为8px，属于项目覆盖，不是官方Card默认值。本轮已将Card运行规则改为独立--cv-card-radius=6px，避免改变其他medium组件。后续落实Card规范时需区分Card的6px组件规则与其他组件既定3/4/8/12/16px、50%体系，不全局把medium改成6px。Icon内部1px微圆角不受影响。
+
+
+## A方案设计规范中的权威职责（2026-11-13）
+
+本文件属于《科立沃 A 方案设计与交互规范体系》，负责已确认视觉Token。入口及冲突优先级见[AGENTS.md](../AGENTS.md)；图标见[icons.md](icons.md)，组件见[component-rules.md](component-rules.md)，页面与跨角色规则见[ui-ux-consistency.md](ui-ux-consistency.md)，字段语义见[field-dictionary.md](../docs/product/field-dictionary.md)。
+
+本轮只整理文档：上文色阶、数值、别名链全部保留，[tokens.json](tokens.json)与[运行CSS](../src/design-system/tokens.css)不变。品牌核心色继续为`#0D7A5D`；Light页面背景`#F5F7F9`是唯一指定的浅色页面背景例外；Info继续独立使用官方蓝色色阶。Dark除既定品牌绿覆盖外沿用锁定版本TDesign定义，不生成第二套中性色、功能色或阴影。
+
+通用Card是官方6px组件例外，不把其余3px、4px、8px、12px、16px、50%体系全部改成6px。按钮继续引用原有`text-color-anti`及主题别名，不以“更白”为由改值。后续新页面引用本文件现有Token，不能在跨角色规范里重新定义颜色或间距变量。
+
+维护数值时须有用户确认，并核对JSON、运行CSS和[Figma映射](figma-variable-mapping.md)；本节不表示已经将变量写入Figma。[validation.md](validation.md)是历史验证记录，不是覆盖本文件的新Token来源。
