@@ -306,3 +306,36 @@ html.sales-invite-document body,html.sales-invite-document #root {min-width:0;he
 .sales-case-label {display:inline-flex;align-items:center;gap:4px;}
 .sales-case-label > span {display:inline-flex;align-items:center;}
 .sales-case-label > span:focus-visible {outline:2px solid var(--td-brand-color);outline-offset:2px;}
+
+/* V3.0: order Steps share the form origin; compact controls do not change other forms. */
+.sales-order-content {width:100%;max-width:760px;min-width:0;}
+.sales-page .sales-order-form {width:100%;max-width:380px;}
+.sales-order-form .t-input-number,.sales-order-form .t-date-picker {width:100%;}
+.sales-order-form .sales-order-confirm {grid-template-columns:minmax(0,1fr);}
+.sales-order-page .sales-order-content .t-steps-item {min-width:0;}
+.sales-order-page .sales-order-content .t-steps-item__title {white-space:normal;}
+.clinical-editor {border:1px solid var(--td-component-border);border-radius:var(--td-radius-default);background:var(--td-bg-color-container);color:var(--td-text-color-primary);min-width:0;}
+.clinical-editor:hover {border-color:var(--td-brand-color);}
+.clinical-editor:focus-within {border-color:var(--td-brand-color);box-shadow:0 0 0 2px var(--td-brand-color-focus);}
+.clinical-editor-error,.clinical-editor-error:hover,.clinical-editor-error:focus-within {border-color:var(--td-error-color);}
+.clinical-editor-error:focus-within {box-shadow:0 0 0 2px var(--td-error-color-focus);}
+.clinical-toolbar {display:flex;flex-wrap:wrap;gap:var(--td-comp-margin-xs);padding:var(--td-comp-paddingTB-xs);border-bottom:1px solid var(--td-border-level-1-color);}
+.clinical-blocks {min-height:120px;padding:var(--td-comp-paddingTB-s);}
+.clinical-text-block {display:flex;align-items:flex-start;min-width:0;}
+.clinical-text-block .t-textarea {flex:1;min-width:0;}
+.clinical-text-block .t-textarea__inner,.clinical-text-block .t-textarea__inner:hover,.clinical-text-block .t-textarea__inner:focus {border:0;box-shadow:none;outline:0;background:transparent;}
+.clinical-bold .t-textarea__inner,.clinical-readonly .clinical-bold {font-weight:var(--cv-font-weight-medium);}
+.clinical-block-prefix {padding-top:6px;}
+.clinical-upload {padding:var(--td-comp-paddingTB-s);border-top:1px solid var(--td-border-level-1-color);}
+.clinical-upload .t-upload {max-width:100%;}
+.clinical-upload .t-upload__single {max-width:100%;}
+.clinical-editor figure,.clinical-readonly figure {margin:var(--td-comp-margin-s) 0;min-width:0;}
+.clinical-editor img,.clinical-editor video,.clinical-readonly img,.clinical-readonly video,.clinical-preview-media {display:block;max-width:100%;max-height:320px;object-fit:contain;}
+.clinical-editor figcaption {display:flex;align-items:center;flex-wrap:wrap;gap:4px;}
+.clinical-editor figcaption>span {overflow-wrap:anywhere;flex:1;min-width:0;}
+.clinical-readonly,.clinical-plain {white-space:pre-wrap;overflow-wrap:anywhere;}
+.clinical-readonly p {margin:0 0 8px;}
+.clinical-readonly ul {list-style:disc;padding-left:24px;}
+.clinical-readonly ol {list-style:decimal;padding-left:24px;}
+.clinical-readonly figcaption {color:var(--td-text-color-secondary);}
+@media(max-width:1000px){.sales-page .sales-order-form{max-width:100%;}.sales-order-content{max-width:100%;}}

@@ -1,3 +1,4 @@
+import {clinicalContentError,hasClinicalContent} from "./clinicalContent.mjs";
 // Shared by the browser command model and the authenticated local validation route.
 export const designStages = ["三维重建", "CAD设计", "有限元分析", "3D打印"];
 export const localDate = (value = new Date()) => {
@@ -17,7 +18,6 @@ export function orderErrors(order, patientName, now = new Date()) {
     ["hospitalId", "医院"],
     ["department", "科室"],
     ["doctorId", "需求医生"],
-    ["caseId", "病例"],
     ["name", "手术项目名称"],
     ["clinicalRequirements", "临床需求"],
     ["service", "业务服务项目"],
@@ -25,10 +25,12 @@ export function orderErrors(order, patientName, now = new Date()) {
     const value =
       order[field] ||
       (field === "clinicalRequirements" ? order.requirements : "");
-    if (!String(value || "").trim()) errors[field] = "请填写" + label;
+    if (!(field === "clinicalRequirements" && hasClinicalContent(order.clinicalContent)) && !String(value || "").trim()) errors[field] = "请填写" + label;
   }
-  if (!String(patientName || "").trim())
-    errors.patientName = "病例尚未记录患者姓名，请补充病例资料。";
+  const contentError=clinicalContentError(order.clinicalContent);
+  if(contentError) errors.clinicalRequirements=contentError;
+  if (!String(patientName ?? order.patientName ?? "").trim())
+    errors.patientName = "请填写患者姓名。";
   if (!Number.isInteger(order.quantity) || order.quantity < 1)
     errors.quantity = "请输入正整数。";
   const due = order.requestedDueDate ?? order.due ?? "";

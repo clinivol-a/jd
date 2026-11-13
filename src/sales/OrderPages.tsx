@@ -1,3 +1,5 @@
+import {ClinicalEditor,ClinicalReadOnly,initialClinicalContent} from "./ClinicalEditor";
+import {clinicalText} from "./clinicalContent.mjs";
 import {PageBack} from '../PageBack';
 import { confirmedDelivery } from "./orderRules.mjs";
 import { useEffect, useMemo, useState } from "react";
@@ -18,7 +20,7 @@ import {
   MessagePlugin,
 } from "tdesign-react";
 import type { ReactNode } from "react";
-import type { Case, Order, SalesData, Attachment } from "./model";
+import type { Order, SalesData, Attachment } from "./model";
 import type { TaskType } from "../App";
 import { id, services } from "./model";
 import {
@@ -30,10 +32,6 @@ import {
 import { SalesAttachments } from "./SalesAttachments";
 import { DesignStageIcon } from "../design-system/DesignStageIcon";
 import { ProjectStatus } from "../projects/ProjectPages";
-import { ChevronLeftIcon } from "../design-system/tdesign";
-import { InfoCircleIcon as OfficialInfoCircleIcon } from "tdesign-icons-react";
-import { adaptIcon } from "../design-system/CliniVolIcon";
-const InfoCircleIcon = adaptIcon(OfficialInfoCircleIcon);
 import { formatDate, formatAuditTime, formatDateTime } from "../dateTime";
 import { getFile, openFile } from "./files";
 
@@ -69,10 +67,6 @@ export function OrderIcons({ stages }: { stages: string[] }) {
     </div>
   );
 }
-function CaseLabel(){
- const [open,setOpen]=useState(false);
- return <span className="sales-case-label">病例编号<Tooltip visible={open} onVisibleChange={setOpen} content="已存在的病例可被多个订单引用，新增服务无需重复建档。"><span tabIndex={0} onFocus={()=>setOpen(true)} onBlur={()=>setOpen(false)} aria-label="病例编号说明"><InfoCircleIcon size={16}/></span></Tooltip></span>;
-}
 function Field({
   label,
   error,
@@ -100,7 +94,6 @@ export function OrderEditor({
   initial,
   doctorId,
   caseId,
-  createCase,
   save,
   cancel,
 }: {
@@ -108,7 +101,6 @@ export function OrderEditor({
   initial?: Order;
   doctorId?: string;
   caseId?: string;
-  createCase: (value: Case) => boolean;
   save: (
     order: Order,
     submit: boolean,
@@ -120,7 +112,7 @@ export function OrderEditor({
     const c = data.cases.find((x) => x.id === caseId);
     const doctor = data.doctors.find((d) => d.id === (c?.doctorId || doctorId));
     return initial
-      ? structuredClone(initial)
+      ? {...structuredClone(initial),clinicalContent:initial.clinicalContent||initialClinicalContent(initial.clinicalRequirements||initial.requirements)}
       : {
           id: "SO-" + id().slice(0, 8),
           name: "",
@@ -132,6 +124,7 @@ export function OrderEditor({
           quantity: 1,
           requirements: "",
           clinicalRequirements: "",
+          clinicalContent:initialClinicalContent(""),
           designRequirements: "",
           plannedStages: ["三维重建"],
           due: "",
@@ -148,13 +141,8 @@ export function OrderEditor({
     [errors, setErrors] = useState<Record<string, string>>({}),
     [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
-  const [caseOpen, setCaseOpen] = useState(false),
-    [caseError, setCaseError] = useState(false);
-  const [caseName, setCaseName] = useState(""),
-    [caseSummary, setCaseSummary] = useState("");
-  const [clinicalType, setClinicalType] = useState("");
   const linkedCase = data.cases.find((c) => c.id === o.caseId);
-  const [patientName, setPatientName] = useState(linkedCase?.patientName || "");
+  const [patientName, setPatientName] = useState(o.patientName ?? linkedCase?.patientName ?? "");
   const update = (fields: Partial<Order>) => {
     setOrder((prev) => ({ ...prev, ...fields }));
     setErrors((prev) =>
@@ -163,19 +151,7 @@ export function OrderEditor({
       ),
     );
   };
-  const chooseCase = (value: string) => {
-    const c = data.cases.find((x) => x.id === value);
-    update({ caseId: value });
-    setPatientName(c?.patientName || "");
-    setErrors((prev) => {
-      const { caseId, patientName, ...rest } = prev;
-      return rest;
-    });
-  };
-  const changeDoctor = (value: string) => {
-    update({ doctorId: value, caseId: "" });
-    setPatientName("");
-  };
+  const changeDoctor = (value:string) => update({doctorId:value,caseId:initial?.caseId||""});
   const imagingFiles = useMemo(() => o.materials.filter(isImaging), [o.materials]);
   const otherFiles = useMemo(() => o.materials.filter((f) => !isImaging(f)), [o.materials]);
   const uploading = Object.values(busy).some(Boolean);
@@ -187,7 +163,6 @@ export function OrderEditor({
             "hospitalId",
             "department",
             "doctorId",
-            "caseId",
             "patientName",
             "name",
             "clinicalRequirements",
@@ -208,7 +183,7 @@ export function OrderEditor({
     if (submit && !validate(3)) return;
     setSaving(true);
     try {
-      await save(o, submit, patientName);
+      await save({...o,patientName}, submit, patientName);
     } finally {
       setSaving(false);
     }
@@ -238,8 +213,8 @@ export function OrderEditor({
       <PageBack label="返回订单管理" onBack={cancel}/>
       <Card bordered={false} className="project-info-card">
         <h2>{initial ? "编辑订单" : "新建订单"}</h2>
-        <Steps current={step}>
-          {["客户与病例", "服务需求", "资料上传", "确认并提交"].map((title) => (
+        <div className="sales-order-content"><Steps current={step} layout="horizontal">
+          {["客户与患者", "服务需求", "资料上传", "确认并提交"].map((title) => (
             <Steps.StepItem key={title} title={title} />
           ))}
         </Steps>
@@ -266,7 +241,6 @@ export function OrderEditor({
                       doctorId: "",
                       caseId: "",
                     });
-                    setPatientName("");
                   }}
                 />
               </Field>
@@ -281,7 +255,6 @@ export function OrderEditor({
                   ).map((value) => ({ value, label: value }))}
                   onChange={(v) => {
                     update({ department: String(v), doctorId: "", caseId: "" });
-                    setPatientName("");
                   }}
                 />
               </Field>
@@ -302,42 +275,12 @@ export function OrderEditor({
                   onChange={(v) => changeDoctor(String(v))}
                 />
               </Field>
-              <Field label={<CaseLabel/>} required error={errors.caseId}>
-                <div className="sales-case-choice">
-                  <Select
-                    aria-label="病例编号"
-                    value={o.caseId}
-                    placeholder="选择已有病例"
-                    options={data.cases
-                      .filter((c) => c.doctorId === o.doctorId)
-                      .map((c) => ({ value: c.id, label: c.id }))}
-                    onChange={(v) => chooseCase(String(v))}
-                  />
-                  <Button
-                    variant="text"
-                    theme="primary"
-                    disabled={!o.doctorId}
-                    onClick={() => {
-                      setCaseOpen(true);
-                      setCaseError(false);
-                    }}
-                  >
-                    新建病例
-                  </Button>
-                </div>
-              </Field>
               <Field label="患者姓名" required error={errors.patientName}>
                 <Input
                   aria-label="患者姓名"
                   value={patientName}
-                  readonly={!!linkedCase?.patientName}
-                  placeholder={
-                    linkedCase
-                      ? "填写病例尚未记录的患者姓名"
-                      : "请先选择或新建病例"
-                  }
-                  disabled={!linkedCase}
-                  onChange={setPatientName}
+                  placeholder="填写患者姓名"
+                  onChange={value=>{setPatientName(value);setErrors(prev=>({...prev,patientName:""}));}}
                 />
               </Field>
               <Field label="手术项目名称" required error={errors.name}>
@@ -352,14 +295,7 @@ export function OrderEditor({
                 required
                 error={errors.clinicalRequirements}
               >
-                <Textarea
-                  aria-label="临床需求"
-                  value={o.clinicalRequirements || o.requirements}
-                  autosize={{ minRows: 3, maxRows: 8 }}
-                  onChange={(value) =>
-                    update({ clinicalRequirements: value, requirements: value })
-                  }
-                />
+                <ClinicalEditor owner={data.ownerId} value={o.clinicalContent!} error={errors.clinicalRequirements} onBusyChange={value=>setBusy(prev=>({...prev,clinical:value}))} onChange={content=>update({clinicalContent:content,clinicalRequirements:clinicalText(content),requirements:clinicalText(content)})}/>
               </Field>
             </>
           )}
@@ -474,10 +410,9 @@ export function OrderEditor({
                   "医生",
                   data.doctors.find((d) => d.id === o.doctorId)?.name,
                 ],
-                ["病例编号", o.caseId],
                 ["患者姓名", patientName],
                 ["手术项目名称", o.name],
-                ["临床需求", o.clinicalRequirements || o.requirements],
+                ["临床需求", <ClinicalReadOnly owner={data.ownerId} value={o.clinicalContent} fallback={o.clinicalRequirements||o.requirements}/>],
                 ["业务服务项目", o.service],
                 ["设计阶段", <OrderIcons stages={o.plannedStages || []} />],
                 ["设计需求", o.designRequirements || "未填写"],
@@ -545,71 +480,8 @@ export function OrderEditor({
               </Button>
             )}
           </div>
-        </Form>
+        </Form></div>
       </Card>
-      <Dialog
-        visible={caseOpen}
-        header="新建病例"
-        confirmBtn="保存病例"
-        onClose={() => setCaseOpen(false)}
-        onConfirm={() => {
-          setCaseError(true);
-          if (!caseName.trim() || !caseSummary.trim()) return;
-          const clinicalCase: Case = {
-            id: "CASE-" + id().slice(0, 8),
-            doctorId: o.doctorId,
-            hospitalId: o.hospitalId,
-            department: o.department,
-            patientName: caseName.trim(),
-            summary: caseSummary.trim(),
-            clinicalType: clinicalType.trim(),
-          };
-          if (createCase(clinicalCase)) {
-            update({ caseId: clinicalCase.id });
-            setPatientName(clinicalCase.patientName!);
-            setCaseOpen(false);
-            setCaseName("");
-            setCaseSummary("");
-          }
-        }}
-      >
-        <Form labelAlign="top">
-          <Field label="所属医院"><Input readonly value={data.hospitals.find(h=>h.id===o.hospitalId)?.name || ""} /></Field>
-          <Field label="临床部位或病例类型"><Input aria-label="临床部位或病例类型" value={clinicalType} onChange={setClinicalType} /></Field>
-          <Field
-            label="患者姓名"
-            required
-            error={caseError && !caseName.trim() ? "请填写患者姓名" : undefined}
-          >
-            <Input
-              aria-label="新病例患者姓名"
-              value={caseName}
-              onChange={setCaseName}
-            />
-          </Field>
-          <Field label="医生">
-            <Input
-              readonly
-              value={data.doctors.find((d) => d.id === o.doctorId)?.name || ""}
-            />
-          </Field>
-          <Field
-            label="临床背景摘要"
-            required
-            error={
-              caseError && !caseSummary.trim()
-                ? "请填写临床背景摘要"
-                : undefined
-            }
-          >
-            <Textarea
-              aria-label="临床背景摘要"
-              value={caseSummary}
-              onChange={setCaseSummary}
-            />
-          </Field>
-        </Form>
-      </Dialog>
     </div>
   );
 }
@@ -687,7 +559,6 @@ export function OrderDetail({
         <dl className="project-info-grid">
           <Info label="订单编号">{order.id}</Info>
           <Info label="手术项目名称">{order.name}</Info>
-          <Info label="病例编号">{order.caseId}</Info>
           <Info label="医院">
             {data.hospitals.find((h) => h.id === order.hospitalId)?.name}
           </Info>
@@ -695,7 +566,7 @@ export function OrderDetail({
           <Info label="医生">
             {data.doctors.find((d) => d.id === order.doctorId)?.name}
           </Info>
-          <Info label="患者姓名">{clinicalCase?.patientName || "未记录"}</Info>
+          <Info label="患者姓名">{order.patientName ?? clinicalCase?.patientName ?? "未记录"}</Info>
           <Info label="订单状态">{status}</Info>
           <Info label="设计阶段">
             <OrderIcons stages={stages} />
@@ -707,7 +578,7 @@ export function OrderDetail({
           <Info label="需求数量">{order.quantity}</Info>
           <Info label="报价">待核定</Info>
           <Info label="临床需求" wide>
-            {order.clinicalRequirements || order.requirements || "未记录"}
+            <ClinicalReadOnly owner={data.ownerId} value={order.clinicalContent} fallback={order.clinicalRequirements || order.requirements || "未记录"}/>
           </Info>
           <Info label="设计需求" wide>
             {order.designRequirements || "未填写"}

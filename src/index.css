@@ -17,7 +17,9 @@ h1, h2, h3, h4, h5, h6 { font-weight: 500; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
 button, a, input { outline: none; }
-button:focus-visible, input:focus-visible { box-shadow: 0 0 0 3px var(--cv-brand-color-focus); }
+/* TDesign owns the focus surface on its outer Input, not on the native inner input. */
+button:focus-visible { box-shadow: 0 0 0 3px var(--cv-brand-color-focus); }
+input:not(.t-input__inner):focus-visible, a:focus-visible { outline: 2px solid var(--td-brand-color); outline-offset: 2px; }
 ::selection { background: var(--td-brand-color-focus); color: var(--td-text-color-primary); }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb { background: var(--td-scrollbar-color); border: 3px solid transparent; background-clip: content-box; }

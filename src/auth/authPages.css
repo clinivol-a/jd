@@ -118,3 +118,11 @@ html[data-auth-screen='true'],html[data-auth-screen='true'] body,html[data-auth-
 .auth-organization-actions{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;color:var(--td-text-color-secondary);margin-top:4px;}
 .auth-organization-actions>.t-button{padding:0;}
 .auth-td-field .t-input__extra{position:static;white-space:normal;overflow:visible;height:auto;min-height:var(--td-line-height-body-medium);font:var(--td-font-body-medium);margin-top:0;}
+/* The registration Steps use the same content bounds as the heading and form. */
+.auth-content-flow .t-steps {width:100%;}
+.auth-content-flow .t-steps-item {min-width:0;}
+.auth-content-flow .t-steps-item__title {white-space:normal;}
+.auth-content-flow .t-steps--dot-anchor .t-steps-item {flex:1;margin-right:var(--td-comp-margin-s);}
+.auth-content-flow .t-steps--dot-anchor .t-steps-item__inner {align-items:flex-start;}
+.auth-content-flow .t-steps--dot-anchor .t-steps-item__content {width:auto;text-align:left;}
+.auth-content-flow .t-steps--dot-anchor .t-steps-item:not(:last-child)::after {left:16px;}

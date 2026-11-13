@@ -1,3 +1,4 @@
+import {clinicalContentError,clinicalText} from "./clinicalContent.mjs";
 import { doctorDraftDeleteError } from "./doctorFixtures.mjs";
 import { orderFixtures, syntheticPatients, stageTeams } from "./orderFixtures.mjs";
 import { localDate, designStages, orderErrors } from "./orderRules.mjs";
@@ -55,6 +56,8 @@ export type Case = {
   department?: string;
 };
 export type Order = {
+  patientName?: string;
+  clinicalContent?: import("./clinicalContent.mjs").ClinicalContent;
   id: string;
   name: string;
   caseId: string;
@@ -463,10 +466,9 @@ export function transition(
     if (
       !doc ||
       doc.owner !== d.ownerId ||
-      doc.status !== "审核通过" ||
-      !d.cases.some((x) => x.id === v.caseId && x.doctorId === doc.id)
+      doc.status !== "审核通过"
     )
-      fail("请选择本人授权客户及关联病例。");
+      fail("请选择本人授权客户。");
     if (
       !d.hospitals.some(
         (h) =>
@@ -479,8 +481,20 @@ export function transition(
       (!canReadOrder(d, old, now) || !["草稿", "审核退回"].includes(old.status))
     )
       fail("当前订单不可修改。");
+    const contentError=clinicalContentError(v.clinicalContent,d.ownerId);
+    if(contentError) fail(contentError);
+    // Keep legacy links immutable; manual patient input never overwrites a shared Case.
+    let internalCase=d.cases.find(x=>x.id===v.caseId && x.doctorId===doc!.id);
+    const patientName=(v.patientName ?? internalCase?.patientName ?? '').trim();
+    if(!internalCase || (patientName && internalCase.patientName && internalCase.patientName!==patientName)) {
+      internalCase={id:'CASE-'+id(),doctorId:doc!.id,hospitalId:doc!.hospitalId,department:doc!.department,patientName,summary:v.clinicalRequirements||v.requirements};
+      d.cases.push(internalCase);
+    }
     const safe = {
       ...v,
+      caseId:internalCase.id,
+      patientName,
+
       requestedDueDate: v.requestedDueDate ?? v.due,
       due: v.requestedDueDate ?? v.due,
       confirmedDeliveryDate: old?.confirmedDeliveryDate,
@@ -493,7 +507,7 @@ export function transition(
       status: old?.status || "草稿",
       projectId: old?.projectId,
       taskIds: old?.taskIds,
-      clinicalRequirements: v.clinicalRequirements ?? v.requirements,
+      clinicalRequirements: v.clinicalContent ? clinicalText(v.clinicalContent) : (v.clinicalRequirements ?? v.requirements),
       designRequirements: v.designRequirements ?? old?.designRequirements ?? "",
       plannedStages: v.plannedStages
         ? designStages.filter((stage) => v.plannedStages!.includes(stage))
@@ -530,7 +544,7 @@ export function transition(
       fail("当前订单不可提交。");
     const errors = orderErrors(
       order!,
-      d.cases.find((x) => x.id === order!.caseId)?.patientName,
+      order!.patientName ?? d.cases.find((x) => x.id === order!.caseId)?.patientName,
       now,
     );
     if (Object.keys(errors).length) fail(Object.values(errors)[0]);

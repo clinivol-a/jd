@@ -1,0 +1,40 @@
+{
+  "required": true,
+  "uploadFailure": true,
+  "mediaInsert": true,
+  "videoPlaying": true,
+  "measure": {
+    "form": {
+      "x": 272,
+      "y": 248,
+      "width": 380,
+      "height": 1066.875,
+      "top": 248,
+      "right": 652,
+      "bottom": 1314.875,
+      "left": 272
+    },
+    "steps": {
+      "x": 272,
+      "y": 196,
+      "width": 760,
+      "height": 28,
+      "top": 196,
+      "right": 1032,
+      "bottom": 224,
+      "left": 272
+    },
+    "inputs": [
+      380,
+      380,
+      380,
+      380,
+      380
+    ]
+  },
+  "detailHash": "#sales/order/SO-f7b48e2f",
+  "refresh": true,
+  "confirm": true,
+  "submitted": true,
+  "errors": []
+}

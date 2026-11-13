@@ -1,0 +1,8 @@
+{
+  "htmlEscaped": true,
+  "foreignMediaRejected": true,
+  "invalidSignatureRejected": true,
+  "oversizeRejected": true,
+  "svgRejected": true,
+  "foreignFileUnavailable": true
+}

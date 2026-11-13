@@ -615,7 +615,6 @@ export default function SalesWorkspace() {
   const orderFields = [
     { key: "id", label: "订单编号" },
     { key: "name", label: "手术项目名称" },
-    { key: "caseId", label: "病例编号" },
     {
       key: "hospitalId",
       label: "医院",
@@ -626,7 +625,7 @@ export default function SalesWorkspace() {
       label: "医生",
       render: (r: Row) => doc(String(r.doctorId)),
     },
-    {key:"patient",label:"患者",render:(r:Row)=>data.cases.find(c=>c.id===r.caseId)?.patientName || "未记录"},
+    {key:"patient",label:"患者",render:(r:Row)=>String(r.patientName || data.cases.find(c=>c.id===r.caseId)?.patientName || "未记录")},
     {
       key: "service",
       label: "设计阶段",
@@ -745,7 +744,7 @@ export default function SalesWorkspace() {
   );
   const matching = orders.filter(
     (o) =>
-      (!keyword || [o.id, o.name, o.caseId].some((x) => x.includes(keyword))) &&
+      (!keyword || [o.id, o.name, o.patientName || data.cases.find(c=>c.id===o.caseId)?.patientName || ""].some((x) => x.includes(keyword))) &&
       (!filter || o.status === filter) &&
       (!hospitalFilter || o.hospitalId === hospitalFilter) &&
       (!deptFilter || o.department === deptFilter) &&
@@ -792,7 +791,7 @@ export default function SalesWorkspace() {
           clearable
           value={search}
           onChange={setSearch}
-          placeholder="搜索编号、名称或病例"
+          placeholder="搜索编号、名称或患者"
         />
       </label>
       <div className="project-filter-date">
@@ -1381,7 +1380,6 @@ export default function SalesWorkspace() {
           data.doctors.some((d) => d.id === detail) ? detail : undefined
         }
         caseId={caseRoute}
-        createCase={(value) => commit({ type: "case-create", value })}
         save={async (o, submit, patientName) => {
           try {
             if (submit) {
@@ -1408,16 +1406,6 @@ export default function SalesWorkspace() {
               permissions: account.permissions,
             };
             let next = data;
-            const clinicalCase = data.cases.find((c) => c.id === o.caseId);
-            if (clinicalCase && !clinicalCase.patientName && patientName)
-              next = transition(
-                next,
-                {
-                  type: "case-fill",
-                  value: { ...clinicalCase, patientName },
-                },
-                authority,
-              );
             next = transition(
               next,
               { type: "order-save", value: o },

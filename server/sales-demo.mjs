@@ -1,3 +1,4 @@
+import {clinicalContentError} from "../src/sales/clinicalContent.mjs";
 import { orderErrors } from "../src/sales/orderRules.mjs";
 import { InviteProof } from "./sales-invite-proof.mjs";
 import { randomBytes, randomUUID } from "node:crypto";
@@ -217,6 +218,8 @@ export function salesDemoPlugin(
               body.patientName,
               new Date(),
             );
+            const contentError=clinicalContentError(body.order?.clinicalContent,user.id);
+            if(contentError) errors.clinicalRequirements=contentError;
             return send(Object.keys(errors).length ? 422 : 200, { errors });
           }
           if (action === "order-history-request" && req.method === "POST") {

@@ -12,6 +12,21 @@ export async function saveFile(owner: string, file: File): Promise<Attachment> {
   if (file.size > 20 * 1024 * 1024) throw new Error("单个附件不得超过20MB。");
   if (!/\.(pdf|png|jpe?g|dcm|dicom|nii|gz|zip|txt)$/i.test(file.name))
     throw new Error("不支持此文件格式。");
+  return persistFile(owner, file);
+}
+export async function saveClinicalMedia(owner:string, file:File):Promise<Attachment> {
+  if(!owner) throw Error("请使用已登录账号保存媒体。");
+  if (!file.size || file.size > 20*1024*1024) throw Error("请选择20MB以内的非空图片或MP4视频。");
+  const bytes=new Uint8Array(await file.slice(0,16).arrayBuffer());
+  const ascii=(start:number,end:number)=>String.fromCharCode(...bytes.slice(start,end));
+  const valid=(file.type==='image/png' && /\.png$/i.test(file.name) && bytes[0]===137 && ascii(1,4)==='PNG') ||
+    (file.type==='image/jpeg' && /\.jpe?g$/i.test(file.name) && bytes[0]===255 && bytes[1]===216 && bytes[2]===255) ||
+    (file.type==='image/webp' && /\.webp$/i.test(file.name) && ascii(0,4)==='RIFF' && ascii(8,12)==='WEBP') ||
+    (file.type==='video/mp4' && /\.mp4$/i.test(file.name) && ascii(4,8)==='ftyp');
+  if (!valid) throw Error("文件内容与支持的PNG、JPG、WEBP或MP4格式不符。");
+  return persistFile(owner,file);
+}
+async function persistFile(owner:string, file:File):Promise<Attachment> {
   const id = crypto.randomUUID(),
     db = await database();
   try {
@@ -20,6 +35,7 @@ export async function saveFile(owner: string, file: File): Promise<Attachment> {
       tx.objectStore("files").put(file, owner + ":" + id);
       tx.oncomplete = () => ok();
       tx.onerror = () => no(tx.error);
+      tx.onabort = () => no(tx.error || Error("文件保存已中断，请重试。"));
     });
     return {
       id,

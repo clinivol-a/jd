@@ -1,0 +1,168 @@
+{
+  "results": [
+    {
+      "theme": "light",
+      "label": "手机号",
+      "nativeClass": "t-input__inner",
+      "innerShadow": "none",
+      "outline": "rgba(0, 0, 0, 0.9) none 3px",
+      "active": true,
+      "outerShadow": "rgb(199, 233, 221) 0px 0px 0px 2px",
+      "color": "rgba(0, 0, 0, 0.9)"
+    },
+    {
+      "theme": "light",
+      "label": "密码",
+      "nativeClass": "t-input__inner",
+      "innerShadow": "none",
+      "outline": "rgba(0, 0, 0, 0.9) none 3px",
+      "active": true,
+      "outerShadow": "rgb(199, 233, 221) 0px 0px 0px 2px",
+      "color": "rgba(0, 0, 0, 0.9)"
+    },
+    {
+      "theme": "light",
+      "label": "验证码",
+      "nativeClass": "t-input__inner",
+      "innerShadow": "none",
+      "outline": "rgba(0, 0, 0, 0.9) none 3px",
+      "active": true,
+      "outerShadow": "rgb(199, 233, 221) 0px 0px 0px 2px",
+      "color": "rgba(0, 0, 0, 0.9)"
+    },
+    {
+      "theme": "light",
+      "label": "Select",
+      "nativeClass": "t-input__inner",
+      "innerShadow": "none",
+      "outline": "rgba(0, 0, 0, 0.9) none 3px",
+      "active": true,
+      "outerShadow": "none",
+      "color": "rgba(0, 0, 0, 0.9)"
+    },
+    {
+      "theme": "light",
+      "label": "搜索",
+      "nativeClass": "t-input__inner",
+      "innerShadow": "none",
+      "outline": "rgba(0, 0, 0, 0.9) none 3px",
+      "active": true,
+      "outerShadow": "rgb(199, 233, 221) 0px 0px 0px 2px",
+      "color": "rgba(0, 0, 0, 0.9)"
+    },
+    {
+      "theme": "light",
+      "label": "日期",
+      "nativeClass": "t-input__inner",
+      "innerShadow": "none",
+      "outline": "rgba(0, 0, 0, 0.9) none 3px",
+      "active": true,
+      "outerShadow": "none",
+      "color": "rgba(0, 0, 0, 0.9)"
+    },
+    {
+      "theme": "light",
+      "label": "范围",
+      "nativeClass": "t-input__inner",
+      "innerShadow": "none",
+      "outline": "rgba(0, 0, 0, 0.9) none 3px",
+      "active": true,
+      "outerShadow": "none",
+      "color": "rgba(0, 0, 0, 0.9)"
+    },
+    {
+      "theme": "light",
+      "label": "Textarea",
+      "nativeClass": "t-textarea__inner t-is-default",
+      "innerShadow": "rgb(199, 233, 221) 0px 0px 0px 2px",
+      "outline": "rgba(0, 0, 0, 0.9) none 3px",
+      "active": true,
+      "outerShadow": "self",
+      "color": "rgba(0, 0, 0, 0.9)"
+    },
+    {
+      "theme": "dark",
+      "label": "手机号",
+      "nativeClass": "t-input__inner",
+      "innerShadow": "none",
+      "outline": "rgba(255, 255, 255, 0.9) none 3px",
+      "active": true,
+      "outerShadow": "rgb(18, 55, 44) 0px 0px 0px 2px",
+      "color": "rgba(255, 255, 255, 0.9)"
+    },
+    {
+      "theme": "dark",
+      "label": "密码",
+      "nativeClass": "t-input__inner",
+      "innerShadow": "none",
+      "outline": "rgba(255, 255, 255, 0.9) none 3px",
+      "active": true,
+      "outerShadow": "rgb(18, 55, 44) 0px 0px 0px 2px",
+      "color": "rgba(255, 255, 255, 0.9)"
+    },
+    {
+      "theme": "dark",
+      "label": "验证码",
+      "nativeClass": "t-input__inner",
+      "innerShadow": "none",
+      "outline": "rgba(255, 255, 255, 0.9) none 3px",
+      "active": true,
+      "outerShadow": "rgb(18, 55, 44) 0px 0px 0px 2px",
+      "color": "rgba(255, 255, 255, 0.9)"
+    },
+    {
+      "theme": "dark",
+      "label": "Select",
+      "nativeClass": "t-input__inner",
+      "innerShadow": "none",
+      "outline": "rgba(255, 255, 255, 0.9) none 3px",
+      "active": true,
+      "outerShadow": "none",
+      "color": "rgba(255, 255, 255, 0.9)"
+    },
+    {
+      "theme": "dark",
+      "label": "搜索",
+      "nativeClass": "t-input__inner",
+      "innerShadow": "none",
+      "outline": "rgba(255, 255, 255, 0.9) none 3px",
+      "active": true,
+      "outerShadow": "rgb(18, 55, 44) 0px 0px 0px 2px",
+      "color": "rgba(255, 255, 255, 0.9)"
+    },
+    {
+      "theme": "dark",
+      "label": "日期",
+      "nativeClass": "t-input__inner",
+      "innerShadow": "none",
+      "outline": "rgba(255, 255, 255, 0.9) none 3px",
+      "active": true,
+      "outerShadow": "none",
+      "color": "rgba(255, 255, 255, 0.9)"
+    },
+    {
+      "theme": "dark",
+      "label": "范围",
+      "nativeClass": "t-input__inner",
+      "innerShadow": "none",
+      "outline": "rgba(255, 255, 255, 0.9) none 3px",
+      "active": true,
+      "outerShadow": "none",
+      "color": "rgba(255, 255, 255, 0.9)"
+    },
+    {
+      "theme": "dark",
+      "label": "Textarea",
+      "nativeClass": "t-textarea__inner t-is-default",
+      "innerShadow": "rgb(18, 55, 44) 0px 0px 0px 2px",
+      "outline": "rgba(255, 255, 255, 0.9) none 3px",
+      "active": true,
+      "outerShadow": "self",
+      "color": "rgba(255, 255, 255, 0.9)"
+    }
+  ],
+  "keyboard": {
+    "tag": "TEXTAREA",
+    "visible": true
+  }
+}

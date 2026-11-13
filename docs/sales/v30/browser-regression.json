@@ -1,0 +1,60 @@
+{
+  "listNoCase": true,
+  "historicalDetail": true,
+  "realRetry": true,
+  "mediaRemove": true,
+  "multipleParagraphsAndList": true,
+  "widths": [
+    {
+      "width": 1920,
+      "form": 380,
+      "steps": 760,
+      "left": 272,
+      "stepLeft": 272,
+      "overflow": false,
+      "cardRight": 1032,
+      "stepRight": 1032
+    },
+    {
+      "width": 1440,
+      "form": 380,
+      "steps": 760,
+      "left": 272,
+      "stepLeft": 272,
+      "overflow": false,
+      "cardRight": 1032,
+      "stepRight": 1032
+    },
+    {
+      "width": 1024,
+      "form": 380,
+      "steps": 704,
+      "left": 272,
+      "stepLeft": 272,
+      "overflow": false,
+      "cardRight": 976,
+      "stepRight": 976
+    },
+    {
+      "width": 920,
+      "form": 600,
+      "steps": 600,
+      "left": 272,
+      "stepLeft": 272,
+      "overflow": false,
+      "cardRight": 872,
+      "stepRight": 872
+    }
+  ],
+  "dark": true,
+  "register": {
+    "left": 72,
+    "right": 532,
+    "title": 72,
+    "formLeft": 72,
+    "formRight": 532
+  },
+  "designerCards": 5,
+  "engineerFilter": true,
+  "engineerNavigationText": "Home\n任务001 · 面部骨骼三维重建\n2\n陈屿\n三维重建设计师\nAI\n视图\n图像\n分割\n布局\n伪色\n参考平面\n层切\n四角信息显隐\n十字线显隐\n浏览序列\n蒙版阴影\n蒙版体积与统计\nSTL属性统计\n已保存\n提交审核\n影像序列\n任务数据已自动加载\nPatient · CV-P-2026-0184\nS"
+}
