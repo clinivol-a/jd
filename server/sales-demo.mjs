@@ -8,12 +8,14 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 export function salesDemoPlugin(
   authOrigin = "http://127.0.0.1:5211",
   storageFile = new URL("../.local/sales-invitations.json", import.meta.url),
+  options = {},
 ) {
-  const proofService = new InviteProof();
+  const proofService = options.proofService || new InviteProof();
   let server,
     records = { invites: [], leads: [] };
   const file = storageFile;
   const persist = async () => {
+    if(options.saveRecords)return options.saveRecords(records);
     await mkdir(new URL(".", file), { recursive: true });
     await writeFile(file, JSON.stringify(records), { mode: 0o600 });
   };
@@ -23,8 +25,8 @@ export function salesDemoPlugin(
     async configureServer(vite) {
       server = vite;
       try {
-        records = JSON.parse(await readFile(file, "utf8"));
-      } catch {}
+        records = options.loadRecords ? await options.loadRecords() : JSON.parse(await readFile(file, "utf8"));
+      } catch(e) {if(options.loadRecords)throw e;}
       vite.middlewares.use(async (req, res, next) => {
         if (!req.url?.startsWith("/api/sales-demo/")) return next();
         const send = (status, value) => {
@@ -62,17 +64,16 @@ export function salesDemoPlugin(
                 code: invite.code,
                 hospitals: invite.hospitals,
               });
-            if (action === "public-code")
-              return send(200, proofService.send(invite.token, body.phone));
-            if (action === "public-verify")
-              return send(
-                200,
-                proofService.verify(invite.token, body.phone, body.code),
-              );
+            if (action === "public-code") {
+              const result=proofService.send(invite.token,body.phone);await persist();
+              if(options.exposeDemoCode){const code=proofService.inbox([invite.token]).find(c=>c.phone===body.phone)?.code;result.message=`本次演示验证码：${code}（5分钟内有效）`;}
+              return send(200,result);
+            }
+            if (action === "public-verify") {let result;try{result=proofService.verify(invite.token,body.phone,body.code);}finally{await persist();}return send(200,result);}
             let submittedBy = "资料提交人";
             let submissionMode = "invite";
             if (body.assisted) {
-              const sessionResponse = await fetch(authOrigin + "/api/auth/session", {headers:{cookie:req.headers.cookie || ""}});
+              const sessionResponse = options.getSession ? {json:async()=>options.getSession(req)} : await fetch(authOrigin + "/api/auth/session", {headers:{cookie:req.headers.cookie || ""}});
               const session = await sessionResponse.json();
               if (!session.user || session.locked || session.user.role !== "sales" || session.user.id !== invite.owner) return send(403,{error:"请使用负责销售账号协助建档。"});
               submittedBy = session.user.name;
@@ -204,10 +205,7 @@ export function salesDemoPlugin(
             await persist();
             return send(200, { id: lead.id });
           }
-          const response = await fetch(authOrigin + "/api/auth/session", {
-              headers: { cookie: req.headers.cookie || "" },
-            }),
-            session = await response.json();
+          const session = options.getSession ? options.getSession(req) : await (await fetch(authOrigin + "/api/auth/session", {headers:{cookie:req.headers.cookie||""}})).json();
           const user = session.user;
           if (!user || user.role !== "sales" || session.locked)
             return send(403, { error: "请使用已登录销售账号。" });
@@ -228,7 +226,7 @@ export function salesDemoPlugin(
           }
           if (action === "codes" && req.method === "GET") {
             const remote = req.socket.remoteAddress || "";
-            if (!["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(remote))
+            if (!options.allowTestInbox && !["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(remote))
               return send(403, { error: "仅本机测试控制台可读取验证码。" });
             return send(200, {
               codes: proofService.inbox(
@@ -281,7 +279,7 @@ export function salesDemoPlugin(
             const host = canUseLAN && ip ? ip : "127.0.0.1";
             return send(200, {
               code: invite.code,
-              url: `http://${host}:${port}/sales-invite?token=${invite.token}`,
+              url: options.publicOrigin ? `${options.publicOrigin}/sales-invite?token=${invite.token}` : `http://${host}:${port}/sales-invite?token=${invite.token}`,
               lan: !!ip && canUseLAN,
             });
           }

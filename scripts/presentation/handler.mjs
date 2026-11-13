@@ -2,6 +2,7 @@
 import {readFileSync} from 'node:fs';
 import {randomBytes,createCipheriv,createDecipheriv,timingSafeEqual} from 'node:crypto';
 import {gzipSync,gunzipSync} from 'node:zlib';
+import {serveSales} from './sales-cloud.mjs';
 import {AuthService} from './auth/service.mjs';
 import {createAuthServer} from './auth/http.mjs';
 const key=readFileSync(new URL('./state-key',import.meta.url));
@@ -19,11 +20,17 @@ export default async function handler(req,res){
  if(url.pathname==='/demo-access'&&equal(url.searchParams.get('demo'),invite)){
   res.setHeader('Set-Cookie',`cv_presentation=${invite}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=172800`);res.statusCode=302;res.setHeader('Location','/#auth/login');res.end();return;
  }
- if(!equal(cookies.cv_presentation,invite)){res.statusCode=403;res.end(JSON.stringify({error:'请使用完整的汇报邀请链接。'}));return}
+ const publicInvite=url.pathname.startsWith('/api/sales-demo/public');
+ if(!publicInvite&&!equal(cookies.cv_presentation,invite)){res.statusCode=403;res.end(JSON.stringify({error:'请使用完整的汇报邀请链接。'}));return}
  if(req.method!=='GET'&&req.headers.origin!==origin){res.statusCode=403;res.end();return}
  const s=new AuthService({mode:'local',demoMode:true,testConsole:true,smsProvider:async()=>{}});
  s.accounts=structuredClone(seeds);
  try{const n=Number(cookies.cv_demo_n||0);if(n>0&&n<=20){const saved=unseal(Array.from({length:n},(_,i)=>cookies['cv_demo_'+i]||'').join(''));if(saved.expires>Date.now())for(const f of fields)if(saved[f]!==undefined)s[f]=s[f] instanceof Map?new Map(saved[f]):saved[f]}}catch{}
+ if(url.pathname.startsWith('/api/sales-demo/')) {
+  const device=s.device(cookies.cv_auth_device||'');
+  try{return await serveSales(req,res,{origin,session:s.session(device),namespace:invite});}
+  catch(e){res.statusCode=503;res.setHeader('Content-Type','application/json');res.end(JSON.stringify({error:'邀请服务暂不可用，请稍后重试。'}));return}
+ }
  const before=JSON.stringify(fields.map(f=>s[f] instanceof Map?[...s[f]]:s[f]));
  const server=createAuthServer(s,{origin:'http://127.0.0.1:5210',secure:true,devConsoleKey:invite});
  req.headers.origin='http://127.0.0.1:5210';delete req.headers['x-forwarded-host'];delete req.headers['x-forwarded-proto'];delete req.headers.forwarded;delete req.headers['cf-connecting-ip'];

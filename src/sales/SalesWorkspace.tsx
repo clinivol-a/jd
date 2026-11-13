@@ -388,7 +388,7 @@ export default function SalesWorkspace() {
     }
   };
   useEffect(() => {
-    if (!import.meta.env.DEV) return;
+    if (!import.meta.env.DEV && import.meta.env.VITE_PRESENTATION_DEMO!=="1") return;
     let alive = true;
     const sync = async () => {
       try {
