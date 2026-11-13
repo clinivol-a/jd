@@ -1,3 +1,4 @@
+import {PageBack} from '../PageBack';
 import { confirmedDelivery } from "./orderRules.mjs";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -234,13 +235,7 @@ export function OrderEditor({
   };
   return (
     <div className="project-page project-detail-page sales-order-page">
-      <Button
-        variant="text"
-        icon={<ChevronLeftIcon size={16} />}
-        onClick={cancel}
-      >
-        返回订单管理
-      </Button>
+      <PageBack label="返回订单管理" onBack={cancel}/>
       <Card bordered={false} className="project-info-card">
         <h2>{initial ? "编辑订单" : "新建订单"}</h2>
         <Steps current={step}>
@@ -679,13 +674,7 @@ export function OrderDetail({
   );
   return (
     <div className="project-page project-detail-page sales-order-page">
-      <Button
-        variant="text"
-        icon={<ChevronLeftIcon size={16} />}
-        onClick={onBack}
-      >
-        返回订单管理
-      </Button>
+      <PageBack label="返回订单管理" onBack={onBack}/>
       <Card bordered={false} className="project-info-card">
         <div className="project-page-heading">
           <h2>订单概览</h2>

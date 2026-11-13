@@ -1,3 +1,6 @@
+import {DoctorFields} from './DoctorFields';
+import {doctorErrors} from './doctorRules.mjs';
+import {PageBack} from '../PageBack';
 import {dashboardOrderBuckets,salesBusiness} from "./dashboardBusiness.mjs";
 import { addOrderScenario } from "./orderFixtures.mjs";
 import { ChevronLeftIcon, ChevronRightIcon } from "../design-system/tdesign";
@@ -502,7 +505,9 @@ export default function SalesWorkspace() {
     from,
     to,
   ]);
+  const editOrigin=useRef<string|null>(null);
   const go = (r: string) => {
+    if((r.startsWith("doctor-new/")||r.startsWith("order-new/"))&&route==="todos")editOrigin.current=route;
     location.hash = "sales/" + r;
   };
   const openStat = (category: string) => {
@@ -1232,7 +1237,7 @@ export default function SalesWorkspace() {
           )
             go("doctor/" + d.id);
         }}
-        cancel={() => go("customers/doctors")}
+        cancel={() => {const origin=editOrigin.current;editOrigin.current=null;go(origin||"customers/doctors");}}
       />
     );
   else if (section === "doctor") {
@@ -1441,7 +1446,7 @@ export default function SalesWorkspace() {
             return false;
           }
         }}
-        cancel={() => go("orders")}
+        cancel={() => {const origin=editOrigin.current;editOrigin.current=null;go(origin||"orders");}}
       />
     );
   else if (section === "order") {
@@ -1693,7 +1698,7 @@ export default function SalesWorkspace() {
     content = (
       <div>
         <Empty description="页面不存在" />
-        <Button onClick={() => go("home")}>返回工作台</Button>
+        <PageBack label="返回工作台" onBack={()=>go("home")}/>
       </div>
     );
   return (
@@ -2227,35 +2232,11 @@ function DoctorEditor({
   const setUploadBusy = (slot: string, value: boolean) =>
     setBusySlots((previous) => ({ ...previous, [slot]: value }));
   const submit = (review: boolean) => {
-    const e: Record<string, string> = {};
-    if (!d.name.trim()) e.name = "请填写真实姓名";
-    if (d.phone && !/^1[3-9]\d{9}$/.test(d.phone)) e.phone = "请输入有效手机号";
-    if (review) {
-      if (!d.phone) e.phone = "请填写联系手机号";
-      for (const [key, label] of [
-        ["hospitalId", "所属医院"],
-        ["department", "所属科室"],
-        ["title", "职称"],
-        ["certificate", "执业证书编号"],
-      ])
-        if (!String(d[key as keyof Doctor] || "").trim())
-          e[key] = "请填写" + label;
-      if (!d.materials.some((f) => f.category === "identity"))
-        e.identity = "请上传身份证明照片";
-      if (!d.materials.some((f) => f.category === "practice" || !f.category))
-        e.practice = "请上传执业证明材料";
-    }
+    const e=doctorErrors(d,review);
     setErrors(e);
     if (!Object.keys(e).length) save(d, review);
   };
-  const field = (
-    key: "name" | "phone" | "title" | "certificate",
-    label: string,
-  ) => (
-    <Field label={label} requiredMark error={errors[key]}>
-      <Input value={d[key]} onChange={(v) => set({ ...d, [key]: v })} />
-    </Field>
-  );
+
   return (
     <>
       <Back onClick={cancel}>返回客户管理</Back>
@@ -2266,68 +2247,7 @@ function DoctorEditor({
           labelAlign="top"
           onSubmit={() => submit(true)}
         >
-          <section className="sales-doctor-section"><h3>基本资料</h3>
-          {field("name", "真实姓名")}
-          {field("phone", "联系手机号")}
-          </section><section className="sales-doctor-section"><h3>执业信息</h3>
-          <Field label="所属医院" requiredMark error={errors.hospitalId}>
-            <Select
-              value={d.hospitalId}
-              options={data.hospitals.map((h) => ({
-                value: h.id,
-                label: h.name,
-              }))}
-              onChange={(v) =>
-                set({ ...d, hospitalId: String(v), department: "" })
-              }
-            />
-          </Field>
-          <Field label="所属科室" requiredMark error={errors.department}>
-            <Select
-              value={d.department}
-              options={(
-                data.hospitals.find((h) => h.id === d.hospitalId)
-                  ?.departments || []
-              ).map((value) => ({ value, label: value }))}
-              onChange={(v) => set({ ...d, department: String(v) })}
-            />
-          </Field>
-          {field("title", "职称")}
-          {field("certificate", "执业证书编号")}
-          </section><section className="sales-doctor-section"><h3>证明材料</h3>
-          <Field label="身份证明照片" requiredMark error={errors.identity}>
-            <SalesAttachments
-              owner={data.ownerId}
-              value={d.materials}
-              category="identity"
-              images
-              onBusyChange={(value) => setUploadBusy("identity", value)}
-              onChange={(materials) => set({ ...d, materials })}
-            />
-          </Field>
-          <Field label="医师执业证明照片" error={errors.practice}>
-            <SalesAttachments
-              owner={data.ownerId}
-              value={d.materials}
-              category="practice"
-              images
-              onBusyChange={(value) => setUploadBusy("practice", value)}
-              onChange={(materials) => set({ ...d, materials })}
-            />
-          </Field>
-          <Field label="执业证明PDF">
-            <SalesAttachments owner={data.ownerId} value={d.materials} category="practice" images={false} accept="application/pdf" onBusyChange={value=>setUploadBusy("practice-pdf",value)} onChange={materials=>set({...d,materials})}/>
-          </Field>
-          <Field label="PDF及其他证明文件">
-            <SalesAttachments
-              owner={data.ownerId}
-              value={d.materials}
-              category="other"
-              onBusyChange={(value) => setUploadBusy("other", value)}
-              onChange={(materials) => set({ ...d, materials })}
-            />
-          </Field>
-          </section>
+          <DoctorFields d={d} set={set} hospitals={data.hospitals} owner={data.ownerId} errors={errors} onBusyChange={setUploadBusy}/>
           {d.reason && <p className="sales-error">{d.reason}</p>}
           <div className="sales-actions">
             <Button
@@ -2354,17 +2274,7 @@ function Back({
   children: React.ReactNode;
   onClick: () => void;
 }) {
-  return (
-    <Button
-      className="sales-back"
-      variant="text"
-      theme="default"
-      icon={<ChevronLeftIcon size={16} />}
-      onClick={onClick}
-    >
-      {children}
-    </Button>
-  );
+  return <PageBack label={String(children)} onBack={onClick}/>;
 }
 
 function Field({

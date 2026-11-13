@@ -78,7 +78,8 @@ export function salesDemoPlugin(
               submittedBy = session.user.name;
               submissionMode = "sales-assisted";
             }
-            const verified = proofService.check(invite.token, body.proof);
+            const verified = body.assisted&&!body.proof ? {phone:body.phone} : proofService.check(invite.token, body.proof);
+            if(!/^1[3-9]\d{9}$/.test(verified.phone||""))throw Error("请输入有效手机号。");
             body.phone = verified.phone;
             if (action === "public-upload") {
               const f = body.file;
@@ -178,7 +179,7 @@ export function salesDemoPlugin(
                   ),
                 ],
                 at: new Date().toISOString(),
-                phoneVerified: true,
+                phoneVerified: !!body.proof,
                 submittedBy, submissionMode,
               });
               await persist();
@@ -189,7 +190,7 @@ export function salesDemoPlugin(
               owner: invite.owner,
               name: body.name.trim(),
               phone: verified.phone,
-              phoneVerified: true,
+              phoneVerified: !!body.proof,
               submittedBy, submissionMode,
               title: String(body.title || ""),
               certificate: String(body.certificate || ""),

@@ -1,3 +1,6 @@
+import {DoctorFields} from './DoctorFields';
+import {doctorErrors} from './doctorRules.mjs';
+import type {Doctor} from './model';
 import { useEffect, useState, useRef } from "react";
 import {
   Button,
@@ -117,6 +120,8 @@ export function SalesInvitePage() {
     [proof, setProof] = useState(""),
     [phoneMessage, setPhoneMessage] = useState(""),
     [phoneError, setPhoneError] = useState(false),
+    [retryAt,setRetryAt]=useState(0),[clock,setClock]=useState(Date.now()),
+    [fieldErrors,setFieldErrors]=useState<Record<string,string>>({}),
     [hospital, setHospital] = useState(""),
     [department, setDepartment] = useState(""),
     [title, setTitle] = useState(""),
@@ -146,6 +151,7 @@ export function SalesInvitePage() {
     });
     const stored = await request(path("public-upload"), {
       proof,
+      phone,
       assisted,
       name,
       file: { name: file.name, type: file.type, category, content },
@@ -158,25 +164,28 @@ export function SalesInvitePage() {
     if (!blob) throw Error("当前页面未保留此预览文件。");
     return blob;
   };
+  useEffect(()=>{const t=setInterval(()=>setClock(Date.now()),1000);return()=>clearInterval(t)},[]);
+  const remaining=Math.max(0,Math.ceil((retryAt-clock)/1000));
+  const d:Doctor={id:'invitation',name,phone,hospitalId:hospital,department,title,certificate,materials,status:'草稿',owner:null,reason:'',source:'邀请建档'};
+  const update=(v:Doctor)=>{setName(v.name);if(!proof)setPhone(v.phone);setHospital(v.hospitalId);setDepartment(v.department);setTitle(v.title);setCertificate(v.certificate);setMaterials(v.materials)};
   const PhoneItem = Form.FormItem;
   return (
     <main className="sales-invite-page">
-      <img src="/assets/clinivol-logo-light.png" alt="科立沃" />
-      <h1>{done ? "建档资料已提交" : "医生建档"}</h1>
+      <header className="sales-invite-brand"><img src={`/assets/clinivol-logo-${document.documentElement.getAttribute("theme-mode")==="dark"?"dark":"light"}.png`} alt="科立沃"/></header>
+      <div className="sales-invite-heading"><h1>{done ? "建档资料已提交" : "医生建档"}</h1><p>负责销售：{info?.salesName || ""}</p></div>
       {done ? (
         <p>资料已提交负责销售完善，正式资质及关联关系由管理员审核。</p>
       ) : (
         <>
-          <p>负责销售：{info?.salesName || ""}</p>
+
           <Form
+            className="sales-doctor-form"
             labelAlign="top"
             onSubmit={() => {
               if (busy) return;
               setTried(true);
-              if (!proof || !name.trim() || !hospital || !department) {
-                setError("请完成手机号验证、姓名、医院及科室。");
-                return;
-              }
+              const errors=doctorErrors(d,true);setFieldErrors(errors);
+              if ((!proof&&!assisted)||Object.keys(errors).length) {setError('请检查必填资料及证明材料。');return;}
               setBusy(true);
               void request(path("public"), {
                 assisted,
@@ -194,163 +203,13 @@ export function SalesInvitePage() {
                 .finally(() => setBusy(false));
             }}
           >
-            <PhoneItem label="联系手机号" requiredMark>
-              <Input value={phone} disabled={!!proof} onChange={setPhone} />
-            </PhoneItem>
-            {!proof && (
-              <PhoneItem
-                label="短信验证码"
-                requiredMark
-                status={phoneError ? "error" : undefined}
-                tips={phoneMessage}
-              >
-                <div className="sales-actions-inline">
-                  <Input value={code} onChange={setCode} />
-                  <Button
-                    theme="default"
-                    variant="outline"
-                    onClick={() =>
-                      void request(path("public-code"), { phone })
-                        .then((r) => {
-                          setPhoneMessage(r.message);
-                          setPhoneError(false);
-                        })
-                        .catch((e) => {
-                          setPhoneMessage(e.message);
-                          setPhoneError(true);
-                        })
-                    }
-                  >
-                    获取验证码
-                  </Button>
-                  <Button
-                    theme="primary"
-                    onClick={() =>
-                      void request(path("public-verify"), { phone, code })
-                        .then((r) => {
-                          setProof(r.proof);
-                          setPhoneMessage("手机号已验证");
-                          setPhoneError(false);
-                        })
-                        .catch((e) => {
-                          setPhoneMessage(e.message);
-                          setPhoneError(true);
-                        })
-                    }
-                  >
-                    验证
-                  </Button>
-                </div>
+            {!proof&&!assisted ? <section className="sales-invite-verify">
+              <PhoneItem label="联系手机号" requiredMark><Input value={phone} onChange={setPhone}/></PhoneItem>
+              <PhoneItem label="短信验证码" requiredMark status={phoneError?'error':undefined} tips={phoneMessage}>
+                <div className="sales-invite-code"><Input value={code} onChange={setCode}/><Button theme="default" variant="outline" disabled={remaining>0} onClick={()=>void request(path('public-code'),{phone}).then(r=>{setRetryAt(Date.now()+60000);setPhoneMessage(r.message);setPhoneError(false)}).catch(e=>{setPhoneMessage(e.message);setPhoneError(true)})}>{remaining?`${remaining}s 后重试`:'获取验证码'}</Button></div>
               </PhoneItem>
-            )}
-            {proof && (
-              <p>
-                手机号已验证
-                <Button
-                  variant="text"
-                  onClick={() => {
-                    setProof("");
-                    setCode("");
-                  }}
-                >
-                  修改手机号
-                </Button>
-              </p>
-            )}
-            <PhoneItem
-              label="真实姓名"
-              requiredMark
-              status={tried && !name.trim() ? "error" : undefined}
-              tips={tried && !name.trim() ? "请填写姓名" : undefined}
-            >
-              <Input value={name} onChange={setName} />
-            </PhoneItem>
-            <PhoneItem
-              label="所属医院"
-              requiredMark
-              status={tried && !hospital ? "error" : undefined}
-              tips={tried && !hospital ? "请选择医院" : undefined}
-            >
-              <Select
-                value={hospital}
-                options={
-                  info?.hospitals.map((h) => ({
-                    value: h.id,
-                    label: h.name,
-                  })) || []
-                }
-                onChange={(v) => {
-                  setHospital(String(v));
-                  setDepartment("");
-                }}
-              />
-            </PhoneItem>
-            <PhoneItem
-              label="所属科室"
-              requiredMark
-              status={tried && !department ? "error" : undefined}
-              tips={tried && !department ? "请选择科室" : undefined}
-            >
-              <Select
-                value={department}
-                options={(
-                  info?.hospitals.find((h) => h.id === hospital)?.departments ||
-                  []
-                ).map((value) => ({ value, label: value }))}
-                onChange={(v) => setDepartment(String(v))}
-              />
-            </PhoneItem>
-            <PhoneItem label="职称">
-              <Input value={title} onChange={setTitle} />
-            </PhoneItem>
-            <PhoneItem label="执业证书编号">
-              <Input value={certificate} onChange={setCertificate} />
-            </PhoneItem>
-            {proof && (
-              <>
-                <PhoneItem label="身份证明照片">
-                  <div>
-                    <SalesAttachments
-                      owner="invitation"
-                      value={materials}
-                      images
-                      category="identity"
-                      save={upload}
-                      load={load}
-                      onChange={setMaterials}
-                      onBusyChange={(value) => setUploadBusy("identity", value)}
-                    />
-                  </div>
-                </PhoneItem>
-                <PhoneItem label="执业证明照片">
-                  <div>
-                    <SalesAttachments
-                      owner="invitation"
-                      value={materials}
-                      images
-                      category="practice"
-                      save={upload}
-                      load={load}
-                      onChange={setMaterials}
-                      onBusyChange={(value) => setUploadBusy("practice", value)}
-                    />
-                  </div>
-                </PhoneItem>
-                <PhoneItem label="PDF及其他附件">
-                  <div>
-                    <SalesAttachments
-                      owner="invitation"
-                      value={materials}
-                      category="other"
-                      save={upload}
-                      load={load}
-                      onChange={setMaterials}
-                      onBusyChange={(value) => setUploadBusy("other", value)}
-                    />
-                  </div>
-                </PhoneItem>
-              </>
-            )}
+              <Button theme="primary" onClick={()=>void request(path('public-verify'),{phone,code}).then(r=>{setProof(r.proof);setPhoneMessage('手机号已验证');setPhoneError(false)}).catch(e=>{setPhoneMessage(e.message);setPhoneError(true)})}>验证并继续</Button>
+            </section>:<DoctorFields d={d} set={update} hospitals={info?.hospitals||[]} owner="invitation" errors={fieldErrors} onBusyChange={setUploadBusy} save={upload} load={load} phoneReadonly={!!proof}/>}
             {error && (
               <p role="alert" className="sales-error">
                 {error}
@@ -359,7 +218,7 @@ export function SalesInvitePage() {
             <Button
               theme="primary"
               type="submit"
-              disabled={!info || busy}
+              disabled={!info || busy || (!proof&&!assisted)}
               block
             >
               提交建档资料

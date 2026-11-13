@@ -873,3 +873,9 @@ html[data-theme="dark"] .panel-edge-handle { background: var(--td-bg-color-conta
 .lock-panel > .brand-logo img { width:119px; height:auto; object-fit:contain; }
 .lock-panel > .lock-avatar { object-fit:cover; background:transparent; }
 .lock-panel > .lock-avatar, .lock-panel > h2, .lock-panel > p, .lock-panel > .t-tag { transform:translateY(-20px); }
+
+/* Page-level back navigation; steps/dialog actions remain independent. */
+.page-back-row {display:flex;align-items:center;min-height:32px;margin-bottom:12px;}
+.page-back.t-button {height:32px;padding:0 15px;color:var(--td-text-color-primary);font:var(--td-font-body-medium);}
+.page-back.t-button:hover {background:var(--td-bg-color-container-hover);color:var(--td-text-color-primary);}
+.page-back.t-button:focus-visible {outline:2px solid var(--td-brand-color);outline-offset:2px;}
