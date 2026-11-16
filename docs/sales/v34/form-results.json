@@ -1,0 +1,97 @@
+{
+  "checks": [
+    {
+      "name": "no-page-size",
+      "value": true
+    },
+    {
+      "name": "transient-success",
+      "value": true
+    },
+    {
+      "name": "no-card-success-copy",
+      "value": true
+    },
+    {
+      "name": "pagination-page-two",
+      "value": true
+    },
+    {
+      "name": "report-five-steps",
+      "value": true
+    },
+    {
+      "name": "future-steps-locked",
+      "value": true
+    },
+    {
+      "name": "report-prefill",
+      "value": true
+    },
+    {
+      "name": "report-has-imported-imaging",
+      "value": true
+    },
+    {
+      "name": "incomplete-submit-blocked",
+      "value": true
+    },
+    {
+      "name": "report-retained-recognition",
+      "value": true
+    },
+    {
+      "name": "report-retained-photos",
+      "value": true
+    },
+    {
+      "name": "report-retained-business-fields",
+      "value": true
+    },
+    {
+      "name": "changed-identity-blocked",
+      "value": true
+    },
+    {
+      "name": "report-fields-after-recheck",
+      "value": true
+    },
+    {
+      "name": "report-submit",
+      "value": true
+    },
+    {
+      "name": "pacs-five-steps",
+      "value": true
+    },
+    {
+      "name": "pacs-import-disabled",
+      "value": true
+    },
+    {
+      "name": "pacs-query-primary",
+      "value": true
+    },
+    {
+      "name": "pacs-button-same-row",
+      "value": true
+    },
+    {
+      "name": "pacs-one-primary",
+      "value": true
+    },
+    {
+      "name": "pacs-direct-four-step-navigation",
+      "value": true
+    },
+    {
+      "name": "pacs-final-validation",
+      "value": true
+    },
+    {
+      "name": "pacs-submit",
+      "value": true
+    }
+  ],
+  "errors": []
+}

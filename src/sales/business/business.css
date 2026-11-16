@@ -15,7 +15,12 @@
 
 .business-import-page .t-alert--info,.business-insurance .t-alert--info,.business-public .t-alert--info{background-color:var(--td-info-color-light);color:var(--td-text-color-primary)}
 .business-import-page .t-alert--info .t-alert__icon,.business-insurance .t-alert--info .t-alert__icon,.business-public .t-alert--info .t-alert__icon{color:var(--td-info-color)}
-.sales-design-stage .sales-stage-progress{display:flex;align-items:center;gap:8px;min-height:32px;margin-top:auto}.sales-stage-progress>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sales-stage-share.t-button{flex-shrink:0;white-space:nowrap;padding-inline:4px;height:32px;background:transparent}.sales-stage-share.t-button:hover{background:var(--td-bg-color-container-hover)}.sales-design-stage>p{margin-block:12px}.sales-design-stage{display:flex;flex-direction:column}.sales-stage-progress{margin-top:auto}.stage-share-content .stage-share-code{display:flex;justify-content:center;margin-block:16px}
+/* Three content rows inherit the engineer card's padding, radius and border. No fourth-row reserve. */
+.sales-design-stage .sales-stage-progress{display:flex;align-items:center;gap:var(--td-comp-margin-s);min-height:32px;margin-top:var(--td-comp-margin-m)}
+.sales-stage-progress>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sales-stage-share.t-button{flex-shrink:0;white-space:nowrap;padding-inline:4px;height:32px;background:transparent}
+.sales-stage-share.t-button:hover{background:var(--td-bg-color-container-hover)}
+.stage-share-code{display:flex;justify-content:center}
 .business-month-filter{margin-block:var(--td-comp-margin-l)}
 .business-result-thumb{border:0;padding:0;background:transparent;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
 .business-result-thumb img{width:80px;height:52px;object-fit:contain;border-radius:var(--td-radius-default)}
@@ -23,6 +28,16 @@
 .business-model-viewer canvas{display:block}
 .business-import-actions{display:flex;gap:var(--td-comp-margin-m);align-items:center;margin-block:var(--td-comp-margin-l);flex-wrap:wrap}
 
-/* Engineer stage card measured at the same 1440px viewport: 182px. Keep its 20px padding and 6px radius. */
-.sales-design-stage{min-height:182px;box-sizing:border-box}
 .business-insurance .t-table th{white-space:nowrap}
+
+.business-insurance .business-insurance-pagination{display:flex;align-items:center;gap:var(--td-comp-margin-l);padding-inline:0;flex-wrap:wrap}
+.business-insurance-pagination>span{white-space:nowrap;color:var(--td-text-color-secondary)}
+.business-insurance-pagination>.t-pagination{flex:1;min-width:0}
+.sales-order-page .sales-order-content-import{max-width:950px}
+.sales-order-steps{width:100%;max-width:calc(190px * var(--order-step-count))}
+.sales-order-step-title{border:0;padding:0;background:transparent;font:inherit;line-height:inherit;color:inherit;text-align:left;cursor:inherit}
+.sales-order-step-title:disabled{color:var(--td-text-color-disabled);cursor:not-allowed}
+.sales-order-step-title:focus-visible{outline:2px solid var(--td-brand-color-focus);outline-offset:2px;border-radius:var(--td-radius-default)}
+.order-step-locked .t-steps-item__inner{cursor:not-allowed}
+.sales-order-content-import .sales-order-steps{overflow-x:auto}
+.sales-order-content-import .sales-order-steps>.t-steps{min-width:700px}

@@ -258,8 +258,6 @@ html.sales-invite-document body,html.sales-invite-document #root {min-width:0;he
 .sales-app .sales-order-link.t-is-disabled { color: var(--td-text-color-disabled); }
 .sales-app .project-home-card .t-table__empty,
 .sales-app .sales-order-list-card .t-table__empty { min-height: 240px; padding-block: 120px; }
-.sales-app .sales-design-stage { gap: 12px; }
-.sales-app .sales-design-stage > p { margin: 0; }
 .sales-app .sales-design-stage .project-stage-actions[hidden] { display: none; }
 .sales-app .sales-order-file-table th,
 .sales-app .sales-order-file-table td { text-align: left; color: var(--td-text-color-primary); }

@@ -2381,4 +2381,4 @@ function BusinessApprovals({
   );
 }
 
-function OrderCreation(props:React.ComponentProps<typeof OrderEditor>&{mode:"manual"|"report"|"pacs"}){const [prefill,setPrefill]=useState<Order|undefined>();return props.mode==="manual"||prefill?<OrderEditor {...props} prefill={prefill}/>:<OrderImport mode={props.mode} data={props.data} complete={setPrefill} cancel={props.cancel}/>;}
+function OrderCreation(props:React.ComponentProps<typeof OrderEditor>&{mode:"manual"|"report"|"pacs"}){return props.mode==="manual"?<OrderEditor {...props}/>:<OrderImport mode={props.mode} data={props.data} save={props.save} cancel={props.cancel}/>;}

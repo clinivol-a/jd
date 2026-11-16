@@ -1,0 +1,181 @@
+{
+  "checks": [
+    {
+      "name": "three-row-card",
+      "value": true
+    },
+    {
+      "name": "completed-cards-equal",
+      "value": true
+    },
+    {
+      "name": "completed-metrics",
+      "value": [
+        {
+          "height": 144,
+          "minHeight": "auto",
+          "gap": "normal",
+          "padding": "20px",
+          "borderRadius": "6px",
+          "bottom": 21,
+          "rows": 3
+        },
+        {
+          "height": 144,
+          "minHeight": "auto",
+          "gap": "normal",
+          "padding": "20px",
+          "borderRadius": "6px",
+          "bottom": 21,
+          "rows": 3
+        }
+      ]
+    },
+    {
+      "name": "no-share-url-0",
+      "value": true
+    },
+    {
+      "name": "share-description-0",
+      "value": true
+    },
+    {
+      "name": "share-stage-0",
+      "value": true
+    },
+    {
+      "name": "copy-correct-qr-0",
+      "value": true
+    },
+    {
+      "name": "no-share-url-1",
+      "value": true
+    },
+    {
+      "name": "share-description-1",
+      "value": true
+    },
+    {
+      "name": "share-stage-1",
+      "value": true
+    },
+    {
+      "name": "copy-correct-qr-1",
+      "value": true
+    },
+    {
+      "name": "mixed-cards-equal",
+      "value": true
+    },
+    {
+      "name": "mixed-no-share",
+      "value": true
+    },
+    {
+      "name": "shared-dialog-metrics",
+      "value": true
+    },
+    {
+      "name": "dialog-measurements",
+      "value": {
+        "qrMetrics": [
+          {
+            "dialog": {
+              "x": 480,
+              "y": 210,
+              "width": 480,
+              "height": 448
+            },
+            "qr": {
+              "x": 622,
+              "y": 299,
+              "width": 196,
+              "height": 196
+            },
+            "buttons": {
+              "gap": "12px",
+              "marginTop": "12px"
+            }
+          },
+          {
+            "dialog": {
+              "x": 480,
+              "y": 210,
+              "width": 480,
+              "height": 448
+            },
+            "qr": {
+              "x": 622,
+              "y": 299,
+              "width": 196,
+              "height": 196
+            },
+            "buttons": {
+              "gap": "12px",
+              "marginTop": "12px"
+            }
+          }
+        ],
+        "inviteMetrics": {
+          "dialog": {
+            "x": 480,
+            "y": 210,
+            "width": 480,
+            "height": 470
+          },
+          "qr": {
+            "x": 622,
+            "y": 299,
+            "width": 196,
+            "height": 196
+          },
+          "buttons": {
+            "gap": "12px",
+            "marginTop": "12px"
+          }
+        }
+      }
+    },
+    {
+      "name": "share-link-authorized-viewer",
+      "value": true
+    },
+    {
+      "name": "no-source-download-controls",
+      "value": true
+    },
+    {
+      "name": "report-no-page-overflow",
+      "value": true
+    },
+    {
+      "name": "report-step-overflow-contained",
+      "value": true
+    },
+    {
+      "name": "pacs-no-page-overflow",
+      "value": true
+    },
+    {
+      "name": "pacs-step-overflow-contained",
+      "value": true
+    },
+    {
+      "name": "designer-five-cards",
+      "value": true
+    },
+    {
+      "name": "#workspace/001",
+      "value": true
+    },
+    {
+      "name": "#cad/007",
+      "value": true
+    },
+    {
+      "name": "sales-switch-restored",
+      "value": true
+    }
+  ],
+  "errors": []
+}

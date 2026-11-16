@@ -1,0 +1,25 @@
+{
+  "checks": [
+    {
+      "name": "no-page-size",
+      "value": true
+    },
+    {
+      "name": "transient-success",
+      "value": true
+    },
+    {
+      "name": "no-card-success-copy",
+      "value": true
+    },
+    {
+      "name": "pagination-page-two",
+      "value": true
+    },
+    {
+      "name": "cross-page-selection",
+      "value": true
+    }
+  ],
+  "errors": []
+}

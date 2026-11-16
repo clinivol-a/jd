@@ -1,3 +1,4 @@
+import {OrderSteps} from './OrderSteps';
 import {ImagingPreview} from './business/ImagingPreview';
 import {validIdentity} from './patientRules.mjs';
 import {PatientInsuranceFields} from './business/PatientInsuranceFields';
@@ -7,7 +8,7 @@ import {ClinicalEditor,ClinicalReadOnly,initialClinicalContent} from "./Clinical
 import {clinicalText} from "./clinicalContent.mjs";
 import {PageBack} from '../PageBack';
 import { confirmedDelivery } from "./orderRules.mjs";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -18,7 +19,6 @@ import {
   Input,
   InputNumber,
   Select,
-  Steps,
   Table,
   Tooltip,
   MessagePlugin,
@@ -97,6 +97,7 @@ export function OrderEditor({
   data,
   initial,
   prefill,
+  entry,
   doctorId,
   caseId,
   save,
@@ -105,6 +106,7 @@ export function OrderEditor({
   data: SalesData;
   initial?: Order;
   prefill?: Order;
+  entry?: {title:string;label:string;content:ReactNode;ready:boolean;unlocked:boolean;busy:boolean;onIdentityChange:(fields:Record<string,string>)=>void};
   doctorId?: string;
   caseId?: string;
   save: (
@@ -154,7 +156,19 @@ export function OrderEditor({
   const [busy, setBusy] = useState<Record<string, boolean>>({});
   const linkedCase = data.cases.find((c) => c.id === o.caseId);
   const [patientName, setPatientName] = useState(o.patientName ?? linkedCase?.patientName ?? "");
+  const hasEntry=!!entry;
+  const [showEntry,setShowEntry]=useState(hasEntry);
+  const importedFiles=useRef(new Set<string>());
+  useEffect(()=>{
+    if(!hasEntry||!prefill)return;
+    const previous=importedFiles.current;
+    setOrder(current=>({...current,...(current.hospitalId!==prefill.hospitalId?{department:"",doctorId:"",caseId:""}:{}),id:prefill.id,patientName:prefill.patientName,patientSex:prefill.patientSex,patientIdentityRef:prefill.patientIdentityRef,insuranceConsent:prefill.insuranceConsent,hospitalId:prefill.hospitalId,importSource:prefill.importSource,importReceipt:prefill.importReceipt,materials:[...current.materials.filter(f=>!previous.has(f.id)),...prefill.materials]}));
+    importedFiles.current=new Set(prefill.materials.map(f=>f.id));
+    setPatientName(prefill.patientName||'');setIdentity('');setStep(0);setShowEntry(false);
+  },[prefill,hasEntry]);
   const update = (fields: Partial<Order>) => {
+    const changed=Object.fromEntries(Object.entries(fields).filter(([key,value])=>['hospitalId','patientSex'].includes(key)&&value!==o[key as keyof Order]));
+    if(Object.keys(changed).length)entry?.onIdentityChange(Object.fromEntries(Object.entries(changed).map(([key,value])=>[key==='patientSex'?'sex':key,String(value)])));
     setOrder((prev) => ({ ...prev, ...fields }));
     setErrors((prev) =>
       Object.fromEntries(
@@ -191,6 +205,7 @@ export function OrderEditor({
   const saveOrder = async (submit: boolean) => {
     if (saving || uploading) return;
     if (submit && !validate(3)) return;
+    if(submit&&entry&&!entry.ready){setErrors(prev=>({...prev,import:'患者或检查资料已修改，请返回'+entry.label+'重新核对并应用资料。'}));return;}
     if(submit&&(!o.patientSex||(!o.patientIdentityRef&&!validIdentity(identity)))){setErrors(prev=>({...prev,insurance:'请补齐性别和有效身份证号。'}));return;}
     setSaving(true);
     try {
@@ -227,12 +242,10 @@ export function OrderEditor({
     <div className="project-page project-detail-page sales-order-page">
       <PageBack label="返回订单管理" onBack={cancel}/>
       <Card bordered={false} className="project-info-card">
-        <h2>{initial ? "编辑订单" : "新建订单"}</h2>
-        <div className="sales-order-content"><Steps current={step} layout="horizontal">
-          {["客户与患者", "服务需求", "资料上传", "确认并提交"].map((title) => (
-            <Steps.StepItem key={title} title={title} />
-          ))}
-        </Steps>
+        <h2>{entry?.title||(initial ? "编辑订单" : "新建订单")}</h2>
+        <div className={"sales-order-content"+(entry?" sales-order-content-import":"")}>
+        <OrderSteps current={entry?(showEntry?0:step+1):step} entryLabel={entry?.label} entryReady={entry?.unlocked} busy={entry?.busy||uploading||saving} onChange={index=>{if(entry){if(index===0)setShowEntry(true);else if(entry.unlocked){setShowEntry(false);setStep(index-1)}}else setStep(index)}}/>
+        {showEntry&&entry?entry.content:<>
         <Form
           className={"sales-order-form"+(step===2?" sales-order-form-upload":"")}
           labelAlign="top"
@@ -295,10 +308,10 @@ export function OrderEditor({
                   aria-label="患者姓名"
                   value={patientName}
                   placeholder="填写患者姓名"
-                  onChange={value=>{setPatientName(value);setErrors(prev=>({...prev,patientName:""}));}}
+                  onChange={value=>{setPatientName(value);if(value!==patientName)entry?.onIdentityChange({patientName:value});setErrors(prev=>({...prev,patientName:""}));}}
                 />
               </Field>
-              <PatientInsuranceFields value={o} onChange={update} identity={identity} onIdentity={setIdentity} verified={identityVerified} onVerified={setIdentityVerified}/>
+              <PatientInsuranceFields value={o} onChange={update} identity={identity} onIdentity={value=>{setIdentity(value);if(value!==identity)entry?.onIdentityChange({identityNumber:value})}} verified={identityVerified} onVerified={setIdentityVerified}/>
               {errors.insurance&&<p role="alert" className="sales-error">{errors.insurance}</p>}
             </>
           )}
@@ -453,8 +466,8 @@ export function OrderEditor({
               </p>
             ))}
           <div className="sales-actions">
-            {step > 0 && (
-              <Button variant="outline" onClick={() => setStep(step - 1)}>
+            {(step > 0 || entry) && (
+              <Button variant="outline" onClick={() => {if(step===0&&entry)setShowEntry(true);else setStep(step-1)}}>
                 上一步
               </Button>
             )}
@@ -486,7 +499,7 @@ export function OrderEditor({
               </Button>
             )}
           </div>
-        </Form></div>
+        </Form></>}</div>
       </Card>
     </div>
   );
