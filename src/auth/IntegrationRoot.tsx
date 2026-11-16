@@ -1,3 +1,5 @@
+import {PublicOrderResults} from '../sales/business/OrderResults';
+import '../sales/business/business.css';
 import {lazy,Suspense,useCallback,useEffect,useLayoutEffect,useRef,useState} from 'react'
 import {Button,Dialog,Input,Tag} from 'tdesign-react'
 import App from '../App'
@@ -20,6 +22,7 @@ export default function IntegrationRoot(){const [session,setSession]=useState<Se
  const auth={session,user:session.user,loading,error,refresh,accept:(s:Session)=>{accept(s);announce()},switchAccount:async(id:string)=>perform('switch',{accountId:id}),logout:async()=>perform('logout',{}),addAccount:()=>{void flushWorkspace().then(()=>{if(session.user)sessionStorage.setItem(`clinivol-auth-route:${session.user.id}`,location.hash);location.hash='auth/wechat'}).catch(e=>setError(e.message))},lock:async()=>{accept(await authRequest('lock',{}));announce()},unlock:async(password:string)=>{accept(await authRequest('unlock',{password}));announce()},updateProfile:async(profile:{name:string;email:string;avatar?:string})=>{accept(await authRequest('profile',profile));announce()}}
  useEffect(()=>{const stored=localStorage.getItem('clinivol-theme-preference');const dark=stored==='dark'||stored==='system'&&matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('theme-mode',dark?'dark':'light');document.documentElement.dataset.theme=dark?'dark':'light'},[])
  useLayoutEffect(()=>{document.documentElement.dataset.authScreen=String(!session.user||route.startsWith('#auth/')||route.startsWith('#scan/'));return()=>{delete document.documentElement.dataset.authScreen}},[session.user?.id,route])
+ if(import.meta.env.DEV&&location.pathname==='/order-results')return <PublicOrderResults/>
  if((import.meta.env.DEV||import.meta.env.VITE_PRESENTATION_DEMO==='1')&&location.pathname==='/sales-invite')return <SalesInvitePage/>
  if(loading)return <div className="auth-initial-loading">正在校验登录状态…</div>
  const user=session.user

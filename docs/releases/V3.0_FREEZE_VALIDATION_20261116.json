@@ -1,0 +1,49 @@
+{
+  "results": [
+    {
+      "phone": "13800000001",
+      "home": true
+    },
+    {
+      "phone": "13800000002",
+      "home": true
+    },
+    {
+      "switch": "designer",
+      "actual": "designer"
+    },
+    {
+      "switch": "sales",
+      "actual": "sales"
+    },
+    {
+      "switch": "designer",
+      "actual": "designer"
+    },
+    {
+      "switch": "sales",
+      "actual": "sales"
+    },
+    {
+      "route": "#sales/orders",
+      "visible": true
+    },
+    {
+      "route": "#sales/customers",
+      "visible": true
+    },
+    {
+      "dark": "#181818"
+    }
+  ],
+  "errors": [],
+  "sha": "1beeaa6ff126f371550780d6a9918b840e111f5e",
+  "tag": "a-v3.0-review-baseline-20261116",
+  "branch": "backup/a-v3.0-review-20261116",
+  "build": "passed",
+  "restoreBuild": "passed using locked installed dependencies; no clean install",
+  "zip": "clinivol-A-v3.0-review-baseline-20261116.zip",
+  "sourceOnly": true,
+  "browserDataExported": false,
+  "deployed": false
+}

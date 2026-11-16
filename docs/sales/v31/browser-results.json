@@ -1,0 +1,79 @@
+{
+  "checks": [
+    "three-mode-dialog",
+    "manual-four-step-preserved",
+    "report-two-images-matched",
+    "identity-change-invalidates-match",
+    "pacs-selection-matched",
+    "pacs-order-submitted-same-model",
+    "approved-sample-view-share",
+    "actual-ui-xlsx-download",
+    "dark-layout",
+    "separate-mobile-context-otp-access",
+    "designer-restored"
+  ],
+  "errors": [],
+  "audit": [
+    {
+      "type": "import-started",
+      "target": "2e7dd4b3-eb78-4d4b-98e9-4e1fb4f1fe21"
+    },
+    {
+      "type": "import-updated",
+      "target": "2e7dd4b3-eb78-4d4b-98e9-4e1fb4f1fe21"
+    },
+    {
+      "type": "import-updated",
+      "target": "2e7dd4b3-eb78-4d4b-98e9-4e1fb4f1fe21"
+    },
+    {
+      "type": "import-updated",
+      "target": "2e7dd4b3-eb78-4d4b-98e9-4e1fb4f1fe21"
+    },
+    {
+      "type": "import-updated",
+      "target": "2e7dd4b3-eb78-4d4b-98e9-4e1fb4f1fe21"
+    },
+    {
+      "type": "import-updated",
+      "target": "2e7dd4b3-eb78-4d4b-98e9-4e1fb4f1fe21"
+    },
+    {
+      "type": "import-started",
+      "target": "18e90783-86f4-42ad-830f-007406d0a32e"
+    },
+    {
+      "type": "import-updated",
+      "target": "18e90783-86f4-42ad-830f-007406d0a32e"
+    },
+    {
+      "type": "import-updated",
+      "target": "18e90783-86f4-42ad-830f-007406d0a32e"
+    },
+    {
+      "type": "import-updated",
+      "target": "18e90783-86f4-42ad-830f-007406d0a32e"
+    },
+    {
+      "type": "import-checked",
+      "target": "18e90783-86f4-42ad-830f-007406d0a32e"
+    },
+    {
+      "type": "sample-enabled",
+      "target": "V31-ACCEPT-fsoG9Obe"
+    },
+    {
+      "type": "share-created",
+      "target": "V31-ACCEPT-fsoG9Obe"
+    },
+    {
+      "type": "insurance-export",
+      "target": "V31-ACCEPT-fsoG9Obe"
+    },
+    {
+      "type": "share-viewed",
+      "target": "V31-ACCEPT-fsoG9Obe"
+    }
+  ],
+  "mobileOverflow": false
+}

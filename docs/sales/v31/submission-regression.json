@@ -1,0 +1,15 @@
+{
+  "checks": [
+    "manual-order-submit",
+    "report-order-submit",
+    {
+      "route": "#workspace/001",
+      "rendered": true
+    },
+    {
+      "route": "#cad/007",
+      "rendered": true
+    }
+  ],
+  "errors": []
+}

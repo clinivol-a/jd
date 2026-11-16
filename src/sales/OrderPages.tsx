@@ -1,3 +1,6 @@
+import {PatientInsuranceFields} from './business/PatientInsuranceFields';
+import {business} from './business/client';
+import {OrderResults} from './business/OrderResults';
 import {ClinicalEditor,ClinicalReadOnly,initialClinicalContent} from "./ClinicalEditor";
 import {clinicalText} from "./clinicalContent.mjs";
 import {PageBack} from '../PageBack';
@@ -32,7 +35,7 @@ import { SalesAttachments } from "./SalesAttachments";
 import { DesignStageIcon } from "../design-system/DesignStageIcon";
 import { ProjectStatus } from "../projects/ProjectPages";
 import { formatDate, formatAuditTime, formatDateTime } from "../dateTime";
-import { getFile, openFile } from "./files";
+import { getFile } from "./files";
 
 export function OrderIcons({ stages }: { stages: string[] }) {
   return (
@@ -108,6 +111,7 @@ export function OrderEditor({
   cancel: () => void;
 }) {
   const [o, setOrder] = useState<Order>(() => {
+    let prefill:Partial<Order>={};try{prefill=JSON.parse(sessionStorage.getItem('v31-manual:'+data.ownerId)||'{}')}catch{}
     const c = data.cases.find((x) => x.id === caseId);
     const doctor = data.doctors.find((d) => d.id === (c?.doctorId || doctorId));
     return initial
@@ -134,11 +138,14 @@ export function OrderEditor({
           materials: [],
           reason: "",
           stages: [],
+          ...prefill,
         };
   });
+  useEffect(()=>{if(!initial)sessionStorage.removeItem('v31-manual:'+data.ownerId)},[]);
   const [step, setStep] = useState(0),
     [errors, setErrors] = useState<Record<string, string>>({}),
     [saving, setSaving] = useState(false);
+  const [identity,setIdentity]=useState(''),[identityVerified,setIdentityVerified]=useState(false);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
   const linkedCase = data.cases.find((c) => c.id === o.caseId);
   const [patientName, setPatientName] = useState(o.patientName ?? linkedCase?.patientName ?? "");
@@ -180,7 +187,11 @@ export function OrderEditor({
     if (submit && !validate(3)) return;
     setSaving(true);
     try {
-      await save({...o,patientName}, submit, patientName);
+      let sensitive:Partial<Order>={};
+      if(o.insuranceConsent && (identity||!o.patientIdentityRef)){
+        try{sensitive=await business('patient',{sex:o.patientSex,identityNumber:identity,consent:o.insuranceConsent,verified:identityVerified});setOrder(prev=>({...prev,...sensitive}));setIdentity('');}catch(e){setErrors(prev=>({...prev,insurance:(e as Error).message}));return;}
+      }
+      await save({...o,...sensitive,patientName}, submit, patientName);
     } finally {
       setSaving(false);
     }
@@ -280,6 +291,8 @@ export function OrderEditor({
                   onChange={value=>{setPatientName(value);setErrors(prev=>({...prev,patientName:""}));}}
                 />
               </Field>
+              <PatientInsuranceFields value={o} onChange={update} identity={identity} onIdentity={setIdentity} verified={identityVerified} onVerified={setIdentityVerified}/>
+              {errors.insurance&&<p role="alert" className="sales-error">{errors.insurance}</p>}
             </>
           )}
           {step === 1 && (
@@ -585,7 +598,7 @@ export function OrderDetail({
                 ? "未开始"
                 : stage?.status || "未开始";
             const artifact = order.materials.find(
-              (f) => f.id === stage?.artifactId && f.status === "success",
+              (f) => stage?.status === "已完成" && f.id === stage?.artifactId && f.status === "success" && (f.type.startsWith("image/") || f.type === "application/pdf"),
             );
             return (
               <section className="project-stage sales-design-stage" key={name}>
@@ -624,9 +637,7 @@ export function OrderDetail({
                     <Button
                       variant="outline"
                       onClick={() =>
-                        void openFile(data.ownerId, artifact).catch((e) =>
-                          MessagePlugin.error(e.message),
-                        )
+                        void showFile(artifact)
                       }
                     >
                       查看成果
@@ -647,7 +658,7 @@ export function OrderDetail({
           tableLayout="fixed"
           empty="暂无已上传附件"
           columns={[
-            { colKey: "name", title: "文件名", ellipsis: true, width: 220, cell: ({row}) => <Button className="sales-order-link sales-order-file-name" variant="text" theme="primary" onClick={()=> { if(row.type==="application/pdf" || row.type.startsWith("image/")) void showFile(row); else void openFile(data.ownerId,row).catch(e=>MessagePlugin.error(e.message)); }}>{row.name}</Button> },
+            { colKey: "name", title: "文件名", ellipsis: true, width: 220, cell: ({row}) => <Button className="sales-order-link sales-order-file-name" variant="text" theme="primary" onClick={()=> { if(row.type==="application/pdf" || row.type.startsWith("image/")) void showFile(row); else void MessagePlugin.info("此类型仅可在获授权的专业影像视窗查看。"); }}>{row.name}</Button> },
             {
               colKey: "category",
               title: "类别",
@@ -705,23 +716,14 @@ export function OrderDetail({
                       预览
                     </Button>
                   )}
-                  <Button
-                    className="sales-order-link" variant="text"
-                    theme="primary"
-                    onClick={() =>
-                      void openFile(data.ownerId, row).catch((e) =>
-                        MessagePlugin.error(e.message),
-                      )
-                    }
-                  >
-                    下载
-                  </Button>
+
                 </div>
               ),
             },
           ]}
         />
       </Card>
+      <OrderResults orderId={order.id}/>
       <Card bordered={false} className="project-flow-card">
         <h2>操作记录</h2>
         <div className="timeline">
@@ -770,7 +772,7 @@ export function OrderDetail({
           ) : (
             <iframe
               title="订单PDF附件"
-              src={preview.url}
+              src={preview.url+"#toolbar=0&navpanes=0"}
               className="sales-order-pdf"
             />
           ))}

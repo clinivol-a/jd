@@ -57,6 +57,12 @@ export type Case = {
 };
 export type Order = {
   patientName?: string;
+  patientSex?: string;
+  patientIdentityRef?: string;
+  insuranceConsent?: boolean;
+  insuranceStandard?: {id:string;name:string;source:"configured"};
+  importReceipt?: string;
+  importSource?: {mode:string;importId:string;adapter:string;original:Record<string,unknown>;changes:unknown[];matched:boolean;actor:string};
   clinicalContent?: import("./clinicalContent.mjs").ClinicalContent;
   id: string;
   name: string;

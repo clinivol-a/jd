@@ -1,3 +1,8 @@
+import {business as businessRequest} from './business/client';
+import {OrderEntryDialog} from './business/OrderEntryDialog';
+import {OrderImport} from './business/OrderImport';
+import {InsuranceSummary} from './business/InsuranceSummary';
+import './business/business.css';
 import {DoctorFields} from './DoctorFields';
 import {doctorErrors} from './doctorRules.mjs';
 import {PageBack} from '../PageBack';
@@ -222,6 +227,7 @@ export default function SalesWorkspace() {
   const auth = useAuth(),
     account = auth.user!,
     storage = useWorkspaceStorage();
+  const [entryOpen,setEntryOpen]=useState(false);
   const [inviteCodes, setInviteCodes] = useState<
     { phone: string; code: string; expiresAt: string }[]
   >([]);
@@ -574,6 +580,8 @@ export default function SalesWorkspace() {
         ? "customers"
         : section === "order" ||
             section === "order-new" ||
+            section === "order-import" ||
+            section === "insurance" ||
             section === "case" ||
             section === "history"
           ? "orders"
@@ -1347,9 +1355,9 @@ export default function SalesWorkspace() {
         >
           <div className="project-page-heading">
             <h1>订单管理</h1>
-            <Button theme="primary" onClick={() => go("order-new")}>
+            <div className="sales-actions-inline"><Button variant="outline" onClick={()=>go("insurance")}>医保填报汇总</Button><Button theme="primary" onClick={() => setEntryOpen(true)}>
               新建订单
-            </Button>
+            </Button></div>
           </div>
           {tools}
           <Grid
@@ -1365,10 +1373,12 @@ export default function SalesWorkspace() {
         </Card>
       </div>
     );
-  else if (section === "order-new")
+  else if (section === "insurance") content=<InsuranceSummary data={data} cancel={()=>go("orders")}/>;
+  else if (section === "order-new" || section === "order-import")
     content = (
-      <OrderEditor
-        key={detail || "new"}
+      <OrderCreation
+        mode={section==="order-import" ? (detail==="pacs"?"pacs":"report") : "manual"}
+        key={section+detail || "new"}
         data={data}
         initial={data.orders.find(
           (o) =>
@@ -1382,8 +1392,9 @@ export default function SalesWorkspace() {
         caseId={caseRoute}
         save={async (o, submit, patientName) => {
           try {
+            if(o.insuranceConsent)await businessRequest('validate-patient',{order:o});
             if (submit) {
-              const response = await fetch("/api/sales-demo/order-validate", {
+              const response = await fetch(o.importSource ? "/api/business-v31/validate-order" : "/api/sales-demo/order-validate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -1871,6 +1882,7 @@ export default function SalesWorkspace() {
       <Dialog visible={!!deleteDoctorId} header="删除医生档案草稿？" confirmBtn={{content:"删除",theme:"danger"}} cancelBtn={{content:"取消",theme:"default",variant:"outline"}} onClose={()=>setDeleteDoctorId("")} onConfirm={()=>{if(commit({type:"doctor-delete",target:deleteDoctorId}))setDeleteDoctorId("");}}>删除后，该草稿将无法恢复，请确认是否继续。</Dialog>
       <Dialog visible={!!deleteOrderId} header="删除订单草稿？" confirmBtn={{content:"删除",theme:"danger"}} cancelBtn={{content:"取消",theme:"default",variant:"outline"}} onClose={()=>setDeleteOrderId("")} onConfirm={()=>{if(commit({type:"order-delete",target:deleteOrderId})){setDeleteOrderId("");}}}>删除后，该订单草稿将无法恢复，请确认是否继续。</Dialog>
       {import.meta.env.DEV && <Dialog visible={scenarioConfirm} header="载入销售订单演示场景？" onClose={()=>setScenarioConfirm(false)} onConfirm={()=>{try {const next=addOrderScenario(data);storage.setItem("sales-v1",JSON.stringify(next));setData(next);setScenarioConfirm(false);setTestOpen(false);resetOrders();go("home");void MessagePlugin.success("演示场景已载入，原有订单和病例保留");}catch(e){void MessagePlugin.error((e as Error).message);}}}>增加具有完整状态记录的合成订单及病例。保留现有医生、订单、病例、文件及账号数据，不重复覆盖已载入场景。</Dialog>}
+      <OrderEntryDialog visible={entryOpen} onClose={()=>setEntryOpen(false)} onChoose={mode=>{setEntryOpen(false);go(mode==="manual"?"order-new":"order-import/"+mode)}}/>
       <SalesInviteDialog
         visible={modal === "专属码"}
         onClose={() => setModal("")}
@@ -2368,3 +2380,5 @@ function BusinessApprovals({
     </section>
   );
 }
+
+function OrderCreation(props:React.ComponentProps<typeof OrderEditor>&{mode:"manual"|"report"|"pacs"}){return props.mode==="manual"?<OrderEditor {...props}/>:<OrderImport mode={props.mode} data={props.data} save={props.save} cancel={props.cancel}/>;}
