@@ -1,0 +1,27 @@
+{
+  "checks": [
+    {
+      "name": "designer-card",
+      "rect": {
+        "x": 272,
+        "y": 665,
+        "width": 268,
+        "height": 182
+      }
+    },
+    {
+      "name": "sales-card",
+      "rect": {
+        "x": 272,
+        "y": 588.5,
+        "width": 268,
+        "height": 182
+      }
+    },
+    {
+      "name": "sales-switch-restored",
+      "value": true
+    }
+  ],
+  "errors": []
+}

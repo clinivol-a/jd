@@ -96,6 +96,7 @@ function Field({
 export function OrderEditor({
   data,
   initial,
+  prefill,
   doctorId,
   caseId,
   save,
@@ -103,6 +104,7 @@ export function OrderEditor({
 }: {
   data: SalesData;
   initial?: Order;
+  prefill?: Order;
   doctorId?: string;
   caseId?: string;
   save: (
@@ -113,11 +115,12 @@ export function OrderEditor({
   cancel: () => void;
 }) {
   const [o, setOrder] = useState<Order>(() => {
-    let prefill:Partial<Order>={};try{prefill=JSON.parse(sessionStorage.getItem('v31-manual:'+data.ownerId)||'{}')}catch{}
+    let manualPrefill:Partial<Order>={};try{manualPrefill=JSON.parse(sessionStorage.getItem('v31-manual:'+data.ownerId)||'{}')}catch{}
     const c = data.cases.find((x) => x.id === caseId);
     const doctor = data.doctors.find((d) => d.id === (c?.doctorId || doctorId));
-    return initial
-      ? {...structuredClone(initial),clinicalContent:initial.clinicalContent||initialClinicalContent(initial.clinicalRequirements||initial.requirements)}
+    const source=initial||prefill;
+    return source
+      ? {...structuredClone(source),clinicalContent:source.clinicalContent||initialClinicalContent(source.clinicalRequirements||source.requirements)}
       : {
           id: "SO-" + id().slice(0, 8),
           name: "",
@@ -140,7 +143,7 @@ export function OrderEditor({
           materials: [],
           reason: "",
           stages: [],
-          ...prefill,
+          ...manualPrefill,
         };
   });
   useEffect(()=>{if(!initial)sessionStorage.removeItem('v31-manual:'+data.ownerId)},[]);
@@ -691,7 +694,7 @@ export function OrderDetail({
                   />
                 </div>
                 <p>负责人：{stage?.owner || (state==="进行中"?"待核实":"待分配")}</p>
-                <div className="sales-stage-progress"><Tooltip content={stageProgress(state,index)}><span>{stageProgress(state,index)}</span></Tooltip><StageShare orderId={order.id} stage={name} completed={state==="已完成"}/></div>
+                <div className="sales-stage-progress"><Tooltip content={stageProgress(state,index)}><span>{stageProgress(state,index)}</span></Tooltip><StageShare orderId={order.id} stage={name} completed={state==="已完成"} data={data}/></div>
               </section>
             );
           })}
@@ -756,4 +759,4 @@ export function OrderDetail({
   );
 }
 
-export function stageProgress(state:string,index:number){return state==="已完成"?"设计成果已审核通过":state==="待审核"?"设计成果已提交审核":state==="审核退回"?"审核未通过，待修改":state==="进行中"?"专业任务正在处理中":index?"等待前置阶段完成":"等待任务开始"}
+export function stageProgress(state:string,index:number){return state==="已完成"?"设计成果已审核通过":state==="待审核"?"设计成果已提交审核":state==="审核退回"?"审核意见已反馈，待修改":state==="进行中"?"专业任务正在处理中":index?"等待前置阶段完成":"等待任务开始"}

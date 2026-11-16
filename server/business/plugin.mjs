@@ -1,3 +1,5 @@
+import {previewModel} from './previewModel.mjs';
+import {resultScenarios} from './resultCatalog.mjs';
 import { createServer, request as httpRequest } from 'node:http';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { randomBytes } from 'node:crypto';
@@ -17,7 +19,7 @@ export function businessDesignPlugin({ authOrigin = 'http://127.0.0.1:5211', get
                 res.statusCode = 404;
                 res.end();
                 return;
-            } if (path.startsWith('/api/') && !['/api/business-v31/public-info', '/api/business-v31/public-code', '/api/business-v31/public-verify', '/api/business-v31/public-image'].includes(path) || path.startsWith('/assets/cad/') || /\.(stl|obj|step|env|json)$/i.test(path)) {
+            } if (path.startsWith('/api/') && !['/api/business-v31/public-info', '/api/business-v31/public-code', '/api/business-v31/public-verify', '/api/business-v31/public-image','/api/business-v31/public-model'].includes(path) || path.startsWith('/assets/cad/') || /\.(stl|obj|step|env|json)$/i.test(path)) {
                 res.statusCode = 403;
                 res.end('Access denied');
                 return;
@@ -37,7 +39,8 @@ export function businessDesignPlugin({ authOrigin = 'http://127.0.0.1:5211', get
                     state = new BusinessService({ key }).unseal(await readFile(new URL('records.enc', dir), 'utf8'));
                 }
                 catch { }
-                service = new BusinessService({ key, state, image: await readFile(new URL('./fixtures/approved-static-preview.png', import.meta.url)), persist: async (value) => { await writeFile(new URL('records.enc', dir), service.seal(value), { mode: 0o600 }); } });
+                const resultImages=new Map();for(const [id,spec] of Object.entries(resultScenarios))for(let i=1;i<=spec.stages.length;i++){try{resultImages.set(`${id}-${i}`,await readFile(new URL(`./fixtures/results/${id}-${i}.png`,import.meta.url)))}catch{}}
+                service = new BusinessService({ key,state,resultModel:previewModel,resultImage:key=>resultImages.get(key), image: await readFile(new URL('./fixtures/approved-static-preview.png', import.meta.url)), persist: async (value) => { await writeFile(new URL('records.enc', dir), service.seal(value), { mode: 0o600 }); } });
             }
             vite.middlewares.use(async (req, res, next) => {
                 if (!req.url?.startsWith('/api/business-v31/'))
@@ -70,6 +73,7 @@ export function businessDesignPlugin({ authOrigin = 'http://127.0.0.1:5211', get
                         return send(200, await service.code(token, body.phone));
                     if (a === 'public-verify')
                         return send(200, await service.verify(token, body.phone, body.code));
+                    if(a==='public-model')return send(200,service.publicModel(token,req.headers['x-result-proof']));
                     if (a === 'public-image')
                         return binary(service.publicImage(token, req.headers['x-result-proof']), 'image/png');
                     const session = getSession ? await getSession(req) : await (await fetch(authOrigin + '/api/auth/session', { headers: { cookie: req.headers.cookie || '' } })).json();
@@ -81,7 +85,7 @@ export function businessDesignPlugin({ authOrigin = 'http://127.0.0.1:5211', get
                     const localLi = session.capabilities?.mode === 'local' && session.capabilities?.demoUnlock && user.phone === '138****0002' && user.name === '李明';
                     if (localLi) {
                         user.permissions = [...(user.permissions || []), 'insurance.export'];
-                        user.phone = '13800000002';
+                        user.phone = '13800000002';user.demoBusiness=true;
                     }
                     if (a === 'capabilities')
                         return send(200, { adapter: 'isolated-demo', insuranceExport: user.permissions?.includes('insurance.export'), samples: service.list(user) });
@@ -118,7 +122,7 @@ export function businessDesignPlugin({ authOrigin = 'http://127.0.0.1:5211', get
                         const o = service.order(user, u.searchParams.get('orderId'));
                         if (!o.published)
                             throw Error('成果未发布。');
-                        return binary(service.image, 'image/png');
+                        const a=service.artifact(o,u.searchParams.get('resultId'));if(!a||!service.artifacts(user,o.id).includes(a))throw Error('成果未获发布许可。');const bytes=service.imageFor(o,a);if(!bytes)throw Error('成果图片暂不可用。');return binary(bytes, 'image/png');
                     }
                     if (a === 'share') {
                         const origin = await ensureLAN() || 'http://' + req.headers.host;
@@ -127,7 +131,7 @@ export function businessDesignPlugin({ authOrigin = 'http://127.0.0.1:5211', get
                     if (a === 'revoke')
                         return send(200, await service.revoke(user, body.token));
                     if (a === 'projection')
-                        return send(200, service.projection(user, body.orders));
+                        return send(200, await service.projection(user, body.orders));
                     if (a === 'export-list')
                         return send(200, { orders: service.exportList(user, u.searchParams.get('month')) });
                     if (a === 'export-code')

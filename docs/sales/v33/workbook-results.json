@@ -1,0 +1,14 @@
+{
+  "reader": "openpyxl",
+  "zipIntegrity": true,
+  "xmlValid": true,
+  "images": 2,
+  "distinctImages": true,
+  "identityText": true,
+  "typedCompletionDate": true,
+  "orderIds": [
+    "SO-V28-1-05",
+    "SO-2026-0006"
+  ],
+  "sourceFilesIncluded": false
+}

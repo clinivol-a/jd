@@ -1,0 +1,122 @@
+{
+  "checks": [
+    {
+      "name": "report-standard-prefill",
+      "value": [
+        {
+          "placeholder": "选择医院",
+          "value": "江淮协同医院"
+        },
+        {
+          "placeholder": "选择科室",
+          "value": ""
+        },
+        {
+          "placeholder": "选择医生",
+          "value": ""
+        },
+        {
+          "placeholder": "填写患者姓名",
+          "value": "沈嘉宁"
+        },
+        {
+          "placeholder": "请选择",
+          "value": "女"
+        },
+        {
+          "placeholder": "已保存，修改时重新填写",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "name": "报告识别关联订单-attachment-count",
+      "value": 0
+    },
+    {
+      "name": "报告识别关联订单-submitted",
+      "value": true
+    },
+    {
+      "name": "pacs-standard-prefill",
+      "value": [
+        {
+          "placeholder": "选择医院",
+          "value": "江淮协同医院"
+        },
+        {
+          "placeholder": "选择科室",
+          "value": ""
+        },
+        {
+          "placeholder": "选择医生",
+          "value": ""
+        },
+        {
+          "placeholder": "填写患者姓名",
+          "value": "沈嘉宁"
+        },
+        {
+          "placeholder": "请选择",
+          "value": "女"
+        },
+        {
+          "placeholder": "已保存，修改时重新填写",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "name": "PACS关联订单-attachment-count",
+      "value": 0
+    },
+    {
+      "name": "PACS关联订单-submitted",
+      "value": true
+    },
+    {
+      "name": "saved-import-records",
+      "value": [
+        {
+          "name": "报告识别关联订单",
+          "status": "待审核",
+          "materials": 3,
+          "source": "report",
+          "exam": "LOCAL-CT-20261116-01",
+          "hasPatientRef": true
+        },
+        {
+          "name": "PACS关联订单",
+          "status": "待审核",
+          "materials": 1,
+          "source": "pacs",
+          "exam": "LOCAL-CT-20261116-01",
+          "hasPatientRef": true
+        }
+      ]
+    },
+    {
+      "name": "designer-card",
+      "rect": {
+        "x": 272,
+        "y": 665,
+        "width": 268,
+        "height": 182
+      }
+    },
+    {
+      "name": "sales-card",
+      "rect": {
+        "x": 272,
+        "y": 588.5,
+        "width": 268,
+        "height": 182
+      }
+    },
+    {
+      "name": "sales-switch-restored",
+      "value": true
+    }
+  ],
+  "errors": []
+}

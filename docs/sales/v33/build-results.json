@@ -1,0 +1,15 @@
+{
+  "command": "pnpm run build",
+  "typescript": "passed",
+  "vite": "passed",
+  "warning": "Existing chunks larger than 500 kB; no bundle restructuring in this scoped task",
+  "tests": {
+    "total": 109,
+    "passed": 109,
+    "failed": 0
+  },
+  "mechanicalUIDetector": [],
+  "localPreview": "http://127.0.0.1:5210/",
+  "httpStatus": 200,
+  "deployed": false
+}

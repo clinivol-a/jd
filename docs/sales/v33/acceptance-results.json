@@ -1,0 +1,259 @@
+{
+  "checks": [
+    {
+      "name": "insurance-columns",
+      "value": [
+        "",
+        "订单编号",
+        "医院",
+        "患者姓名",
+        "性别",
+        "身份证号",
+        "手术项目名称",
+        "审核设计成果",
+        "完成时间"
+      ]
+    },
+    {
+      "name": "ui-export-two-orders",
+      "value": true
+    },
+    {
+      "name": "month-filter-resets-selection",
+      "value": true
+    },
+    {
+      "name": "stage-share-count",
+      "value": 2
+    },
+    {
+      "name": "share-model-stage",
+      "value": "CAD设计"
+    },
+    {
+      "name": "clipboard",
+      "value": [
+        [
+          "image/png"
+        ]
+      ]
+    },
+    {
+      "name": "readonly-rotation",
+      "value": true
+    },
+    {
+      "name": "report-standard-prefill",
+      "value": [
+        {
+          "placeholder": "选择医院",
+          "value": "江淮协同医院"
+        },
+        {
+          "placeholder": "选择科室",
+          "value": ""
+        },
+        {
+          "placeholder": "选择医生",
+          "value": ""
+        },
+        {
+          "placeholder": "填写患者姓名",
+          "value": "沈嘉宁"
+        },
+        {
+          "placeholder": "请选择",
+          "value": "女"
+        },
+        {
+          "placeholder": "已保存，修改时重新填写",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "name": "报告识别关联订单-submitted",
+      "value": true
+    },
+    {
+      "name": "pacs-standard-prefill",
+      "value": [
+        {
+          "placeholder": "选择医院",
+          "value": "江淮协同医院"
+        },
+        {
+          "placeholder": "选择科室",
+          "value": ""
+        },
+        {
+          "placeholder": "选择医生",
+          "value": ""
+        },
+        {
+          "placeholder": "填写患者姓名",
+          "value": "沈嘉宁"
+        },
+        {
+          "placeholder": "请选择",
+          "value": "女"
+        },
+        {
+          "placeholder": "已保存，修改时重新填写",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "name": "PACS关联订单-submitted",
+      "value": true
+    },
+    {
+      "name": "手动录入订单-submitted",
+      "value": true
+    },
+    {
+      "name": "designer-home",
+      "value": true
+    },
+    {
+      "name": "designer-stage-rect",
+      "value": {
+        "x": 272,
+        "y": 665,
+        "width": 268,
+        "height": 182
+      }
+    },
+    {
+      "name": "#workspace/001",
+      "value": true
+    },
+    {
+      "name": "#cad/007",
+      "value": true
+    },
+    {
+      "name": "report-standard-prefill",
+      "value": [
+        {
+          "placeholder": "选择医院",
+          "value": "江淮协同医院"
+        },
+        {
+          "placeholder": "选择科室",
+          "value": ""
+        },
+        {
+          "placeholder": "选择医生",
+          "value": ""
+        },
+        {
+          "placeholder": "填写患者姓名",
+          "value": "沈嘉宁"
+        },
+        {
+          "placeholder": "请选择",
+          "value": "女"
+        },
+        {
+          "placeholder": "已保存，修改时重新填写",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "name": "报告识别关联订单-attachment-count",
+      "value": 0
+    },
+    {
+      "name": "报告识别关联订单-submitted",
+      "value": true
+    },
+    {
+      "name": "pacs-standard-prefill",
+      "value": [
+        {
+          "placeholder": "选择医院",
+          "value": "江淮协同医院"
+        },
+        {
+          "placeholder": "选择科室",
+          "value": ""
+        },
+        {
+          "placeholder": "选择医生",
+          "value": ""
+        },
+        {
+          "placeholder": "填写患者姓名",
+          "value": "沈嘉宁"
+        },
+        {
+          "placeholder": "请选择",
+          "value": "女"
+        },
+        {
+          "placeholder": "已保存，修改时重新填写",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "name": "PACS关联订单-attachment-count",
+      "value": 0
+    },
+    {
+      "name": "PACS关联订单-submitted",
+      "value": true
+    },
+    {
+      "name": "saved-import-records",
+      "value": [
+        {
+          "name": "报告识别关联订单",
+          "status": "待审核",
+          "materials": 3,
+          "source": "report",
+          "exam": "LOCAL-CT-20261116-01",
+          "hasPatientRef": true
+        },
+        {
+          "name": "PACS关联订单",
+          "status": "待审核",
+          "materials": 1,
+          "source": "pacs",
+          "exam": "LOCAL-CT-20261116-01",
+          "hasPatientRef": true
+        }
+      ]
+    },
+    {
+      "name": "designer-card",
+      "rect": {
+        "x": 272,
+        "y": 665,
+        "width": 268,
+        "height": 182
+      }
+    },
+    {
+      "name": "sales-card",
+      "rect": {
+        "x": 272,
+        "y": 588.5,
+        "width": 268,
+        "height": 182
+      }
+    },
+    {
+      "name": "sales-switch-restored",
+      "value": true
+    }
+  ],
+  "errors": [],
+  "notes": [
+    "附件数量以保存后的订单数据为准；原UI即时文案计数发生在步骤切换前，不作为附件丢失判据。",
+    "账号切回销售端须等待会话恢复后再导航，最终复核通过。"
+  ]
+}

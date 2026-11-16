@@ -1,0 +1,9 @@
+{
+  "checks": [
+    {
+      "name": "single-line-headers",
+      "value": true
+    }
+  ],
+  "errors": []
+}
