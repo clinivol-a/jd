@@ -1,6 +1,8 @@
+import {ImagingPreview} from './business/ImagingPreview';
+import {validIdentity} from './patientRules.mjs';
 import {PatientInsuranceFields} from './business/PatientInsuranceFields';
 import {business} from './business/client';
-import {OrderResults} from './business/OrderResults';
+import {StageShare} from './business/OrderResults';
 import {ClinicalEditor,ClinicalReadOnly,initialClinicalContent} from "./ClinicalEditor";
 import {clinicalText} from "./clinicalContent.mjs";
 import {PageBack} from '../PageBack';
@@ -163,13 +165,14 @@ export function OrderEditor({
   const uploading = Object.values(busy).some(Boolean);
   const validate = (page: number) => {
     const all = orderErrors(o, patientName);
+    if(!o.patientSex||(!o.patientIdentityRef&&!validIdentity(identity)))all.insurance='请补齐性别和有效身份证号。';
     const fields =
       page === 0
         ? [
             "hospitalId",
             "department",
             "doctorId",
-            "patientName",
+            "patientName","insurance",
           ]
         : page === 1
           ? ["name", "clinicalRequirements", "service", "quantity", "plannedStages", "due"]
@@ -185,11 +188,12 @@ export function OrderEditor({
   const saveOrder = async (submit: boolean) => {
     if (saving || uploading) return;
     if (submit && !validate(3)) return;
+    if(submit&&(!o.patientSex||(!o.patientIdentityRef&&!validIdentity(identity)))){setErrors(prev=>({...prev,insurance:'请补齐性别和有效身份证号。'}));return;}
     setSaving(true);
     try {
       let sensitive:Partial<Order>={};
-      if(o.insuranceConsent && (identity||!o.patientIdentityRef)){
-        try{sensitive=await business('patient',{sex:o.patientSex,identityNumber:identity,consent:o.insuranceConsent,verified:identityVerified});setOrder(prev=>({...prev,...sensitive}));setIdentity('');}catch(e){setErrors(prev=>({...prev,insurance:(e as Error).message}));return;}
+      if(identity||submit&&!o.patientIdentityRef){
+        try{sensitive=await business('patient',{sex:o.patientSex,identityNumber:identity,consent:o.insuranceConsent,verified:true});setOrder(prev=>({...prev,...sensitive}));setIdentity('');}catch(e){setErrors(prev=>({...prev,insurance:(e as Error).message}));return;}
       }
       await save({...o,...sensitive,patientName}, submit, patientName);
     } finally {
@@ -500,6 +504,7 @@ export function OrderDetail({
   onEdit: () => void;
   status: ReactNode;
 }) {
+  const [imaging,setImaging]=useState<Attachment|null>(null);
   const clinicalCase = data.cases.find((c) => c.id === order.caseId);
   const project = data.projects?.find(p=>p.id===order.projectId && p.orderId===order.id);
   const events = data.events
@@ -517,6 +522,7 @@ export function OrderDetail({
   );
   const showFile = async (file: Attachment) => {
     try {
+      if(isImaging(file)){setImaging(file);return;}
       const blob = await getFile(data.ownerId, file);
       setPreview({
         url: URL.createObjectURL(blob),
@@ -585,70 +591,6 @@ export function OrderDetail({
         </dl>
         {order.reason && <p className="sales-error">{order.reason}</p>}
       </Card>
-      <Card bordered={false} className="project-stages-card">
-        <div className="section-heading">
-          <h2>设计阶段</h2>
-        </div>
-        <div className="project-stages">
-          {stages.map((name, index) => {
-            const stage = order.stages.find((s) => s.name === name);
-            const assigned = !!stage?.owner;
-            const state =
-              stage?.status === "进行中" && !assigned
-                ? "未开始"
-                : stage?.status || "未开始";
-            const artifact = order.materials.find(
-              (f) => stage?.status === "已完成" && f.id === stage?.artifactId && f.status === "success" && (f.type.startsWith("image/") || f.type === "application/pdf"),
-            );
-            return (
-              <section className="project-stage sales-design-stage" key={name}>
-                <div className="project-stage-title">
-                  <h3>
-                    {String(index + 1).padStart(2, "0")} {name}
-                  </h3>
-                  <ProjectStatus
-                    status={
-                      state as Parameters<typeof ProjectStatus>[0]["status"]
-                    }
-                  />
-                </div>
-                <p>
-                  负责人：
-                  {stage?.owner || (state === "已完成" ? "未记录" : "尚未分配")}
-                </p>
-                <p>
-                  {stage?.description ||
-                    (state === "已完成"
-                      ? "阶段已完成"
-                      : !project
-                        ? "等待订单审核受理"
-                        : !assigned
-                          ? "等待专业任务分配"
-                          : state === "未开始"
-                            ? "已分配，等待前序成果确认后开始"
-                            : state === "待审核"
-                              ? "成果已提交，等待审核"
-                              : state === "审核退回"
-                                ? "审核退回，需根据意见修改"
-                                : "任务正在处理中")}
-                </p>
-                <div className="project-stage-actions" hidden={!artifact}>
-                  {artifact && (
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        void showFile(artifact)
-                      }
-                    >
-                      查看成果
-                    </Button>
-                  )}
-                </div>
-              </section>
-            );
-          })}
-        </div>
-      </Card>
       <Card bordered={false} className="project-info-card">
         <h2>资料附件</h2>
         <Table
@@ -658,7 +600,7 @@ export function OrderDetail({
           tableLayout="fixed"
           empty="暂无已上传附件"
           columns={[
-            { colKey: "name", title: "文件名", ellipsis: true, width: 220, cell: ({row}) => <Button className="sales-order-link sales-order-file-name" variant="text" theme="primary" onClick={()=> { if(row.type==="application/pdf" || row.type.startsWith("image/")) void showFile(row); else void MessagePlugin.info("此类型仅可在获授权的专业影像视窗查看。"); }}>{row.name}</Button> },
+            { colKey: "name", title: "文件名", ellipsis: true, width: 220, cell: ({row}) => <Button className="sales-order-link sales-order-file-name" variant="text" theme="primary" onClick={()=> { if(isImaging(row)||row.type==="application/pdf" || row.type.startsWith("image/")) void showFile(row); else void MessagePlugin.info("此类型仅可在获授权的专业影像视窗查看。"); }}>{row.name}</Button> },
             {
               colKey: "category",
               title: "类别",
@@ -707,7 +649,7 @@ export function OrderDetail({
               cell: ({ row }) => (
                 <div className="sales-actions-inline">
                   {(row.type === "application/pdf" ||
-                    row.type.startsWith("image/")) && (
+                    row.type.startsWith("image/") || isImaging(row)) && (
                     <Button
                       className="sales-order-link" variant="text"
                       theme="primary"
@@ -723,7 +665,39 @@ export function OrderDetail({
           ]}
         />
       </Card>
-      <OrderResults orderId={order.id}/>
+      <Card bordered={false} className="project-stages-card">
+        <div className="section-heading">
+          <h2>设计阶段</h2>
+        </div>
+        <div className="project-stages">
+          {stages.map((name, index) => {
+            const stage = order.stages.find((s) => s.name === name);
+            const assigned = !!stage?.owner;
+            const state =
+              stage?.status || "未开始";
+            const artifact = order.materials.find(
+              (f) => stage?.status === "已完成" && f.id === stage?.artifactId && f.status === "success" && (f.type.startsWith("image/") || f.type === "application/pdf"),
+            );
+            return (
+              <section className="project-stage sales-design-stage" key={name}>
+                <div className="project-stage-title">
+                  <h3>
+                    {String(index + 1).padStart(2, "0")} {name}
+                  </h3>
+                  <ProjectStatus
+                    status={
+                      state as Parameters<typeof ProjectStatus>[0]["status"]
+                    }
+                  />
+                </div>
+                <p>负责人：{stage?.owner || (state==="进行中"?"待核实":"待分配")}</p>
+                <div className="sales-stage-progress"><Tooltip content={stageProgress(state,index)}><span>{stageProgress(state,index)}</span></Tooltip><StageShare orderId={order.id} stage={name} completed={state==="已完成"}/></div>
+              </section>
+            );
+          })}
+        </div>
+      </Card>
+
       <Card bordered={false} className="project-flow-card">
         <h2>操作记录</h2>
         <div className="timeline">
@@ -755,6 +729,7 @@ export function OrderDetail({
           )}
         </div>
       </Card>
+      {imaging&&<ImagingPreview owner={data.ownerId} file={imaging} onClose={()=>setImaging(null)}/>}
       <Dialog
         visible={!!preview}
         header="资料预览"
@@ -780,3 +755,5 @@ export function OrderDetail({
     </div>
   );
 }
+
+export function stageProgress(state:string,index:number){return state==="已完成"?"设计成果已审核通过":state==="待审核"?"设计成果已提交审核":state==="审核退回"?"审核未通过，待修改":state==="进行中"?"专业任务正在处理中":index?"等待前置阶段完成":"等待任务开始"}

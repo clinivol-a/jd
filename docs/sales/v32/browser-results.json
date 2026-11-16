@@ -1,0 +1,23 @@
+{
+  "checks": [
+    {
+      "insuranceClean": true
+    },
+    {
+      "noPatientCheckboxes": true,
+      "identityRequired": true
+    },
+    {
+      "detailHeadings": [
+        "订单概览",
+        "资料附件",
+        "设计阶段",
+        "操作记录"
+      ]
+    },
+    {
+      "downloadButtons": 0
+    }
+  ],
+  "errors": []
+}

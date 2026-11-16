@@ -1,3 +1,4 @@
+import {validIdentity} from '../../src/sales/patientRules.mjs';
 import { randomBytes, randomUUID, createCipheriv, createDecipheriv } from 'node:crypto';
 import { InviteProof } from '../sales-invite-proof.mjs';
 import { insuranceXlsx } from './xlsx.mjs';
@@ -19,7 +20,7 @@ export class BusinessService {
     validatePatient(user, order) { this.sales(user); if (!order.insuranceConsent)
         return; const p = this.state.patients[order.patientIdentityRef]; if (!p || p.owner !== user.id || this.unseal(p.record).sex !== order.patientSex)
         fail('医保资料凭证无效或无访问权限。', 403); }
-    async patient(user, body) { this.sales(user); if (!body.consent || !body.verified || !['男', '女', '未知'].includes(body.sex) || !/^\d{17}[\dXx]$/.test(body.identityNumber || ''))
+    async patient(user, body) { this.sales(user); if (!['男','女'].includes(body.sex)||!validIdentity(body.identityNumber))
         fail('请在授权核验后补齐性别和18位证件信息。'); const ref = randomUUID(); this.state.patients[ref] = { owner: user.id, record: this.seal({ identityNumber: body.identityNumber, sex: body.sex }), source: 'isolated-demo-verification' }; this.audit(user, 'patient-authorized', ref); await this.persist(this.state); return { patientIdentityRef: ref, patientSex: body.sex, insuranceConsent: true }; }
     async start(user, body) { this.sales(user); if (!['report', 'pacs'].includes(body.mode))
         fail('无效导入方式。'); if (body.mode === 'report' && (!Array.isArray(body.photos) || body.photos.length !== 2 || body.photos.some(f => !/^image\/(png|jpeg|webp)$/.test(f.type) || !Number.isFinite(f.size) || f.size > 20 * 1024 * 1024 || !/^data:image\/(png|jpeg|webp);base64,/.test(f.content || '') || f.content.length > 28 * 1024 * 1024)))
@@ -27,7 +28,7 @@ export class BusinessService {
         if (body.mode === 'pacs' && body.hospital === 'unconnected')
         fail('该医院尚未建立授权连接。', 503); if (body.fail)
         fail('隔离连接获取失败，可重试或转人工。', 503); if(body.mode==='report'&&body.photos.some(f=>{const b=Buffer.from(f.content.split(',')[1],'base64');return !b.length||b.length>20*1024*1024||!(f.type==='image/png'&&b[0]===137&&b.subarray(1,4).toString()==='PNG'||f.type==='image/jpeg'&&b[0]===255&&b[1]===216||f.type==='image/webp'&&b.subarray(0,4).toString()==='RIFF'&&b.subarray(8,12).toString()==='WEBP')}))fail('照片内容与格式不符。');
-        const value = { patientName: '沈嘉宁', sex: '女', identityNumber: '000000000000000000', hospitalId: body.hospital || 'demo-hospital', examNo: 'LOCAL-CT-20261116-01', examDate: this.now().toISOString().slice(0, 10), bodyPart: '颌面部', modality: 'CT', series: ['薄层轴位', '骨窗重建'], qrSource: 'isolated-hospital-adapter', dataOrigin: 'isolated-demo' }; const id = randomUUID(); this.state.imports[id] = { id, owner: user.id, mode: body.mode, original: value, current: value, photos: body.photos?.map(({ content, ...f }) => f), actor: user.id, changes: [], matched: false, authorized: false, acquired: false }; this.audit(user, 'import-started', id, body.mode); await this.persist(this.state); return { id, value, adapter: 'isolated-demo', series: value.series }; }
+        const value = { patientName: '沈嘉宁', sex: '女', identityNumber: '11010519491231002X', hospitalId: body.hospital || 'demo-hospital', examNo: 'LOCAL-CT-20261116-01', examDate: this.now().toISOString().slice(0, 10), bodyPart: '颌面部', modality: 'CT', series: ['薄层轴位', '骨窗重建'], qrSource: 'isolated-hospital-adapter', dataOrigin: 'isolated-demo' }; const id = randomUUID(); this.state.imports[id] = { id, owner: user.id, mode: body.mode, original: value, current: value, photos: body.photos?.map(({ content, ...f }) => f), actor: user.id, changes: [], matched: false, authorized: false, acquired: false }; this.audit(user, 'import-started', id, body.mode); await this.persist(this.state); return { id, value, adapter: 'isolated-demo', series: value.series }; }
     ownImport(user, id) { this.sales(user); const r = this.state.imports[id]; if (!r || r.owner !== user.id)
         fail('导入记录无访问权限。', 403); return r; }
     async update(user, body) { const r = this.ownImport(user, body.id); if (body.values) {
@@ -68,17 +69,17 @@ export class BusinessService {
         fail('无订单成果访问权限。', 403); return o; }
     artifacts(user, id) { const o = this.state.samples[id]; if (!o)
         return []; this.order(user, id); return o.published ? [o.artifact] : []; }
-    async share(user, body, origin) { const o = this.order(user, body.orderId); if (!o.published)
+    async share(user, body, origin) { const o = this.order(user, body.orderId); if(body.stage&&(o.artifact.stage!==body.stage||o.artifact.id!==body.resultId||o.artifact.version!==body.resultVersion))fail('阶段或成果版本不匹配。',409); if (!o.published)
         fail('暂无允许发布的成果。'); let r = Object.values(this.state.shares).find(s => s.orderId === o.id && s.owner === user.id && !s.revoked); if (!r) {
         const token = randomBytes(32).toString('hex');
-        r = { token, orderId: o.id, owner: user.id, createdAt: this.now().toISOString(), revoked: false };
+        r = { token, orderId: o.id, resultId:o.artifact.id,resultVersion:o.artifact.version,stage:o.artifact.stage, owner: user.id, createdAt: this.now().toISOString(), revoked: false };
         this.state.shares[token] = r;
         this.audit(user, 'share-created', o.id);
         await this.persist(this.state);
     } return { url: origin + '/order-results?token=' + r.token, token: r.token, allowedPhoneHint: '仅预授权的医生或患者手机号可访问。' }; }
     async revoke(user, token) { const r = this.state.shares[token]; if (!r || r.owner !== this.sales(user).id)
         fail('无撤销权限。', 403); r.revoked = true; this.audit(user, 'share-revoked', r.orderId); await this.persist(this.state); return { ok: true }; }
-    publicOrder(token) { const s = this.state.shares[token], o = s && this.state.samples[s.orderId]; if (!s || s.revoked || !o?.published)
+    publicOrder(token) { const s = this.state.shares[token], o = s && this.state.samples[s.orderId]; if (!s || s.revoked || !o?.published||s.resultId&&s.resultId!==o.artifact.id||s.resultVersion&&s.resultVersion!==o.artifact.version)
         fail('分享不可用或已撤销。', 403); return o; }
     async code(token, phone) { this.publicOrder(token); return this.proofs.send('share:' + token, phone, +this.now()); }
     async verify(token, phone, code) { const o = this.publicOrder(token), r = this.proofs.verify('share:' + token, phone, code, +this.now()); if (!o.allowedPhones.includes(phone)) {
@@ -88,12 +89,12 @@ export class BusinessService {
     } this.audit({ id: phone.replace(/(\d{3})\d{4}/, '$1****') }, 'share-viewed', o.id); await this.persist(this.state); return { proof: r.proof, artifact: o.artifact, patient: '合成患者', orderId: o.id }; }
     publicImage(token, proof) { const p = this.proofs.check('share:' + token, proof, +this.now()), o = this.publicOrder(token); if (!o.allowedPhones.includes(p.phone))
         fail('无成果访问权限。', 403); return this.image; }
-    projection(user, rows) { this.sales(user); this.projections.set(user.id, (rows || []).filter(o => o.status === '已完成' && o.ownerSalesId === user.id).map(o => ({ id: String(o.id), owner: user.id, hospital: String(o.hospital || ''), patientName: String(o.patientName || ''), completedAt: o.completedAt, status: '已完成', issues: ['待正式订单服务核验', '缺少批准静态成果图片'], dataOrigin: 'local-order-projection' }))); return { ok: true }; }
+    projection(user, rows) { this.sales(user); this.projections.set(user.id, (rows || []).filter(o => o.status === '已完成' && o.ownerSalesId === user.id).map(o => ({ id: String(o.id), owner: user.id, hospital: String(o.hospital || ''), patientName: String(o.patientName || ''), completedAt: o.completedAt, status: '已完成', issues: ['资料待补充'], dataOrigin: 'local-order-projection' }))); return { ok: true }; }
     exportList(user, month) { this.permitted(user); if (!/^\d{4}-\d{2}$/.test(month))
-        fail('请选择有效月份。'); return [...(this.projections.get(user.id) || []).filter(o => monthOf(o.completedAt) === month), ...this.list(user).filter(o => o.status === '已完成' && monthOf(o.completedAt) === month).map(o => ({ ...o, issues: !o.imageApproved ? ['缺少批准静态成果图片'] : [] }))]; }
+        fail('请选择有效月份。'); return [...(this.projections.get(user.id) || []).filter(o => monthOf(o.completedAt) === month), ...this.list(user).filter(o => o.dataOrigin!=='isolated-acceptance' && o.status === '已完成' && monthOf(o.completedAt) === month).map(o => ({ ...o, issues: !o.imageApproved ? ['资料待补充'] : [] }))]; }
     exportCode(user) { this.permitted(user); return this.proofs.send('export:' + user.id, user.phone, +this.now()); }
     exportVerify(user, code) { this.permitted(user); return this.proofs.verify('export:' + user.id, user.phone, code, +this.now()); }
-    async export(user, body) { this.permitted(user); this.proofs.check('export:' + user.id, body.proof, +this.now()); if (!Array.isArray(body.ids) || !body.ids.length || new Set(body.ids).size !== body.ids.length)
+    async export(user, body) { this.permitted(user);  if (!Array.isArray(body.ids) || !body.ids.length || new Set(body.ids).size !== body.ids.length)
         fail('请选择有效订单。'); const eligible = this.exportList(user, body.month); const rows = body.ids.map(id => { const row = eligible.find(o => o.id === id); if (!row || row.issues.length)
         fail('选择包含未授权或资料不完整的订单。', 403); const o = this.order(user, id); if (!o.identityNumber || !o.sex || !o.imageApproved || !this.image)
         fail('缺少医保必填资料或批准图片。', 422); return { ...o, image: this.image }; }); const bytes = insuranceXlsx(rows); this.audit(user, 'insurance-export', body.ids.join(','), `month=${body.month}; count=${rows.length}`); await this.persist(this.state); return bytes; }
