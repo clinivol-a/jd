@@ -1,0 +1,16 @@
+pnpm run build
+$ tsc -b && vite build
+vite v6.4.4 building for production...
+(!) Some chunks are larger than 500 kB after minification. Consider:
+✓ built in 11.52s
+
+node --experimental-strip-types --test tests/business-v35.test.mjs tests/business-v31.test.mjs tests/business-v33.test.mjs tests/sales-orders-v30.test.mjs tests/sales-invite-proof.test.mjs
+✔ V30 schema rejects raw HTML formats, external/blob URLs, invalid media types, pending/oversize media and foreign owners (15.31825ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 758.775041

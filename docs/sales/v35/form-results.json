@@ -1,0 +1,77 @@
+{
+  "checks": [
+    {
+      "name": "upload-copy-removed",
+      "value": true
+    },
+    {
+      "name": "upload-group-gap",
+      "value": true
+    },
+    {
+      "name": "long-names-ellipsis",
+      "value": true
+    },
+    {
+      "name": "full-name-tooltip",
+      "value": true
+    },
+    {
+      "name": "recognize-icon-gap",
+      "value": true
+    },
+    {
+      "name": "upload-action-gap",
+      "value": true
+    },
+    {
+      "name": "upload-measurements",
+      "value": {
+        "iconGap": 8,
+        "uploadGap": 24,
+        "height": 32
+      }
+    },
+    {
+      "name": "verification-copy-removed",
+      "value": true
+    },
+    {
+      "name": "verification-buttons",
+      "value": true
+    },
+    {
+      "name": "identity-field-only",
+      "value": true
+    },
+    {
+      "name": "return-photos",
+      "value": true
+    },
+    {
+      "name": "report-draft-saved",
+      "value": true
+    },
+    {
+      "name": "report-draft-final-submit",
+      "value": true
+    },
+    {
+      "name": "pacs-query-secondary",
+      "value": true
+    },
+    {
+      "name": "pacs-initial-import-disabled",
+      "value": true
+    },
+    {
+      "name": "pacs-action-aligned",
+      "value": true
+    },
+    {
+      "name": "pacs-submit",
+      "value": true
+    }
+  ],
+  "errors": []
+}

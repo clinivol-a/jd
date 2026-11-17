@@ -40,7 +40,7 @@ export function businessDesignPlugin({ authOrigin = 'http://127.0.0.1:5211', get
                 }
                 catch { }
                 const resultImages=new Map();for(const [id,spec] of Object.entries(resultScenarios))for(let i=1;i<=spec.stages.length;i++){try{resultImages.set(`${id}-${i}`,await readFile(new URL(`./fixtures/results/${id}-${i}.png`,import.meta.url)))}catch{}}
-                service = new BusinessService({ key,state,resultModel:previewModel,resultImage:key=>resultImages.get(key), image: await readFile(new URL('./fixtures/approved-static-preview.png', import.meta.url)), persist: async (value) => { await writeFile(new URL('records.enc', dir), service.seal(value), { mode: 0o600 }); } });
+                service = new BusinessService({ key,state,demoShareCodes:true,resultModel:previewModel,resultImage:key=>resultImages.get(key), image: await readFile(new URL('./fixtures/approved-static-preview.png', import.meta.url)), persist: async (value) => { await writeFile(new URL('records.enc', dir), service.seal(value), { mode: 0o600 }); } });
             }
             vite.middlewares.use(async (req, res, next) => {
                 if (!req.url?.startsWith('/api/business-v31/'))

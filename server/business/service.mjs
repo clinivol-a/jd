@@ -10,7 +10,7 @@ export class BusinessFailure extends Error {
 const fail = (message, status = 400) => { throw new BusinessFailure(message, status); };
 const keyFields = ['patientName', 'sex', 'identityNumber', 'examNo', 'examDate', 'bodyPart', 'hospitalId'];
 export class BusinessService {
-    constructor({ state = { imports: {}, patients: {}, shares: {}, samples: {}, audit: [] }, key = randomBytes(32), image, now = () => new Date(), persist = async () => { }, resultImage, resultModel } = {}) { this.resultImage = resultImage; this.resultModel = resultModel; this.state = state; this.key = key; this.image = image; this.now = now; this.persist = persist; this.proofs = new InviteProof(); this.receipts = new Map(Object.entries(this.state.receipts || {})); this.projections = new Map(); this.state.orders ??= {}; this.scopes = new Map(); }
+    constructor({ state = { imports: {}, patients: {}, shares: {}, samples: {}, audit: [] }, key = randomBytes(32), image, now = () => new Date(), persist = async () => { }, resultImage, resultModel, demoShareCodes = false } = {}) { this.demoShareCodes = demoShareCodes === true && process.env.NODE_ENV !== 'production'; this.resultImage = resultImage; this.resultModel = resultModel; this.state = state; this.key = key; this.image = image; this.now = now; this.persist = persist; this.proofs = new InviteProof(); this.receipts = new Map(Object.entries(this.state.receipts || {})); this.projections = new Map(); this.state.orders ??= {}; this.scopes = new Map(); }
     sales(user) {
         if (!user || user.role !== 'sales' || user.status !== 'approved')
             fail('请使用已审核的销售账号。', 403);
@@ -161,7 +161,11 @@ export class BusinessService {
         fail('分享不可用或已撤销。', 403); return o; }
     async code(token, phone) { this.publicOrder(token); return this.proofs.send('share:' + token, phone, +this.now()); }
     async verify(token, phone, code) {
-        const o = this.publicOrder(token), r = this.proofs.verify('share:' + token, phone, code, +this.now());
+        const o = this.publicOrder(token);
+        // Explicit isolated-demo option; never changes account/invite authentication.
+        const pending = this.demoShareCodes && /^\d+$/.test(String(code))
+            ? this.proofs.codes.get('share:' + token + ':' + phone) : null;
+        const r = this.proofs.verify('share:' + token, phone, pending ? pending.code : code, +this.now());
         if (!o.allowedPhones.includes(phone)) {
             this.audit(null, 'share-denied', o.id);
             await this.persist(this.state);

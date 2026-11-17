@@ -1,0 +1,136 @@
+{
+  "checks": [
+    {
+      "name": "completed-spacing",
+      "value": true
+    },
+    {
+      "name": "stage-未开始",
+      "value": true
+    },
+    {
+      "name": "stage-进行中",
+      "value": true
+    },
+    {
+      "name": "stage-待审核",
+      "value": true
+    },
+    {
+      "name": "stage-审核退回",
+      "value": true
+    },
+    {
+      "name": "stage-已完成",
+      "value": true
+    },
+    {
+      "name": "all-stage-measurements",
+      "value": [
+        {
+          "status": "未开始",
+          "height": 134,
+          "between": 12,
+          "bottom": 21,
+          "padding": "20px",
+          "rows": 3
+        },
+        {
+          "status": "进行中",
+          "height": 134,
+          "between": 12,
+          "bottom": 21,
+          "padding": "20px",
+          "rows": 3
+        },
+        {
+          "status": "待审核",
+          "height": 134,
+          "between": 12,
+          "bottom": 21,
+          "padding": "20px",
+          "rows": 3
+        },
+        {
+          "status": "审核退回",
+          "height": 134,
+          "between": 12,
+          "bottom": 21,
+          "padding": "20px",
+          "rows": 3
+        },
+        {
+          "status": "已完成",
+          "height": 134,
+          "between": 12,
+          "bottom": 21,
+          "padding": "20px",
+          "rows": 3
+        }
+      ]
+    },
+    {
+      "name": "success-below-code",
+      "value": true
+    },
+    {
+      "name": "feedback-action-gap",
+      "value": true
+    },
+    {
+      "name": "mobile-no-overflow",
+      "value": true
+    },
+    {
+      "name": "error-replaces-success",
+      "value": true
+    },
+    {
+      "name": "error-in-same-field",
+      "value": true
+    },
+    {
+      "name": "any-digit-views-readonly",
+      "value": true
+    },
+    {
+      "name": "no-source-download",
+      "value": true
+    },
+    {
+      "name": "matches-engineer-spacing",
+      "value": true
+    },
+    {
+      "name": "engineer-five-cards",
+      "value": true
+    },
+    {
+      "name": "regression-#sales/insurance",
+      "value": true
+    },
+    {
+      "name": "regression-#sales/customers",
+      "value": true
+    },
+    {
+      "name": "regression-#sales/orders",
+      "value": true
+    },
+    {
+      "name": "report-no-overflow",
+      "value": true
+    },
+    {
+      "name": "pacs-no-overflow",
+      "value": true
+    }
+  ],
+  "errors": [],
+  "feedbackPosition": {
+    "tipsTop": 314.875,
+    "inputBottom": 306.875,
+    "gap": 8,
+    "status": "rgb(43, 164, 113)"
+  }
+}

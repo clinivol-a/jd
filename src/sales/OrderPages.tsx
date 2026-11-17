@@ -93,6 +93,9 @@ function Field({
     </Form.FormItem>
   );
 }
+function mergeImportedOrder(current:Order, incoming:Order, previous:Set<string>):Order {
+  return {...current,...(current.hospitalId!==incoming.hospitalId?{department:"",doctorId:"",caseId:""}:{}),id:incoming.id,patientName:incoming.patientName,patientSex:incoming.patientSex,patientIdentityRef:incoming.patientIdentityRef,insuranceConsent:incoming.insuranceConsent,hospitalId:incoming.hospitalId,importSource:incoming.importSource,importReceipt:incoming.importReceipt,materials:[...current.materials.filter(f=>!previous.has(f.id)),...incoming.materials]};
+}
 export function OrderEditor({
   data,
   initial,
@@ -106,7 +109,7 @@ export function OrderEditor({
   data: SalesData;
   initial?: Order;
   prefill?: Order;
-  entry?: {title:string;label:string;content:ReactNode;ready:boolean;unlocked:boolean;busy:boolean;onIdentityChange:(fields:Record<string,string>)=>void};
+  entry?: {title:string;label:string;content:ReactNode|((saveDraft:(incoming:Order)=>Promise<void>)=>ReactNode);ready:boolean;unlocked:boolean;busy:boolean;onOpen?:()=>void;onIdentityChange:(fields:Record<string,string>)=>void};
   doctorId?: string;
   caseId?: string;
   save: (
@@ -162,9 +165,9 @@ export function OrderEditor({
   useEffect(()=>{
     if(!hasEntry||!prefill)return;
     const previous=importedFiles.current;
-    setOrder(current=>({...current,...(current.hospitalId!==prefill.hospitalId?{department:"",doctorId:"",caseId:""}:{}),id:prefill.id,patientName:prefill.patientName,patientSex:prefill.patientSex,patientIdentityRef:prefill.patientIdentityRef,insuranceConsent:prefill.insuranceConsent,hospitalId:prefill.hospitalId,importSource:prefill.importSource,importReceipt:prefill.importReceipt,materials:[...current.materials.filter(f=>!previous.has(f.id)),...prefill.materials]}));
-    importedFiles.current=new Set(prefill.materials.map(f=>f.id));
-    setPatientName(prefill.patientName||'');setIdentity('');setStep(0);setShowEntry(false);
+    setOrder(current=>mergeImportedOrder(current,prefill,previous));
+    importedFiles.current=new Set([...previous,...prefill.materials.map(f=>f.id)]);
+    setPatientName(prefill.patientName||'');setIdentity('');setErrors(previous=>{const{patientIdentity,patientSex,import:importError,...rest}=previous;return rest});setStep(0);setShowEntry(false);
   },[prefill,hasEntry]);
   const update = (fields: Partial<Order>) => {
     const changed=Object.fromEntries(Object.entries(fields).filter(([key,value])=>['hospitalId','patientSex'].includes(key)&&value!==o[key as keyof Order]));
@@ -182,14 +185,15 @@ export function OrderEditor({
   const uploading = Object.values(busy).some(Boolean);
   const validate = (page: number) => {
     const all = orderErrors(o, patientName);
-    if(!o.patientSex||(!o.patientIdentityRef&&!validIdentity(identity)))all.insurance='请补齐性别和有效身份证号。';
+    if(!o.patientSex)all.patientSex='请选择性别。';
+    if(identity&&!validIdentity(identity)||!o.patientIdentityRef&&!validIdentity(identity))all.patientIdentity='请输入有效的18位居民身份证号码。';
     const fields =
       page === 0
         ? [
             "hospitalId",
             "department",
             "doctorId",
-            "patientName","insurance",
+            "patientName","patientSex","patientIdentity",
           ]
         : page === 1
           ? ["name", "clinicalRequirements", "service", "quantity", "plannedStages", "due"]
@@ -206,12 +210,11 @@ export function OrderEditor({
     if (saving || uploading) return;
     if (submit && !validate(3)) return;
     if(submit&&entry&&!entry.ready){setErrors(prev=>({...prev,import:'患者或检查资料已修改，请返回'+entry.label+'重新核对并应用资料。'}));return;}
-    if(submit&&(!o.patientSex||(!o.patientIdentityRef&&!validIdentity(identity)))){setErrors(prev=>({...prev,insurance:'请补齐性别和有效身份证号。'}));return;}
     setSaving(true);
     try {
       let sensitive:Partial<Order>={};
       if(identity||submit&&!o.patientIdentityRef){
-        try{sensitive=await business('patient',{sex:o.patientSex,identityNumber:identity,consent:o.insuranceConsent,verified:true});setOrder(prev=>({...prev,...sensitive}));setIdentity('');}catch(e){setErrors(prev=>({...prev,insurance:(e as Error).message}));return;}
+        try{sensitive=await business('patient',{sex:o.patientSex,identityNumber:identity,consent:o.insuranceConsent,verified:true});setOrder(prev=>({...prev,...sensitive}));setIdentity('');}catch(e){setErrors(prev=>({...prev,patientIdentity:(e as Error).message}));return;}
       }
       await save({...o,...sensitive,patientName}, submit, patientName);
     } finally {
@@ -244,8 +247,12 @@ export function OrderEditor({
       <Card bordered={false} className="project-info-card">
         <h2>{entry?.title||(initial ? "编辑订单" : "新建订单")}</h2>
         <div className={"sales-order-content"+(entry?" sales-order-content-import":"")}>
-        <OrderSteps current={entry?(showEntry?0:step+1):step} entryLabel={entry?.label} entryReady={entry?.unlocked} busy={entry?.busy||uploading||saving} onChange={index=>{if(entry){if(index===0)setShowEntry(true);else if(entry.unlocked){setShowEntry(false);setStep(index-1)}}else setStep(index)}}/>
-        {showEntry&&entry?entry.content:<>
+        <OrderSteps current={entry?(showEntry?0:step+1):step} entryLabel={entry?.label} entryReady={entry?.unlocked} busy={entry?.busy||uploading||saving} onChange={index=>{if(entry){if(index===0){entry.onOpen?.();setShowEntry(true);}else if(entry.unlocked){setShowEntry(false);setStep(index-1)}}else setStep(index)}}/>
+        {showEntry&&entry?(typeof entry.content==='function'?entry.content(async incoming=>{
+          const merged=mergeImportedOrder(o,incoming,importedFiles.current);
+          if(!merged.doctorId){setErrors({doctorId:'请填写需求医生'});setStep(0);setShowEntry(false);return;}
+          await save({...merged,patientName:incoming.patientName},false,incoming.patientName||'');
+        }):entry.content):<>
         <Form
           className={"sales-order-form"+(step===2?" sales-order-form-upload":"")}
           labelAlign="top"
@@ -311,8 +318,7 @@ export function OrderEditor({
                   onChange={value=>{setPatientName(value);if(value!==patientName)entry?.onIdentityChange({patientName:value});setErrors(prev=>({...prev,patientName:""}));}}
                 />
               </Field>
-              <PatientInsuranceFields value={o} onChange={update} identity={identity} onIdentity={value=>{setIdentity(value);if(value!==identity)entry?.onIdentityChange({identityNumber:value})}} verified={identityVerified} onVerified={setIdentityVerified}/>
-              {errors.insurance&&<p role="alert" className="sales-error">{errors.insurance}</p>}
+              <PatientInsuranceFields value={o} onChange={update} identity={identity} onIdentity={value=>{setIdentity(value);setErrors(prev=>({...prev,patientIdentity:''}));if(value!==identity)entry?.onIdentityChange({identityNumber:value})}} errors={{sex:errors.patientSex,identity:errors.patientIdentity}} verified={identityVerified} onVerified={setIdentityVerified}/>
             </>
           )}
           {step === 1 && (
@@ -467,7 +473,7 @@ export function OrderEditor({
             ))}
           <div className="sales-actions">
             {(step > 0 || entry) && (
-              <Button variant="outline" onClick={() => {if(step===0&&entry)setShowEntry(true);else setStep(step-1)}}>
+              <Button variant="outline" onClick={() => {if(step===0&&entry){entry.onOpen?.();setShowEntry(true);}else setStep(step-1)}}>
                 上一步
               </Button>
             )}

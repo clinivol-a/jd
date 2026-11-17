@@ -3,7 +3,7 @@ import { syncOrders } from './projection';
 import type { SalesData } from '../model';
 import { QrcodeIcon } from 'tdesign-icons-react';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Button, Card, Dialog, Empty, Input, QRCode, Tag, MessagePlugin } from 'tdesign-react';
+import { Alert, Button, Card, Dialog, Empty, Form, Input, QRCode, Tag, MessagePlugin } from 'tdesign-react';
 import { business } from './client';
 export function ReadOnlyPreview({ src }: {
     src: string;
@@ -47,7 +47,7 @@ export function OrderResults({ orderId }: {
             }).catch(e => setError(e.message))}>查看成果</Button><Button theme="default" onClick={() => void business('share', { orderId }).then(setShare).catch(e => setError(e.message))}>分享二维码</Button></div></div>)}<Dialog visible={!!image} header="成果只读查看" footer={false} width="80%" onClose={() => setImage('')}>{image && <ReadOnlyPreview src={image}/>}</Dialog><Dialog visible={!!share} header="订单成果分享" footer={false} onClose={() => setShare(null)}>{share && <><QRCode value={share.url} size={196} type="svg"/><p>仅已获此订单授权的医生或患者，经手机验证后可查看。</p><Input value={share.url} readonly/><div className="sales-actions"><Button theme="default" onClick={() => void navigator.clipboard.writeText(share.url)}>复制链接</Button><Button theme="danger" variant="text" onClick={() => void business('revoke', { token: share.token }).then(() => setShare(null)).catch(e => setError(e.message))}>撤销分享</Button></div></>}</Dialog></Card>;
 }
 export function PublicOrderResults() {
-    const token = new URLSearchParams(location.search).get('token') || '', [phone, setPhone] = useState(''), [code, setCode] = useState(''), [error, setError] = useState(''), [message, setMessage] = useState(''), [info, setInfo] = useState(''), [image, setImage] = useState(''), [model, setModel] = useState<PreviewModel | null>(null), [busy, setBusy] = useState(false), [retry, setRetry] = useState(0);
+    const token = new URLSearchParams(location.search).get('token') || '', [phone, setPhone] = useState(''), [code, setCode] = useState(''), [error, setError] = useState(''), [feedback, setFeedback] = useState<{status:'success'|'error';text:string}|null>(null), [info, setInfo] = useState(''), [image, setImage] = useState(''), [model, setModel] = useState<PreviewModel | null>(null), [busy, setBusy] = useState(false), [retry, setRetry] = useState(0);
     useEffect(() => { void business('public-info?token=' + token).then(r => setInfo(r.message)).catch(e => setError(e.message)); }, [token]);
     useEffect(() => {
         if (!retry)
@@ -61,7 +61,7 @@ export function PublicOrderResults() {
     }, [image]);
     const verify = async () => {
         setBusy(true);
-        setError('');
+        setFeedback(null);
         try {
             const r = await business('public-verify?token=' + token, { phone, code }), res = await fetch('/api/business-v31/public-image?token=' + token, { headers: { 'X-Result-Proof': r.proof } });
             if (!res.ok)
@@ -76,14 +76,23 @@ export function PublicOrderResults() {
             }
         }
         catch (e) {
-            setMessage('');
-            setError((e as Error).message);
+            setFeedback({status:'error',text:(e as Error).message});
         }
         finally {
             setBusy(false);
         }
     };
-    return <main className="business-public"><img className="business-public-logo" src="/assets/clinivol-logo-light.png" alt="科立沃"/><Card bordered={false}><h1>订单成果查看</h1>{image ? <><p>{info}</p>{model ? <ReadOnlyModel model={model}/> : <ReadOnlyPreview src={image}/>}</> : <><p>{info}</p><label>手机号<Input value={phone} onChange={setPhone}/></label><label>短信验证码<div className="business-code-row"><Input value={code} onChange={setCode}/><Button theme="default" disabled={retry > 0} onClick={() => void business('public-code?token=' + token, { phone }).then(() => { setRetry(60); setMessage('验证码已发送。'); setError(''); }).catch(e => setError(e.message))}>{retry ? `${retry}s` : '获取验证码'}</Button></div></label>{message && <p className="field-hint">{message}</p>}<Button theme="primary" loading={busy} onClick={() => void verify()}>验证并查看</Button></>}{error && <Alert theme="error" message={error}/>}</Card></main>;
+    const sendCode = async () => {
+        setFeedback(null);
+        try {
+            await business('public-code?token=' + token, { phone });
+            setRetry(60);
+            setFeedback({status:'success',text:'验证码已发送。'});
+        } catch (e) {
+            setFeedback({status:'error',text:(e as Error).message});
+        }
+    };
+    return <main className="business-public"><img className="business-public-logo" src="/assets/clinivol-logo-light.png" alt="科立沃"/><Card bordered={false}><h1>订单成果查看</h1>{image ? <><p>{info}</p>{model ? <ReadOnlyModel model={model}/> : <ReadOnlyPreview src={image}/>}</> : <><p>{info}</p><Form className="business-code-form" labelAlign="top" onSubmit={()=>void verify()}><Form.FormItem label="手机号"><Input value={phone} onChange={value=>{setPhone(value);setFeedback(null)}}/></Form.FormItem><Form.FormItem label="短信验证码" status={feedback?.status} tips={feedback?.text}><div className="business-code-row"><Input value={code} onChange={value=>{setCode(value);setFeedback(null)}}/><Button theme="default" variant="outline" disabled={retry>0} onClick={()=>void sendCode()}>{retry?`${retry}s`:'获取验证码'}</Button></div></Form.FormItem><Button type="submit" theme="primary" loading={busy}>验证并查看</Button></Form></>}{error&&<Alert theme="error" message={error}/>}</Card></main>;
 }
 export function StageShare({ orderId, stage, completed, data }: {
     orderId: string;
