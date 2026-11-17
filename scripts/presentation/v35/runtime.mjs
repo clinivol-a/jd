@@ -30,7 +30,7 @@ export default async function handler(req,res){
  }
  const admitted=equal(c.cv_presentation,config.accessKey);
  const publicSales=/^\/api\/sales-demo\/public(?:-(?:code|verify|upload|file))?$/.test(u.pathname);
- const publicBusiness=/^\/api\/business-v31\/public-(?:info|code|verify|image|model)$/.test(u.pathname);
+ const publicBusiness=/^\/api\/business-v31\/public-(?:info|code|verify|image|model|open|viewed)$/.test(u.pathname);
  const publicAuth=['/api/auth/session','/api/auth/scan/inspect','/api/auth/scan/confirm','/api/auth/scan/cancel'].includes(u.pathname);
  if(u.pathname.startsWith('/api/auth/dev/')||u.pathname==='/api/sales-demo/codes'||u.pathname.startsWith('/api/business-v31/sample'))return output(res,json(404,{error:'接口不存在。'}));
  if(!admitted&&!publicSales&&!publicBusiness&&!publicAuth)return output(res,json(403,{error:'请使用完整的汇报邀请链接。'}));

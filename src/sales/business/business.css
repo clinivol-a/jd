@@ -57,3 +57,13 @@
 
 html:has(.business-public),html:has(.business-public) body,html:has(.business-public) #root{min-width:0}
 .business-public .business-code-form>.t-button{margin-top:var(--td-comp-margin-xl)}
+
+/* Result share records extend the dialog only; stage card rows remain unchanged. */
+.stage-share-record-entry{display:flex;align-items:center;justify-content:space-between;gap:var(--td-comp-margin-s);width:100%;margin-top:var(--td-comp-margin-m);color:var(--td-text-color-secondary);font:var(--td-font-body-medium)}
+.stage-share-record-entry .t-button{flex-shrink:0}.stage-share-record-entry .t-button__text{display:inline-flex;align-items:center;gap:var(--td-comp-margin-xs)}
+.share-records{font:var(--td-font-body-medium);min-width:0}
+.share-record-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--td-comp-margin-l);margin:0 0 var(--td-comp-margin-l)}
+.share-record-meta dt{color:var(--td-text-color-secondary);margin-bottom:var(--td-comp-margin-xs)}
+.share-record-meta dd{margin:0;overflow-wrap:anywhere;color:var(--td-text-color-primary)}
+.share-record-counts{color:var(--td-text-color-secondary);margin:0 0 var(--td-comp-margin-l)}
+@media(max-width:560px){.stage-share-record-entry{align-items:flex-start;flex-wrap:wrap}.share-record-meta{grid-template-columns:1fr}}

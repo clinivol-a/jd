@@ -184,3 +184,11 @@
 订单`id` → `projectId` → 阶段`taskId` → 成果`id`（提交/分享字段`resultId`）+`version` → `imageId`/`previewKey` → 分享`token`。`reviewStatus=approved`与`publishStatus=published`分开核验；任务状态已完成不授予发布权。医保与分享从同一个成果登记读取，不能靠名称匹配；现有隔离演示登记见server/business/resultCatalog.mjs，不修改真实审计身份。
 
 报告/PACS的`importReceipt/importSource`与影像、照片附件ID在共用四步表单和保存后的Order中保留；证件原值经服务端加密，仅凭`patientIdentityRef`在订单关联。当前医保导出使用原订单手术项目名称，医保标准目录映射未确认，不伪造标准名称。
+
+## V3.5 分享、访问与实际身份
+
+- `Share.id/orderId/stageId/resultId/resultVersion`：稳定关联分享、订单、专业任务阶段及批准成果版本。`token`只供受控分享，不在记录列表返回。
+- `initiatorId/initiatorName`：由真实登录会话记录的分享发起人；复制事件另记当次操作人。`recipientId/recipientName`：本订单关联的预期需求医生，不表示已实际打开。
+- `shareEvents`：复制、页面打开、验证失败、无权限、Viewer 成功事件；保存唯一事件 ID、实际时间、成果关联和实际身份依据。`shareVisits/shareProofs`为访问会话与验证证明的受控绑定，不作为公开字段。
+- `copyCount/accessCount/successCount/uniqueViewerCount/lastViewedAt`：从已持久化事件投影；复制不等于已微信发送、页面打开不等于查看成功、验证码通过不等于患者实名。失败、Drawer 查询和重复回调不增加成功。
+- `visitorId/visitorName/visitorRole/maskedPhone`：实际验证成功后按可信授权映射解析；没有姓名/自然人角色映射时仅显示脱敏手机号及“获授权人员”。失败身份显示“未确认身份”，不得用患者或订单医生姓名补造。

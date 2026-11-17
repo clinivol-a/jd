@@ -19,7 +19,7 @@ export function businessDesignPlugin({ authOrigin = 'http://127.0.0.1:5211', get
                 res.statusCode = 404;
                 res.end();
                 return;
-            } if (path.startsWith('/api/') && !['/api/business-v31/public-info', '/api/business-v31/public-code', '/api/business-v31/public-verify', '/api/business-v31/public-image','/api/business-v31/public-model'].includes(path) || path.startsWith('/assets/cad/') || /\.(stl|obj|step|env|json)$/i.test(path)) {
+            } if (path.startsWith('/api/') && !['/api/business-v31/public-info', '/api/business-v31/public-code', '/api/business-v31/public-verify', '/api/business-v31/public-image','/api/business-v31/public-model','/api/business-v31/public-open','/api/business-v31/public-viewed'].includes(path) || path.startsWith('/assets/cad/') || /\.(stl|obj|step|env|json)$/i.test(path)) {
                 res.statusCode = 403;
                 res.end('Access denied');
                 return;
@@ -60,7 +60,7 @@ export function businessDesignPlugin({ authOrigin = 'http://127.0.0.1:5211', get
                         }
                         body = JSON.parse(text || '{}');
                     }
-                    const mutations = new Set(['public-code', 'public-verify', 'patient', 'start', 'update', 'receipt', 'validate-order', 'validate-patient', 'sample', 'projection', 'share', 'revoke', 'export-code', 'export-verify', 'export']);
+                    const mutations = new Set(['public-open','public-viewed','share-copy','public-code', 'public-verify', 'patient', 'start', 'update', 'receipt', 'validate-order', 'validate-patient', 'sample', 'projection', 'share', 'revoke', 'export-code', 'export-verify', 'export']);
                     if (req.method !== (mutations.has(a) ? 'POST' : 'GET'))
                         return send(405, { error: '请求方式不支持。' });
                     const token = u.searchParams.get('token');
@@ -71,11 +71,11 @@ export function businessDesignPlugin({ authOrigin = 'http://127.0.0.1:5211', get
                     }
                     if (a === 'public-code')
                         return send(200, await service.code(token, body.phone));
-                    if (a === 'public-verify')
-                        return send(200, await service.verify(token, body.phone, body.code));
-                    if(a==='public-model')return send(200,service.publicModel(token,req.headers['x-result-proof']));
-                    if (a === 'public-image')
-                        return binary(service.publicImage(token, req.headers['x-result-proof']), 'image/png');
+                    if(a==='public-verify'){service.shareRecords.requireVisit(token,body.visitId);return send(200,await service.verify(token,body.phone,body.code,body.visitId));}
+                    if(a==='public-open')return send(200,await service.shareRecords.open(token,body));
+                    if(a==='public-viewed')return send(200,await service.shareRecords.viewed(token,{...body,proof:req.headers['x-result-proof']}));
+                    if(a==='public-model'){const model=service.publicModel(token,req.headers['x-result-proof']);await service.persist(service.state);return send(200,model);}
+                    if(a==='public-image'){const bytes=service.publicImage(token,req.headers['x-result-proof']);await service.persist(service.state);return binary(bytes,'image/png');}
                     const session = getSession ? await getSession(req) : await (await fetch(authOrigin + '/api/auth/session', { headers: { cookie: req.headers.cookie || '' } })).json();
                     if (session.locked)
                         return send(403, { error: '请先解锁账号。' });
@@ -87,6 +87,8 @@ export function businessDesignPlugin({ authOrigin = 'http://127.0.0.1:5211', get
                         user.permissions = [...(user.permissions || []), 'insurance.export'];
                         user.phone = '13800000002';user.demoBusiness=true;
                     }
+                    if(a==='share-records')return send(200,service.shareRecords.records(user,{token,page:u.searchParams.get('page'),pageSize:u.searchParams.get('pageSize')}));
+                    if(a==='share-copy')return send(200,await service.shareRecords.copy(user,body));
                     if (a === 'capabilities')
                         return send(200, { adapter: 'isolated-demo', insuranceExport: user.permissions?.includes('insurance.export'), samples: service.list(user) });
                     if (a === 'validate-patient') {

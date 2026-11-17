@@ -1,0 +1,25 @@
+{
+  "checks": [
+    {
+      "name": "#sales/home",
+      "pass": true
+    },
+    {
+      "name": "#sales/customers",
+      "pass": true
+    },
+    {
+      "name": "#sales/orders",
+      "pass": true
+    },
+    {
+      "name": "chen-cad-viewer",
+      "pass": true
+    },
+    {
+      "name": "no-browser-errors",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

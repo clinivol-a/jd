@@ -9,8 +9,8 @@ export type PreviewModel = {
     variant: number;
     resultKey: string;
 };
-export function ReadOnlyModel({ model }: {
-    model: PreviewModel;
+export function ReadOnlyModel({ model,onReady }: {
+    model: PreviewModel;onReady?:()=>void;
 }) {
     const host = useRef<HTMLDivElement>(null), [error, setError] = useState('');
     useEffect(() => {
@@ -61,10 +61,11 @@ export function ReadOnlyModel({ model }: {
         const resize = new ResizeObserver(() => { camera.aspect = el.clientWidth / Math.max(el.clientHeight, 1); camera.position.setLength(radius / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * Math.max(1, 1 / camera.aspect) * 1.08); camera.updateProjectionMatrix(); renderer.setSize(el.clientWidth, el.clientHeight); render(); });
         resize.observe(el);
         render();
+        onReady?.();
         return () => { resize.disconnect(); controls.removeEventListener('change', render); controls.dispose(); geometry.dispose(); material.dispose(); if (plate) {
             plate.geometry.dispose();
             (plate.material as THREE.Material).dispose();
         } renderer.dispose(); renderer.domElement.remove(); };
-    }, [model]);
+    }, [model,onReady]);
     return <>{error && <Alert theme="error" message={error}/>}<div ref={host} className="business-model-viewer" aria-label="只读三维成果，可旋转平移和缩放"/></>;
 }

@@ -1,0 +1,90 @@
+{
+  "checks": [
+    {
+      "name": "stage-cards-unchanged",
+      "pass": true
+    },
+    {
+      "name": "drawer-opens",
+      "pass": true
+    },
+    {
+      "name": "drawer-uses-native-components",
+      "pass": true
+    },
+    {
+      "name": "initiator-li",
+      "pass": true
+    },
+    {
+      "name": "both-copy-events-real",
+      "pass": true
+    },
+    {
+      "name": "copy-no-view",
+      "pass": true
+    },
+    {
+      "name": "page-open-not-success",
+      "pass": true
+    },
+    {
+      "name": "failed-otp-no-success",
+      "pass": true
+    },
+    {
+      "name": "viewer-ready-success",
+      "pass": true
+    },
+    {
+      "name": "readonly-no-download",
+      "pass": true
+    },
+    {
+      "name": "refresh-no-inflation",
+      "pass": true
+    },
+    {
+      "name": "actual-visitor-masked",
+      "pass": true
+    },
+    {
+      "name": "actual-outcomes",
+      "pass": true
+    },
+    {
+      "name": "expected-recipient-from-order",
+      "pass": true
+    },
+    {
+      "name": "escape-closes-drawer-only",
+      "pass": true
+    },
+    {
+      "name": "pagination-second-page",
+      "pass": true
+    },
+    {
+      "name": "reconstruction-independent",
+      "pass": true
+    },
+    {
+      "name": "sales-refresh-retains-events",
+      "pass": true
+    },
+    {
+      "name": "chen-full-home",
+      "pass": true
+    },
+    {
+      "name": "chen-workspace",
+      "pass": true
+    },
+    {
+      "name": "no-browser-errors",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "transport": "existing Vite assets + actual isolated auth/business HTTP services; no online deployment"
+}

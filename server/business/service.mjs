@@ -1,3 +1,4 @@
+import { ShareRecords } from './shareRecords.mjs';
 import { approvedDemoChain } from './resultCatalog.mjs';
 import { validIdentity } from '../../src/sales/patientRules.mjs';
 import { randomBytes, randomUUID, createCipheriv, createDecipheriv } from 'node:crypto';
@@ -10,7 +11,7 @@ export class BusinessFailure extends Error {
 const fail = (message, status = 400) => { throw new BusinessFailure(message, status); };
 const keyFields = ['patientName', 'sex', 'identityNumber', 'examNo', 'examDate', 'bodyPart', 'hospitalId'];
 export class BusinessService {
-    constructor({ state = { imports: {}, patients: {}, shares: {}, samples: {}, audit: [] }, key = randomBytes(32), image, now = () => new Date(), persist = async () => { }, resultImage, resultModel, demoShareCodes = false } = {}) { this.demoShareCodes = demoShareCodes === true && process.env.NODE_ENV !== 'production'; this.resultImage = resultImage; this.resultModel = resultModel; this.state = state; this.key = key; this.image = image; this.now = now; this.persist = persist; this.proofs = new InviteProof(); this.receipts = new Map(Object.entries(this.state.receipts || {})); this.projections = new Map(); this.state.orders ??= {}; this.scopes = new Map(); }
+    constructor({ state = { imports: {}, patients: {}, shares: {}, samples: {}, audit: [] }, key = randomBytes(32), image, now = () => new Date(), persist = async () => { }, resultImage, resultModel, demoShareCodes = false } = {}) { this.demoShareCodes = demoShareCodes === true && process.env.NODE_ENV !== 'production'; this.resultImage = resultImage; this.resultModel = resultModel; this.state = state; this.key = key; this.image = image; this.now = now; this.persist = persist; this.proofs = new InviteProof(); this.receipts = new Map(Object.entries(this.state.receipts || {})); this.projections = new Map(); this.state.orders ??= {}; this.scopes = new Map(); this.shareRecords=new ShareRecords(this); }
     sales(user) {
         if (!user || user.role !== 'sales' || user.status !== 'approved')
             fail('请使用已审核的销售账号。', 403);
@@ -143,11 +144,12 @@ export class BusinessService {
         fail('阶段或成果版本不匹配。', 409); if (!this.artifacts(user, o.id).includes(a))
         fail('暂无允许发布的成果。'); let r = Object.values(this.state.shares).find(s => s.orderId === o.id && s.resultId === a.id && s.resultVersion === a.version && s.owner === user.id && !s.revoked); if (!r) {
         const token = randomBytes(32).toString('hex');
-        r = { token, orderId: o.id, resultId: a.id, resultVersion: a.version, stage: a.stage, owner: user.id, createdAt: this.now().toISOString(), revoked: false };
+        r = { id:randomUUID(), token, orderId: o.id, resultId: a.id, resultVersion: a.version, stage: a.stage, owner: user.id, createdAt: this.now().toISOString(), revoked: false };
+        this.shareRecords.enrich(r,user,o,a);
         this.state.shares[token] = r;
         this.audit(user, 'share-created', a.id);
         await this.persist(this.state);
-    } return { url: origin + '/order-results?token=' + r.token, token: r.token, name: a.name }; }
+    } else {this.shareRecords.enrich(r,user,o,a);await this.persist(this.state);} return { url: origin + '/order-results?token=' + r.token, token: r.token, name: a.name, stats:this.shareRecords.summary(r) }; }
     async revoke(user, token) {
         const r = this.state.shares[token];
         if (!r || r.owner !== this.sales(user).id)
@@ -160,29 +162,27 @@ export class BusinessService {
     publicOrder(token) { const s = this.state.shares[token], o = s && (this.state.orders[s.orderId] || this.state.samples[s.orderId]), a = o && this.artifact(o, s.resultId, s.resultVersion); if (!s || s.revoked || !o?.published || !a || a.status !== '审核通过' || a.reviewStatus&&a.reviewStatus!=='approved' || a.publishStatus && a.publishStatus !== 'published'||!this.previewAvailable(o,a))
         fail('分享不可用或已撤销。', 403); return o; }
     async code(token, phone) { this.publicOrder(token); return this.proofs.send('share:' + token, phone, +this.now()); }
-    async verify(token, phone, code) {
-        const o = this.publicOrder(token);
-        // Explicit isolated-demo option; never changes account/invite authentication.
-        const pending = this.demoShareCodes && /^\d+$/.test(String(code))
-            ? this.proofs.codes.get('share:' + token + ':' + phone) : null;
-        const r = this.proofs.verify('share:' + token, phone, pending ? pending.code : code, +this.now());
-        if (!o.allowedPhones.includes(phone)) {
-            this.audit(null, 'share-denied', o.id);
-            await this.persist(this.state);
-            fail('该手机号未获此订单成果访问授权。', 403);
+    async verify(token, phone, code, visitId) {
+        const o=this.publicOrder(token);
+        const pending=this.demoShareCodes&&/^\d+$/.test(String(code))?this.proofs.codes.get('share:'+token+':'+phone):null;
+        let r;
+        try {r=this.proofs.verify('share:'+token,phone,pending?pending.code:code,+this.now());}
+        catch(e){await this.shareRecords.failed(token,visitId,phone,code);throw e;}
+        if(!o.allowedPhones.includes(phone)){
+            this.audit(null,'share-denied',o.id);await this.shareRecords.failed(token,visitId,phone,code,true);await this.persist(this.state);fail('该手机号未获此订单成果访问授权。',403);
         }
-        this.audit({ id: phone.replace(/(\d{3})\d{4}/, '$1****') }, 'share-viewed', o.id);
-        await this.persist(this.state);
-        return { proof: r.proof, artifact: this.artifact(o, this.state.shares[token].resultId, this.state.shares[token].resultVersion), patient: o.patientName, orderId: o.id };
+        this.shareRecords.verified(token,visitId,phone,r.proof);
+        this.audit(null,'share-verified',o.id);await this.persist(this.state);
+        return {proof:r.proof,artifact:this.artifact(o,this.state.shares[token].resultId,this.state.shares[token].resultVersion),patient:o.patientName,orderId:o.id};
     }
     publicImage(token, proof) {
         const p = this.proofs.check('share:' + token, proof, +this.now()), o = this.publicOrder(token);
         if (!o.allowedPhones.includes(p.phone))
             fail('无成果访问权限。', 403);
-        return this.imageFor(o, this.artifact(o, this.state.shares[token].resultId, this.state.shares[token].resultVersion));
+        const bytes=this.imageFor(o,this.artifact(o,this.state.shares[token].resultId,this.state.shares[token].resultVersion));if(bytes?.length)this.shareRecords.delivered(token,proof,'image');return bytes;
     }
     publicModel(token, proof) { this.publicImage(token, proof); const o = this.publicOrder(token), a = this.artifact(o, this.state.shares[token].resultId, this.state.shares[token].resultVersion); if (!a?.previewKey || !this.resultModel)
-        fail('当前成果未提供三维预览。', 404); return this.resultModel(a.previewKey); }
+        fail('当前成果未提供三维预览。', 404); const model=this.resultModel(a.previewKey);if(model?.positions?.length)this.shareRecords.delivered(token,proof,'model');return model; }
     async projection(user, rows) {
         this.sales(user);
         const projected = [];
@@ -193,7 +193,7 @@ export class BusinessService {
             const chain = approvedDemoChain(user, row);
             if (chain) {
                 const old = this.state.orders[row.id];
-                this.state.orders[row.id] = { id: row.id, owner: user.id, status: row.status, completedAt: row.completedAt, hospital: row.hospital, patientName: row.patientName, projectId: chain.projectId, sex: chain.sex, identityRecord: old?.identityRecord || this.seal({ identityNumber: chain.identityNumber }), surgery: row.name, standardMapped: false, allowedPhones: ['13900000001'], published: true, imageApproved: true, artifacts: chain.artifacts, dataOrigin: 'isolated-business-fixture' };
+                this.state.orders[row.id] = { id: row.id, owner: user.id, status: row.status, completedAt: row.completedAt, hospital: row.hospital, patientName: row.patientName, expectedRecipient:row.expectedRecipient?.id&&row.expectedRecipient.id===row.doctorId?{id:row.expectedRecipient.id,name:String(row.expectedRecipient.name||'')}:null, projectId: chain.projectId, sex: chain.sex, identityRecord: old?.identityRecord || this.seal({ identityNumber: chain.identityNumber }), surgery: row.name, standardMapped: false, allowedPhones: ['13900000001'], published: true, imageApproved: true, artifacts: chain.artifacts, dataOrigin: 'isolated-business-fixture' };
             }
             else if (this.state.orders[row.id]?.owner === user.id) {
                 this.state.orders[row.id].published = false;
