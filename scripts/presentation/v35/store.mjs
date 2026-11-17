@@ -1,4 +1,4 @@
-import {get,put} from '@vercel/blob';
+import {get,put,BlobPreconditionFailedError} from '@vercel/blob';
 import {randomBytes,createCipheriv,createDecipheriv} from 'node:crypto';
 import {gzipSync,gunzipSync} from 'node:zlib';
 export function createPreviewStore({namespace,stateKey,read=get,write=put}){
@@ -8,6 +8,6 @@ export function createPreviewStore({namespace,stateKey,read=get,write=put}){
  const path=kind=>`presentation/${namespace}/v35-${kind}.enc`;
  async function load(kind){const r=await read(path(kind),{access:'private',useCache:false});if(!r||r.statusCode!==200)throw Error('演示存储不可用。');return{state:unseal(Buffer.from(await new Response(r.stream).arrayBuffer())),etag:r.blob.etag?.replace(/^W\//,'')}}
  async function initialize(kind,value){await write(path(kind),seal(value),{access:'private',addRandomSuffix:false,allowOverwrite:false,contentType:'application/octet-stream'})}
- async function transaction(kind,run){for(let attempt=0;attempt<5;attempt++){const{state,etag}=await load(kind),before=JSON.stringify(state),result=await run(state);if(before===JSON.stringify(state))return result;try{await write(path(kind),seal(state),{access:'private',addRandomSuffix:false,allowOverwrite:true,ifMatch:etag,contentType:'application/octet-stream'});return result}catch(e){if(e.name!=='BlobPreconditionFailedError'||attempt===4)throw e;await new Promise(r=>setTimeout(r,80+Math.random()*160))}}}
+ async function transaction(kind,run){for(let attempt=0;attempt<5;attempt++){const{state,etag}=await load(kind),before=JSON.stringify(state),result=await run(state);if(before===JSON.stringify(state))return result;try{await write(path(kind),seal(state),{access:'private',addRandomSuffix:false,allowOverwrite:true,ifMatch:etag,contentType:'application/octet-stream'});return result}catch(e){if(!(e instanceof BlobPreconditionFailedError)&&e.name!=='BlobPreconditionFailedError'||attempt===4)throw e;await new Promise(r=>setTimeout(r,80+Math.random()*160))}}}
  return{load,initialize,transaction};
 }
