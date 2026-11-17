@@ -1,0 +1,23 @@
+{
+  "checks": [
+    {
+      "name": "scan-https",
+      "pass": true
+    },
+    {
+      "name": "desktop-received-mobile-confirm",
+      "pass": true
+    },
+    {
+      "name": "scan-login-li",
+      "pass": true
+    },
+    {
+      "name": "second-scan-no-registration",
+      "pass": true
+    }
+  ],
+  "physicalCameraAndMobileNetwork": "not verified",
+  "verifiedPreview": "https://clinivol-prototype-davidshen561-cqz2wpq3r-wai22.vercel.app",
+  "sourceCommit": "4d966189810c51fd4955db75744a6ba759ab8280"
+}

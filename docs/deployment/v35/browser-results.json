@@ -1,0 +1,123 @@
+{
+  "checks": [
+    {
+      "name": "login-logo",
+      "result": true
+    },
+    {
+      "name": "chen-full-home",
+      "result": true
+    },
+    {
+      "name": "04-projects-content",
+      "result": true
+    },
+    {
+      "name": "05-reviews-content",
+      "result": true
+    },
+    {
+      "name": "06-project-detail-content",
+      "result": true
+    },
+    {
+      "name": "07-reconstruction-content",
+      "result": true
+    },
+    {
+      "name": "08-cad-content",
+      "result": true
+    },
+    {
+      "name": "cad-canvas",
+      "result": true
+    },
+    {
+      "name": "cad-refresh",
+      "result": true
+    },
+    {
+      "name": "li-role",
+      "result": true
+    },
+    {
+      "name": "11-orders-content",
+      "result": true
+    },
+    {
+      "name": "12-customers-content",
+      "result": true
+    },
+    {
+      "name": "13-insurance-content",
+      "result": true
+    },
+    {
+      "name": "14-order-detail-content",
+      "result": true
+    },
+    {
+      "name": "15-standard-order-content",
+      "result": true
+    },
+    {
+      "name": "16-report-content",
+      "result": true
+    },
+    {
+      "name": "17-pacs-content",
+      "result": true
+    },
+    {
+      "name": "invite-https",
+      "result": true
+    },
+    {
+      "name": "anonymous-mobile-invite",
+      "result": true
+    },
+    {
+      "name": "mobile-no-horizontal-overflow",
+      "result": true
+    },
+    {
+      "name": "mobile-doctor-submitted",
+      "result": true
+    },
+    {
+      "name": "sales-sees-new-doctor",
+      "result": true
+    },
+    {
+      "name": "share-https",
+      "result": true
+    },
+    {
+      "name": "anonymous-readonly-result",
+      "result": true
+    },
+    {
+      "name": "no-source-download",
+      "result": true
+    },
+    {
+      "name": "switch-陈屿",
+      "result": true
+    },
+    {
+      "name": "switch-李明",
+      "result": true
+    },
+    {
+      "name": "switch-陈屿",
+      "result": true
+    },
+    {
+      "name": "no-page-errors",
+      "result": true
+    }
+  ],
+  "errors": [],
+  "verifiedPreview": "https://clinivol-prototype-davidshen561-cqz2wpq3r-wai22.vercel.app",
+  "sourceCommit": "4d966189810c51fd4955db75744a6ba759ab8280"
+}

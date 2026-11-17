@@ -1,0 +1,38 @@
+{
+  "clients": 6,
+  "passed": true,
+  "results": [
+    {
+      "client": 0,
+      "status": 200,
+      "role": "sales"
+    },
+    {
+      "client": 1,
+      "status": 200,
+      "role": "designer"
+    },
+    {
+      "client": 2,
+      "status": 200,
+      "role": "sales"
+    },
+    {
+      "client": 3,
+      "status": 200,
+      "role": "designer"
+    },
+    {
+      "client": 4,
+      "status": 200,
+      "role": "sales"
+    },
+    {
+      "client": 5,
+      "status": 200,
+      "role": "designer"
+    }
+  ],
+  "verifiedPreview": "https://clinivol-prototype-davidshen561-cqz2wpq3r-wai22.vercel.app",
+  "sourceCommit": "4d966189810c51fd4955db75744a6ba759ab8280"
+}

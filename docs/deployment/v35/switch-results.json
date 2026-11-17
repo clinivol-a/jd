@@ -1,0 +1,23 @@
+{
+  "checks": [
+    {
+      "name": "switch-陈屿",
+      "result": true
+    },
+    {
+      "name": "switch-李明",
+      "result": true
+    },
+    {
+      "name": "switch-陈屿",
+      "result": true
+    },
+    {
+      "name": "no-page-errors",
+      "result": true
+    }
+  ],
+  "errors": [],
+  "verifiedPreview": "https://clinivol-prototype-davidshen561-cqz2wpq3r-wai22.vercel.app",
+  "sourceCommit": "4d966189810c51fd4955db75744a6ba759ab8280"
+}

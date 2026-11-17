@@ -1,0 +1,17 @@
+{
+  "url": "https://clinivol-prototype-davidshen561-cqz2wpq3r-wai22.vercel.app",
+  "status": "pass",
+  "checks": [
+    "Preview invitation accepted",
+    "session available",
+    "test inbox and approval routes return404",
+    "Chen password login",
+    "protected CAD model exact bytes",
+    "Li password login",
+    "insurance permission",
+    "Sales denied source CAD",
+    "Chen-Li-Chen switching"
+  ],
+  "verifiedPreview": "https://clinivol-prototype-davidshen561-cqz2wpq3r-wai22.vercel.app",
+  "sourceCommit": "4d966189810c51fd4955db75744a6ba759ab8280"
+}

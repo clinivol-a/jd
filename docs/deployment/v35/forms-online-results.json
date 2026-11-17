@@ -1,0 +1,79 @@
+{
+  "checks": [
+    {
+      "name": "upload-copy-removed",
+      "result": true
+    },
+    {
+      "name": "upload-group-gap",
+      "result": true
+    },
+    {
+      "name": "long-names-ellipsis",
+      "result": true
+    },
+    {
+      "name": "full-name-tooltip",
+      "result": true
+    },
+    {
+      "name": "recognize-icon-gap",
+      "result": true
+    },
+    {
+      "name": "upload-action-gap",
+      "result": true
+    },
+    {
+      "name": "upload-measurements",
+      "value": {
+        "iconGap": 8,
+        "uploadGap": 24,
+        "height": 32
+      }
+    },
+    {
+      "name": "verification-copy-removed",
+      "result": true
+    },
+    {
+      "name": "verification-buttons",
+      "result": true
+    },
+    {
+      "name": "identity-field-only",
+      "result": true
+    },
+    {
+      "name": "return-photos",
+      "result": true
+    },
+    {
+      "name": "report-draft-saved",
+      "result": true
+    },
+    {
+      "name": "report-draft-final-submit",
+      "result": true
+    },
+    {
+      "name": "pacs-query-secondary",
+      "result": true
+    },
+    {
+      "name": "pacs-initial-import-disabled",
+      "result": true
+    },
+    {
+      "name": "pacs-action-aligned",
+      "result": true
+    },
+    {
+      "name": "pacs-submit",
+      "result": true
+    }
+  ],
+  "errors": [],
+  "verifiedPreview": "https://clinivol-prototype-davidshen561-cqz2wpq3r-wai22.vercel.app",
+  "sourceCommit": "4d966189810c51fd4955db75744a6ba759ab8280"
+}
