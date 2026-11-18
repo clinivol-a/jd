@@ -1,0 +1,54 @@
+{
+  "dimensions": {
+    "body": {
+      "height": 994,
+      "scrollHeight": 994
+    },
+    "region": {
+      "x": 736,
+      "y": 264,
+      "width": 688,
+      "height": 682,
+      "top": 264,
+      "right": 1424,
+      "bottom": 946,
+      "left": 736
+    },
+    "pagination": {
+      "x": 736,
+      "y": 962,
+      "width": 688,
+      "height": 72,
+      "top": 962,
+      "right": 1424,
+      "bottom": 1034,
+      "left": 736
+    },
+    "rows": [
+      49,
+      49,
+      49,
+      49,
+      49,
+      49,
+      49,
+      49,
+      49,
+      49,
+      49,
+      49
+    ]
+  },
+  "compact": {
+    "bodyHeight": 712,
+    "scrollHeight": 712,
+    "pagerBottom": 732
+  },
+  "stats": {
+    "copyCount": 0,
+    "accessCount": 16,
+    "successCount": 12,
+    "uniqueViewerCount": 2,
+    "lastViewedAt": "2026-11-18T01:24:14.797Z"
+  }
+}

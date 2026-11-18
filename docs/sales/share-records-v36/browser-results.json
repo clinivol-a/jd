@@ -1,0 +1,93 @@
+{
+  "checks": [
+    {
+      "name": "16-records-12-success-2-visitors",
+      "pass": true
+    },
+    {
+      "name": "five-core-fields",
+      "pass": true
+    },
+    {
+      "name": "no-redundant-fields",
+      "pass": true
+    },
+    {
+      "name": "four-columns",
+      "pass": true
+    },
+    {
+      "name": "twelve-records-page1",
+      "pass": true
+    },
+    {
+      "name": "clean-identities-outcomes",
+      "pass": true
+    },
+    {
+      "name": "real-fixture-names",
+      "pass": true
+    },
+    {
+      "name": "native-components",
+      "pass": true
+    },
+    {
+      "name": "body-no-nested-scroll",
+      "pass": true
+    },
+    {
+      "name": "pagination-onscreen",
+      "pass": true
+    },
+    {
+      "name": "all-twelve-rows-visible",
+      "pass": true
+    },
+    {
+      "name": "page2-four-records",
+      "pass": true
+    },
+    {
+      "name": "compact-pagination-visible",
+      "pass": true
+    },
+    {
+      "name": "drawer-read-does-not-create-events",
+      "pass": true
+    },
+    {
+      "name": "refresh-stable",
+      "pass": true
+    },
+    {
+      "name": "#sales/home",
+      "pass": true
+    },
+    {
+      "name": "#sales/customers",
+      "pass": true
+    },
+    {
+      "name": "#sales/orders",
+      "pass": true
+    },
+    {
+      "name": "chen-full-home",
+      "pass": true
+    },
+    {
+      "name": "chen-workspace",
+      "pass": true
+    },
+    {
+      "name": "chen-cad",
+      "pass": true
+    },
+    {
+      "name": "no-browser-errors",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

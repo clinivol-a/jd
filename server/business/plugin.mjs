@@ -88,7 +88,7 @@ export function businessDesignPlugin({ authOrigin = 'http://127.0.0.1:5211', get
                         user.permissions = [...(user.permissions || []), 'insurance.export'];
                         user.phone = '13800000002';user.demoBusiness=true;
                     }
-                    if(a==='share-records'){if(localLi)await seedLocalShareRecords(service,user,token);return send(200,service.shareRecords.records(user,{token,page:u.searchParams.get('page'),pageSize:u.searchParams.get('pageSize')}));}
+                    if(a==='share-records'){return send(200,service.shareRecords.records(user,{token,page:u.searchParams.get('page'),pageSize:u.searchParams.get('pageSize')}));}
                     if(a==='share-copy')return send(200,await service.shareRecords.copy(user,body));
                     if (a === 'capabilities')
                         return send(200, { adapter: 'isolated-demo', insuranceExport: user.permissions?.includes('insurance.export'), samples: service.list(user) });
