@@ -355,5 +355,5 @@ html.sales-invite-document body,html.sales-invite-document #root {min-width:0;he
 .doctor-credential-name:hover{background:none;color:var(--td-brand-color)}
 .doctor-credential-name:focus-visible{outline:2px solid var(--td-brand-color-focus);outline-offset:2px}
 .doctor-credential-name:disabled{color:var(--td-text-color-disabled);cursor:not-allowed}
-.doctor-credential-meta{color:var(--td-text-color-secondary)}
+.doctor-credential-meta{color:var(--td-text-color-primary)}
 .doctor-credential-viewer{text-align:center}
