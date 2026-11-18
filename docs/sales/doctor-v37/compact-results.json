@@ -1,0 +1,33 @@
+{
+  "checks": [
+    {
+      "name": "filename-and-metadata-inline",
+      "pass": true
+    },
+    {
+      "name": "only-filename-green-and-clickable",
+      "pass": true
+    },
+    {
+      "name": "no-separate-preview-control",
+      "pass": true
+    },
+    {
+      "name": "filename-click-previews",
+      "pass": true
+    },
+    {
+      "name": "approval-only-two-lines",
+      "pass": true
+    },
+    {
+      "name": "return-reason-on-second-line",
+      "pass": true
+    },
+    {
+      "name": "no-browser-errors",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

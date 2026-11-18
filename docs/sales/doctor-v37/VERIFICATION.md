@@ -105,3 +105,12 @@
 - `tests/doctor-v37.test.mjs`、`tests/sales-invite.test.mjs`：新增规则/权限测试，旧原文件可下载断言按新规则改为403。
 - `design-system/ui-ux-consistency.md`、`docs/product/field-dictionary.md`、`docs/product/BUSINESS_DESIGN_V31.md`：本轮规则及未来管理员要求。
 - 本目录：验收结果及截图。
+
+## 同日补充确认：两处展示精简
+
+以上为V3.7首次交付的历史验收；以下补充规则替代首次版本的独立“预览”操作和第三行审核意见展示，其余数据、权限及迁移规则不变：
+
+- 文件名与提交人/时间放在同一行，只有文件名为品牌绿；文件名是可键盘操作的文字按钮，Pointer、点击后打开原只读预览，不另放“预览”文字。
+- 操作记录固定为标题与时间/操作人两行。系统默认“审核通过”不再重复显示；退回原因紧接第二行操作人，不显示“退回原因：”前缀。实际人工备注仍保留，数据中的意见、默认结果及来源标记不删除。
+- 浏览器实测：同行布局、仅文件名绿色及Pointer、点击PDF预览、通过两行、退回原因同行均通过。TypeScript/Vite构建通过，未部署。
+- [文件与提交信息同行](screenshots/12-inline-qualification.png)、[通过两行](screenshots/13-approval-two-lines.png)、[退回两行](screenshots/14-return-two-lines.png)、[断言结果](compact-results.json)。

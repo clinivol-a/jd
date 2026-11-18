@@ -890,11 +890,10 @@ export default function SalesWorkspace() {
           <i />
           <div>
             <strong>{data.doctors.some(d=>d.id===tid)?doctorEvent(e).title:e.title}</strong>
-            <p>
+            <p data-note-source={data.doctors.some(d=>d.id===tid)?doctorEvent(e).noteSource:undefined}>
               {data.doctors.some(d=>d.id===tid)?formatDateTime(e.at):formatAuditTime(e.at)} ·{" "}
-              {e.actor === "管理员（隔离测试）" ? "管理员" : e.actor}{!data.doctors.some(d=>d.id===tid)&&<> {e.detail}</>}
+              {e.actor === "管理员（隔离测试）" ? "管理员" : e.actor}{data.doctors.some(d=>d.id===tid)?doctorEvent(e).noteSource!=="system-default"&&doctorEvent(e).detail&&<>　{doctorEvent(e).detail.replace(/^退回原因[:：]\s*/,"")}</>:<> {e.detail}</>}
             </p>
-            {data.doctors.some(d=>d.id===tid)&&doctorEvent(e).detail&&<p data-note-source={doctorEvent(e).noteSource}>{doctorEvent(e).detail}</p>}
           </div>
         </li>
       ));
