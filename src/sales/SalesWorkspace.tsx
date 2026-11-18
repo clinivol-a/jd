@@ -1,3 +1,5 @@
+import {DoctorCredentials} from './DoctorCredentials';
+import {doctorSource,doctorEvent} from './doctorRecordRules.mjs';
 import {business as businessRequest} from './business/client';
 import {OrderEntryDialog} from './business/OrderEntryDialog';
 import {OrderImport} from './business/OrderImport';
@@ -9,7 +11,6 @@ import {PageBack} from '../PageBack';
 import {dashboardOrderBuckets,salesBusiness} from "./dashboardBusiness.mjs";
 import { addOrderScenario } from "./orderFixtures.mjs";
 import { ChevronLeftIcon, ChevronRightIcon } from "../design-system/tdesign";
-import { SalesAttachments } from "./SalesAttachments";
 import { OrderEditor, OrderDetail, OrderIcons } from "./OrderPages";
 import { confirmedDelivery, localDate } from "./orderRules.mjs";
 import { RangeControl } from "../projects/RangeControl";
@@ -455,7 +456,8 @@ export default function SalesWorkspace() {
                   phoneVerified: lead.phoneVerified,
                   invitedBy: account.id,
                   reason: "",
-                  source: lead.submissionMode === "sales-assisted" ? `销售协助建档 · ${lead.submittedBy || account.name}` : lead.code,
+                  source: lead.submissionMode === "sales-assisted" ? "销售建档" : "医生自主建档",
+                  submissionMode: lead.submissionMode, submittedBy: lead.submittedBy, invitationCode: lead.code,
                 },
               },
               false,
@@ -887,11 +889,12 @@ export default function SalesWorkspace() {
         <li className="timeline-item" key={e.id}>
           <i />
           <div>
-            <strong>{e.title}</strong>
+            <strong>{data.doctors.some(d=>d.id===tid)?doctorEvent(e).title:e.title}</strong>
             <p>
-              {formatAuditTime(e.at)} ·{" "}
-              {e.actor === "管理员（隔离测试）" ? "管理员" : e.actor} {e.detail}
+              {data.doctors.some(d=>d.id===tid)?formatDateTime(e.at):formatAuditTime(e.at)} ·{" "}
+              {e.actor === "管理员（隔离测试）" ? "管理员" : e.actor}{!data.doctors.some(d=>d.id===tid)&&<> {e.detail}</>}
             </p>
+            {data.doctors.some(d=>d.id===tid)&&doctorEvent(e).detail&&<p data-note-source={doctorEvent(e).noteSource}>{doctorEvent(e).detail}</p>}
           </div>
         </li>
       ));
@@ -1313,7 +1316,7 @@ export default function SalesWorkspace() {
                         ? "其他销售"
                         : "待关联",
                   ],
-                  ["建档来源", d.source],
+                  ["建档来源", doctorSource(d)],
                   [
                     "最近更新时间",
                     data.events.find((e) => e.target === d.id)?.at
@@ -1332,7 +1335,7 @@ export default function SalesWorkspace() {
         </Card>
         <Card bordered={false} className="project-info-card sales-doctor-detail-card sales-doctor-materials">
           <div className="section-heading"><h2>资质材料</h2></div>
-          {d.owner && d.owner!==account.id ? <Empty description="无资质附件访问权限"/> : ([['identity','身份证明'],['practice','执业证明材料'],['other','其他附件']] as const).map(([category,label])=><section className="sales-proof-group" key={category}><h3>{label}</h3><SalesAttachments owner={account.id} ownerName={account.name} value={d.materials} category={category} emptyText="暂无附件" readonly /></section>)}
+          <DoctorCredentials doctor={d} owner={account.id} ownerName={account.name}/>
         </Card>
         <Card bordered={false} className="project-info-card sales-doctor-detail-card">
           <div className="section-heading"><h2>关联订单</h2></div>

@@ -53,7 +53,7 @@ async function persistFile(owner:string, file:File):Promise<Attachment> {
 }
 export async function getFile(owner: string, a: Attachment): Promise<Blob> {
   if (a.storage === "demo-fixture") {
-    if (a.uploadedBy !== owner) throw Error("文件不可用或无访问权限。");
+    if ((a.storageOwner||a.uploadedBy) !== owner) throw Error("文件不可用或无访问权限。");
     const kind = a.type === "application/pdf" ? 1 : a.type.startsWith("image/") ? 2 : 0;
     return new Blob([fixtureBytes(kind) as Uint8Array<ArrayBuffer>], {type:a.type});
   }
@@ -80,6 +80,7 @@ export async function getFile(owner: string, a: Attachment): Promise<Blob> {
   }
 }
 export async function openFile(owner: string, a: Attachment) {
+  if(["identity","practice","other"].includes(a.category||"")||a.storage==="invitation")throw Error("医生资质材料仅支持预览。");
   const file = await getFile(owner, a);
   const url = URL.createObjectURL(file),
     anchor = document.createElement("a");

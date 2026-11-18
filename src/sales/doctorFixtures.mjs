@@ -23,11 +23,11 @@ export function completeDoctorFixtures(data) {
         if (d.status === '草稿')
             continue;
         if (!d.materials.length)
-            d.materials = ['identity', 'practice'].map((category, i) => ({ id: `doctor-fixture:${d.id}:${category}`, name: `合成材料-${category === 'identity' ? '身份资料' : '执业资料'}.pdf`, type: 'application/pdf', size: fixtureBytes(1).length, category, status: 'success', storage: 'demo-fixture', uploadedAt: '2026-11-09T08:00:00+08:00', uploadedBy: data.ownerId }));
+            d.materials = ['identity', 'practice'].map((category, i) => ({ id: `doctor-fixture:${d.id}:${category}`, name: `合成材料-${category === 'identity' ? '身份资料' : '执业资料'}.pdf`, type: 'application/pdf', size: fixtureBytes(1).length, category, status: 'success', storage: 'demo-fixture', uploadedAt: '2026-11-09T08:00:00+08:00', uploadedBy: d.source==='医生自主建档'?d.id:data.ownerId, uploadedByName:d.source==='医生自主建档'?d.name:undefined, storageOwner:data.ownerId }));
         if (!data.events.some(e => e.target === d.id && e.title.includes('审核'))) {
-            data.events.push({ id: `doctor-fixture:${d.id}:submit`, target: d.id, at: '2026-11-09T09:00:00+08:00', actor: '李明', title: '医生档案已提交审核', detail: '', read: true });
+            data.events.push({ id: `doctor-fixture:${d.id}:submit`, target: d.id, at: '2026-11-09T09:00:00+08:00', actor: d.source==='医生自主建档'?d.name:'李明', title: '医生档案已提交审核', detail: '', read: true });
             if (d.status !== '待审核')
-                data.events.push({ id: `doctor-fixture:${d.id}:review`, target: d.id, at: '2026-11-10T10:00:00+08:00', actor: '管理员', title: `医生${d.status}`, detail: d.status === '审核退回' ? d.reason : '资料审核通过。', read: true });
+                data.events.push({ id: `doctor-fixture:${d.id}:review`, target: d.id, at: '2026-11-10T10:00:00+08:00', actor: '管理员', title: d.status==='审核退回'?'医生档案审核退回':'医生档案审核通过', detail: d.status === '审核退回' ? d.reason : '审核通过', doctorEvent:d.status==='审核退回'?'returned':'approved', reviewNoteSource:d.status==='审核通过'?'system-default':'reviewer', read: true });
         }
     }
     return data;
@@ -51,7 +51,7 @@ export function ensureDoctorCreationEvents(data) {
  for(const doctor of data.doctors){
  const known=/^D26-\d+$/.test(doctor.id)||(/^D-[1-6]$/.test(doctor.id)&&doctor.certificate===`DEMO-QUAL-${doctor.id.slice(2)}`);
  if(!known||data.events.some(e=>e.target===doctor.id&&e.title==='医生档案已创建'))continue;
- data.events.push({id:`doctor-fixture:${doctor.id}:created`,target:doctor.id,at:'2026-11-08T08:00:00+08:00',actor:'李明',title:'医生档案已创建',detail:'',read:true});
+ data.events.push({id:`doctor-fixture:${doctor.id}:created`,target:doctor.id,at:'2026-11-08T08:00:00+08:00',actor:doctor.source==='医生自主建档'?doctor.name:'李明',title:'医生档案已创建',detail:'',read:true});
  }
  return data;
 }

@@ -13,7 +13,9 @@
     "test:auth": "node --experimental-strip-types --test tests/auth-service.test.mjs tests/auth-http.test.mjs tests/auth-storage.test.mjs tests/auth-console.test.mjs tests/auth-demo-scan.test.mjs tests/auth-targeted.test.mjs"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^1.1.1",
     "lucide-react": "^0.468.0",
+    "pdfjs-dist": "^6.5.438",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tdesign-icons-react": "^0.6.11",

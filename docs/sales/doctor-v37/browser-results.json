@@ -1,0 +1,137 @@
+{
+  "checks": [
+    {
+      "name": "first-two-stable-doctors",
+      "pass": true
+    },
+    {
+      "name": "three-groups-match-basic-field-gap",
+      "pass": true
+    },
+    {
+      "name": "empty-normal-color",
+      "pass": true
+    },
+    {
+      "name": "no-large-empty",
+      "pass": true
+    },
+    {
+      "name": "no-download-operation",
+      "pass": true
+    },
+    {
+      "name": "plain-brand-filename-stable-on-hover",
+      "pass": true
+    },
+    {
+      "name": "neutral-preview-no-hover-shift",
+      "pass": true
+    },
+    {
+      "name": "preview-keyboard-focus",
+      "pass": true
+    },
+    {
+      "name": "browser-pdf-raster-preview",
+      "pass": true
+    },
+    {
+      "name": "approval-title-and-default",
+      "pass": true
+    },
+    {
+      "name": "default-note-explicit-source",
+      "pass": true
+    },
+    {
+      "name": "second-source-self-service",
+      "pass": true
+    },
+    {
+      "name": "self-submitter-from-fixture",
+      "pass": true
+    },
+    {
+      "name": "actual-return-reason",
+      "pass": true
+    },
+    {
+      "name": "resubmit-keeps-return-history",
+      "pass": true
+    },
+    {
+      "name": "invitation-does-not-grant-owner",
+      "pass": true
+    },
+    {
+      "name": "server-authorized-preview",
+      "pass": true
+    },
+    {
+      "name": "preview-category-1",
+      "pass": true
+    },
+    {
+      "name": "preview-category-2",
+      "pass": true
+    },
+    {
+      "name": "sales-orders-smoke",
+      "pass": true
+    },
+    {
+      "name": "sales-home-smoke",
+      "pass": true
+    },
+    {
+      "name": "chen-home",
+      "pass": true
+    },
+    {
+      "name": "chen-reconstruction",
+      "pass": true
+    },
+    {
+      "name": "chen-cad",
+      "pass": true
+    },
+    {
+      "name": "no-browser-errors",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "metrics": {
+    "timeline": [
+      "2026-11-18 11:31 · 李明",
+      "2026-11-10 10:00 · 管理员",
+      "2026-11-09 09:00 · 李明",
+      "2026-11-08 08:00 · 李明"
+    ],
+    "basic": {
+      "gap": 5,
+      "font": "14px / 22px \"PingFang SC\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif",
+      "color": "rgba(0, 0, 0, 0.9)",
+      "gridGap": "20px"
+    },
+    "materials": {
+      "groups": [
+        {
+          "gap": 5,
+          "font": "14px / 22px \"PingFang SC\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif"
+        },
+        {
+          "gap": 5,
+          "font": "14px / 22px \"PingFang SC\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif"
+        },
+        {
+          "gap": 5,
+          "font": "14px / 22px \"PingFang SC\", \"Microsoft YaHei UI\", \"Microsoft YaHei\", system-ui, sans-serif"
+        }
+      ],
+      "gridGap": "20px",
+      "emptyColor": "rgba(0, 0, 0, 0.9)"
+    }
+  }
+}

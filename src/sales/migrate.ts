@@ -1,4 +1,5 @@
 import { completeDoctorFixtures, ensureDoctorCreationEvents } from "./doctorFixtures.mjs";
+import {migrateDoctorSources} from "./doctorRecordRules.mjs";
 import type { SalesData } from "./model";
 /** Versioned synthetic fixture migration; never clears user actions or replays transitions. */
 export function migrateSales(input: SalesData): SalesData {
@@ -14,6 +15,7 @@ export function migrateSales(input: SalesData): SalesData {
     while(usedPhones.has(phone)){hash=(hash+1)%100000000;phone="199"+String(hash).padStart(8,"0");}
     doctor.phone=phone;usedPhones.add(phone);
   }
+  migrateDoctorSources(data);
   if (data.fixtureRevision === 12) return data;
   if (data.fixtureRevision === 10 || data.fixtureRevision === 11) {ensureDoctorCreationEvents(data);data.fixtureRevision=12;return data;}
   const names = ["林致远", "周明哲", "许文博", "方景行", "陆承安", "徐嘉宁"];
@@ -83,6 +85,7 @@ export function migrateSales(input: SalesData): SalesData {
   // Remove only the isolated scheduling action introduced by the superseded V2.4 test flow.
   data.events = data.events.filter(e => !(e.title === "预计交付时间已确认" && e.actor === "管理员（隔离测试）"));
   completeDoctorFixtures(data);
+  migrateDoctorSources(data);
   data.events.sort(
     (a, b) =>
       new Date(b.at).getTime() - new Date(a.at).getTime() ||

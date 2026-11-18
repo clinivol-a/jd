@@ -1,0 +1,16 @@
+import {useEffect,useRef,useState} from 'react';
+import {Button,Dialog,MessagePlugin} from 'tdesign-react';
+import {formatAuditTime} from '../dateTime';
+import {doctorPreview} from './doctorPreview';
+import type {Attachment,Doctor} from './model';
+export function DoctorCredentials({doctor,owner,ownerName}:{doctor:Doctor;owner:string;ownerName:string}){
+  const [preview,setPreview]=useState<{file:Attachment;url:string;page:number;pages:number}|null>(null),[busy,setBusy]=useState(false);const request=useRef(0),url=useRef('');
+  useEffect(()=>()=>{request.current++;if(url.current)URL.revokeObjectURL(url.current)},[]);
+  const open=async(file:Attachment,page=1)=>{if(doctor.owner&&doctor.owner!==owner)return;const current=++request.current;setBusy(true);try{const result=await doctorPreview(owner,file,page);if(current!==request.current)return;if(url.current)URL.revokeObjectURL(url.current);url.current=URL.createObjectURL(result.blob);setPreview({file,url:url.current,page,pages:result.pages});}catch(e){if(current===request.current)void MessagePlugin.error((e as Error).message)}finally{if(current===request.current)setBusy(false)}};
+  const close=()=>{request.current++;if(url.current)URL.revokeObjectURL(url.current);url.current='';setPreview(null);setBusy(false)};
+  if(doctor.owner&&doctor.owner!==owner)return <p>无资质附件访问权限</p>;
+  return <><dl className="project-info-grid doctor-credential-fields">{([['identity','身份证明'],['practice','执业证明材料'],['other','其他附件']] as const).map(([category,label])=>{
+    const files=doctor.materials.filter(f=>f.category===category||category==='other'&&!f.category);
+    return <div key={category}><dt>{label}</dt><dd>{files.length?files.map(file=><div className="doctor-credential-file" key={file.id}><span className="doctor-credential-name">{file.name}</span><div className="doctor-credential-meta"><span>{file.uploadedByName||(file.uploadedBy===owner?ownerName:/^[\p{Script=Han}·]{2,20}$/u.test(file.uploadedBy||'')?file.uploadedBy:'提交人未记录')||'提交人未记录'} · {file.uploadedAt?formatAuditTime(file.uploadedAt):'提交时间未记录'} 提交</span><button type="button" className="doctor-credential-preview" disabled={busy} onClick={()=>void open(file)}>预览</button></div></div>):<span>暂无附件</span>}</dd></div>
+  })}</dl><Dialog visible={!!preview} header="资料预览" footer={false} onClose={close} width="min(800px, 90vw)">{preview&&<div className="doctor-credential-viewer"><img className="sales-attachment-preview" src={preview.url} alt={preview.file.name}/>{preview.pages>1&&<div className="sales-actions"><Button theme="default" variant="outline" disabled={busy||preview.page===1} onClick={()=>void open(preview.file,preview.page-1)}>上一页</Button><span>{preview.page} / {preview.pages}</span><Button theme="default" variant="outline" disabled={busy||preview.page===preview.pages} onClick={()=>void open(preview.file,preview.page+1)}>下一页</Button></div>}</div>}</Dialog></>;
+}

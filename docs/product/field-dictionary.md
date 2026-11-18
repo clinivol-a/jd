@@ -192,3 +192,23 @@
 - `shareEvents`：复制、页面打开、验证失败、无权限、Viewer 成功事件；保存唯一事件 ID、实际时间、成果关联和实际身份依据。`shareVisits/shareProofs`为访问会话与验证证明的受控绑定，不作为公开字段。
 - `copyCount/accessCount/successCount/uniqueViewerCount/lastViewedAt`：从已持久化事件投影；复制不等于已微信发送、页面打开不等于查看成功、验证码通过不等于患者实名。失败、Drawer 查询和重复回调不增加成功。
 - `visitorId/visitorName/visitorRole/maskedPhone`：实际验证成功后按可信授权映射解析；没有姓名/自然人角色映射时仅显示脱敏手机号及“获授权人员”。失败身份显示“未确认身份”，不得用患者或订单医生姓名补造。
+
+## V3.7 医生建档、资质与审核语义
+
+| 字段/事件 | 规范与数据边界 |
+|---|---|
+| 建档来源 | 销售建档 / 医生自主建档，基本资料不拼接销售姓名、邀请码或技术渠道 |
+| `source` / `submissionMode` | 兼容历史原值，展示经共享`doctorSource`归一；sales-assisted为销售代填，invite为本人邀请建档 |
+| `invitedBy` / `invitationCode` | 邀请来源，只记录邀请关系，不自动授予正式销售归属 |
+| `submittedBy` | 实际提交来源，与当前负责销售独立；不可用当前登录销售替换医生本人提交 |
+| 资质附件 | identity身份证明、practice执业证明材料、other其他附件；销售只读预览，不提供原文件下载 |
+| `uploadedBy` / `uploadedByName` | 记录上传身份及已知显示名；没有来源时显示未记录，不生成姓名 |
+| `storageOwner` | 隔离浏览器合成附件的存储账号，不能当成实际提交人；正式文件仍需服务端ACL |
+| `uploadedAt` | 实际提交时间；显示使用既定审计时间函数，不取打开页面时间 |
+| `doctorEvent=submitted` | 医生档案已提交审核 |
+| `doctorEvent=approved` | 医生档案审核通过 |
+| `doctorEvent=returned` | 医生档案审核退回，具体退回原因必填 |
+| `doctorEvent=resubmitted` | 医生档案已重新提交审核，生成新事件，不覆盖旧退回 |
+| `reviewNoteSource` | system-default为系统默认结果，reviewer为真实填写备注；旧记录只作展示映射，原文、原操作人及时间不改写 |
+
+通过无备注时默认内容“审核通过”；有备注时保留原文。退回展示“退回原因：实际原因”。旧记录缺原因不得补造，只标记未记录。审核责任归实际授权审核人，普通销售不能审批。本地测试管理员能力不等于正式管理员业务接口。

@@ -125,7 +125,7 @@ test("local invitation transport scopes sales sessions, validates source and que
     const downloaded = await fetch(base + "file?id=" + upload.id, {
       headers: { cookie: "sales" },
     });
-    assert.equal(await downloaded.text(), "fixture proof");
+    assert.equal(downloaded.status, 403);
     assert.equal((await fetch(base + "file?id=" + upload.id)).status, 403);
     const payload = {
       proof,

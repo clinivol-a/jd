@@ -1,3 +1,4 @@
+import {renderDoctorPreview} from './doctor-preview.mjs';
 import {clinicalContentError} from "../src/sales/clinicalContent.mjs";
 import { orderErrors } from "../src/sales/orderRules.mjs";
 import { InviteProof } from "./sales-invite-proof.mjs";
@@ -29,6 +30,8 @@ export function salesDemoPlugin(
         records = options.loadRecords ? await options.loadRecords() : JSON.parse(await readFile(file, "utf8"));
       } catch(e) {if(options.loadRecords)throw e;}
       vite.middlewares.use(async (req, res, next) => {
+        let requestPath;try{requestPath=decodeURIComponent((req.url||'').split('?')[0]);}catch{res.statusCode=400;res.end('Invalid request');return;}
+        if(/(?:^|\/)\.local(?:\/|$)/.test(requestPath)){res.statusCode=403;res.end('Access denied');return;}
         if (!req.url?.startsWith("/api/sales-demo/")) return next();
         const send = (status, value) => {
           res.statusCode = status;
@@ -245,11 +248,13 @@ export function salesDemoPlugin(
             );
             if (!f || f.owner !== user.id)
               return send(404, { error: "文件不可用或无访问权限。" });
-            res.setHeader("X-Content-Type-Options", "nosniff");
-            res.setHeader("Content-Type", f.type || "application/octet-stream");
-            res.setHeader("Cache-Control", "no-store");
-            res.end(Buffer.from(f.content, "base64"));
-            return;
+            return send(403,{error:"销售仅可预览医生资质材料，不提供原文件下载。"});
+          }
+          if(action==="file-preview"&&req.method==="GET"){
+            const f=records.files?.find(x=>x.id===url.searchParams.get("id")&&x.owner===user.id);
+            if(!f||!records.leads.some(l=>l.owner===user.id&&l.materials?.some(m=>m.id===f.id)))return send(404,{error:"文件不可用或无访问权限。"});
+            const preview=await renderDoctorPreview(Buffer.from(f.content,"base64"),f.type,Number(url.searchParams.get("page")||1));
+            res.setHeader("Content-Type","image/png");res.setHeader("Cache-Control","no-store");res.setHeader("X-Content-Type-Options","nosniff");res.setHeader("Content-Disposition","inline");res.setHeader("X-Preview-Pages",String(preview.pages));res.end(preview.bytes);return;
           }
           if (action === "invite" && req.method === "POST") {
             let invite = records.invites.find((i) => i.owner === user.id);

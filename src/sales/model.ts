@@ -2,6 +2,7 @@ import {clinicalContentError,clinicalText} from "./clinicalContent.mjs";
 import { doctorDraftDeleteError } from "./doctorFixtures.mjs";
 import { orderFixtures, syntheticPatients, stageTeams } from "./orderFixtures.mjs";
 import { localDate, designStages, orderErrors } from "./orderRules.mjs";
+import {doctorEventTitles} from "./doctorRecordRules.mjs";
 export type DoctorStatus = "草稿" | "待审核" | "审核通过" | "审核退回";
 export type OrderStatus =
   | "草稿"
@@ -24,6 +25,8 @@ export type Attachment = {
   category?: "identity" | "practice" | "other" | "imaging" | "order-other";
   uploadedAt?: string;
   uploadedBy?: string;
+  uploadedByName?: string;
+  storageOwner?: string;
   status?: "success";
   storage?: "browser" | "invitation" | "demo-fixture";
 };
@@ -40,6 +43,9 @@ export type Doctor = {
   materials: Attachment[];
   reason: string;
   source: string;
+  submissionMode?: "invite"|"sales-assisted";
+  submittedBy?: string;
+  invitationCode?: string;
   createdBy?: string;
   invitedBy?: string;
   updatedAt?: string;
@@ -117,6 +123,8 @@ export type Event = {
   detail: string;
   read: boolean;
   stage?: string;
+  doctorEvent?: "submitted"|"approved"|"returned"|"resubmitted";
+  reviewNoteSource?: "system-default"|"reviewer";
 };
 export type Request = {
   id: string;
@@ -403,8 +411,9 @@ export function transition(
       !doctor!.materials.some((f) => f.category === "identity")
     )
       fail("请补齐姓名、证书编号及资质材料。");
+    const resubmitting=doctor!.status==="审核退回";
     doctor!.status = "待审核";
-    title = "医生档案已提交审核";
+    title = doctorEventTitles[resubmitting?"resubmitted":"submitted"];
   } else if (c.type === "doctor-review") {
     if (
       !admin ||
@@ -421,7 +430,8 @@ export function transition(
         fail("医生已有关联销售，须审批归属变更。");
       doctor!.owner = d.ownerId;
     }
-    title = `医生${c.value}`;
+    title = doctorEventTitles[c.value==="审核通过"?"approved":"returned"];
+    if(c.value==="审核通过"&&!detail.trim())detail="审核通过";
   } else if (c.type === "case-create") {
     const v = c.value as Case;
     if (!v.summary.trim()) fail("请填写病例需求摘要。");
@@ -758,6 +768,7 @@ export function transition(
     title,
     detail,
     read: !admin,
+    ...(c.type==="doctor-review"?{doctorEvent:c.value==="审核通过"?"approved" as const:"returned" as const,reviewNoteSource:c.reason?.trim()?"reviewer" as const:"system-default" as const}:c.type==="doctor-submit"?{doctorEvent:title===doctorEventTitles.resubmitted?"resubmitted" as const:"submitted" as const}:{}),
     stage:
       c.type === "order-stage" ? title.replace("阶段已完成", "") : undefined,
   });

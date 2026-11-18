@@ -5,6 +5,7 @@ import type { UploadFile } from "tdesign-react";
 import type { UploadRef } from "tdesign-react/es/upload/interface";
 import type { Attachment } from "./model";
 import { saveFile, getFile, openFile } from "./files";
+import {doctorPreview} from "./doctorPreview";
 import { formatAuditTime } from "../dateTime";
 type Props = {
   owner: string;
@@ -76,7 +77,7 @@ export function SalesAttachments({
         let raw: File | undefined;
         if (images || nativeFlow) {
           try {
-            const blob = await (load ? load(f) : getFile(owner, f));
+            const blob = await (load ? load(f) : proofUpload&&f.storage==="invitation" ? doctorPreview(owner,f).then(r=>r.blob) : getFile(owner, f));
             if (images) raw = new File([blob], f.name, { type: f.type });
             if (active) {
               url = URL.createObjectURL(blob);
@@ -137,7 +138,7 @@ export function SalesAttachments({
     }
   };
   const view = async (f: Attachment) => {
-    try { if (f.type === "application/pdf" || f.type.startsWith("image/")) {
+    try { if(proofUpload&&!load){const result=await doctorPreview(owner,f);if(preview)URL.revokeObjectURL(preview);setPreviewType("image");setPreview(URL.createObjectURL(result.blob));return;} if (f.type === "application/pdf" || f.type.startsWith("image/")) {
       const blob=await (load ? load(f) : getFile(owner,f));
       if(preview)URL.revokeObjectURL(preview);
       setPreviewType(f.type==="application/pdf" ? "pdf" : "image");setPreview(URL.createObjectURL(blob));

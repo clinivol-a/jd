@@ -346,3 +346,14 @@ html.sales-invite-document body,html.sales-invite-document #root {min-width:0;he
 .sales-order-form-upload .t-upload__flow-table td:last-child {min-width:80px;}
 .sales-app .sales-doctor-form .sales-doctor-inputs {width:100%;max-width:380px;}
 @media(max-width:1000px){.sales-app .sales-doctor-form .sales-doctor-inputs{max-width:100%;}}
+
+/* Doctor details only: inherit the same Label/Value and field gaps as basic information. */
+.sales-doctor-materials .doctor-credential-fields{grid-template-columns:minmax(0,1fr)}
+.doctor-credential-file + .doctor-credential-file{margin-top:var(--td-comp-margin-m)}
+.doctor-credential-name{display:block;color:var(--td-brand-color);cursor:default;overflow-wrap:anywhere}
+.doctor-credential-meta{display:flex;align-items:center;flex-wrap:wrap;gap:var(--td-comp-margin-s);margin-top:var(--td-comp-margin-xs);color:var(--td-text-color-secondary)}
+.doctor-credential-preview{font:inherit;color:var(--td-text-color-primary);background:none;border:0;padding:0;margin:0;cursor:pointer;line-height:inherit}
+.doctor-credential-preview:hover{background:none;color:var(--td-text-color-primary)}
+.doctor-credential-preview:focus-visible{outline:2px solid var(--td-brand-color-focus);outline-offset:2px}
+.doctor-credential-preview:disabled{color:var(--td-text-color-disabled);cursor:not-allowed}
+.doctor-credential-viewer{text-align:center}
