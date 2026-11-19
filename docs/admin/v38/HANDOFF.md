@@ -29,6 +29,7 @@ pnpm admin:dev
 
 本地地址：`http://127.0.0.1:5230/#auth/password`。
 超级管理员手机号：`13800000003`。
+演示姓名：周景明；头像复用用户提供的 `/account-auth/avatars/portrait-06.jpg`。仅补全原预置管理员的占位姓名和空头像，不覆盖后来编辑的个人资料，不修改密码、权限及历史操作人记录。
 密码从本工作目录 `.local/auth/admin-credentials.json` 私密读取，文件权限0600，不在本说明或源代码中复制密码。
 
 初始化使用随机密码或 `ADMIN_DEMO_PASSWORD` 开发环境变量，幂等且不改既有账号。只允许显式本地隔离启动；Production、Vercel或公开认证Origin会拒绝启动。新增 HTTP 管理处理器仅在该启动器显式挂载，不加入现有线上部署入口。
