@@ -3,9 +3,11 @@ import { readFileSync, existsSync, writeFileSync, statSync } from 'node:fs'
 import { resolve, extname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { AuthService, AuthFailure, random, hash } from './service.mjs'
-export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=resolve('dist'),secure=origin.startsWith('https://'),devConsoleKey='',adminHandler}={}){
+export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=resolve('dist'),secure=origin.startsWith('https://'),devConsoleKey='',adminHandler,devConsoleOrigins=['http://127.0.0.1:5210','http://localhost:5210']}={}){
  const cookies=req=>Object.fromEntries((req.headers.cookie||'').split(';').map(v=>v.trim().split('=')))
- const allowed=new Set([origin,'http://127.0.0.1:5210','http://localhost:5210']);const limits=new Map()
+ const consoleOrigins=new Set(devConsoleOrigins.filter(value=>/^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(value)));
+ const consoleHosts=new Set([...consoleOrigins].map(value=>new URL(value).host));
+ const allowed=new Set([origin,...consoleOrigins,'http://127.0.0.1:5210','http://localhost:5210']);const limits=new Map()
  const server=createServer(async(req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('Permissions-Policy','camera=(), microphone=(), geolocation=()')
   try{
@@ -27,14 +29,14 @@ export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=re
    const rateKey=(req.socket.remoteAddress||'')+':'+action;const previous=limits.get(rateKey)||[];const attempts=previous.filter(t=>t>Date.now()-60000);if(attempts.length>(['login/password','otp/send','otp/verify','scan/create'].includes(action)?15:100))throw new AuthFailure('操作过于频繁，请稍后重试。',429);attempts.push(Date.now());limits.set(rateKey,attempts)
    let result
    if(action.startsWith('dev/')){
-    const localOrigin=/^http:\/\/(localhost|127\.0\.0\.1):5210$/.test(requestOrigin||'');const forwarded=req.headers['x-forwarded-host'];
-    if(!devConsoleKey||!service.testConsole||process.env.NODE_ENV==='production'||req.headers['cf-connecting-ip']||req.headers.forwarded||req.headers['x-forwarded-proto']==='https'||!localOrigin||forwarded&&!/^(localhost|127\.0\.0\.1):5210$/.test(String(forwarded))||req.headers['x-clinivol-dev-console']!==devConsoleKey)throw new AuthFailure('接口不存在。',404)
+    const localOrigin=consoleOrigins.has(requestOrigin||'');const forwarded=req.headers['x-forwarded-host'];
+    if(!devConsoleKey||!service.testConsole||process.env.NODE_ENV==='production'||req.headers['cf-connecting-ip']||req.headers.forwarded||req.headers['x-forwarded-proto']==='https'||!localOrigin||forwarded&&!consoleHosts.has(String(forwarded))||req.headers['x-clinivol-dev-console']!==devConsoleKey)throw new AuthFailure('接口不存在。',404)
     if(req.method!=='POST')throw new AuthFailure('请求方式不支持。',405)
     if(action==='dev/risk')result=service.testRisk(d,body)
     else if(action==='dev/state')result=service.testState(d)
     else if(action==='dev/review')result=service.testReview(body)
     else if(action==='dev/reset-sales')result=service.resetSales(d)
-    else if(action==='dev/reset')result=service.testReset()
+    else if(action==='dev/reset'){if(service.accounts.some(a=>a.role==='super_admin'))throw new AuthFailure('请使用销售场景重置，保留已有工程师和管理员账号。',409);result=service.testReset()}
     else throw new AuthFailure('接口不存在。',404)
     res.end(JSON.stringify(result));return
    }
