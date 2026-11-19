@@ -1,0 +1,32 @@
+{
+  "screenshots": [
+    "13-chen-workbench.png",
+    "13b-chen-projects.png",
+    "13c-reconstruction.png",
+    "13d-cad.png",
+    "12-li-workbench.png",
+    "12b-li-customers.png",
+    "12c-li-doctor.png",
+    "12d-li-orders.png",
+    "12e-li-order.png",
+    "admin-profile.png",
+    "admin-security.png",
+    "01-admin-login.png"
+  ],
+  "checks": [
+    {
+      "name": "Chen-auth",
+      "role": "designer"
+    },
+    "Chen-full-five-card-workbench",
+    {
+      "name": "Li-auth",
+      "role": "sales"
+    },
+    "Li-to-Chen-UI-switch-no-sales-nav",
+    "Chen-to-Li-UI-switch-no-engineering-tabs",
+    "three-valid-sessions-UI-switch",
+    "admin-logout-through-existing-dialog"
+  ],
+  "errors": []
+}

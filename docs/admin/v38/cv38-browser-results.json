@@ -1,0 +1,157 @@
+{
+  "screenshots": [
+    "02-home-light.png",
+    "home-1366.png",
+    "home-1440.png",
+    "home-1920.png",
+    "sidebar-collapsed.png",
+    "03-home-dark.png",
+    "04-order-list.png",
+    "05-order-detail.png",
+    "05b-order-approved.png",
+    "06-task-dispatch.png",
+    "07-doctor-review.png",
+    "07b-protected-preview.png",
+    "08-hospital-leaders.png",
+    "08b-hospital-detail.png",
+    "09-permissions-written-basis.png",
+    "09b-approval-drawer.png",
+    "10-data-assets.png",
+    "10b-asset-trace.png",
+    "11-audit-log.png",
+    "admin-lock.png",
+    "01-admin-login.png"
+  ],
+  "stats": [
+    {
+      "label": "待审核订单",
+      "card": 5,
+      "listTotal": "共 5 条数据",
+      "url": "http://127.0.0.1:5230/#admin/orders"
+    },
+    {
+      "label": "待分配任务",
+      "card": 15,
+      "listTotal": "共 15 条数据",
+      "url": "http://127.0.0.1:5230/#admin/tasks/unassigned"
+    },
+    {
+      "label": "账号及资质审核",
+      "card": 5,
+      "listTotal": "共 5 条数据",
+      "url": "http://127.0.0.1:5230/#admin/reviews/pending"
+    },
+    {
+      "label": "进行中订单",
+      "card": 9,
+      "listTotal": "共 9 条数据",
+      "url": "http://127.0.0.1:5230/#admin/orders"
+    },
+    {
+      "label": "交付风险",
+      "card": 1,
+      "listTotal": "共 1 条数据",
+      "url": "http://127.0.0.1:5230/#admin/orders/risk"
+    }
+  ],
+  "widths": [
+    {
+      "width": 1366,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 1366,
+        "height": 56
+      },
+      "nav": {
+        "x": 0,
+        "y": 56,
+        "width": 224,
+        "height": 944
+      },
+      "main": {
+        "x": 224,
+        "y": 56,
+        "width": 1142,
+        "height": 944
+      },
+      "page": {
+        "x": 224,
+        "y": 56,
+        "width": 1142,
+        "height": 944
+      },
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 56
+      },
+      "nav": {
+        "x": 0,
+        "y": 56,
+        "width": 224,
+        "height": 944
+      },
+      "main": {
+        "x": 224,
+        "y": 56,
+        "width": 1216,
+        "height": 944
+      },
+      "page": {
+        "x": 224,
+        "y": 56,
+        "width": 1216,
+        "height": 944
+      },
+      "overflow": false
+    },
+    {
+      "width": 1920,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 56
+      },
+      "nav": {
+        "x": 0,
+        "y": 56,
+        "width": 224,
+        "height": 944
+      },
+      "main": {
+        "x": 224,
+        "y": 56,
+        "width": 1696,
+        "height": 944
+      },
+      "page": {
+        "x": 224,
+        "y": 56,
+        "width": 1696,
+        "height": 944
+      },
+      "overflow": false
+    }
+  ],
+  "actions": [
+    "order-pagination-distinct",
+    "review-blocked-before-takeover",
+    "UI-takeover-approve-only-requested-4-stages",
+    "qualified-assignment-stale-version-rejected",
+    "doctor-approval-written-basis-system-note",
+    "hospital-change-preserves-existing-orders",
+    "doctor-approval-written-basis-system-note",
+    "hospital-change-preserves-existing-orders",
+    "disconnected-share-service-honest-empty-state",
+    "refresh-persists-auth-and-audit",
+    "lock-unlock-restores-route"
+  ],
+  "errors": []
+}

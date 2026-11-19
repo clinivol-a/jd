@@ -1,0 +1,17 @@
+import {useEffect,useState} from 'react';
+import {useWorkspaceStorage} from '../auth/AuthContext';
+import type {ReactNode} from 'react';
+import {Empty,Pagination,Table,Tooltip} from 'tdesign-react';
+export type Column<T>={key:string;label:string;width?:number;render:(row:T)=>ReactNode};
+export function AdminTable<T extends {id:string}>({rows,columns,paginate=true}:{rows:T[];columns:Column<T>[];paginate?:boolean}){
+ const storage=useWorkspaceStorage();
+ const identity=columns.map(c=>c.key).join('|')+rows.map(r=>r.id).join('|');
+ const key='admin-table-page:'+Array.from(identity).reduce((h,c)=>Math.imul(h,31)+c.charCodeAt(0)|0,0);
+ const readPage=()=>Math.max(1,Number(storage.getItem(key))||1);
+ const [page,setPage]=useState(readPage),size=8,total=rows.length;
+ useEffect(()=>setPage(readPage()),[key,storage]);
+ useEffect(()=>{const reset=()=>{storage.setItem(key,'1');setPage(1)};window.addEventListener('clinivol-admin-reset-pages',reset);return()=>window.removeEventListener('clinivol-admin-reset-pages',reset)},[key,storage]);
+ const safePage=Math.min(page,Math.max(1,Math.ceil(total/size))),visible=paginate?rows.slice((safePage-1)*size,safePage*size):rows;
+ return <div className="admin-data-table"><Table<T> rowKey="id" data={visible} columns={columns.map(c=>({colKey:c.key,title:c.label,width:c.width||(['action','actions'].includes(c.key)?110:undefined),fixed:['action','actions'].includes(c.key)?'right' as const:undefined,ellipsis:true,cell:({row}:{row:T})=>c.render(row)}))} hover bordered={false} className="app-table" empty={<Empty description="暂无数据"/>}/>{paginate&&total>0&&<div className="table-pagination"><Pagination current={safePage} pageSize={size} total={total} showPageSize={false} showJumper={false} onCurrentChange={value=>{setPage(value);storage.setItem(key,String(value))}}/></div>}</div>
+}
+export function FullText({children}:{children:string}){return <Tooltip content={children}><span className="admin-ellipsis">{children}</span></Tooltip>}

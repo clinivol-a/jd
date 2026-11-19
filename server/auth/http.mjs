@@ -3,13 +3,14 @@ import { readFileSync, existsSync, writeFileSync, statSync } from 'node:fs'
 import { resolve, extname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { AuthService, AuthFailure, random, hash } from './service.mjs'
-export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=resolve('dist'),secure=origin.startsWith('https://'),devConsoleKey=''}={}){
+export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=resolve('dist'),secure=origin.startsWith('https://'),devConsoleKey='',adminHandler}={}){
  const cookies=req=>Object.fromEntries((req.headers.cookie||'').split(';').map(v=>v.trim().split('=')))
  const allowed=new Set([origin,'http://127.0.0.1:5210','http://localhost:5210']);const limits=new Map()
  const server=createServer(async(req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('Permissions-Policy','camera=(), microphone=(), geolocation=()')
   try{
    const url=new URL(req.url,origin)
+   if(adminHandler&&url.pathname.startsWith('/api/admin/')){await adminHandler(req,res);return}
    if(!url.pathname.startsWith('/api/auth/')){
     const p=resolve(dist,'.'+decodeURIComponent(url.pathname));if(!p.startsWith(dist+'/')&&p!==dist)throw new AuthFailure('Not found',404)
     const f=existsSync(p)&&statSync(p).isFile()?p:join(dist,'index.html');if(!existsSync(f))throw new AuthFailure('请先构建前端资源。',503)

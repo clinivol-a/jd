@@ -1,0 +1,22 @@
+✔ HTTP cookie session is authority; cross-origin/locked/sales denied; source download not exposed (113.211208ms)
+✔ safe seed is opt-in, idempotent, preserves old users/hashes and no professional qualification (70.843833ms)
+✔ seed forbidden in production and conflicts never alter accounts (22.994084ms)
+✔ statistics use the same business records and stages respect request/dependency (24.13025ms)
+✔ sales role spoofing, no permission, and out-of-scope actors rejected server side (22.738125ms)
+✔ responsibility required, explicit takeover audit, stale conflicting review rejected, requested tasks only (23.197459ms)
+✔ hospital leader change preserves existing order responsibility and audit before/after (21.851958ms)
+✔ assignment enforces order owner, stage qualification and due date; waiting dependency stays blocked (22.798959ms)
+✔ doctor review uses mandatory return reason / written approval and system default note; readonly preview (22.021167ms)
+✔ permission approval preserves basis, scope, approver, executor and no automatic professional authority (22.275375ms)
+✔ persistent actual actions and filtered metadata export; no fabricated share revoke (22.627291ms)
+✔ new sales receipt uses current hospital leader, no duplicate order, no premature tasks (21.933125ms)
+✔ actual local auth pending account approval requires evidence and grants only requested sales role (22.059209ms)
+✔ professional review authority is never implied; metadata export is separately scoped (21.722917ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 379.503917

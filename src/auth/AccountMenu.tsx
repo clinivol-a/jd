@@ -4,7 +4,7 @@ import {UserCircleIcon,UserSafetyIcon,SettingIcon,LogoutIcon,ChevronRightIcon,Ch
 import {useAuth} from './AuthContext'
 import type {AuthAccount} from './client'
 import './accountMenu.css'
-export const roleName=(a:AuthAccount)=>a.role==='designer'?'三维重建设计师':a.role==='sales'?'销售':'尚未授予岗位'
+export const roleName=(a:AuthAccount)=>a.role==='designer'?'三维重建设计师':a.role==='sales'?'销售':a.role==='super_admin'?'超级管理员':'尚未授予岗位'
 export function AccountAvatar({account,size=32}:{account:AuthAccount;size?:number}){const [failed,setFailed]=useState(false);useEffect(()=>setFailed(false),[account.avatar]);return <Avatar shape="circle" size={String(size)} image={!failed?account.avatar||undefined:undefined} onError={()=>setFailed(true)} icon={!account.avatar||failed?<UserCircleIcon/>:undefined} alt={`${account.name}头像`}/>}
 export default function AccountMenu({onSettings,beforeChange=(action)=>action()}:{onSettings:(section:'profile'|'security'|'preferences')=>void;beforeChange?:(action:()=>void)=>void}){
  const auth=useAuth(),a=auth.user!,[open,setOpen]=useState(false),[sub,setSub]=useState(false),[error,setError]=useState('');const panel=useRef<HTMLDivElement>(null),trigger=useRef<HTMLButtonElement>(null),switcher=useRef<HTMLDivElement>(null)

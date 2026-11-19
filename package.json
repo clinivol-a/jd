@@ -10,7 +10,9 @@
     "preview": "vite preview --host 127.0.0.1",
     "auth:dev": "node server/auth/local-dev.mjs",
     "auth:server": "node server/auth/http.mjs",
-    "test:auth": "node --experimental-strip-types --test tests/auth-service.test.mjs tests/auth-http.test.mjs tests/auth-storage.test.mjs tests/auth-console.test.mjs tests/auth-demo-scan.test.mjs tests/auth-targeted.test.mjs"
+    "test:auth": "node --experimental-strip-types --test tests/auth-service.test.mjs tests/auth-http.test.mjs tests/auth-storage.test.mjs tests/auth-console.test.mjs tests/auth-demo-scan.test.mjs tests/auth-targeted.test.mjs",
+    "admin:dev": "node server/admin/dev.mjs",
+    "test:admin": "node --test tests/admin-*.test.mjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.1.1",

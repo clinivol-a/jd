@@ -218,3 +218,9 @@ shadow-1用于基础投影及指定轻量交互，shadow-2用于Dropdown/Popover
 ## V3.3 成果关联与统一录单（2026-11-16）
 
 报告识别/PACS完成资料获取后复用标准OrderEditor四步流程，不再复制需求/上传/确认表单。成果必须由订单、项目、任务、成果ID及版本明确关联，审核与发布分别校验；已完成不等于允许分享。医保批准图与阶段分享共用该成果登记。隔离合成成果不能冒充临床计算或正式审核日志；正式OCR/PACS、短信、患者授权、医保目录及成果服务的未接入边界继续如实记录。本轮仅feature/a-v3.1-business-design本地修改，不改冻结V3.0、main或design-handoff，不部署。
+
+## V3.8 超级管理员增量开发（2026-11-19）
+
+V3.7已由`a-v3.7-pre-admin-20261119`及同名backup引用保护。管理端只在`feature/a-v3.8-super-admin-workbench`独立worktree本地迭代，不改main、design-handoff、V3.0或部署。新增业务集中src/admin与server/admin；最小接入既有认证，复用GlobalHeader、AccountMenu、SettingsPage、Menu及PageBack，不改销售/工程师已确认UI和全局Token。真实本地认证与隔离管理业务的边界见docs/admin/v38/HANDOFF.md。
+
+超级管理员管理权限不等于专业审核资格。医院同一时间一名负责组长，一名组长可负责多家医院；新订单按医院当前关系匹配，旧订单转派/接管必须显式留痕，日常审核不重复分发。账号开通及权限变更需书面依据；医生通过备注可空、退回原因必填。服务端检查权限/范围/状态/版本，不能通过前端角色或菜单自授权。

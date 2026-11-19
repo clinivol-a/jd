@@ -10,6 +10,7 @@ import type {Session} from './client'
 import SalesWorkspace from '../sales/SalesWorkspace'
 import {SalesInvitePage} from '../sales/SalesInvite'
 import {roleName,AccountAvatar} from './AccountMenu'
+const AdminWorkspace=lazy(()=>import('../admin/AdminWorkspace'))
 const DevConsole=(import.meta.env.DEV||import.meta.env.VITE_PRESENTATION_DEMO==='1')?lazy(()=>import('./DevConsole')):null
 const empty:Session={user:null,candidate:null,accounts:[],locked:false,capabilities:{wechat:false,sms:false,scan:false,mode:'unavailable'}}
 async function flushWorkspace(){const checks:Promise<boolean>[]=[];window.dispatchEvent(new CustomEvent('clinivol-before-account-change',{detail:{checks}}));if((await Promise.all(checks)).some(v=>!v))throw new Error('工程尚未保存成功，请先处理保存错误。')}
@@ -26,7 +27,7 @@ export default function IntegrationRoot(){const [session,setSession]=useState<Se
  if((import.meta.env.DEV||import.meta.env.VITE_PRESENTATION_DEMO==='1')&&location.pathname==='/sales-invite')return <SalesInvitePage/>
  if(loading)return <div className="auth-initial-loading">正在校验登录状态…</div>
  const user=session.user
- return <AuthContext.Provider value={auth}>{route.startsWith('#scan/')?<ScanPhonePage/>:!user||route.startsWith('#auth/')?<AuthPages route={route}/>:user.role==='designer'?<App key={user.id}/>:<SalesWorkspace key={user.id}/>}
+ return <AuthContext.Provider value={auth}>{route.startsWith('#scan/')?<ScanPhonePage/>:!user||route.startsWith('#auth/')?<AuthPages route={route}/>:user.role==='super_admin'?<Suspense fallback={<div className="auth-initial-loading">正在载入工作台…</div>}><AdminWorkspace key={user.id}/></Suspense>:user.role==='designer'?<App key={user.id}/>:<SalesWorkspace key={user.id}/>}
  {DevConsole&&(!user||route.startsWith('#auth/'))&&<Suspense fallback={null}><DevConsole/></Suspense>}
  <Dialog visible={logoutOpen} header="退出登录" confirmBtn="退出登录" cancelBtn="取消" onClose={()=>setLogoutOpen(false)} onConfirm={()=>void auth.logout().then(()=>setLogoutOpen(false)).catch(e=>setError(e.message))}>确定要退出当前账号吗？{error&&<p role="alert">{error}</p>}</Dialog>
  {user&&session.locked&&!route.startsWith('#auth/')&&<div className="lock-screen"><form className="lock-panel auth-integration-lock" onSubmit={e=>{e.preventDefault();setLockBusy(true);setLockError('');void auth.unlock(unlock).then(()=>setUnlock('')).catch(e=>setLockError(e.message)).finally(()=>setLockBusy(false))}}><img className="auth-lock-brand" src={`/assets/clinivol-logo-${document.documentElement.getAttribute('theme-mode')==='dark'?'dark':'light'}.png`} alt="科立沃"/><div className="auth-lock-person"><AccountAvatar account={user} size={58}/><h2>已锁定</h2><p>{user.name} · {roleName(user)}</p><Tag theme="warning" variant="light">当前账号处于锁定状态</Tag></div><div className="auth-lock-input"><Input type="password" value={unlock} onChange={v=>{setUnlock(v);setLockError('')}} placeholder={session.capabilities.demoUnlock?'请输入任意非空数字':'请输入账号密码'} status={lockError?'error':undefined} tips={lockError||undefined}/></div><Button theme="primary" block type="submit" loading={lockBusy}>解锁并返回</Button></form></div>}

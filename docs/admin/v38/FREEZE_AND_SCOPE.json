@@ -1,0 +1,17 @@
+{
+  "baseCommit": "8c4081edaa7c976ecacd1bad5a7a7836680bbe4f",
+  "branch": "feature/a-v3.8-super-admin-workbench",
+  "archive": "/Users/yifei/Documents/Codex/Backups/clinivol-A-v3.7-pre-admin-20261119/clinivol-A-v3.7-pre-admin-20261119.zip",
+  "sha256": "f72524f8bebb6e249cc9edc159e56b81dee53649646532ebb8db489775aefc1b",
+  "restoreBuild": "passed independently",
+  "protectedReferences": {
+    "main": "40325227135e20c0b7cbabee7080bcacedb264e8",
+    "design-handoff": "3f4911050c6b21e496c20a809730ca70cdfcd8f9",
+    "a-v3.0-review-baseline-20261116^{}": "1beeaa6ff126f371550780d6a9918b840e111f5e",
+    "a-v3.7-pre-admin-20261119^{}": "8c4081edaa7c976ecacd1bad5a7a7836680bbe4f",
+    "backup/a-v3.7-pre-admin-20261119": "8c4081edaa7c976ecacd1bad5a7a7836680bbe4f"
+  },
+  "originalRuntimeHashesUnchanged": true,
+  "deployed": false,
+  "pushed": false
+}

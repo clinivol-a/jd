@@ -212,3 +212,20 @@
 | `reviewNoteSource` | system-default为系统默认结果，reviewer为真实填写备注；旧记录只作展示映射，原文、原操作人及时间不改写 |
 
 通过无备注时默认内容“审核通过”；有备注时保留原文。退回展示“退回原因：实际原因”。旧记录缺原因不得补造，只标记未记录。审核责任归实际授权审核人，普通销售不能审批。本地测试管理员能力不等于正式管理员业务接口。
+
+## V3.8 管理端字段与权限边界
+
+| 字段 | 语义与来源 |
+|---|---|
+| `Hospital.leaderId` | 当前唯一负责组长；变更只影响后续订单匹配 |
+| `Order.leaderId / version` | 订单当前审核/调度责任与并发版本；接管或转派保留前后身份、原因、执行人和时间 |
+| `Order.requestedStages` | 实际请求阶段的唯一顺序集合，受理后才建立对应任务 |
+| `Task.upstreamId / assignee / plannedDate / version` | 上游依赖、具备阶段能力负责人、计划日期与版本；分配不等于解锁或开始 |
+| `Person.permissions / scope / stages` | 管理授权、医院范围、专业能力分别管理；岗位名称不代替权限与专业审核资格 |
+| `Approval.basis / approverId / executorId / hospitalIds` | 书面审批依据、批准人、实际执行人、生效范围；明确本地认证申请或隔离业务登记来源 |
+| `Asset.orderId / projectId / taskId / id / version / revision` | 业务追溯与成果版本；revision是管理关系并发版本，不生成新成果版本 |
+| `AuditEvent.before / after / reason / basis / source` | 不可变变更快照、实际原因及依据、隔离业务或本地认证来源；查询不产生假操作 |
+
+`super_admin`仅由明确本地幂等初始化创建，不允许普通注册申请或测试控制台提权。原陈屿与李明账号不重置。`requestedDueDate`与`confirmedDeliveryDate`继续原语义；无受理排期不造确认交期，专业任务开始不决定订单交期。
+
+新增ADM资料均属隔离合成业务；不作为销售/工程师已有记录或正式临床审计。正式跨角色统一服务、专业成果审核写入及销售分享管理员接口待接入，详见管理端交付文档。
