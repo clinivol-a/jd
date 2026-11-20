@@ -46,6 +46,15 @@ test('task expansion remains project-grouped/stage-ordered/authorized and projec
  four.tasks[0].owner='其他人员';assert.equal(pm.filterTasks(projects,{...f,search:four.id}).length,3);
  const legacy=pm.projectsFor([{...four.tasks[1],orderNo:'legacy',catalogDemo:false}],[],now)[0];assert.equal(legacy.agreedDueAt,undefined); // Never promote a task deadline to a project contract date.
 });
+test('all known designer demo projects have project delivery dates, independent of task deadlines and without overriding confirmed orders',()=>{
+ const legacy=Object.keys(pm.demoProjectMetadata).map((orderNo,i)=>({id:`legacy-${i}`,orderNo,title:'旧演示项目',owner:'陈屿',patient:'synthetic',taskType:'三维重建',status:'进行中',deadline:'2027-12-31T18:00:00',series:[],review:[]}));
+ const tasks=[...legacy,...pm.withDemoProjects([]).flatMap(p=>p.tasks)],before=structuredClone(tasks);
+ const projects=pm.projectsFor(tasks,[],now);assert.equal(projects.length,13);assert.ok(projects.every(p=>/^2026-\d{2}-\d{2}$/.test(p.agreedDueAt)));
+ const rows=pm.filterTasks(projects,{...pm.defaultFilters(),range:['',''],stage:'全部',status:'全部'});assert.ok(rows.every(r=>r.project.agreedDueAt));assert.deepEqual(tasks,before);
+ for(const task of legacy){const first=projects.find(p=>p.id===task.orderNo);const changed=pm.projectsFor([{...task,deadline:'2028-01-01T00:00:00'}],[],now)[0];assert.equal(changed.agreedDueAt,first.agreedDueAt);}
+ const known=legacy[0];assert.equal(pm.projectsFor([{...known,dataOrigin:'production'}],[],now)[0].agreedDueAt,undefined);
+ const shared={...known,sharedBusiness:true,accessible:true,agreedDueAt:'2026-12-18',projectCreatedAt:'2026-11-20',assigneeId:'chen-yu'};assert.equal(pm.projectsFor([shared],[],now)[0].agreedDueAt,'2026-12-18');
+});
 test('review submissions do not impersonate reviewers and mirrored event IDs remain traceable',()=>{
  const task={...pm.withDemoProjects([])[0].tasks[0],id:'audit-task',orderNo:'audit-project',catalogDemo:false,review:[{time:'2026-11-02T08:30:00',actor:'陈屿',status:'已提交审核',note:'提交资料'},{time:'2026-11-02T09:00:00',actor:'管理员',reviewerIdentity:{name:'周景明',id:'admin'},status:'审核通过',note:'确认'}]};
  const events=[{id:'submission-event',taskId:task.id,orderNo:task.orderNo,type:'review-submit',name:'提交审核',at:'2026-11-02T08:30:00',actor:'陈屿',role:'工程师',description:'提交资料'}];const before=structuredClone({task,events});const rows=reviewRecords([task],events);

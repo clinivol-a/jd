@@ -10,13 +10,13 @@ export type Period = '3m'|'6m'|'12m'|'custom'|'month'
 export type Filters = { view:'projects'|'tasks'; search:string; period:Period; range:DateRange; stage:'全部'|TaskType; status:'全部'|'待处理'|TaskStatus; page:number; source?:'a-statistics' }
 export type Project = { id:string; businessNo?:string; orderId?:string; name:string; createdAt:string; dueAt:string; agreedDueAt?:string; patient:string; patientName?:string; tasks:Task[]; hospital:string; dataOrigin:'demo'|'production'|'unknown'; createdSource:'project'|'first-task' }
 export type ProjectTarget = { projectId:string; taskId?:string; eventId?:string }
-// Explicitly scoped prototype hospital assignments; never infer production partnerships.
-export const demoProjectMetadata:Record<string,{hospital:string;dataOrigin:'demo'}>={
- 'CV260910-0184':{hospital:'安徽医科大学第一附属医院',dataOrigin:'demo'},
- 'CV260908-0172':{hospital:'中国科学技术大学附属第一医院（安徽省立医院）',dataOrigin:'demo'},
- 'CV260907-0168':{hospital:'安徽医科大学第一附属医院',dataOrigin:'demo'},
- 'CV261019-0211':{hospital:'安徽医科大学第一附属医院',dataOrigin:'demo'},
- 'CV261020-0226':{hospital:'中国科学技术大学附属第一医院（安徽省立医院）',dataOrigin:'demo'},
+// Explicit prototype project facts, including agreed delivery dates; never infer them from task deadlines or apply to production.
+export const demoProjectMetadata:Record<string,{hospital:string;agreedDueAt:string;dataOrigin:'demo'}>={
+ 'CV260910-0184':{hospital:'安徽医科大学第一附属医院',agreedDueAt:'2026-10-12',dataOrigin:'demo'},
+ 'CV260908-0172':{hospital:'中国科学技术大学附属第一医院（安徽省立医院）',agreedDueAt:'2026-10-11',dataOrigin:'demo'},
+ 'CV260907-0168':{hospital:'安徽医科大学第一附属医院',agreedDueAt:'2026-10-13',dataOrigin:'demo'},
+ 'CV261019-0211':{hospital:'安徽医科大学第一附属医院',agreedDueAt:'2026-10-28',dataOrigin:'demo'},
+ 'CV261020-0226':{hospital:'中国科学技术大学附属第一医院（安徽省立医院）',agreedDueAt:'2026-10-29',dataOrigin:'demo'},
 }
 const originalCreated: Record<string,string> = {'CV260910-0184':'2026-10-09','CV260908-0172':'2026-10-07','CV260907-0168':'2026-10-06','CV261019-0211':'2026-10-19','CV261020-0226':'2026-10-20'}
 export const day = localDay
@@ -60,7 +60,7 @@ export function projectsFor(tasks:Task[],events:FlowEvent[],now=new Date()):Proj
     const createdAt=events.filter(e=>e.orderNo===id&&e.type==='created').map(e=>e.at.slice(0,10)).sort()[0]??originalCreated[id]??items.find(t=>t.catalogDemo)?.catalogCreatedAt??''
     const dueStamp=(at:string)=>timestamp(at.length===10?at+'T00:00:00':at)
     const dueAt=items.map(t=>isoDisplayTime(t.deadline,now)).filter(at=>Number.isFinite(dueStamp(at))).sort((a,b)=>dueStamp(a)-dueStamp(b)).at(-1)??''
-  return {id,name,createdAt,dueAt,agreedDueAt:!production?catalog.find(project=>project.id===id)?.agreedDueAt:undefined,patient:items[0].patient,patientName:patientDisplayName(items.find(task=>task.patient===items[0].patient&&task.patientName?.trim())??items[0]),tasks:[...items].sort((a,b)=>stages.indexOf(a.taskType)-stages.indexOf(b.taskType)),hospital,dataOrigin:production?'production' as const:metadata||items.some(t=>t.dataOrigin==='demo')?'demo' as const:'unknown' as const,createdSource:'first-task' as const}
+  return {id,name,createdAt,dueAt,agreedDueAt:!production?(metadata?.agreedDueAt??catalog.find(project=>project.id===id)?.agreedDueAt):undefined,patient:items[0].patient,patientName:patientDisplayName(items.find(task=>task.patient===items[0].patient&&task.patientName?.trim())??items[0]),tasks:[...items].sort((a,b)=>stages.indexOf(a.taskType)-stages.indexOf(b.taskType)),hospital,dataOrigin:production?'production' as const:metadata||items.some(t=>t.dataOrigin==='demo')?'demo' as const:'unknown' as const,createdSource:'first-task' as const}
   }).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||a.id.localeCompare(b.id))
 }
 export const inRange=(createdAt:string,range:DateRange)=> (!range[0]||createdAt>=range[0])&&(!range[1]||createdAt.slice(0,10)<=range[1])
