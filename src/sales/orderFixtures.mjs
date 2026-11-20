@@ -115,3 +115,15 @@ export function addOrderScenario(data, now = new Date()) {
     d.events.sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
     return d;
 }
+
+/** Exact synthetic orders created by the local acceptance run; never match real orders by title. */
+export function upgradeKnownSharedDesignFixtures(orders){
+ const known=[['SO-83c79ca9','颌面联合数字修复规划','核对颌面骨性结构，以左侧下颌骨缺损区域为目标，完成数字修复规划。'],['SO-5500d12e','颌面精准修复联合规划','已确认四阶段联合设计需求，期望于2026-12-15完成。']];
+ let changed=false;
+ for(const [id,name,text] of known){const o=orders.find(o=>o.id===id&&o.name===name&&o.source==='isolated-shared');
+  if(!o||o.designFixtureRevision||o.designRequirements||o.requirements!==text||o.clinicalRequirements!==text)continue;
+  const blocks=o.clinicalContent?.blocks;if(o.clinicalContent?.version!==1||blocks?.length!==1||blocks[0].type!=='paragraph'||blocks[0].text!==text||blocks[0].bold!==false)continue;
+  o.designFixtureRevision={revision:1,original:structuredClone({requirements:o.requirements,clinicalRequirements:o.clinicalRequirements,designRequirements:o.designRequirements,clinicalContent:o.clinicalContent})};
+  const demand=professionalDesignRequirements['颌面联合修复规划'];o.requirements=o.clinicalRequirements=o.designRequirements=demand;blocks[0].text=demand;o.version++;changed=true;
+ }return changed;
+}

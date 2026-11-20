@@ -125,6 +125,21 @@ export function projectEvents(project:Project,events:FlowEvent[]) {
  const mock=project.dataOrigin==='demo'&&project.tasks.some(t=>t.catalogDemo)?demoFlowEvents(project):[]
  return [...new Map([...mock,...stored].map(e=>[e.id,e])).values()].sort((a,b)=>(parseTimestamp(b.at)?.getTime()??-Infinity)-(parseTimestamp(a.at)?.getTime()??-Infinity)||b.id.localeCompare(a.id))
 }
+/** Display only: audit identity, timestamps and original opinions remain unchanged. */
+export function projectEventPresentation(event:FlowEvent,project:Project){
+ const orderLevel=event.source==='isolated-shared'&&['draft-save','order-submit','order-review','takeover','reassign'].includes(event.type);
+ const task=orderLevel||event.name==='项目已创建'?undefined:project.tasks.find(t=>t.id===event.taskId);
+ const stage=task?compactText(task.taskType):'';
+ let name=event.name,description=event.description;
+ if(event.type==='assigned')name='任务已分配';
+ if(event.type==='started'&&stage)name=`${stage}任务已开始`;
+ if(event.type==='review-submit')name='成果已提交审核';
+ if(event.type==='order-review'&&event.name==='订单审核受理')name='项目已创建';
+ if(event.type==='takeover'||event.type==='reassign')name='订单负责组长已变更';
+ if(description===name||description===event.name)description='';
+ if(orderLevel&&['负责本笔跨角色关联验收订单审核。'].includes(description))description='';
+ return {name,description,stage};
+}
 type DemoMilestone = 'linked'|'started'|'review-submit'|'review-return'|'review-pass'|'completed'
 // Recorded initial demo history, not a projection of configured stages or live status.
 // Later operations come from the event store and never rewrite this history.

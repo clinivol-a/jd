@@ -7,3 +7,5 @@ export function fixtureBytes(kind:number):Uint8Array<ArrayBuffer>;
 export function addOrderScenario(data:SalesData,now?:Date):SalesData;
 
 export const professionalDesignRequirements:Record<string,string>;
+
+export function upgradeKnownSharedDesignFixtures(orders:Order[]):boolean;

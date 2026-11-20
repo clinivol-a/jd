@@ -116,3 +116,7 @@ html[data-theme="dark"] .project-page .t-tag--primary:not(.status-in-progress) {
 /* Temporary route focus does not alter card geometry or task selection. */
 .project-navigation-focus { background-color: var(--td-brand-color-light); }
 .project-stage, .project-flow-card .timeline-item { scroll-margin-block: 24px; }
+/* Design requirements are a field value, not secondary Card prose. */
+.project-info-grid .clinical-readonly,
+.project-info-grid .clinical-plain { color: var(--td-text-color-primary); }
+.project-info-grid .clinical-readonly p { color: inherit; }
