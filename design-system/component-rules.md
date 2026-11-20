@@ -77,6 +77,8 @@ AI十项开放正常颜色的参数确认入口，替代上文统一禁用要求
 
 ## 设计阶段 Tag（tdesign-react 1.18.4 核实）
 
+适用详情及需要完整阶段名称的区域。设计师项目/任务/审核记录表按2026-11-20确认使用Icon-only，见icons.md；不能把下述Tag尺寸或背景套到这些表格。
+
 使用官方`Tag`的`icon`属性，默认medium/square/light机制。官方CSS：高度`--td-comp-size-xs=24px`，Padding上下0/左右`--td-comp-paddingLR-s=8px`，透明边框1px，Icon使用`--td-font-size-body-medium=14px`，Icon/文字间距`--td-comp-margin-xs=4px`。不得再叠加gap8px或Icon自身外边距，形成双份间距。
 
 官方默认字体body-small是12/20，项目沿用已确认的业务Tag字体14/22 Regular（400）；官方radius-default原值3px，项目当前主题映射为4px。四阶段Tag实际统一为高度24px、字体14px/22px、Icon14×14px、左右Padding8px/上下0、间距4px、圆角4px。Icon14px是Tag组件内的尺寸例外，不改变独立设计阶段图标20px或图标24px画板；颜色、路径与线宽不变。Icon与文字由inline-flex垂直居中。
@@ -149,3 +151,11 @@ AI十项开放正常颜色的参数确认入口，替代上文统一禁用要求
 ## V3.5 成果分享记录
 
 原三行设计阶段卡片保持不变。二维码 Dialog 复制操作下方新增轻量记录行：左侧“最近查看：YYYY-MM-DD HH:mm”或“暂无查看记录”，右侧 TDesign Text Button“查看分享记录”。Drawer 标题“成果分享记录”，复用原 Table、Pagination、Empty；使用既定正文、表面、间距与边框 Token，不另造绿色主按钮或统计卡。访问审计的实际时间采用共享 `formatDateTime` 完整日期时间，不显示相对时间。
+
+## V3.8 定向表格规则（2026-11-20）
+
+设计师项目视角与任务视角统一列顺序：项目编号、医院、手术项目名称、患者标识、任务类型、当前状态、创建时间、预计交付时间、操作。项目显示实际阶段集合，任务显示单个阶段Icon；Task ID保留rowKey、路由和操作对象，不作为显示列。两视角首筛选为“项目编号 / 搜索项目编号”。项目内任务按四阶段固定顺序，项目间沿原列表稳定排序；切换/筛选返回第一页。
+
+审核记录列顺序为任务类型、手术项目名称、审核状态、审核意见、审核人、审核时间、操作。提交事件的提交人与审核决定人分开，尚无实际审核决定时审核人显示`-`；保留原始actor、eventId、task.id与时间。意见单行省略并使用Tooltip。
+
+这三张表的操作列显式align=left，th/td沿用相同单元格Padding；仅作用于这些表的文字按钮移除额外内侧水平Padding及透明边框，使表头与第一项操作文字起点一致。不得用位移或Margin补偿，不改TDesign固定列偏移与滚动逻辑；必须浏览器实测。

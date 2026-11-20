@@ -1,0 +1,22 @@
+{
+  "baseline": "e973bd7853b935d782daecc0d297c02f12927c77",
+  "changedTrackedFiles": [
+    "design-system/component-rules.md",
+    "design-system/icons.md",
+    "design-system/ui-ux-consistency.md",
+    "docs/product/field-dictionary.md",
+    "src/App.tsx",
+    "src/projects/ProjectPages.tsx",
+    "src/projects/projectModel.ts",
+    "src/reviewRecords.ts",
+    "src/sales/OrderPages.tsx",
+    "src/sales/SalesWorkspace.tsx",
+    "src/sales/dashboardBusiness.d.mts",
+    "src/sales/dashboardBusiness.mjs"
+  ],
+  "unchangedSourceFileCount": 96,
+  "frozenSourceHashCheck": "pass",
+  "AppOutsideReviewsAndImport": "unchanged",
+  "projectDashboardAndDetailsSource": "unchanged",
+  "deployed": false
+}

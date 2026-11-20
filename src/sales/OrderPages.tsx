@@ -6,6 +6,7 @@ import {business} from './business/client';
 import {StageShare} from './business/OrderResults';
 import {ClinicalEditor,ClinicalReadOnly,initialClinicalContent} from "./ClinicalEditor";
 import {clinicalText} from "./clinicalContent.mjs";
+import {orderNumber} from './orderNumber.mjs';
 import {PageBack} from '../PageBack';
 import { confirmedDelivery } from "./orderRules.mjs";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -584,7 +585,7 @@ export function OrderDetail({
           )}
         </div>
         <dl className="project-info-grid">
-          <Info label="订单编号">{order.id}</Info>
+          <Info label="订单编号">{orderNumber(order)}</Info>
           <Info label="手术项目名称">{order.name}</Info>
           <Info label="医院">
             {data.hospitals.find((h) => h.id === order.hospitalId)?.name}

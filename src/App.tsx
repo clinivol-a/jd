@@ -9,7 +9,7 @@ import { MaskRegionIcon, ReferencePlaneIcon, BooleanUnionIcon, MaskSplitIcon, Vo
 import { AiBoneIcon, BoneRebuildIcon, OrganIcon, LungVesselIcon, BronchusIcon, AbdomenIcon, SpineRibsIcon, AortaIcon, LungLobesIcon, SkinIcon, MeshEditIcon } from './design-system/MedicalToolIcon'
 import { withDemoProjects, projectsFor, defaultFilters, periodRange, canEnter, owns, cleanOwner, noticeProjectTarget, formatNoticeTime, noticeTimestamp, isoDisplayTime, latestTaskActivity } from './projects/projectModel'
 import type { Filters, Period, DateRange, ProjectTarget } from './projects/projectModel'
-import { ProjectDashboard, ProjectList, ProjectDetail, ExtendedTaskDetail, StageLabel } from './projects/ProjectPages'
+import { ProjectDashboard, ProjectList, ProjectDetail, ExtendedTaskDetail, StageLabel, StageTypeIcon } from './projects/ProjectPages'
 import { readProjectRoute, projectUrl } from './projects/routes'
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { snapshotCadSubmission } from './cad/cadProject'
@@ -714,16 +714,15 @@ function InfoSection({ title, action, children }: { title: string; action?: Reac
 function Reviews({ tasks, events, onDetail }: { tasks: Task[]; events: FlowEvent[]; onDetail: (id: string) => void }) {
   const records = reviewRecords(tasks, events)
   const columns: PrimaryTableCol<(typeof records)[number]>[] = [
-    { colKey: 'taskType', title: '任务类型', width: 130, cell: ({ row }) => <StageLabel stage={row.task.taskType}/> },
-    { colKey: 'taskId', title: '任务编号', width: 95, cell: ({ row }) => `任务 ${row.task.id}` },
-    { colKey: 'taskName', title: '任务名称', width: 220, fixed:'left', ellipsis: true, cell: ({ row }) => row.task.title },
+    { colKey: 'taskType', title: '任务类型', width: 130, cell: ({ row }) => <StageTypeIcon stage={row.task.taskType}/> },
+    { colKey: 'taskName', title: '手术项目名称', width: 220, fixed:'left', ellipsis: true, cell: ({ row }) => row.task.title },
     { colKey: 'status', title: '审核状态', width: 125, cell: ({ row }) => <Tag theme={row.status.includes('退回')?'danger':row.status.includes('通过')?'success':'warning'} variant="light">{row.status}</Tag> },
-    { colKey: 'note', title: '审核备注', width: 330, ellipsis: true, cell: ({ row }) => engineerText(row.note) },
-    { colKey: 'actor', title: '审核人 / 操作人', width: 150 },
+    { colKey: 'note', title: '审核意见', width: 330, ellipsis: true, cell: ({ row }) => engineerText(row.note) },
+    { colKey: 'reviewerName', title: '审核人', width: 150 },
     { colKey: 'time', title: '审核时间', width: 160, cell: ({ row }) => formatAuditTime(row.at) },
-    { colKey: 'operation', title: '操作', width: 108, fixed:'right', cell: ({ row }) => <Button variant="text" size="small" theme="primary" onClick={() => onDetail(row.task.id)}>查看任务</Button> },
+    { colKey: 'operation', title: '操作', width: 108, align:'left', className:'designer-action-cell', fixed:'right', cell: ({ row }) => <Button variant="text" size="small" theme="primary" onClick={() => onDetail(row.task.id)}>查看任务</Button> },
   ]
-  return <div className="page"><Card className="dashboard-card review-card table-card unified-list-card" bordered={false}><section className="list-page-heading"><h1>审核记录</h1></section><Table className="app-table" rowKey="recordId" data={records} columns={columns} size="small" hover bordered={false} tableLayout="fixed" /></Card></div>
+  return <div className="page"><Card className="dashboard-card review-card table-card unified-list-card" bordered={false}><section className="list-page-heading"><h1>审核记录</h1></section><Table className="app-table designer-review-table" rowKey="recordId" data={records} columns={columns} size="small" hover bordered={false} tableLayout="fixed" /></Card></div>
 }
 
 function Workspace({ task, dirty, savedAt, mode, activeSeriesId, comments, reviewFocus, reviewResetEnabled, onReviewFocusConsumed, onUpdateComment, onResetReview, onSeriesChange, onModeChange, onDirty, onSave, onSubmit, onSubmitSalesperson }: { task: Task; dirty: boolean; savedAt?: string; mode: WorkspaceMode; activeSeriesId: string; comments: ReviewComment[]; reviewFocus: { taskId: string; commentId?: string } | null; reviewResetEnabled: boolean; onReviewFocusConsumed: () => void; onUpdateComment: (commentId: string, changes: Partial<Pick<ReviewComment, 'status' | 'replies' | 'unread' | 'submitted'>>) => void; onResetReview: () => void; onSeriesChange: (seriesId: string) => void; onModeChange: (mode: WorkspaceMode) => void; onDirty: () => void; onSave: (announce?: boolean) => boolean; onSubmit: () => void; onSubmitSalesperson: () => void }) {

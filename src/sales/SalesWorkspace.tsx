@@ -1,3 +1,4 @@
+import {orderNumber,matchesBusinessKeyword} from './orderNumber.mjs';
 import {DoctorCredentials} from './DoctorCredentials';
 import {doctorSource,doctorEvent} from './doctorRecordRules.mjs';
 import {business as businessRequest} from './business/client';
@@ -623,7 +624,7 @@ export default function SalesWorkspace() {
     );
   };
   const orderFields = [
-    { key: "id", label: "订单编号" },
+    { key: "id", label: "订单编号", render: (r: Row) => orderNumber(r) },
     { key: "name", label: "手术项目名称" },
     {
       key: "hospitalId",
@@ -754,7 +755,7 @@ export default function SalesWorkspace() {
   );
   const matching = orders.filter(
     (o) =>
-      (!keyword || [o.id, o.name, o.patientName || data.cases.find(c=>c.id===o.caseId)?.patientName || ""].some((x) => x.includes(keyword))) &&
+      (!keyword || [o.status === "草稿" ? "" : orderNumber(o), o.name, o.patientName || data.cases.find(c=>c.id===o.caseId)?.patientName || ""].some((x) => x.includes(keyword))) &&
       (!filter || o.status === filter) &&
       (!hospitalFilter || o.hospitalId === hospitalFilter) &&
       (!deptFilter || o.department === deptFilter) &&
@@ -776,6 +777,8 @@ export default function SalesWorkspace() {
   const openTodo=(row:Row)=>go(String(row.route));
   const todoFields=[
     {key:"type",label:"业务类型",width:130},
+    {key:"orderNumber",label:"订单编号",width:150},
+    {key:"hospital",label:"医院",width:210},
     {key:"object",label:"业务对象",width:200},
     {key:"status",label:"当前状态",width:115,render:(r:Row)=><Status value={String(r.status)}/>},
     {key:"at",label:"最近更新时间",width:140,render:(r:Row)=>r.at?formatDynamicTime(String(r.at)):"暂无记录"},
@@ -1063,7 +1066,7 @@ export default function SalesWorkspace() {
                   ...field,
                   label:
                     key === "status"
-                      ? "当前进展"
+                      ? "当前状态"
                       : key === "created"
                         ? "创建时间"
                         : key === "due"
@@ -1081,7 +1084,7 @@ export default function SalesWorkspace() {
               paginate={false}
               rows={todos.slice(0, 3)}
               fields={todoFields.filter((f) =>
-                f.key!=="type",
+                ["object","status","at","actions"].includes(f.key),
               )}
             />
           </Card>
@@ -1099,12 +1102,12 @@ export default function SalesWorkspace() {
     );
   } else if (section === "todos") {
     const resetItems=()=>{setItemSearch("");setItemKeyword("");setItemType("");setItemStatus("");setItemFrom("");setItemTo("");};
-    const itemRows=todos.filter(i=>(itemCategory==="全部"||i.category===itemCategory)&&(!itemKeyword||[i.target,i.object].some(v=>v.includes(itemKeyword)))&&(!itemType||i.type===itemType)&&(!itemStatus||i.status===itemStatus)&&(!itemFrom||formatDate(i.at)>=itemFrom)&&(!itemTo||formatDate(i.at)<=itemTo));
+    const itemRows=todos.filter(i=>(itemCategory==="全部"||i.category===itemCategory)&&(!itemKeyword||matchesBusinessKeyword(i,itemKeyword))&&(!itemType||i.type===itemType)&&(!itemStatus||i.status===itemStatus)&&(!itemFrom||formatDate(i.at)>=itemFrom)&&(!itemTo||formatDate(i.at)<=itemTo));
     content=<><Back onClick={()=>go("home")}>返回工作台</Back><div className="project-page sales-business-page"><Card bordered={false} className="project-list-card sales-order-list-card">
       <div className="project-page-heading"><h1>我的待办</h1></div>
       <Tabs value={itemCategory} onChange={v=>{setItemCategory(String(v));resetItems();}}>{["全部","需要处理","待继续完成"].map(category=><Tabs.TabPanel key={category} value={category} label={category}/>)}</Tabs>
       <div className="project-filters">
-        <label><span>关键词</span><Input clearable value={itemSearch} onChange={setItemSearch} placeholder="搜索业务对象名称或编号"/></label>
+        <label><span>关键词</span><Input clearable value={itemSearch} onChange={setItemSearch} placeholder="搜索订单编号、业务对象或医院"/></label>
         <label><span>业务类型</span><Select value={itemType||"__all__"} onChange={v=>setItemType(allFilterValue(v))} options={[{value:"__all__",label:"全部"},...['订单','医生档案'].map(value=>({value,label:value}))]}/></label>
         <label><span>当前状态</span><Select value={itemStatus||"__all__"} onChange={v=>setItemStatus(allFilterValue(v))} options={[{value:"__all__",label:"全部"},...['审核退回','草稿'].map(value=>({value,label:value}))]}/></label>
         <label><span>最近更新时间范围</span><DateRangePicker value={[itemFrom,itemTo]} onChange={v=>{setItemFrom(String(v[0]||""));setItemTo(String(v[1]||""));}} clearable/></label>
@@ -1529,9 +1532,9 @@ export default function SalesWorkspace() {
           <Grid
             rows={data.orders
               .filter((o) => !canReadOrder(data, o))
-              .map((o) => ({ id: o.id, status: o.status }))}
+              .map((o) => ({ id: o.id, status: o.status, orderNumber: orderNumber(o) }))}
             fields={[
-              { key: "id", label: "受限订单编号" },
+              { key: "orderNumber", label: "受限订单编号" },
               {
                 key: "status",
                 label: "处理状态",

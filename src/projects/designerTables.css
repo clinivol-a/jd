@@ -1,0 +1,9 @@
+/* Only these three designer tables share text-aligned action cells. Fixed offsets stay TDesign-owned. */
+.designer-list-table .designer-action-cell,
+.designer-review-table .designer-action-cell { text-align: left; }
+.designer-list-table .designer-action-cell .t-table__th-cell-inner,
+.designer-review-table .designer-action-cell .t-table__th-cell-inner { justify-content: flex-start; }
+.designer-list-table .designer-action-cell .t-button:not(:disabled):not(.t-is-disabled),
+.designer-review-table .designer-action-cell .t-button:not(:disabled):not(.t-is-disabled),
+.designer-list-table .designer-action-cell .t-button.t-is-disabled,
+.designer-review-table .designer-action-cell .t-button.t-is-disabled { border-width: 0; padding-inline: 0; justify-content: flex-start; }
