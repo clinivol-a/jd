@@ -1,4 +1,5 @@
 import {ClinicalReadOnly} from '../sales/ClinicalEditor';
+import {projectDesignDemand} from './demoDesignRequirements';
 import {PageBack} from '../PageBack';
 import { useEffect, useMemo, useState } from 'react'
 import { Button, Card, Input, Pagination, Select, Table, Tag, Tooltip } from 'tdesign-react'
@@ -84,12 +85,12 @@ export function ProjectDetail({project,tasks,events,target,navigationKey,onBack,
     return ()=>{window.clearTimeout(timer);elements.forEach(element=>element.classList.remove('project-navigation-focus'))}
   },[project?.id,target?.taskId,target?.eventId,navigationKey])
   if(!project)return <div className="page"><Card bordered={false}><h1>项目不可访问</h1><p>未找到项目，或你未参与此项目。</p><Button onClick={onBack}>返回我的项目</Button></Card></div>
-  const demandTask=project.tasks.find(task=>task.designDemandContent||task.surgery?.trim())
+  const demand=projectDesignDemand(project)
   return <div className="page project-page project-detail-page"><PageBack label="返回我的项目" onBack={onBack}/>
     <Card bordered={false} className="project-info-card"><h2>项目基本信息</h2><dl className="project-info-grid">
       <InfoField label="项目编号">{projectNumber(project)}</InfoField><InfoField label="手术项目名称">{project.name}</InfoField><InfoField label="医院">{project.hospital}</InfoField><InfoField label="患者">{project.patientName||'—'}</InfoField>
       <InfoField label="任务负责人">{[...new Set(project.tasks.map(cleanOwner).filter(name=>name!=='—'))].join('、')}</InfoField><InfoField label="设计阶段"><StageTags tasks={project.tasks}/></InfoField>
-      <InfoField label="设计需求" wide><ClinicalReadOnly owner={demandTask?.designDemandOwnerId||''} value={demandTask?.designDemandContent} fallback={demandTask?.surgery||'—'}/></InfoField>
+      <InfoField label="设计需求" wide><ClinicalReadOnly owner={demand.owner} value={demand.content} fallback={demand.text}/></InfoField>
       <InfoField label="当前状态"><ProjectStatus status={projectStatus(project)}/></InfoField><InfoField label="创建时间">{formatDate(project.createdAt)}</InfoField><InfoField label="预计交付时间">{formatDate(project.agreedDueAt||'')}</InfoField>
     </dl></Card>
     <Card bordered={false} className="project-stages-card"><div className="section-heading"><h2>设计阶段</h2></div><div className="project-stages">{project.tasks.map((task,index)=>{

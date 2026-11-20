@@ -11,3 +11,21 @@ test('detail fields and project/task column orders stay shared without changing 
 test('timeline presents actual task stages without assigning order events to reconstruction or losing opinions',async()=>{await build({entryPoints:['src/projects/projectModel.ts'],bundle:true,platform:'node',format:'esm',outfile:dir+'/events.mjs'});const{projectEventPresentation}=await import(dir+'/events.mjs');const project={tasks:[{id:'r',taskType:'三维重建'},{id:'c',taskType:'CAD 设计'}]},event={id:'e',taskId:'r',type:'order-review',source:'isolated-shared',name:'订单审核受理',actor:'实际操作人',at:'2026-11-20T10:00:00',description:'真实审核意见'},before=structuredClone(event);assert.deepEqual(projectEventPresentation(event,project),{name:'项目已创建',stage:'',description:'真实审核意见'});assert.deepEqual(event,before);assert.equal(projectEventPresentation({...event,type:'assigned',taskId:'c',name:'专业任务已分配'},project).name,'任务已分配');assert.equal(projectEventPresentation({...event,type:'started',taskId:'c'},project).name,'CAD设计任务已开始');assert.equal(projectEventPresentation({...event,name:'订单审核退回'},project).description,'真实审核意见');});
 
 test('controlled shared demo wording upgrade keeps originals and skips edited content',async()=>{const{upgradeKnownSharedDesignFixtures}=await import('../src/sales/orderFixtures.mjs');const text='已确认四阶段联合设计需求，期望于2026-12-15完成。',row={id:'SO-5500d12e',name:'颌面精准修复联合规划',source:'isolated-shared',requirements:text,clinicalRequirements:text,designRequirements:'',clinicalContent:{version:1,blocks:[{id:'original-block',type:'paragraph',text,bold:false}]},version:1},before=structuredClone(row),edited={...structuredClone(row),clinicalRequirements:'用户修改'};assert.equal(upgradeKnownSharedDesignFixtures([edited]),false);assert.equal(upgradeKnownSharedDesignFixtures([row]),true);assert.deepEqual(row.designFixtureRevision.original.clinicalContent,before.clinicalContent);assert.equal(row.clinicalContent.blocks[0].id,'original-block');assert.equal(row.designRequirements,professionalDesignRequirements['颌面联合修复规划']);assert.equal(upgradeKnownSharedDesignFixtures([row]),false);});
+
+test('designer project fixture wording is specific, read-only and never replaces sales or edited requirements',async()=>{
+ await build({entryPoints:['src/projects/demoDesignRequirements.ts','src/projects/projectModel.ts'],bundle:true,platform:'node',format:'esm',outdir:dir+'/designer-demand'});
+ const{projectDesignDemand}=await import(dir+'/designer-demand/demoDesignRequirements.js');
+ const{withDemoProjects}=await import(dir+'/designer-demand/projectModel.js');
+ const catalog=withDemoProjects([]),before=structuredClone(catalog),texts=catalog.map(p=>projectDesignDemand(p).text);
+ assert.equal(texts.length,8);assert.equal(new Set(texts).size,8);assert.ok(texts.every(t=>t.length>60&&!t.includes('术前结构评估、修复设计及成果确认')));assert.deepEqual(catalog,before);
+ const source=await readFile('src/App.tsx','utf8');
+ for(const match of source.matchAll(/id: '(00[1-7])', title: '[^']+', patient: '[^']+', orderNo: '([^']+)', surgery: '([^']+)'/g)){
+  if(['005','007'].includes(match[1]))continue;
+  const project={id:match[2],dataOrigin:'demo',tasks:[{id:match[1],surgery:match[3]}]};
+  assert.notEqual(projectDesignDemand(project).text,match[3]);
+ }
+ const project=catalog[0],task=project.tasks[0],edited={...project,tasks:[{...task,surgery:'销售实际填写的需求'}]};assert.equal(projectDesignDemand(edited).text,'销售实际填写的需求');
+ assert.equal(projectDesignDemand({...project,dataOrigin:'production'}).text,task.surgery);
+ assert.equal(projectDesignDemand({...project,tasks:[{...task,sharedBusiness:true}]}).text,task.surgery);
+ const content={version:1,blocks:[{id:'media',type:'paragraph',text:'实际富文本需求',bold:false}]};assert.deepEqual(projectDesignDemand({...project,tasks:[{...task,designDemandContent:content}]}).content,content);
+});
