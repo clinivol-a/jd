@@ -36,11 +36,11 @@ import {
 } from "./orderRules.mjs";
 import { SalesAttachments } from "./SalesAttachments";
 import { DesignStageIcon } from "../design-system/DesignStageIcon";
-import { ProjectStatus } from "../projects/ProjectPages";
+import { ProjectStatus, StageLabel } from "../projects/ProjectPages";
 import { formatDate, formatAuditTime, formatDateTime } from "../dateTime";
 import { getFile } from "./files";
 
-export function OrderIcons({ stages }: { stages: string[] }) {
+export function OrderIcons({ stages, labels = false }: { stages: string[]; labels?: boolean }) {
   return (
     <div className="project-stage-tags">
       {designStages
@@ -53,6 +53,7 @@ export function OrderIcons({ stages }: { stages: string[] }) {
                 ? "3D 打印"
                 : stage
           ) as TaskType;
+          if (labels) return <StageLabel key={stage} stage={type} />;
           return (
             <Tooltip key={stage} content={stage}>
               <span
@@ -586,7 +587,7 @@ export function OrderDetail({
           </Info>
           <Info label="患者">{order.patientName ?? clinicalCase?.patientName ?? "未记录"}</Info>
           <Info label="设计阶段">
-            <OrderIcons stages={stages} />
+            <OrderIcons stages={stages} labels />
           </Info>
           <Info label="订单状态">{status}</Info>
           <Info label="需求数量">{order.quantity}</Info>
