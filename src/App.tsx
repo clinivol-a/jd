@@ -1,3 +1,5 @@
+import {unifiedRequest} from './business/unifiedClient'
+import {useUnifiedDesigner} from './business/useUnifiedDesigner'
 import {patientDisplayName} from './projects/patientDisplay'
 import {PageBack} from './PageBack';
 import {useAuth,useWorkspaceStorage} from './auth/AuthContext'
@@ -66,9 +68,10 @@ export type ReviewerIdentity = { id?: string; name?: string; role: string }
 type ApprovedModel = {
   id: string; name: string; version: string; format?: string; approvedAt: string; approvedBy: string; approver?: ReviewerIdentity
 }
-export type FlowEvent = { id: string; orderNo: string; taskId: string; type: string; name: string; at: string; actor: string; role: string; description: string; version?: string; commentCount?: number; modelId?: string; relatedTaskId?: string; actorId?: string; submissionId?: string }
+export type FlowEvent = { id: string; orderNo: string; taskId: string; type: string; name: string; at: string; actor: string; role: string; description: string; version?: string; commentCount?: number; modelId?: string; relatedTaskId?: string; actorId?: string; submissionId?: string; source?:string; orderId?:string; projectId?:string; resultId?:string }
 type UpstreamFeedback = { id: string; cadTaskId: string; upstreamTaskId: string; modelId: string; modelVersion: string; description: string; createdAt: string; actor: string; recipient: string }
 export type Task = {
+  sharedBusiness?:boolean;projectStatus?:TaskStatus;accessible?:boolean;assigneeId?:string;businessNo?:string;orderId?:string;projectId?:string;projectCreatedAt?:string;orderCreatedAt?:string;agreedDueAt?:string;upstreamApproved?:boolean;version?:number;
   id: string; title: string; patient: string; patientName?: string; orderNo: string; surgery: string; taskType: TaskType
   status: TaskStatus; owner: string; updated: string; deadline: string
   series: ImagingSeries[]; source: string
@@ -237,6 +240,7 @@ function getStoredFlowEvents(storage: Storage = localStorage) {
 function getStoredFeedback(storage: Storage = localStorage) { try { return JSON.parse(storage.getItem('clinivol-upstream-feedback') ?? '[]') as UpstreamFeedback[] } catch { return [] as UpstreamFeedback[] } }
 
 function isCadTaskUnlocked(task: Task, tasks: Task[]) {
+  if(task.sharedBusiness)return !!task.upstreamApproved
   if (task.taskType !== 'CAD 设计' || !task.upstreamTaskId) return task.taskType !== 'CAD 设计'
   const upstream = tasks.find((item) => item.id === task.upstreamTaskId)
   return upstream?.status === '已完成' && Boolean(upstream.approvedModel)
@@ -244,6 +248,7 @@ function isCadTaskUnlocked(task: Task, tasks: Task[]) {
 
 function synchronizeCadTasks(tasks: Task[]): Task[] {
   return tasks.map((task) => {
+    if(task.sharedBusiness)return task
     if (task.taskType !== 'CAD 设计' || !task.upstreamTaskId) return task
     const upstream = tasks.find((item) => item.id === task.upstreamTaskId)
     const unlocked = upstream?.status === '已完成' && Boolean(upstream.approvedModel)
@@ -381,6 +386,9 @@ function App() {
   const [notices, setNotices] = useState(()=>{if(auth.user?.id!=='chen-yu')return [] as Notice[];try{return JSON.parse(storage.getItem('clinivol-notices')||'null') as Notice[] || initialNotices}catch{return initialNotices}})
   const [reviewComments, setReviewComments] = useState<ReviewComment[]>(()=>auth.user?.id==='chen-yu'?getStoredReviewComments(storage):[])
   const [flowEvents, setFlowEvents] = useState<FlowEvent[]>(()=>auth.user?.id==='chen-yu'?getStoredFlowEvents(storage):[])
+  const refreshShared=useUnifiedDesigner(auth.user!.id,setTasks,setFlowEvents)
+  const pendingSharedRoute=useRef<Screen|null>(readProjectRoute())
+  useEffect(()=>{const pending=pendingSharedRoute.current;if(pending&&('taskId' in pending)&&tasks.some(t=>t.sharedBusiness&&t.id===pending.taskId)){pendingSharedRoute.current=null;rawSetScreen(validateRoute(pending,tasks))}},[tasks])
   const [upstreamFeedback, setUpstreamFeedback] = useState<UpstreamFeedback[]>(()=>auth.user?.id==='chen-yu'?getStoredFeedback(storage):[])
   const [reviewFocus, setReviewFocus] = useState<{ taskId: string; commentId?: string } | null>(null)
   const [navCollapsed, setNavCollapsed] = useState(()=>storage.getItem('clinivol-nav-collapsed')==='1')
@@ -390,7 +398,7 @@ function App() {
   useEffect(()=>{const flush=(e:Event)=>{const checks=(e as CustomEvent<{checks:Promise<boolean>[]}>) .detail.checks;checks.push(Promise.resolve(Object.keys(dirty).filter(id=>dirty[id]).every(id=>saveTask(id,false))))};window.addEventListener('clinivol-before-account-change',flush);return()=>window.removeEventListener('clinivol-before-account-change',flush)},[dirty,savedAt,workspaceMode,activeSeries])
   const reviewResetEnabled = useMemo(() => new URLSearchParams(window.location.search).has('build'), [])
   const resolvedTheme: ResolvedTheme = themePreference === 'system' ? (systemDark ? 'dark' : 'light') : themePreference
-  useEffect(() => { storage.setItem('clinivol-prototype-tasks', JSON.stringify(tasks.filter(t=>!t.catalogDemo))); storage.setItem('clinivol-catalog-tasks',JSON.stringify(tasks.filter(t=>t.catalogDemo))) }, [tasks])
+  useEffect(() => { storage.setItem('clinivol-prototype-tasks', JSON.stringify(tasks.filter(t=>!t.catalogDemo&&!t.sharedBusiness))); storage.setItem('clinivol-catalog-tasks',JSON.stringify(tasks.filter(t=>t.catalogDemo))) }, [tasks])
   useEffect(() => {
     setTasks((current) => {
       const synchronized = synchronizeCadTasks(current)
@@ -400,7 +408,7 @@ function App() {
   }, [tasks])
   useEffect(() => storage.setItem('clinivol-workspace-state', JSON.stringify({ savedAt, mode: workspaceMode, activeSeries })), [savedAt, workspaceMode, activeSeries])
   useEffect(() => storage.setItem('clinivol-review-comments', JSON.stringify(reviewComments)), [reviewComments])
-  useEffect(() => storage.setItem('clinivol-task-flow-events', JSON.stringify(flowEvents)), [flowEvents])
+  useEffect(() => storage.setItem('clinivol-task-flow-events', JSON.stringify(flowEvents.filter(e=>e.source!=='isolated-shared'))), [flowEvents])
   useEffect(() => storage.setItem('clinivol-upstream-feedback', JSON.stringify(upstreamFeedback)), [upstreamFeedback])
   useEffect(() => storage.setItem('clinivol-user-profile', JSON.stringify(userProfile)), [userProfile])
   useEffect(() => storage.setItem('clinivol-notification-preferences', JSON.stringify(notificationPreferences)), [notificationPreferences])
@@ -438,10 +446,11 @@ function App() {
     openProject(task.orderNo,{projectId:task.orderNo,taskId})
   }
   const openWorkspace = (taskId: string, options?: { openComments?: boolean; commentId?: string }) => {
-    const action = () => {
-      const task = tasks.find((item) => item.id === taskId)
+    const action = async () => {
+      let task = tasks.find((item) => item.id === taskId)
       if (!task) return
       if(!canEnter(task,tasks))return
+      if(task.sharedBusiness&&task.status==='未开始'){try{await unifiedRequest('task',{id:task.id,action:'start',version:task.version});const next=await refreshShared();task=next.tasks.find(t=>t.id===taskId);if(!task)return}catch(error){void MessagePlugin.error((error as Error).message);return}}
       if(!['三维重建','CAD 设计'].includes(task.taskType)){setStagePreview(task);return}
       if (task.taskType === 'CAD 设计') {
         if (!isCadTaskUnlocked(task, tasks) && !['已完成','待审核'].includes(task.status)) {
@@ -480,7 +489,7 @@ function App() {
     if (currentWorkspaceId && !saveFirst) setDirty((value) => ({ ...value, [currentWorkspaceId]: false }))
     const action = guardAction; setGuardAction(null); action?.()
   }
-  const submitReview = (taskId: string) => {
+  const submitReview = async (taskId: string) => {
     const current = tasks.find((task) => task.id === taskId)
     if (!current || current.status === '待审核' || current.status === '已完成') return
     let version = 'V04'
@@ -489,6 +498,8 @@ function App() {
       try { version = snapshotCadSubmission(taskId,storage) }
       catch { void MessagePlugin.error('CAD 工程版本保存失败，请返回工作区重试'); return }
     }
+    if(current.sharedBusiness&&!current.series.length){void MessagePlugin.warning('关联工程资料暂不可用，无法提交成果。');return}
+    if(current.sharedBusiness){try{await unifiedRequest('task',{id:taskId,action:'submit',version:current.version,artifact:{id:crypto.randomUUID(),version}});await refreshShared();setSubmitTask(null);void MessagePlugin.success('成果已提交审核')}catch(error){void MessagePlugin.error((error as Error).message)}return}
     const stamp = new Date().toISOString()
     const note = `工作版本 ${version} 已冻结并提交审核。`
     setTasks((items) => items.map((task) => task.id === taskId ? { ...task, status: '待审核', updated: stamp, review: [...task.review, { time: stamp, actor: '陈屿', status: '已提交审核', note, ...(current.taskType === 'CAD 设计' ? { version } : {}) }] } : task))
@@ -668,9 +679,9 @@ function ReconstructionTaskDetail({ task, tasks, events, comments, onBack, onOpe
   const primaryAction = task.status === '待审核' || task.status === '已完成' ? '查看已提交成果' : task.status === '审核退回' ? '查看意见并修改' : '继续设计'
   return <div className="page detail-page">
     <PageBack label="返回项目" onBack={onBack}/>
-    <Card className="detail-title-card" bordered={false}><section className="detail-title"><div className="detail-title-copy"><div className="detail-title-line"><h1>{task.title}</h1></div><p>三维重建 · 任务 {task.id} · {patientDisplayName(task)} · 订单 {task.orderNo}</p></div><div className="detail-actions"><Button theme="primary" onClick={() => onOpen(task.id, { openComments: task.status === '审核退回' })}>{primaryAction}</Button></div></section></Card>
+    <Card className="detail-title-card" bordered={false}><section className="detail-title"><div className="detail-title-copy"><div className="detail-title-line"><h1>{task.title}</h1></div><p>三维重建 · 任务 {task.id} · {patientDisplayName(task)} · 订单 {task.businessNo||task.orderNo}</p></div><div className="detail-actions"><Button theme="primary" onClick={() => onOpen(task.id, { openComments: task.status === '审核退回' })}>{primaryAction}</Button></div></section></Card>
     <section className="detail-grid"><div className="detail-main">
-      <InfoSection title="病例与任务信息"><dl className="info-grid"><div><dt>订单编号</dt><dd>{task.orderNo}</dd></div><div><dt>患者</dt><dd>{patientDisplayName(task)}</dd></div><div><dt>任务负责人</dt><dd>{cleanOwner(task)}</dd></div><div><dt>设计阶段</dt><dd><StageLabel stage={task.taskType}/></dd></div><div><dt>当前任务状态</dt><dd><StatusTag status={task.status} /></dd></div><div><dt>最后更新</dt><dd>{formatDateTime(latestTaskActivity(task,events))}</dd></div><div className="info-wide"><dt>手术需求</dt><dd>{task.surgery}</dd></div></dl></InfoSection>
+      <InfoSection title="病例与任务信息"><dl className="info-grid"><div><dt>订单编号</dt><dd>{task.businessNo||task.orderNo}</dd></div><div><dt>患者</dt><dd>{patientDisplayName(task)}</dd></div><div><dt>任务负责人</dt><dd>{cleanOwner(task)}</dd></div><div><dt>设计阶段</dt><dd><StageLabel stage={task.taskType}/></dd></div><div><dt>当前任务状态</dt><dd><StatusTag status={task.status} /></dd></div><div><dt>最后更新</dt><dd>{formatDateTime(latestTaskActivity(task,events))}</dd></div><div className="info-wide"><dt>手术需求</dt><dd>{task.surgery}</dd></div></dl></InfoSection>
       <InfoSection title="医学影像资料">
         <div className="imaging-studies">{imagingStudies.map((study) => <section className="imaging-study" key={study.id}>
           <header className="imaging-study-header"><FileIcon size={18} /><span className="imaging-study-name"><strong>{study.name}</strong><small>{study.date} · Study {study.id} · {study.series.length} 个 Series</small></span></header>
@@ -696,9 +707,9 @@ function CadTaskDetail({ task, tasks, upstreamTask, events, feedback, onBack, on
   const submitFeedback = () => { if (!description.trim()) { setFeedbackError('请填写问题描述'); return } if (onFeedback(task, description)) { closeFeedback(); void MessagePlugin.success('上游问题已记录') } else setFeedbackError('当前关联模型不可用，请返回任务列表检查') }
   return <div className="page detail-page cad-detail-page">
     <PageBack label="返回项目" onBack={onBack}/>
-    <Card className="detail-title-card" bordered={false}><section className="detail-title"><div className="detail-title-copy"><div className="detail-title-line"><h1>{task.title}</h1></div><p>CAD 设计 · 任务 {task.id} · {patientDisplayName(task)} · 订单 {task.orderNo}</p></div><div className="detail-actions"><Button theme="primary" onClick={() => onOpen(task.id)}>继续设计</Button></div></section></Card>
+    <Card className="detail-title-card" bordered={false}><section className="detail-title"><div className="detail-title-copy"><div className="detail-title-line"><h1>{task.title}</h1></div><p>CAD 设计 · 任务 {task.id} · {patientDisplayName(task)} · 订单 {task.businessNo||task.orderNo}</p></div><div className="detail-actions"><Button theme="primary" onClick={() => onOpen(task.id)}>继续设计</Button></div></section></Card>
     <section className="detail-grid"><div className="detail-main">
-      <InfoSection title="病例与任务信息"><dl className="info-grid"><div><dt>订单编号</dt><dd>{task.orderNo}</dd></div><div><dt>患者</dt><dd>{patientDisplayName(task)}</dd></div><div><dt>任务负责人</dt><dd>{cleanOwner(task)}</dd></div><div><dt>设计阶段</dt><dd><StageLabel stage={task.taskType}/></dd></div><div><dt>当前任务状态</dt><dd><StatusTag status={task.status} /></dd></div><div><dt>最后更新</dt><dd>{formatDateTime(latestTaskActivity(task,events))}</dd></div><div className="info-wide"><dt>设计需求</dt><dd>{task.cadRequirement}</dd></div></dl></InfoSection>
+      <InfoSection title="病例与任务信息"><dl className="info-grid"><div><dt>订单编号</dt><dd>{task.businessNo||task.orderNo}</dd></div><div><dt>患者</dt><dd>{patientDisplayName(task)}</dd></div><div><dt>任务负责人</dt><dd>{cleanOwner(task)}</dd></div><div><dt>设计阶段</dt><dd><StageLabel stage={task.taskType}/></dd></div><div><dt>当前任务状态</dt><dd><StatusTag status={task.status} /></dd></div><div><dt>最后更新</dt><dd>{formatDateTime(latestTaskActivity(task,events))}</dd></div><div className="info-wide"><dt>设计需求</dt><dd>{task.cadRequirement}</dd></div></dl></InfoSection>
       <InfoSection title="上游三维重建成果">
         {model && upstreamTask ? <div className="approved-model-card"><dl><div><dt>模型名称</dt><dd>{model.name}</dd></div><div><dt>文件格式</dt><dd>{model.format ?? '未提供'}</dd></div><div><dt>来源任务</dt><dd>任务 {upstreamTask.id} · 三维重建</dd></div><div><dt>审核人</dt><dd>{model.approvedBy}</dd></div><div><dt>审核通过时间</dt><dd>{formatDateTime(legacyTimestamp(model.approvedAt)||model.approvedAt)}</dd></div></dl><Button variant="outline" onClick={() => setFeedbackVisible(true)}>反馈上游问题</Button></div> : <div className="cad-empty-state"><Box size={28} /><strong>上游成果尚未就绪</strong><span>{CAD_LOCKED_REASON}</span></div>}
       </InfoSection>
@@ -992,7 +1003,7 @@ function SeriesPanel({ task, activeSeriesId, onSeriesChange, loadNoticeVisible, 
   const studies = Array.from(new Map(task.series.map((series) => [series.studyId, series])).values())
   const totalImages = task.series.reduce((total, series) => total + series.slices, 0)
   useEffect(() => setPatientInfoOpen(false), [task.id])
-  const patientInfo = <div className="patient-info-popover" role="group" aria-label="患者信息"><h3>患者信息</h3><dl><div><dt>患者</dt><dd>{patientDisplayName(task)}</dd></div><div><dt>关联订单</dt><dd>{task.orderNo}</dd></div><div><dt>检查资料</dt><dd>{studies.map((study) => study.studyName).join('、') || '未关联'}</dd></div><div><dt>检查日期</dt><dd>{studies.map((study) => study.studyDate).filter(Boolean).join('、') || '未提供'}</dd></div><div><dt>关联数据</dt><dd>{studies.length} 项检查 · {task.series.length} 组序列 · {totalImages} 张图像</dd></div></dl></div>
+  const patientInfo = <div className="patient-info-popover" role="group" aria-label="患者信息"><h3>患者信息</h3><dl><div><dt>患者</dt><dd>{patientDisplayName(task)}</dd></div><div><dt>关联订单</dt><dd>{task.businessNo||task.orderNo}</dd></div><div><dt>检查资料</dt><dd>{studies.map((study) => study.studyName).join('、') || '未关联'}</dd></div><div><dt>检查日期</dt><dd>{studies.map((study) => study.studyDate).filter(Boolean).join('、') || '未提供'}</dd></div><div><dt>关联数据</dt><dd>{studies.length} 项检查 · {task.series.length} 组序列 · {totalImages} 张图像</dd></div></dl></div>
   const patientAction = <Popup visible={patientInfoOpen} content={patientInfo} trigger="hover" delay={[80, 160]} placement="right-top" showArrow overlayInnerClassName="patient-info-popover-surface" onVisibleChange={(visible) => setPatientInfoOpen(visible)}><button type="button" className="patient-info-trigger" aria-label="查看患者信息" aria-haspopup="dialog" aria-expanded={patientInfoOpen} onFocus={() => setPatientInfoOpen(true)} onBlur={() => setPatientInfoOpen(false)} onClick={(event) => event.stopPropagation()}><Info size={14} /></button></Popup>
   return <aside className="series-panel"><div className="professional-panel-head"><span>影像序列</span><div><button aria-label="查看关联影像加载状态" onClick={() => task.series.length ? void MessagePlugin.success(`已加载任务 ${task.id} 的 ${task.series.length} 组关联序列`) : void MessagePlugin.error('关联影像暂不可用，请稍后重试')}><FolderOpen size={16} /></button><button aria-label="搜索序列" onClick={() => void MessagePlugin.info('序列搜索已就绪')}><Search size={16} /></button></div></div>{loadNoticeVisible && (task.series.length ? <div className="series-load-state" role="status"><CloudIcon size={14} /><span>任务数据已自动加载</span><button type="button" className="series-load-close" aria-label="关闭数据加载提示" onClick={onCloseLoadNotice}><CloseIcon size={13} /></button></div> : <div className="series-load-error" role="alert"><AssignmentErrorIcon size={14} /><span>关联影像暂不可用</span><Button size="small" variant="text" theme="danger" onClick={() => void MessagePlugin.info('正在重新请求关联影像，请稍后重试')}>重试</Button></div>)}<div className="series-tree"><TreeRow level={0} open={open.patient} icon={<CircleUserRound size={15} />} label={`患者 · ${patientDisplayName(task)}`} endAction={patientAction} onClick={() => setOpen((value) => ({ ...value, patient: !value.patient }))} />{open.patient && <><TreeRow level={1} open={open.study} icon={<Database size={15} />} label={`Study · ${primaryStudy?.studyId ?? '未关联'}`} onClick={() => setOpen((value) => ({ ...value, study: !value.study }))} />{open.study && <><TreeRow level={2} open={open.series} icon={<ImageIcon size={15} />} label={`Series · ${task.series.length} 组`} onClick={() => setOpen((value) => ({ ...value, series: !value.series }))} />{open.series && <div className="series-options">{task.series.map((series, index) => <button key={series.id} aria-pressed={activeSeriesId === series.id} className={activeSeriesId === series.id ? 'series-selected' : ''} onClick={() => onSeriesChange(series.id)}><span>{index + 1}</span><strong>{series.modality} · {series.name}</strong><small>{series.slices}</small></button>)}</div>}</>}</>}</div></aside>
 }
@@ -1056,7 +1067,7 @@ function ObjectTabContent({ tab, objects, activeObject, expanded, hidden, locked
   return <div className="object-list"><div className="object-list-title"><span><strong>{title}</strong><small>{objects.length}</small></span><Tooltip content={readOnly ? disabledTip : `添加${title}`}><span><button aria-label={`添加${title}`} disabled={readOnly} onClick={() => void MessagePlugin.info(`请先在中央视图中创建${tab === 'measure' ? '测量' : '对象'}`)}><Plus size={16} /></button></span></Tooltip></div>{objects.length === 0 ? <div className="panel-empty"><Info size={22} /><strong>暂无{title}</strong><span>当前工程中没有可显示的对象。</span></div> : objects.map((object) => { const isExpanded = expanded.includes(object.id); const isHidden = hidden.includes(object.id); const isLocked = locked.includes(object.id); return <div key={object.id} className={activeObject === object.id ? 'object-row object-row-active' : 'object-row'} onContextMenu={(event) => openContextMenu(event, object)}><button className="object-main" onClick={() => onSelect(object)}><i className="object-color" style={{ background: object.color }} /><span><strong>{object.name}</strong><small>{object.meta}</small></span>{object.value && <b>{object.value}</b>}</button><div className="object-actions"><Tooltip content={readOnly&&tab!=='model' ? disabledTip : isHidden ? '显示对象' : '隐藏对象'}><span><button className={isHidden ? 'object-state-action object-state-persistent' : 'object-state-action'} aria-label={isHidden ? `显示${object.name}` : `隐藏${object.name}`} disabled={readOnly&&tab!=='model'} onClick={() => onVisibility(object.id)}><ObjectStateIcon kind="visibility" active={!isHidden} /></button></span></Tooltip>{tab === 'mask' && <Tooltip content={readOnly ? disabledTip : isLocked ? '解锁对象' : '锁定对象'}><span><button className={isLocked ? 'object-state-action object-state-persistent' : 'object-state-action'} aria-label={isLocked ? `解锁${object.name}` : `锁定${object.name}`} disabled={readOnly} onClick={() => onLock(object.id)}><ObjectStateIcon kind="lock" active={isLocked} /></button></span></Tooltip>}{tab === 'model' && <Tooltip content="查看模型设置"><button aria-label={`${object.name}设置`} onClick={() => { onSelect(object); onExpand(object.id) }}><Settings2 size={15} /></button></Tooltip>}<Tooltip content={readOnly ? disabledTip : '删除对象'}><span><button className="danger-icon" aria-label={`删除${object.name}`} disabled={readOnly} onClick={() => onDelete(object)}><Trash2 size={15} /></button></span></Tooltip><button aria-label={isExpanded ? `收起${object.name}详情` : `展开${object.name}详情`} aria-expanded={isExpanded} onClick={() => onExpand(object.id)}>{isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}</button></div>{isExpanded && <div className="object-details"><dl>{object.details.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{label === '透明度' && tab === 'model' ? `${opacity[object.id] ?? 80}%` : value}</dd></div>)}</dl>{tab === 'model' && <Tooltip content={readOnly ? disabledTip : '调整模型透明度'}><label className="opacity-control"><span>透明度</span><input aria-label={`${object.name}透明度`} type="range" min="0" max="100" value={opacity[object.id] ?? 80} disabled={readOnly} onChange={(event) => onOpacity(object.id, Number(event.target.value))} /></label></Tooltip>}</div>}</div> })}{contextMenu && <div ref={contextMenuRef} className="object-context-menu" role="menu" aria-label={`${contextMenu.object.name}操作菜单`} style={{ left: contextMenu.x, top: contextMenu.y }} onContextMenu={(event) => event.preventDefault()}>{contextActions.map((action) => { const disabled = readOnly && !action.startsWith('导出'); return <button key={action} type="button" role="menuitem" disabled={disabled} onClick={() => runContextAction(action)}>{action}</button> })}</div>}</div>
 }
 
-function PropertiesContent({ task, savedAt, activeObject, hidden, readOnly, onVisibility }: { task: Task; savedAt?: string; activeObject: ProfessionalObject; hidden: boolean; readOnly: boolean; onVisibility: (id: string) => void }) { const history = [['创建下颌骨蒙版', '14:32', '陈屿'], ['调整窗宽窗位', '14:20', '陈屿'], ['生成三维模型', '13:56', '陈屿'], ['导入 CT 数据', '11:03', '系统']].map(([action, clock, actor]) => ({ action, actor, at: clock })).sort((a,b) => { const rawMinutes = (value: string) => { const [hour,minute] = value.split(':').map(Number); return hour*60+minute }; return rawMinutes(b.at)-rawMinutes(a.at) }); return <div className="properties-content"><div className="selected-object"><i style={{ background: activeObject.color }} /><span><strong>{activeObject.name}</strong><small>{activeObject.tab === 'mask' ? '蒙版对象' : activeObject.tab === 'model' ? '三维模型' : '测量对象'} · {hidden ? '已隐藏' : '可见'}</small></span></div><section className="property-section"><h3><Info size={14} />当前对象属性</h3><dl><div><dt>对象类型</dt><dd>{activeObject.tab === 'mask' ? '蒙版' : activeObject.tab === 'model' ? '模型' : '测量'}</dd></div>{activeObject.details.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl><label><span>当前显示</span><input key={activeObject.id} type="checkbox" checked={!hidden} disabled={readOnly&&activeObject.tab!=='model'} onChange={() => onVisibility(activeObject.id)} /></label></section><section className="property-section"><h3><Info size={14} />任务信息</h3><dl><div><dt>任务</dt><dd>三维重建 · {task.id}</dd></div><div><dt>患者</dt><dd>{patientDisplayName(task)}</dd></div><div><dt>订单编号</dt><dd>{task.orderNo}</dd></div><div><dt>任务状态</dt><dd>{task.status}</dd></div><div><dt>最后保存</dt><dd>{formatSavedTime(savedAt) || '—'}</dd></div></dl></section><section className="property-section activity-section"><h3><Activity size={14} />操作记录</h3>{history.map(({action, at, actor}) => <div className="history-item" key={`${action}-${at}`}><strong>{action}</strong><small>{formatOperation(at,actor)}</small></div>)}</section></div> }
+function PropertiesContent({ task, savedAt, activeObject, hidden, readOnly, onVisibility }: { task: Task; savedAt?: string; activeObject: ProfessionalObject; hidden: boolean; readOnly: boolean; onVisibility: (id: string) => void }) { const history = [['创建下颌骨蒙版', '14:32', '陈屿'], ['调整窗宽窗位', '14:20', '陈屿'], ['生成三维模型', '13:56', '陈屿'], ['导入 CT 数据', '11:03', '系统']].map(([action, clock, actor]) => ({ action, actor, at: clock })).sort((a,b) => { const rawMinutes = (value: string) => { const [hour,minute] = value.split(':').map(Number); return hour*60+minute }; return rawMinutes(b.at)-rawMinutes(a.at) }); return <div className="properties-content"><div className="selected-object"><i style={{ background: activeObject.color }} /><span><strong>{activeObject.name}</strong><small>{activeObject.tab === 'mask' ? '蒙版对象' : activeObject.tab === 'model' ? '三维模型' : '测量对象'} · {hidden ? '已隐藏' : '可见'}</small></span></div><section className="property-section"><h3><Info size={14} />当前对象属性</h3><dl><div><dt>对象类型</dt><dd>{activeObject.tab === 'mask' ? '蒙版' : activeObject.tab === 'model' ? '模型' : '测量'}</dd></div>{activeObject.details.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl><label><span>当前显示</span><input key={activeObject.id} type="checkbox" checked={!hidden} disabled={readOnly&&activeObject.tab!=='model'} onChange={() => onVisibility(activeObject.id)} /></label></section><section className="property-section"><h3><Info size={14} />任务信息</h3><dl><div><dt>任务</dt><dd>三维重建 · {task.id}</dd></div><div><dt>患者</dt><dd>{patientDisplayName(task)}</dd></div><div><dt>订单编号</dt><dd>{task.businessNo||task.orderNo}</dd></div><div><dt>任务状态</dt><dd>{task.status}</dd></div><div><dt>最后保存</dt><dd>{formatSavedTime(savedAt) || '—'}</dd></div></dl></section><section className="property-section activity-section"><h3><Activity size={14} />操作记录</h3>{history.map(({action, at, actor}) => <div className="history-item" key={`${action}-${at}`}><strong>{action}</strong><small>{formatOperation(at,actor)}</small></div>)}</section></div> }
 
 function ViewGrid({ hiddenModels, taskId, series, tool, toolRevision, activeObject, comments, selectedComment, onSelectComment, onChooseTool }: { hiddenModels: string[]; taskId: string; series?: ImagingSeries; tool: string; toolRevision: number; activeObject: string; comments: ReviewComment[]; selectedComment?: ReviewComment; onSelectComment: (comment: ReviewComment) => void; onChooseTool: (label: string) => void }) {
   const [focusedView, setFocusedView] = useState<number | null>(null)

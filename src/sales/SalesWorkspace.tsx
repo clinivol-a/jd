@@ -9,6 +9,8 @@ import './business/business.css';
 import {DoctorFields} from './DoctorFields';
 import {doctorErrors} from './doctorRules.mjs';
 import {PageBack} from '../PageBack';
+import {unifiedRequest,mergeSharedSales} from '../business/unifiedClient';
+import type {SharedSales} from '../business/unifiedClient';
 import {dashboardOrderBuckets,salesBusiness} from "./dashboardBusiness.mjs";
 import { addOrderScenario } from "./orderFixtures.mjs";
 import { ChevronLeftIcon, ChevronRightIcon } from "../design-system/tdesign";
@@ -257,6 +259,12 @@ export default function SalesWorkspace() {
       ? location.hash.slice(7)
       : storage.getItem("sales-route") || "home",
   );
+  useEffect(()=>{
+    let alive=true;
+    const sync=async()=>{if(document.hidden)return;try{const shared=await unifiedRequest<SharedSales>('sales');if(alive)setData(current=>{const next=mergeSharedSales(current,shared);if(JSON.stringify(next)===JSON.stringify(current))return current;storage.setItem('sales-v1',JSON.stringify(next));return next})}catch{/* Existing history stays available; writes report service failures. */}};
+    void sync();const timer=window.setInterval(sync,8000);window.addEventListener('focus',sync);
+    return()=>{alive=false;window.clearInterval(timer);window.removeEventListener('focus',sync)};
+  },[account.id,storage]);
   const [collapsed, setCollapsed] = useState(
       () => storage.getItem("sales-collapsed") === "1",
     ),
@@ -373,6 +381,7 @@ export default function SalesWorkspace() {
   );
   const commit = (c: Command, admin = false) => {
     try {
+      if(c.type.startsWith('order-')&&data.orders.some(o=>o.id===c.target&&o.source==='isolated-shared'))throw new Error('请由授权管理端处理此订单。');
       if (admin && !import.meta.env.DEV)
         throw new Error("当前环境不允许测试审批。");
       const next = transition(
@@ -1427,12 +1436,11 @@ export default function SalesWorkspace() {
               { type: "order-save", value: o },
               authority,
             );
-            if (submit)
-              next = transition(
-                next,
-                { type: "order-submit", target: o.id },
-                authority,
-              );
+            const previous=data.orders.find(item=>item.id===o.id);
+            const legacySubmitted=!!previous&&previous.source!=='isolated-shared'&&previous.status!=='草稿';
+            next.events=data.events; // Original history is retained; new activity comes from the server.
+            await unifiedRequest<Order>(submit?'submit':'save',{order:next.orders.find(item=>item.id===o.id),version:previous?.version,legacy:legacySubmitted});
+            next=mergeSharedSales(next,await unifiedRequest<SharedSales>('sales'));
             storage.setItem("sales-v1", JSON.stringify(next));
             setData(next);
             void MessagePlugin.success(
@@ -1885,7 +1893,7 @@ export default function SalesWorkspace() {
         </Button>
       </Drawer>
       <Dialog visible={!!deleteDoctorId} header="删除医生档案草稿？" confirmBtn={{content:"删除",theme:"danger"}} cancelBtn={{content:"取消",theme:"default",variant:"outline"}} onClose={()=>setDeleteDoctorId("")} onConfirm={()=>{if(commit({type:"doctor-delete",target:deleteDoctorId}))setDeleteDoctorId("");}}>删除后，该草稿将无法恢复，请确认是否继续。</Dialog>
-      <Dialog visible={!!deleteOrderId} header="删除订单草稿？" confirmBtn={{content:"删除",theme:"danger"}} cancelBtn={{content:"取消",theme:"default",variant:"outline"}} onClose={()=>setDeleteOrderId("")} onConfirm={()=>{if(commit({type:"order-delete",target:deleteOrderId})){setDeleteOrderId("");}}}>删除后，该订单草稿将无法恢复，请确认是否继续。</Dialog>
+      <Dialog visible={!!deleteOrderId} header="删除订单草稿？" confirmBtn={{content:"删除",theme:"danger"}} cancelBtn={{content:"取消",theme:"default",variant:"outline"}} onClose={()=>setDeleteOrderId("")} onConfirm={async()=>{const order=data.orders.find(o=>o.id===deleteOrderId);if(order?.source==='isolated-shared'){try{await unifiedRequest('delete',{id:order.id,version:order.version});const next=mergeSharedSales(data,await unifiedRequest<SharedSales>('sales'));storage.setItem('sales-v1',JSON.stringify(next));setData(next);setDeleteOrderId('')}catch(e){void MessagePlugin.error((e as Error).message)}}else if(commit({type:"order-delete",target:deleteOrderId})){setDeleteOrderId("");}}}>删除后，该订单草稿将无法恢复，请确认是否继续。</Dialog>
       {import.meta.env.DEV && <Dialog visible={scenarioConfirm} header="载入销售订单演示场景？" onClose={()=>setScenarioConfirm(false)} onConfirm={()=>{try {const next=addOrderScenario(data);storage.setItem("sales-v1",JSON.stringify(next));setData(next);setScenarioConfirm(false);setTestOpen(false);resetOrders();go("home");void MessagePlugin.success("演示场景已载入，原有订单和病例保留");}catch(e){void MessagePlugin.error((e as Error).message);}}}>增加具有完整状态记录的合成订单及病例。保留现有医生、订单、病例、文件及账号数据，不重复覆盖已载入场景。</Dialog>}
       <OrderEntryDialog visible={entryOpen} onClose={()=>setEntryOpen(false)} onChoose={mode=>{setEntryOpen(false);go(mode==="manual"?"order-new":"order-import/"+mode)}}/>
       <SalesInviteDialog

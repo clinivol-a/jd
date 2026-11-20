@@ -62,6 +62,9 @@ export type Case = {
   department?: string;
 };
 export type Order = {
+  businessNo?: string|null;
+  version?: number;
+  source?: 'isolated-shared';
   patientName?: string;
   patientSex?: string;
   patientIdentityRef?: string;
@@ -115,6 +118,7 @@ export type Order = {
   }[];
 };
 export type Event = {
+  source?: string;
   id: string;
   at: string;
   actor: string;
@@ -155,7 +159,7 @@ export type SalesData = {
     orderId: string;
     caseId: string;
     taskIds: string[];
-    source: "isolated-sales" | "engineer-verified";
+    source: "isolated-sales" | "engineer-verified" | "isolated-shared";
   }[];
   presentationRevision?: number;
   policy: {
@@ -522,6 +526,9 @@ export function transition(
       createdBy: old?.createdBy || actor.id,
       status: old?.status || "草稿",
       projectId: old?.projectId,
+      businessNo: old?.businessNo,
+      version: old?.version,
+      source: old?.source,
       taskIds: old?.taskIds,
       clinicalRequirements: v.clinicalContent ? clinicalText(v.clinicalContent) : (v.clinicalRequirements ?? v.requirements),
       designRequirements: v.designRequirements ?? old?.designRequirements ?? "",

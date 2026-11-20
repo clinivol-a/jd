@@ -10,6 +10,19 @@ export function adminHandler(auth,admin,{origin}) {
    const token=(req.headers.cookie||'').split(';').map(v=>v.trim()).find(v=>v.startsWith('cv_auth_device='))?.slice(15);
    if(!token)throw new AdminFailure('请先登录。',401);
    const actor=auth.require(auth.device(token));const url=new URL(req.url,origin);
+   if(url.pathname.startsWith('/api/admin/business/')){
+    const action=url.pathname.slice('/api/admin/business/'.length);let body={};
+    if(req.method==='POST'){let raw='';for await(const chunk of req){raw+=chunk;if(Buffer.byteLength(raw)>2*1024*1024)throw new AdminFailure('请求内容过大。',413)}try{body=JSON.parse(raw)}catch{throw new AdminFailure('请求格式不正确。')}}
+    let result;
+    if(req.method==='GET'&&action==='sales')result=admin.shared.salesSnapshot(actor);
+    else if(req.method==='GET'&&action==='designer')result=admin.shared.designerSnapshot(actor);
+    else if(req.method==='POST'&&action==='save')result=admin.shared.save(actor,body);
+    else if(req.method==='POST'&&action==='submit')result=admin.receiveOrder(actor,body);
+    else if(req.method==='POST'&&action==='delete')result=admin.shared.remove(actor,body);
+    else if(req.method==='POST'&&action==='task')result=admin.shared.taskCommand(actor,body);
+    else throw new AdminFailure('接口不存在。',404);
+    res.end(JSON.stringify(result));return;
+   }
    if(req.method==='GET'&&url.pathname==='/api/admin/state'){res.end(JSON.stringify(admin.snapshot(actor)));return}
    if(req.method==='GET'&&url.pathname.startsWith('/api/admin/preview/')){
     const file=admin.preview(actor,decodeURIComponent(url.pathname.slice('/api/admin/preview/'.length)));res.setHeader('Content-Type','image/svg+xml; charset=utf-8');res.setHeader('Content-Disposition','inline');res.setHeader('Content-Security-Policy',"default-src 'none'; style-src 'unsafe-inline'; sandbox");res.end(`<svg xmlns="http://www.w3.org/2000/svg" width="720" height="480" viewBox="0 0 720 480"><rect width="720" height="480" fill="white"/><g fill="#333" font-family="sans-serif"><text x="56" y="88" font-size="28">隔离合成资质资料</text><text x="56" y="150" font-size="20">${escape(file.name)}</text><text x="56" y="200" font-size="18">提交来源：${escape(file.submittedBy)}</text><text x="56" y="250" font-size="18">仅用于本地审核交互，不含真实身份证或执业证件。</text></g></svg>`);return;

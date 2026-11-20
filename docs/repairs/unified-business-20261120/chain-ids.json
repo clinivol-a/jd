@@ -1,0 +1,60 @@
+{
+  "scope": "local-isolated-test",
+  "businessNo": "CV-2026-0001",
+  "orderId": "SO-83c79ca9",
+  "projectId": "PRJ-20cfddf0-7b75-4fa9-8356-e0c5049ff8f6",
+  "orderCount": 1,
+  "projectCount": 1,
+  "taskCount": 4,
+  "tasks": [
+    {
+      "id": "TASK-f757aff0-4bd4-4b10-8294-9e47ffcf0065",
+      "projectId": "PRJ-20cfddf0-7b75-4fa9-8356-e0c5049ff8f6",
+      "orderId": "SO-83c79ca9",
+      "stage": 0,
+      "assignee": "chen-yu",
+      "status": "进行中",
+      "version": 3
+    },
+    {
+      "id": "TASK-eb90be46-2d77-470e-b151-ee0ca49878ba",
+      "projectId": "PRJ-20cfddf0-7b75-4fa9-8356-e0c5049ff8f6",
+      "orderId": "SO-83c79ca9",
+      "stage": 1,
+      "assignee": "chen-yu",
+      "status": "未开始",
+      "version": 2
+    },
+    {
+      "id": "TASK-be047644-f1f5-41bd-afc7-832aa84ca84f",
+      "projectId": "PRJ-20cfddf0-7b75-4fa9-8356-e0c5049ff8f6",
+      "orderId": "SO-83c79ca9",
+      "stage": 2,
+      "assignee": "ADM-E02",
+      "status": "未开始",
+      "version": 2
+    },
+    {
+      "id": "TASK-b07c14b1-ebe9-4aeb-a8e0-9d3ba67a8572",
+      "projectId": "PRJ-20cfddf0-7b75-4fa9-8356-e0c5049ff8f6",
+      "orderId": "SO-83c79ca9",
+      "stage": 3,
+      "assignee": "ADM-E02",
+      "status": "未开始",
+      "version": 2
+    }
+  ],
+  "eventIds": [
+    "2e1ed2a3-879c-41e8-ba19-9ac91ac58c6b",
+    "ada9c3b9-a798-4c04-81a2-30a00dae7e3c",
+    "26c8df59-c38a-49ed-8d1d-47a5f746696c",
+    "733653dc-b926-42c1-ac73-5075c5068a89",
+    "c26b1742-c41b-48b9-be22-511fd90d2444",
+    "ca74d5ae-1876-4083-9ef3-4cb71331102b",
+    "6eb77bd2-158c-4276-9579-f36970af7b44",
+    "a09e16f8-ae0f-4a47-9511-8b9a0a532666",
+    "d7c3b466-98b1-4dde-b85c-9afa11e4f435",
+    "ada0538c-da8f-494d-b294-1b3bd37dd45a",
+    "c93dc8fb-2c9f-4cf8-a560-edb914389003"
+  ]
+}

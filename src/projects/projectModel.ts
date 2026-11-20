@@ -8,7 +8,7 @@ export const statuses: TaskStatus[] = ['未开始','进行中','待审核','审�
 export type DateRange = [string,string]
 export type Period = '3m'|'6m'|'12m'|'custom'|'month'
 export type Filters = { view:'projects'|'tasks'; search:string; period:Period; range:DateRange; stage:'全部'|TaskType; status:'全部'|'待处理'|TaskStatus; page:number; source?:'a-statistics' }
-export type Project = { id:string; name:string; createdAt:string; dueAt:string; agreedDueAt?:string; patient:string; patientName?:string; tasks:Task[]; hospital:string; dataOrigin:'demo'|'production'|'unknown'; createdSource:'project'|'first-task' }
+export type Project = { id:string; businessNo?:string; orderId?:string; name:string; createdAt:string; dueAt:string; agreedDueAt?:string; patient:string; patientName?:string; tasks:Task[]; hospital:string; dataOrigin:'demo'|'production'|'unknown'; createdSource:'project'|'first-task' }
 export type ProjectTarget = { projectId:string; taskId?:string; eventId?:string }
 // Explicitly scoped prototype hospital assignments; never infer production partnerships.
 export const demoProjectMetadata:Record<string,{hospital:string;dataOrigin:'demo'}>={
@@ -25,8 +25,9 @@ export function periodRange(period:Period, now=new Date()):DateRange {
   return period==='month'?[day(new Date(now.getFullYear(),now.getMonth(),1)),day(new Date(now.getFullYear(),now.getMonth()+1,0))]:[day(new Date(now.getFullYear(),now.getMonth()-({ '3m':2,'6m':5,'12m':11,custom:2 }[period]),1)),end]
 }
 export const defaultFilters = ():Filters => ({view:'projects',search:'',period:'3m',range:periodRange('3m'),stage:'全部',status:'全部',page:1})
-export const ownerId = (task:Task) => task.owner.split('（')[0]==='陈屿' ? CURRENT_ENGINEER : 'CV-DS-OTHER'
-export const owns = (task:Task) => ownerId(task)===CURRENT_ENGINEER
+export const ownerId = (task:Task) => task.sharedBusiness?task.assigneeId:task.owner.split('（')[0]==='陈屿' ? CURRENT_ENGINEER : 'CV-DS-OTHER'
+export const owns = (task:Task) => task.sharedBusiness?task.accessible===true:ownerId(task)===CURRENT_ENGINEER
+export const projectNumber=(project:Project)=>project.businessNo||project.id
 export const cleanOwner = (task:Task) => displayPerson(task.owner)
 export function isoDisplayTime(text:string, now=new Date()):string {
   if(!text || text==='-')return ''
@@ -48,9 +49,11 @@ export const formatTime = formatDateTime
 export function projectsFor(tasks:Task[],events:FlowEvent[],now=new Date()):Project[] {
   const catalog=tasks.some(task=>task.catalogDemo)?withDemoProjects([]):[]
   const groups=new Map<string,Task[]>()
-  tasks.forEach(t=>groups.set(t.orderNo,[...(groups.get(t.orderNo)??[]),t]))
+  tasks.forEach(t=>{const key=t.projectId??t.orderNo;groups.set(key,[...(groups.get(key)??[]),t])})
   return [...groups].filter(([,items])=>items.some(owns)).map(([id,items])=>{
     const name=items[0].title
+    const shared=items.find(t=>t.sharedBusiness)
+    if(shared)return {id,businessNo:shared.businessNo,orderId:shared.orderId,name,createdAt:shared.projectCreatedAt||'',dueAt:shared.agreedDueAt||'',agreedDueAt:shared.agreedDueAt,patient:shared.patient,patientName:shared.patientName,tasks:[...items].sort((a,b)=>stages.indexOf(a.taskType)-stages.indexOf(b.taskType)),hospital:shared.hospital||'—',dataOrigin:'demo' as const,createdSource:'project' as const}
     const metadata=demoProjectMetadata[id]
     const production=items.some(task=>task.dataOrigin==='production')
     const hospital=items.find(task=>task.hospital)?.hospital??(!production?metadata?.hospital:undefined)??'—'
@@ -63,12 +66,13 @@ export function projectsFor(tasks:Task[],events:FlowEvent[],now=new Date()):Proj
 export const inRange=(createdAt:string,range:DateRange)=> (!range[0]||createdAt>=range[0])&&(!range[1]||createdAt.slice(0,10)<=range[1])
 export const statusMatches=(task:Task,status:Filters['status'])=>status==='全部'||status==='待处理'?(status==='全部'||task.status==='进行中'||task.status==='审核退回'):task.status===status
 export function projectProgress(project:Project):string {
+ const sharedStatus=project.tasks.find(t=>t.sharedBusiness)?.projectStatus;if(sharedStatus&&!project.tasks.some(t=>t.status===sharedStatus))return sharedStatus==='已完成'?'全部专业任务已完成':sharedStatus
   if(project.tasks.every(t=>t.status==='已完成'))return '全部专业任务已完成'
   const current=project.tasks.filter(t=>['审核退回','进行中','待审核'].includes(t.status)).sort((a,b)=>Number(b.status==='审核退回')-Number(a.status==='审核退回'))
   return (current.length?current:project.tasks.filter(t=>t.status==='未开始')).map(t=>`${compactText(t.taskType)}${t.status}`).join(' · ')
 }
 export function filterProjects(projects:Project[],f:Filters):Project[] {
-  return projects.filter(p=>inRange(p.createdAt,f.range)&&(!f.search||p.id.toLowerCase().includes(f.search.trim().toLowerCase()))&&(f.stage==='全部'||p.tasks.some(t=>t.taskType===f.stage))&&(f.status==='全部'||p.tasks.some(t=>statusMatches(t,f.status))))
+  return projects.filter(p=>inRange(p.createdAt,f.range)&&(!f.search||projectNumber(p).toLowerCase().includes(f.search.trim().toLowerCase()))&&(f.stage==='全部'||p.tasks.some(t=>t.taskType===f.stage))&&(f.status==='全部'||p.tasks.some(t=>statusMatches(t,f.status))))
 }
 export function statisticsTasks(tasks:Task[],range:DateRange,events:FlowEvent[]=[]):Task[] {
  return [...new Map(tasks.map(t=>[t.id,t])).values()].filter(t=>{
@@ -80,7 +84,7 @@ export function statisticsTasks(tasks:Task[],range:DateRange,events:FlowEvent[]=
 }
 export function filterTasks(projects:Project[],f:Filters,events:FlowEvent[]=[]):{project:Project;task:Task}[] {
  const eligible=f.source?new Set(statisticsTasks(projects.flatMap(p=>p.tasks),f.range,events).map(t=>t.id)):null
- return projects.filter(p=>(!!f.source||inRange(p.createdAt,f.range))&&(!f.search||p.id.toLowerCase().includes(f.search.trim().toLowerCase()))).flatMap(project=>[...project.tasks].sort((a,b)=>stages.indexOf(a.taskType)-stages.indexOf(b.taskType)).filter(t=>owns(t)&&(!eligible||eligible.has(t.id))&&(f.stage==='全部'||t.taskType===f.stage)&&statusMatches(t,f.status)).map(task=>({project,task})))
+ return projects.filter(p=>(!!f.source||inRange(p.createdAt,f.range))&&(!f.search||projectNumber(p).toLowerCase().includes(f.search.trim().toLowerCase()))).flatMap(project=>[...project.tasks].sort((a,b)=>stages.indexOf(a.taskType)-stages.indexOf(b.taskType)).filter(t=>owns(t)&&(!eligible||eligible.has(t.id))&&(f.stage==='全部'||t.taskType===f.stage)&&statusMatches(t,f.status)).map(task=>({project,task})))
 }
 export function monthlyCounts(projects:Project[],now=new Date(),events:FlowEvent[]=[]) {
  return aDashboardCounts(projects.flatMap(p=>p.tasks),events,now)
@@ -108,6 +112,7 @@ export function noticeProjectTarget(notice:Notice,projects:Project[],events:Flow
 }
 export function sortedNotices(notices:Notice[],events:FlowEvent[] = []) {return [...notices].sort((a,b)=>(parseTimestamp(noticeTimestamp(b,events))?.getTime()??-Infinity)-(parseTimestamp(noticeTimestamp(a,events))?.getTime()??-Infinity)||b.id-a.id)}
 export function canEnter(task:Task,tasks:Task[]) {
+  if(task.sharedBusiness)return !!task.accessible&&(!task.upstreamTaskId||task.upstreamApproved===true)
   if(task.status==='未开始')return false
   if(['已完成','待审核'].includes(task.status))return true
   if(!owns(task))return false
@@ -162,6 +167,7 @@ export function aDashboardCounts(tasks:Task[],events:FlowEvent[]=[],now=new Date
  return {待处理:mine.filter(t=>statusMatches(t,'待处理')).length,进行中:mine.filter(t=>t.status==='进行中').length,待审核:mine.filter(t=>t.status==='待审核').length,审核退回:mine.filter(t=>t.status==='审核退回').length,已完成:mine.filter(t=>t.status==='已完成').length}
 }
 export function projectStatus(project:Project):TaskStatus {
+ const server=project.tasks.find(t=>t.sharedBusiness)?.projectStatus;if(server)return server
  if(project.tasks.every(t=>t.status==='已完成'))return '已完成'
  for(const status of ['审核退回','进行中','待审核'] as const)if(project.tasks.some(t=>t.status===status))return status
  return '未开始'
