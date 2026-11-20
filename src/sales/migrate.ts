@@ -1,3 +1,5 @@
+import {professionalDesignRequirements} from './orderFixtures.mjs';
+import {designDemand} from './clinicalContent.mjs';
 import { completeDoctorFixtures, ensureDoctorCreationEvents } from "./doctorFixtures.mjs";
 import {migrateDoctorSources} from "./doctorRecordRules.mjs";
 import type { SalesData } from "./model";
@@ -6,6 +8,11 @@ export function migrateSales(input: SalesData): SalesData {
   const data = structuredClone(input) as SalesData & {
     fixtureRevision?: number;
   };
+  for(const order of data.orders){
+    const oldDesign=['导板边缘平滑过渡，固定孔位避让神经管。','保留必要的解剖细节，区分参考结构。'];
+    if(order.demoScenario && !order.clinicalContent && order.requirements==='评估缺损范围与邻近结构，提供数字模型供修复方案讨论。' && order.clinicalRequirements==='评估缺损范围与邻近结构，明确修复区域及需要避让的结构，供医生制定方案。' && oldDesign.includes(order.designRequirements||'') && professionalDesignRequirements[order.name]) order.designRequirements=professionalDesignRequirements[order.name];
+    order.designRequirementConflicts=designDemand(order).conflicts;
+  }
   // Only this isolated sales demo store: fill absent test contacts, never overwrite entered numbers.
   const usedPhones=new Set(data.doctors.map(d=>d.phone).filter(Boolean));
   for(const doctor of data.doctors){

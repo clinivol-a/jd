@@ -5,7 +5,7 @@ import {PatientInsuranceFields} from './business/PatientInsuranceFields';
 import {business} from './business/client';
 import {StageShare} from './business/OrderResults';
 import {ClinicalEditor,ClinicalReadOnly,initialClinicalContent} from "./ClinicalEditor";
-import {clinicalText} from "./clinicalContent.mjs";
+import {clinicalText,designDemand} from "./clinicalContent.mjs";
 import {orderNumber} from './orderNumber.mjs';
 import {PageBack} from '../PageBack';
 import { confirmedDelivery } from "./orderRules.mjs";
@@ -126,7 +126,7 @@ export function OrderEditor({
     const doctor = data.doctors.find((d) => d.id === (c?.doctorId || doctorId));
     const source=initial||prefill;
     return source
-      ? {...structuredClone(source),clinicalContent:source.clinicalContent||initialClinicalContent(source.clinicalRequirements||source.requirements)}
+      ? {...structuredClone(source),clinicalContent:designDemand(source).content||initialClinicalContent(designDemand(source).text)}
       : {
           id: "SO-" + id().slice(0, 8),
           name: "",
@@ -332,11 +332,11 @@ export function OrderEditor({
                 />
               </Field>
               <Field
-                label="临床需求"
+                label="设计需求"
                 required
                 error={errors.clinicalRequirements}
               >
-                <ClinicalEditor owner={data.ownerId} value={o.clinicalContent!} error={errors.clinicalRequirements} onBusyChange={value=>setBusy(prev=>({...prev,clinical:value}))} onChange={content=>update({clinicalContent:content,clinicalRequirements:clinicalText(content),requirements:clinicalText(content)})}/>
+                <ClinicalEditor owner={data.ownerId} value={o.clinicalContent!} error={errors.clinicalRequirements} onBusyChange={value=>setBusy(prev=>({...prev,clinical:value}))} onChange={content=>update({clinicalContent:content,designRequirements:clinicalText(content),clinicalRequirements:clinicalText(content),requirements:clinicalText(content)})}/>
               </Field>
               <Field label="业务服务项目" required error={errors.service}>
                 <Select
@@ -438,10 +438,9 @@ export function OrderEditor({
                 ],
                 ["患者姓名", patientName],
                 ["手术项目名称", o.name],
-                ["临床需求", <ClinicalReadOnly owner={data.ownerId} value={o.clinicalContent} fallback={o.clinicalRequirements||o.requirements}/>],
+                ["设计需求", <ClinicalReadOnly owner={data.ownerId} value={designDemand(o).content} fallback={designDemand(o).text||"—"}/>],
                 ["业务服务项目", o.service],
                 ["设计阶段", <OrderIcons stages={o.plannedStages || []} />],
-                ...(o.designRequirements ? [["设计需求", o.designRequirements]] : []),
                 ["需求数量", String(o.quantity)],
                 ["期望完成时间", o.requestedDueDate ?? o.due],
                 [
@@ -605,11 +604,8 @@ export function OrderDetail({
           <Info label="最近更新时间">{formatDateTime(order.updated)}</Info>
           <Info label="需求数量">{order.quantity}</Info>
           <Info label="报价">待核定</Info>
-          <Info label="临床需求" wide>
-            <ClinicalReadOnly owner={data.ownerId} value={order.clinicalContent} fallback={order.clinicalRequirements || order.requirements || "未记录"}/>
-          </Info>
           <Info label="设计需求" wide>
-            {order.designRequirements || "未填写"}
+            <ClinicalReadOnly owner={data.ownerId} value={designDemand(order).content} fallback={designDemand(order).text||"—"}/>
           </Info>
         </dl>
         {order.reason && <p className="sales-error">{order.reason}</p>}

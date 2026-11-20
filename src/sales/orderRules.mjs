@@ -1,4 +1,4 @@
-import {clinicalContentError,hasClinicalContent} from "./clinicalContent.mjs";
+import {clinicalContentError,hasClinicalContent,designDemand} from "./clinicalContent.mjs";
 // Shared by the browser command model and the authenticated local validation route.
 export const designStages = ["三维重建", "CAD设计", "有限元分析", "3D打印"];
 export const localDate = (value = new Date()) => {
@@ -19,12 +19,11 @@ export function orderErrors(order, patientName, now = new Date()) {
     ["department", "科室"],
     ["doctorId", "需求医生"],
     ["name", "手术项目名称"],
-    ["clinicalRequirements", "临床需求"],
+    ["clinicalRequirements", "设计需求"],
     ["service", "业务服务项目"],
   ]) {
     const value =
-      order[field] ||
-      (field === "clinicalRequirements" ? order.requirements : "");
+      (field === "clinicalRequirements" ? designDemand(order).text : order[field]);
     if (!(field === "clinicalRequirements" && hasClinicalContent(order.clinicalContent)) && !String(value || "").trim()) errors[field] = "请填写" + label;
   }
   const contentError=clinicalContentError(order.clinicalContent);

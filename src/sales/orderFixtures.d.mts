@@ -5,3 +5,5 @@ export function orderFixtures(ownerId:string,doctors:Doctor[],cases:Case[],now?:
 export function fixtureAttachments(owner:string,order:string,at:string):Attachment[];
 export function fixtureBytes(kind:number):Uint8Array<ArrayBuffer>;
 export function addOrderScenario(data:SalesData,now?:Date):SalesData;
+
+export const professionalDesignRequirements:Record<string,string>;

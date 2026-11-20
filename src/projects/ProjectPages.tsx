@@ -1,3 +1,4 @@
+import {ClinicalReadOnly} from '../sales/ClinicalEditor';
 import {PageBack} from '../PageBack';
 import { useEffect, useMemo, useState } from 'react'
 import { Button, Card, Input, Pagination, Select, Table, Tag, Tooltip } from 'tdesign-react'
@@ -20,8 +21,8 @@ function StageTags({tasks,iconsOnly=false}:{tasks:Task[];iconsOnly?:boolean}){re
 export function ProjectTable({projects,onProject,paginated=false,page=1,onPage}:{projects:Project[];onProject:(id:string)=>void;paginated?:boolean;page?:number;onPage?:(page:number)=>void}){
   const columns:PrimaryTableCol<Project>[]=[
     {colKey:'id',title:'项目编号',width:150,fixed:'left',ellipsis:true,cell:({row})=>projectNumber(row)},
-    {colKey:'hospital',title:'医院',width:210,fixed:'left',ellipsis:true},
     {colKey:'name',title:'手术项目名称',width:180,fixed:'left',ellipsis:true,cell:({row})=><button className="project-name-link" onClick={()=>onProject(row.id)}><span>{row.name}</span></button>},
+    {colKey:'hospital',title:'医院',width:210,fixed:'left',ellipsis:true},
     {colKey:'patient',title:'患者',width:150,ellipsis:true,cell:({row})=>row.patientName||'—'},
     {colKey:'stages',title:'设计阶段',width:150,cell:({row})=><StageTags tasks={row.tasks} iconsOnly/>},
     {colKey:'progress',title:'当前状态',width:155,ellipsis:true,cell:({row})=><ProjectStatus status={projectStatus(row)}/>},
@@ -43,8 +44,8 @@ export function ProjectList({projects,tasks,events=[],filters,onFilters,onProjec
   const change=(patch:Partial<Filters>)=>onFilters({...filters,...patch,source:patch.view==='projects'?undefined:filters.source,page:1})
   const taskColumns:PrimaryTableCol<{project:Project;task:Task}>[]=[
     {colKey:'projectId',title:'项目编号',width:150,fixed:'left',ellipsis:true,cell:({row})=>projectNumber(row.project)},
-    {colKey:'hospital',title:'医院',width:210,fixed:'left',ellipsis:true,cell:({row})=>row.project.hospital},
     {colKey:'name',title:'手术项目名称',width:180,fixed:'left',ellipsis:true,cell:({row})=><button className="project-name-link" onClick={()=>onProject(row.project.id)}><span>{row.project.name}</span></button>},
+    {colKey:'hospital',title:'医院',width:210,fixed:'left',ellipsis:true,cell:({row})=>row.project.hospital},
     {colKey:'patient',title:'患者',width:150,ellipsis:true,cell:({row})=>row.project.patientName||'—'},
     {colKey:'stage',title:'设计阶段',width:150,cell:({row})=><StageTypeIcon stage={row.task.taskType}/>},
     {colKey:'status',title:'当前状态',width:155,cell:({row})=><ProjectStatus status={row.task.status}/>},
@@ -83,15 +84,15 @@ export function ProjectDetail({project,tasks,events,target,navigationKey,onBack,
     return ()=>{window.clearTimeout(timer);elements.forEach(element=>element.classList.remove('project-navigation-focus'))}
   },[project?.id,target?.taskId,target?.eventId,navigationKey])
   if(!project)return <div className="page"><Card bordered={false}><h1>项目不可访问</h1><p>未找到项目，或你未参与此项目。</p><Button onClick={onBack}>返回我的项目</Button></Card></div>
-  const updated=project.tasks.map(task=>latestTaskActivity(task,events)).filter(Boolean).sort().at(-1)??''
-  const surgery=project.tasks.find(task=>task.taskType==='三维重建')?.surgery
+  const demandTask=project.tasks.find(task=>task.designDemandContent||task.surgery?.trim())
   return <div className="page project-page project-detail-page"><PageBack label="返回我的项目" onBack={onBack}/>
     <Card bordered={false} className="project-info-card"><h2>项目基本信息</h2><dl className="project-info-grid">
-      <InfoField label="医院">{project.hospital}</InfoField><InfoField label="手术项目名称">{project.name}</InfoField><InfoField label="项目编号">{projectNumber(project)}</InfoField><InfoField label="患者">{project.patientName||'—'}</InfoField>
-      <InfoField label="任务负责人">{[...new Set(project.tasks.map(cleanOwner).filter(name=>name!=='—'))].join('、')}</InfoField><InfoField label="设计阶段"><StageTags tasks={project.tasks}/></InfoField><InfoField label="当前进展">{projectProgress(project)}</InfoField>
-      <InfoField label="创建时间"><Tooltip content={project.createdSource==='first-task'?'依据同订单最早任务创建记录':'项目创建时间'}><span>{formatDate(project.createdAt)}</span></Tooltip></InfoField><InfoField label="预计交付时间"><Tooltip content="依据各设计阶段的最晚预计交付时间"><span>{formatDate(project.dueAt)}</span></Tooltip></InfoField><InfoField label="最后更新时间">{formatTime(updated)}</InfoField><InfoField label="手术需求" wide>{surgery}</InfoField>
+      <InfoField label="项目编号">{projectNumber(project)}</InfoField><InfoField label="手术项目名称">{project.name}</InfoField><InfoField label="医院">{project.hospital}</InfoField><InfoField label="患者">{project.patientName||'—'}</InfoField>
+      <InfoField label="任务负责人">{[...new Set(project.tasks.map(cleanOwner).filter(name=>name!=='—'))].join('、')}</InfoField><InfoField label="设计阶段"><StageTags tasks={project.tasks}/></InfoField>
+      <InfoField label="设计需求" wide><ClinicalReadOnly owner={demandTask?.designDemandOwnerId||''} value={demandTask?.designDemandContent} fallback={demandTask?.surgery||'—'}/></InfoField>
+      <InfoField label="当前状态"><ProjectStatus status={projectStatus(project)}/></InfoField><InfoField label="创建时间">{formatDate(project.createdAt)}</InfoField><InfoField label="预计交付时间">{formatDate(project.agreedDueAt||'')}</InfoField>
     </dl></Card>
-    <Card bordered={false} className="project-stages-card"><div className="section-heading"><h2>设计阶段</h2><span>{project.tasks.length} 个专业任务</span></div><div className="project-stages">{project.tasks.map((task,index)=>{
+    <Card bordered={false} className="project-stages-card"><div className="section-heading"><h2>设计阶段</h2></div><div className="project-stages">{project.tasks.map((task,index)=>{
       const upstream=tasks.find(t=>t.id===task.upstreamTaskId)
       const formal=task.status==='已完成'&&task.taskType==='三维重建'&&task.approvedModel
       const description=task.status==='已完成'?(formal?'审核通过，正式成果已锁定':'审核通过，任务已完成'):task.status==='待审核'?'成果已提交，等待审核':task.status==='审核退回'?'审核退回，需根据意见修改':task.status==='未开始'?(upstream?'等待上游成果审核通过':'任务尚未开始'):upstream&&canEnter(task,tasks)?'上游成果已解锁':'任务正在处理中'
@@ -99,6 +100,6 @@ export function ProjectDetail({project,tasks,events,target,navigationKey,onBack,
 
     })}</div></Card><ProjectEventList project={project} events={events}/></div>
 }
-export function ProjectEventList({project,events}:{project:Project;events:FlowEvent[]}){const rows=projectEvents(project,events);return <Card bordered={false} className="project-flow-card"><h2>项目流转记录</h2><div className="timeline">{rows.map(event=><div className="timeline-item" id={`project-event-${event.id}`} key={event.id}><i/><div><strong>{event.name}<span className="flow-source">{project.tasks.find(t=>t.id===event.taskId)?.taskType?compactText(project.tasks.find(t=>t.id===event.taskId)!.taskType):''}</span></strong><p><span className="timeline-meta">{formatShortDateTime(event.at)} · {event.actor}</span><span className="timeline-note">{compactText(event.description)}</span></p></div></div>)}</div></Card>}
+export function ProjectEventList({project,events}:{project:Project;events:FlowEvent[]}){const rows=projectEvents(project,events);return <Card bordered={false} className="project-flow-card"><h2>项目流转记录</h2><div className="timeline">{rows.map(event=><div className="timeline-item" id={`project-event-${event.id}`} key={event.id}><i/><div><strong>{event.name}<span className="flow-source">{project.tasks.find(t=>t.id===event.taskId)?.taskType?compactText(project.tasks.find(t=>t.id===event.taskId)!.taskType):''}</span></strong><p><span className="timeline-meta">{formatShortDateTime(event.at)} · {event.actor}</span><span className="timeline-note">{compactText(event.description)===compactText(event.name)?'':compactText(event.description)}</span></p></div></div>)}</div></Card>}
 
 export function ExtendedTaskDetail({task,tasks,events,onBack}:{task:Task;tasks:Task[];events:FlowEvent[];onBack:()=>void}){const project=useMemo(()=>projectsFor(tasks,events).find(p=>p.id===task.orderNo),[tasks,events]);return <div className="page project-page"><PageBack label="返回项目" onBack={onBack}/><div className="project-page-heading"><h1>{task.title}</h1><StageLabel stage={task.taskType}/><ProjectStatus status={task.status}/></div><Card bordered={false} className="project-info-card"><h2>专业任务信息</h2><dl className="project-info-grid"><div><dt>任务编号</dt><dd>{task.id}</dd></div><div><dt>关联订单</dt><dd>{task.businessNo||task.orderNo}</dd></div><div><dt>负责人</dt><dd>{cleanOwner(task)}</dd></div><div><dt>预计交付时间</dt><dd>{formatDate(isoDisplayTime(task.deadline))}</dd></div></dl>{task.upstreamTaskId&&<p>前序任务 {task.upstreamTaskId} · {tasks.find(t=>t.id===task.upstreamTaskId)?.status}</p>}</Card>{project&&<ProjectEventList project={project} events={events.filter(e=>{const stage=tasks.find(t=>t.id===e.taskId)?.taskType;return e.type==='created'||e.type==='assigned'||!!stage&&stages.indexOf(stage)<=stages.indexOf(task.taskType)})}/>}</div>}

@@ -71,6 +71,7 @@ type ApprovedModel = {
 export type FlowEvent = { id: string; orderNo: string; taskId: string; type: string; name: string; at: string; actor: string; role: string; description: string; version?: string; commentCount?: number; modelId?: string; relatedTaskId?: string; actorId?: string; submissionId?: string; source?:string; orderId?:string; projectId?:string; resultId?:string }
 type UpstreamFeedback = { id: string; cadTaskId: string; upstreamTaskId: string; modelId: string; modelVersion: string; description: string; createdAt: string; actor: string; recipient: string }
 export type Task = {
+  designDemandContent?: import("./sales/clinicalContent.mjs").ClinicalContent; designDemandOwnerId?:string;
   sharedBusiness?:boolean;projectStatus?:TaskStatus;accessible?:boolean;assigneeId?:string;businessNo?:string;orderId?:string;projectId?:string;projectCreatedAt?:string;orderCreatedAt?:string;agreedDueAt?:string;upstreamApproved?:boolean;version?:number;
   id: string; title: string; patient: string; patientName?: string; orderNo: string; surgery: string; taskType: TaskType
   status: TaskStatus; owner: string; updated: string; deadline: string

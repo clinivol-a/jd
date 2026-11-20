@@ -1,4 +1,4 @@
-import {clinicalContentError,clinicalText} from "./clinicalContent.mjs";
+import {clinicalContentError,clinicalText,designDemand} from "./clinicalContent.mjs";
 import { doctorDraftDeleteError } from "./doctorFixtures.mjs";
 import { orderFixtures, syntheticPatients, stageTeams } from "./orderFixtures.mjs";
 import { localDate, designStages, orderErrors } from "./orderRules.mjs";
@@ -72,6 +72,7 @@ export type Order = {
   insuranceStandard?: {id:string;name:string;source:"configured"};
   importReceipt?: string;
   importSource?: {mode:string;importId:string;adapter:string;original:Record<string,unknown>;changes:unknown[];matched:boolean;actor:string};
+  designRequirementConflicts?: {field:string;value:string}[];
   clinicalContent?: import("./clinicalContent.mjs").ClinicalContent;
   id: string;
   name: string;
@@ -530,8 +531,9 @@ export function transition(
       version: old?.version,
       source: old?.source,
       taskIds: old?.taskIds,
-      clinicalRequirements: v.clinicalContent ? clinicalText(v.clinicalContent) : (v.clinicalRequirements ?? v.requirements),
-      designRequirements: v.designRequirements ?? old?.designRequirements ?? "",
+      clinicalRequirements: v.clinicalRequirements ?? old?.clinicalRequirements ?? designDemand(v).text,
+      designRequirements: v.designRequirements ?? old?.designRequirements ?? designDemand(v).text,
+      designRequirementConflicts:designDemand(v).conflicts,
       plannedStages: v.plannedStages
         ? designStages.filter((stage) => v.plannedStages!.includes(stage))
         : old?.plannedStages || [

@@ -4,3 +4,5 @@ export type ClinicalContent = {version:1;blocks:ClinicalBlock[]};
 export function clinicalContentError(content:unknown, owner?:string):string;
 export function clinicalText(content?:ClinicalContent):string;
 export function hasClinicalContent(content?:ClinicalContent):boolean;
+
+export function designDemand(order:{clinicalContent?:ClinicalContent;designRequirements?:string;clinicalRequirements?:string;requirements?:string}):{content?:ClinicalContent;text:string;conflicts:{field:string;value:string}[]};

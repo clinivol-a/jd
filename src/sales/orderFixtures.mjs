@@ -1,3 +1,13 @@
+export const professionalDesignRequirements = {
+  "颌骨修复数字模型": "请根据颌面部CT影像完成颌骨及缺损区域三维重建，准确保留骨缺损边界、牙根及下牙槽神经管等关键结构。缺损区域与正常骨组织需清晰区分，模型表面保持完整、连续，输出可用于后续CAD设计的三维模型。",
+  "下颌骨导板设计": "请依据下颌骨三维模型设计个体化定位导板，确保导板接触面与预定骨面稳定贴合。固定孔位置需避开牙根及下牙槽神经管，导板边缘做平滑过渡，保留必要的操作空间，输出导板三维模型及定位示意。",
+  "膝关节支具规划": "请根据膝关节影像及相关测量数据建立个体化支具模型，明确股骨、胫骨的定位基准与关节活动区域。支具内表面需符合患肢轮廓，对骨性突出部位预留适当避让空间，并标注绑带固定位置及主要结构尺寸。",
+  "颌面联合修复规划": "请完成颌面部骨组织及缺损区域的三维重建，准确区分患侧、健侧及关键解剖结构。以健侧形态为参考建立修复轮廓，明确修复体与剩余骨组织的连接区域，并完成相应的数字模型及定位导板设计。",
+  "颅骨修复模型": "请依据头颅CT影像重建颅骨缺损区域，准确提取缺损边缘及周围骨面轮廓。修复体外形应与周围颅骨曲率自然衔接，厚度平顺过渡，明确固定区域及预留孔位，输出修复体三维模型和装配预览。",
+  "术前定位导板": "请根据术前影像及确认的骨性定位标志设计个体化定位导板。导板接触面应具有明确的定位关系，定位孔与固定孔需符合预定位置，边缘避让邻近重要结构，并提供导板三维模型及装配定位示意。",
+  "矫形具方案": "请依据患肢表面轮廓及相关测量数据建立个体化矫形具模型，保证主要接触区域与患肢形态贴合。对关节活动区域及骨性突起位置进行适当避让，预留必要的调节结构、固定位置与连接空间，并标注主要设计尺寸。",
+  "骨缺损修复规划": "请根据影像资料完成缺损骨组织及邻近正常结构的三维重建，准确标识缺损边界与关键解剖结构。结合健侧形态确定修复区域轮廓，建立修复体初步模型，检查与周围骨面的贴合关系，并输出对应三维模型。"
+};
 import { designStages, localDate } from './orderRules.mjs';
 export const stageTeams = ['重建设计团队', 'CAD设计团队', '有限元分析团队', '打印工程团队'];
 export const syntheticPatients = ['沈嘉宁', '顾清禾'];
@@ -53,7 +63,7 @@ export function orderFixtures(ownerId, doctors, cases, now = new Date(), prefix 
         }
         // Actual deterministic synthetic files, resolved privately by getFile; not medical results.
         o.materials = fixtureAttachments(ownerId, oid, at(0));
-        orders.push(o);
+        o.designRequirements=professionalDesignRequirements[o.name]; orders.push(o);
     });
     return { orders, events, projects };
 }

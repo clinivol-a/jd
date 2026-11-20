@@ -22,7 +22,7 @@ function Media({owner,file,preview=false}:{owner:string;file:Attachment;preview?
 }
 export function ClinicalReadOnly({owner,value,fallback='未记录'}:{owner:string;value?:ClinicalContent;fallback?:string}) {
  if(!value)return <span className="clinical-plain">{fallback}</span>;
- if(clinicalContentError(value,owner))return <p className="sales-error">临床需求内容不可读取。</p>;
+ if(clinicalContentError(value,owner))return <p className="sales-error">设计需求内容不可读取。</p>;
  return <div className="clinical-readonly">{value.blocks.map(b=>'file'in b?<figure key={b.id}><Media owner={owner} file={b.file}/><figcaption>{b.file.name}</figcaption></figure>:b.type==='paragraph'?<p key={b.id} className={b.bold?'clinical-bold':undefined}>{b.text}</p>:b.type==='ol'?<ol key={b.id}>{b.text.split('\n').map((t,i)=><li key={i} className={b.bold?'clinical-bold':undefined}>{t}</li>)}</ol>:<ul key={b.id}>{b.text.split('\n').map((t,i)=><li key={i} className={b.bold?'clinical-bold':undefined}>{t}</li>)}</ul>)}</div>;
 }
 export function ClinicalEditor({owner,value,onChange,onBusyChange,error}:{owner:string;value:ClinicalContent;onChange:(v:ClinicalContent)=>void;onBusyChange:(v:boolean)=>void;error?:string}) {
@@ -48,13 +48,13 @@ export function ClinicalEditor({owner,value,onChange,onBusyChange,error}:{owner:
   finally{pending.current--;onBusyChange(pending.current>0);}
  };
  return <div className={'clinical-editor'+(error?' clinical-editor-error':'')}>
-  <div className="clinical-toolbar" role="toolbar" aria-label="临床需求编辑工具">
+  <div className="clinical-toolbar" role="toolbar" aria-label="设计需求编辑工具">
    <Button size="small" variant="text" aria-pressed={!!current&&'bold'in current&&current.bold} disabled={!current||'file'in current} onClick={()=>current&&'bold'in current&&update(current.id,{bold:!current.bold})}>加粗</Button>
    <Button size="small" variant="text" onClick={()=>format('paragraph')}>正文</Button><Button size="small" variant="text" onClick={()=>format('ul')}>无序列表</Button><Button size="small" variant="text" onClick={()=>format('ol')}>有序列表</Button>
    <Button size="small" variant="text" icon={<AddIcon size={16}/>} onClick={()=>{const b=paragraph();onChange({version:1,blocks:[...value.blocks,b]});setActive(b.id);}}>段落</Button>
   </div>
-  <div className="clinical-blocks">{value.blocks.map((b,i)=>'file'in b?<figure key={b.id}><Media owner={owner} file={b.file}/><figcaption><span>{b.file.name}</span><Button size="small" variant="text" onClick={()=>setPreview(b.file)}>预览</Button><Button size="small" variant="text" theme="danger" icon={<DeleteIcon size={16}/>} onClick={()=>removeMedia(b.file.id)}>删除</Button></figcaption></figure>:<div key={b.id} className={'clinical-text-block'+(b.bold?' clinical-bold':'')}><span className="clinical-block-prefix" aria-hidden>{b.type==='ol'?'1.':b.type==='ul'?'•':''}</span><Textarea aria-label={`临床需求文字${i+1}`} value={b.text} placeholder="填写临床需求" autosize={{minRows:2,maxRows:12}} onFocus={()=>setActive(b.id)} onChange={text=>update(b.id,{text})}/>{value.blocks.length>1&&<Button size="small" variant="text" aria-label="删除段落" onClick={()=>onChange({version:1,blocks:value.blocks.filter(x=>x.id!==b.id)})}><DeleteIcon size={16}/></Button>}</div>)}</div>
+  <div className="clinical-blocks">{value.blocks.map((b,i)=>'file'in b?<figure key={b.id}><Media owner={owner} file={b.file}/><figcaption><span>{b.file.name}</span><Button size="small" variant="text" onClick={()=>setPreview(b.file)}>预览</Button><Button size="small" variant="text" theme="danger" icon={<DeleteIcon size={16}/>} onClick={()=>removeMedia(b.file.id)}>删除</Button></figcaption></figure>:<div key={b.id} className={'clinical-text-block'+(b.bold?' clinical-bold':'')}><span className="clinical-block-prefix" aria-hidden>{b.type==='ol'?'1.':b.type==='ul'?'•':''}</span><Textarea aria-label={`设计需求文字${i+1}`} value={b.text} placeholder="填写设计需求" autosize={{minRows:2,maxRows:12}} onFocus={()=>setActive(b.id)} onChange={text=>update(b.id,{text})}/>{value.blocks.length>1&&<Button size="small" variant="text" aria-label="删除段落" onClick={()=>onChange({version:1,blocks:value.blocks.filter(x=>x.id!==b.id)})}><DeleteIcon size={16}/></Button>}</div>)}</div>
   <div className="clinical-upload"><Upload ref={upload} theme="file" multiple accept="image/png,image/jpeg,image/webp,video/mp4" files={files} onChange={setFiles} onRemove={({file})=>{if(file?.id)removeMedia(String(file.id));}} requestMethod={persist} showUploadProgress useMockProgress={false}><Button size="small" variant="outline" icon={<UploadIcon size={16}/>}>插入图片 / 视频</Button></Upload>{failure&&<div role="alert" className="sales-error">{failure}<Button size="small" variant="text" onClick={()=>upload.current?.uploadFiles(failedFiles.current)}>重新上传</Button></div>}</div>
-  <Dialog visible={!!preview} header="临床需求媒体预览" footer={false} onClose={()=>setPreview(undefined)}>{preview&&<Media owner={owner} file={preview} preview/>}</Dialog>
+  <Dialog visible={!!preview} header="设计需求媒体预览" footer={false} onClose={()=>setPreview(undefined)}>{preview&&<Media owner={owner} file={preview} preview/>}</Dialog>
  </div>;
 }
