@@ -1,3 +1,4 @@
+import {patientDisplayName} from './patientDisplay'
 import { localDay, parseTimestamp, timestamp, formatAuditTime, formatDynamicTime, formatDateTime } from '../dateTime'
 export { formatDate } from '../dateTime'
 import type { Task, TaskStatus, TaskType, FlowEvent, Notice } from '../App'
@@ -7,7 +8,7 @@ export const statuses: TaskStatus[] = ['未开始','进行中','待审核','审�
 export type DateRange = [string,string]
 export type Period = '3m'|'6m'|'12m'|'custom'|'month'
 export type Filters = { view:'projects'|'tasks'; search:string; period:Period; range:DateRange; stage:'全部'|TaskType; status:'全部'|'待处理'|TaskStatus; page:number; source?:'a-statistics' }
-export type Project = { id:string; name:string; createdAt:string; dueAt:string; agreedDueAt?:string; patient:string; tasks:Task[]; hospital:string; dataOrigin:'demo'|'production'|'unknown'; createdSource:'project'|'first-task' }
+export type Project = { id:string; name:string; createdAt:string; dueAt:string; agreedDueAt?:string; patient:string; patientName?:string; tasks:Task[]; hospital:string; dataOrigin:'demo'|'production'|'unknown'; createdSource:'project'|'first-task' }
 export type ProjectTarget = { projectId:string; taskId?:string; eventId?:string }
 // Explicitly scoped prototype hospital assignments; never infer production partnerships.
 export const demoProjectMetadata:Record<string,{hospital:string;dataOrigin:'demo'}>={
@@ -56,7 +57,7 @@ export function projectsFor(tasks:Task[],events:FlowEvent[],now=new Date()):Proj
     const createdAt=events.filter(e=>e.orderNo===id&&e.type==='created').map(e=>e.at.slice(0,10)).sort()[0]??originalCreated[id]??items.find(t=>t.catalogDemo)?.catalogCreatedAt??''
     const dueStamp=(at:string)=>timestamp(at.length===10?at+'T00:00:00':at)
     const dueAt=items.map(t=>isoDisplayTime(t.deadline,now)).filter(at=>Number.isFinite(dueStamp(at))).sort((a,b)=>dueStamp(a)-dueStamp(b)).at(-1)??''
-  return {id,name,createdAt,dueAt,agreedDueAt:!production?catalog.find(project=>project.id===id)?.agreedDueAt:undefined,patient:items[0].patient,tasks:[...items].sort((a,b)=>stages.indexOf(a.taskType)-stages.indexOf(b.taskType)),hospital,dataOrigin:production?'production' as const:metadata||items.some(t=>t.dataOrigin==='demo')?'demo' as const:'unknown' as const,createdSource:'first-task' as const}
+  return {id,name,createdAt,dueAt,agreedDueAt:!production?catalog.find(project=>project.id===id)?.agreedDueAt:undefined,patient:items[0].patient,patientName:patientDisplayName(items.find(task=>task.patient===items[0].patient&&task.patientName?.trim())??items[0]),tasks:[...items].sort((a,b)=>stages.indexOf(a.taskType)-stages.indexOf(b.taskType)),hospital,dataOrigin:production?'production' as const:metadata||items.some(t=>t.dataOrigin==='demo')?'demo' as const:'unknown' as const,createdSource:'first-task' as const}
   }).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||a.id.localeCompare(b.id))
 }
 export const inRange=(createdAt:string,range:DateRange)=> (!range[0]||createdAt>=range[0])&&(!range[1]||createdAt.slice(0,10)<=range[1])
@@ -183,7 +184,7 @@ export function withDemoProjects(existing:Project[]):Project[] {
   const types=i===0?stages:i%2===0?stages.slice(0,2):stages.slice(0,1)
   const items=types.map((taskType,j):Task=>({id:`P${301+i}-${j+1}`,title:name,patient:`CV-P-2026-${301+i}`,orderNo:id,surgery:'术前结构评估、修复设计及成果确认。',taskType,status:i===0?(j===0?'已完成':j===1?'进行中':'未开始'):j===0&&types.length>1?'已完成':states[i],catalogDemo:true,catalogCreatedAt:createdAt,owner:'陈屿',updated:`${createdAt}T${String(9+i).padStart(2,'0')}:20:00`,deadline:'2026-11-20T18:00:00',series:[{id:`${id}-series`,name:'头颌面 CT',modality:'CT',format:'DICOM',slices:742,thickness:'0.625 mm',studyId:`${id}-study`,studyName:'头颌面 CT',studyDate:createdAt,description:'头颌面结构影像'}],source:'项目关联资料',hospital:hospitals[i%hospitals.length],dataOrigin:'demo',review:[]}))
   items.forEach((t,j)=>{if(j>0){t.upstreamTaskId=items[j-1].id;if(t.taskType==='CAD 设计')t.approvedModel=items[j-1].approvedModel}if(t.status==='已完成')t.approvedModel={id:`${t.id}-result`,name:`${t.title}成果`,version:'V01',approvedAt:createdAt,approvedBy:'管理员'}})
-  return {id,name,createdAt,dueAt:'2026-11-20',agreedDueAt:'2026-11-20',patient:items[0].patient,tasks:items,hospital:items[0].hospital!,dataOrigin:'demo',createdSource:'project'}
+  return {id,name,createdAt,dueAt:'2026-11-20',agreedDueAt:'2026-11-20',patient:items[0].patient,patientName:patientDisplayName(items.find(task=>task.patient===items[0].patient&&task.patientName?.trim())??items[0]),tasks:items,hospital:items[0].hospital!,dataOrigin:'demo',createdSource:'project'}
  })
  return [...existing,...catalog.filter(p=>!existing.some(e=>e.id===p.id))].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||a.id.localeCompare(b.id))
 }

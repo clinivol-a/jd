@@ -22,7 +22,7 @@ export function ProjectTable({projects,onProject,paginated=false,page=1,onPage}:
     {colKey:'id',title:'项目编号',width:150,fixed:'left',ellipsis:true},
     {colKey:'hospital',title:'医院',width:210,fixed:'left',ellipsis:true},
     {colKey:'name',title:'手术项目名称',width:180,fixed:'left',ellipsis:true,cell:({row})=><button className="project-name-link" onClick={()=>onProject(row.id)}><span>{row.name}</span></button>},
-    {colKey:'patient',title:'患者标识',width:150,ellipsis:true},
+    {colKey:'patient',title:'患者',width:150,ellipsis:true,cell:({row})=>row.patientName||'—'},
     {colKey:'stages',title:'任务类型',width:150,cell:({row})=><StageTags tasks={row.tasks} iconsOnly/>},
     {colKey:'progress',title:'当前状态',width:155,ellipsis:true,cell:({row})=><ProjectStatus status={projectStatus(row)}/>},
     {colKey:'createdAt',title:'创建时间',width:120,cell:({row})=><Tooltip content={row.createdSource==='first-task'?'创建时间依据：同订单最早任务创建记录':'项目创建时间'}><span className="project-date-value">{formatDate(row.createdAt)}</span></Tooltip>},
@@ -45,7 +45,7 @@ export function ProjectList({projects,tasks,events=[],filters,onFilters,onProjec
     {colKey:'projectId',title:'项目编号',width:150,fixed:'left',ellipsis:true,cell:({row})=>row.project.id},
     {colKey:'hospital',title:'医院',width:210,fixed:'left',ellipsis:true,cell:({row})=>row.project.hospital},
     {colKey:'name',title:'手术项目名称',width:180,fixed:'left',ellipsis:true,cell:({row})=><button className="project-name-link" onClick={()=>onProject(row.project.id)}><span>{row.project.name}</span></button>},
-    {colKey:'patient',title:'患者标识',width:150,ellipsis:true,cell:({row})=>row.project.patient},
+    {colKey:'patient',title:'患者',width:150,ellipsis:true,cell:({row})=>row.project.patientName||'—'},
     {colKey:'stage',title:'任务类型',width:150,cell:({row})=><StageTypeIcon stage={row.task.taskType}/>},
     {colKey:'status',title:'当前状态',width:155,cell:({row})=><ProjectStatus status={row.task.status}/>},
     {colKey:'createdAt',title:'创建时间',width:120,cell:({row})=><span className="project-date-value">{formatDate(row.project.createdAt)}</span>},
@@ -87,7 +87,7 @@ export function ProjectDetail({project,tasks,events,target,navigationKey,onBack,
   const surgery=project.tasks.find(task=>task.taskType==='三维重建')?.surgery
   return <div className="page project-page project-detail-page"><PageBack label="返回我的项目" onBack={onBack}/>
     <Card bordered={false} className="project-info-card"><h2>项目基本信息</h2><dl className="project-info-grid">
-      <InfoField label="医院">{project.hospital}</InfoField><InfoField label="手术项目名称">{project.name}</InfoField><InfoField label="项目编号">{project.id}</InfoField><InfoField label="患者标识">{project.patient}</InfoField>
+      <InfoField label="医院">{project.hospital}</InfoField><InfoField label="手术项目名称">{project.name}</InfoField><InfoField label="项目编号">{project.id}</InfoField><InfoField label="患者">{project.patientName||'—'}</InfoField>
       <InfoField label="任务负责人">{[...new Set(project.tasks.map(cleanOwner).filter(name=>name!=='—'))].join('、')}</InfoField><InfoField label="设计阶段"><StageTags tasks={project.tasks}/></InfoField><InfoField label="当前进展">{projectProgress(project)}</InfoField>
       <InfoField label="创建时间"><Tooltip content={project.createdSource==='first-task'?'依据同订单最早任务创建记录':'项目创建时间'}><span>{formatDate(project.createdAt)}</span></Tooltip></InfoField><InfoField label="预计交付时间"><Tooltip content="依据各设计阶段的最晚预计交付时间"><span>{formatDate(project.dueAt)}</span></Tooltip></InfoField><InfoField label="最后更新时间">{formatTime(updated)}</InfoField><InfoField label="手术需求" wide>{surgery}</InfoField>
     </dl></Card>
