@@ -590,6 +590,9 @@ export function OrderDetail({
             <OrderIcons stages={stages} labels />
           </Info>
           <Info label="订单状态">{status}</Info>
+          {order.status === "审核退回" && (
+            <Info label="审核退回原因">{order.reason || "-"}</Info>
+          )}
           <Info label="需求数量">{order.quantity}</Info>
           <Info label="设计需求" wide>
             <ClinicalReadOnly owner={data.ownerId} value={designDemand(order).content} fallback={designDemand(order).text||"—"}/>
@@ -598,7 +601,6 @@ export function OrderDetail({
           <Info label="创建时间">{formatDateTime(order.created)}</Info>
           <Info label="预计交付时间">{confirmedDelivery(order) ? formatDate(confirmedDelivery(order)) : "待排期"}</Info>
         </dl>
-        {order.reason && <p className="sales-error">{order.reason}</p>}
       </Card>
       <Card bordered={false} className="project-info-card">
         <h2>资料附件</h2>
