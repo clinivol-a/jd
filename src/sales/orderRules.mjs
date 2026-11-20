@@ -20,7 +20,6 @@ export function orderErrors(order, patientName, now = new Date()) {
     ["doctorId", "需求医生"],
     ["name", "手术项目名称"],
     ["clinicalRequirements", "设计需求"],
-    ["service", "业务服务项目"],
   ]) {
     const value =
       (field === "clinicalRequirements" ? designDemand(order).text : order[field]);

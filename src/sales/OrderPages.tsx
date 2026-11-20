@@ -27,7 +27,7 @@ import {
 import type { ReactNode } from "react";
 import type { Order, SalesData, Attachment } from "./model";
 import type { TaskType } from "../App";
-import { id, services } from "./model";
+import { id } from "./model";
 import {
   designStages,
   isImaging,
@@ -134,7 +134,7 @@ export function OrderEditor({
           doctorId: doctor?.id || "",
           hospitalId: doctor?.hospitalId || "",
           department: doctor?.department || "",
-          service: services[0],
+          service: "",
           quantity: 1,
           requirements: "",
           clinicalRequirements: "",
@@ -197,7 +197,7 @@ export function OrderEditor({
             "patientName","patientSex","patientIdentity",
           ]
         : page === 1
-          ? ["name", "clinicalRequirements", "service", "quantity", "plannedStages", "due"]
+          ? ["name", "clinicalRequirements", "quantity", "plannedStages", "due"]
           : page === 2
             ? ["materials"]
             : Object.keys(all);
@@ -338,14 +338,6 @@ export function OrderEditor({
               >
                 <ClinicalEditor owner={data.ownerId} value={o.clinicalContent!} error={errors.clinicalRequirements} onBusyChange={value=>setBusy(prev=>({...prev,clinical:value}))} onChange={content=>update({clinicalContent:content,designRequirements:clinicalText(content),clinicalRequirements:clinicalText(content),requirements:clinicalText(content)})}/>
               </Field>
-              <Field label="业务服务项目" required error={errors.service}>
-                <Select
-                  aria-label="业务服务项目"
-                  value={o.service}
-                  options={services.map((value) => ({ value, label: value }))}
-                  onChange={(v) => update({ service: String(v) })}
-                />
-              </Field>
               <Field label="设计阶段" required error={errors.plannedStages}>
                 <Select
                   aria-label="设计阶段"
@@ -439,7 +431,6 @@ export function OrderEditor({
                 ["患者姓名", patientName],
                 ["手术项目名称", o.name],
                 ["设计需求", <ClinicalReadOnly owner={data.ownerId} value={designDemand(o).content} fallback={designDemand(o).text||"—"}/>],
-                ["业务服务项目", o.service],
                 ["设计阶段", <OrderIcons stages={o.plannedStages || []} />],
                 ["需求数量", String(o.quantity)],
                 ["期望完成时间", o.requestedDueDate ?? o.due],
@@ -598,15 +589,13 @@ export function OrderDetail({
           <Info label="设计阶段">
             <OrderIcons stages={stages} />
           </Info>
-          <Info label="业务服务项目">{order.service}</Info>
-          <Info label="预计交付时间">{confirmedDelivery(order) ? formatDate(confirmedDelivery(order)) : "待排期"}</Info>
-          <Info label="创建时间">{formatDateTime(order.created)}</Info>
-          <Info label="最近更新时间">{formatDateTime(order.updated)}</Info>
           <Info label="需求数量">{order.quantity}</Info>
-          <Info label="报价">待核定</Info>
           <Info label="设计需求" wide>
             <ClinicalReadOnly owner={data.ownerId} value={designDemand(order).content} fallback={designDemand(order).text||"—"}/>
           </Info>
+          <Info label="预计交付时间">{confirmedDelivery(order) ? formatDate(confirmedDelivery(order)) : "待排期"}</Info>
+          <Info label="创建时间">{formatDateTime(order.created)}</Info>
+          <Info label="最近更新时间">{formatDateTime(order.updated)}</Info>
         </dl>
         {order.reason && <p className="sales-error">{order.reason}</p>}
       </Card>
