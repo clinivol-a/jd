@@ -584,18 +584,18 @@ export function OrderDetail({
           <Info label="医生">
             {data.doctors.find((d) => d.id === order.doctorId)?.name}
           </Info>
-          <Info label="患者姓名">{order.patientName ?? clinicalCase?.patientName ?? "未记录"}</Info>
-          <Info label="订单状态">{status}</Info>
+          <Info label="患者">{order.patientName ?? clinicalCase?.patientName ?? "未记录"}</Info>
           <Info label="设计阶段">
             <OrderIcons stages={stages} />
           </Info>
+          <Info label="订单状态">{status}</Info>
           <Info label="需求数量">{order.quantity}</Info>
           <Info label="设计需求" wide>
             <ClinicalReadOnly owner={data.ownerId} value={designDemand(order).content} fallback={designDemand(order).text||"—"}/>
           </Info>
-          <Info label="预计交付时间">{confirmedDelivery(order) ? formatDate(confirmedDelivery(order)) : "待排期"}</Info>
-          <Info label="创建时间">{formatDateTime(order.created)}</Info>
           <Info label="最近更新时间">{formatDateTime(order.updated)}</Info>
+          <Info label="创建时间">{formatDateTime(order.created)}</Info>
+          <Info label="预计交付时间">{confirmedDelivery(order) ? formatDate(confirmedDelivery(order)) : "待排期"}</Info>
         </dl>
         {order.reason && <p className="sales-error">{order.reason}</p>}
       </Card>

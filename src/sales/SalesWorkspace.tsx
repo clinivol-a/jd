@@ -640,6 +640,7 @@ export default function SalesWorkspace() {
       label: "医院",
       render: (r: Row) => h(String(r.hospitalId)),
     },
+    { key: "department", label: "科室", render: (r: Row) => String(r.department || "-") },
     {
       key: "doctorId",
       label: "医生",
@@ -1058,31 +1059,7 @@ export default function SalesWorkspace() {
                 )
                 .sort((a, b) => Date.parse(b.updated) - Date.parse(a.updated))
                 .slice(0, 6)}
-              fields={[
-                "id",
-                "hospitalId",
-                "name",
-                "doctorId",
-                "patient",
-                "service",
-                "status",
-                "created",
-                "due",
-                "actions",
-              ].map((key) => {
-                const field = orderFields.find((f) => f.key === key)!;
-                return {
-                  ...field,
-                  label:
-                    key === "status"
-                      ? "当前状态"
-                      : key === "created"
-                        ? "创建时间"
-                        : key === "due"
-                          ? "预计交付时间"
-                          : field.label,
-                };
-              })}
+              fields={orderFields}
             />
           </Card>
           <Card bordered={false} className="dashboard-card recent-card">
