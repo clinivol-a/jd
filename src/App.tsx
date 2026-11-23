@@ -1,3 +1,4 @@
+import {linkedDesignerCache} from './business/linkedCatalog'
 import {useViewportPagination} from './tables/useViewportPagination';
 import {unifiedRequest} from './business/unifiedClient'
 import {useUnifiedDesigner} from './business/useUnifiedDesigner'
@@ -231,6 +232,7 @@ function initialFlowEvents(): FlowEvent[] {
   })
 }
 function getStoredFlowEvents(storage: Storage = localStorage) {
+  const linked=linkedDesignerCache(storage);if(linked)return linked.events;
   try {
     const saved = JSON.parse(storage.getItem('clinivol-task-flow-events') ?? 'null') as FlowEvent[] | null
     const seeds = initialFlowEvents()
@@ -290,6 +292,7 @@ function getStoredBaseTasks(storage: Storage = localStorage) {
 }
 
 function getStoredTasks(storage: Storage = localStorage):Task[] {
+ const linked=linkedDesignerCache(storage);if(linked)return linked.tasks;
  const base=getStoredBaseTasks(storage)
  let saved:Task[]=[];try {saved=JSON.parse(storage.getItem('clinivol-catalog-tasks')??'[]')}catch{}
  const catalog=withDemoProjects([]).flatMap(p=>p.tasks).map(t=>({...t,...saved.find(v=>v.id===t.id),approvedModel:t.approvedModel,upstreamTaskId:t.upstreamTaskId,catalogDemo:true}))
@@ -389,7 +392,8 @@ function App() {
   const [notices, setNotices] = useState(()=>{if(auth.user?.id!=='chen-yu')return [] as Notice[];try{return JSON.parse(storage.getItem('clinivol-notices')||'null') as Notice[] || initialNotices}catch{return initialNotices}})
   const [reviewComments, setReviewComments] = useState<ReviewComment[]>(()=>auth.user?.id==='chen-yu'?getStoredReviewComments(storage):[])
   const [flowEvents, setFlowEvents] = useState<FlowEvent[]>(()=>auth.user?.id==='chen-yu'?getStoredFlowEvents(storage):[])
-  const refreshShared=useUnifiedDesigner(auth.user!.id,setTasks,setFlowEvents)
+  const refreshShared=useUnifiedDesigner(auth.user!.id,setTasks,setFlowEvents,setNotices)
+  useEffect(()=>{if(linkedDesignerCache(storage))setOpenTabs(current=>current.filter(id=>tasks.some(t=>t.id===id)))},[tasks,storage])
   const pendingSharedRoute=useRef<Screen|null>(readProjectRoute())
   useEffect(()=>{const pending=pendingSharedRoute.current;if(pending&&('taskId' in pending)&&tasks.some(t=>t.sharedBusiness&&t.id===pending.taskId)){pendingSharedRoute.current=null;rawSetScreen(validateRoute(pending,tasks))}},[tasks])
   const [upstreamFeedback, setUpstreamFeedback] = useState<UpstreamFeedback[]>(()=>auth.user?.id==='chen-yu'?getStoredFeedback(storage):[])
@@ -401,7 +405,7 @@ function App() {
   useEffect(()=>{const flush=(e:Event)=>{const checks=(e as CustomEvent<{checks:Promise<boolean>[]}>) .detail.checks;checks.push(Promise.resolve(Object.keys(dirty).filter(id=>dirty[id]).every(id=>saveTask(id,false))))};window.addEventListener('clinivol-before-account-change',flush);return()=>window.removeEventListener('clinivol-before-account-change',flush)},[dirty,savedAt,workspaceMode,activeSeries])
   const reviewResetEnabled = useMemo(() => new URLSearchParams(window.location.search).has('build'), [])
   const resolvedTheme: ResolvedTheme = themePreference === 'system' ? (systemDark ? 'dark' : 'light') : themePreference
-  useEffect(() => { storage.setItem('clinivol-prototype-tasks', JSON.stringify(tasks.filter(t=>!t.catalogDemo&&!t.sharedBusiness))); storage.setItem('clinivol-catalog-tasks',JSON.stringify(tasks.filter(t=>t.catalogDemo))) }, [tasks])
+  useEffect(() => { if(linkedDesignerCache(storage))return; storage.setItem('clinivol-prototype-tasks', JSON.stringify(tasks.filter(t=>!t.catalogDemo&&!t.sharedBusiness))); storage.setItem('clinivol-catalog-tasks',JSON.stringify(tasks.filter(t=>t.catalogDemo))) }, [tasks])
   useEffect(() => {
     setTasks((current) => {
       const synchronized = synchronizeCadTasks(current)
@@ -411,7 +415,7 @@ function App() {
   }, [tasks])
   useEffect(() => storage.setItem('clinivol-workspace-state', JSON.stringify({ savedAt, mode: workspaceMode, activeSeries })), [savedAt, workspaceMode, activeSeries])
   useEffect(() => storage.setItem('clinivol-review-comments', JSON.stringify(reviewComments)), [reviewComments])
-  useEffect(() => storage.setItem('clinivol-task-flow-events', JSON.stringify(flowEvents.filter(e=>e.source!=='isolated-shared'))), [flowEvents])
+  useEffect(() => {if(!linkedDesignerCache(storage))storage.setItem('clinivol-task-flow-events', JSON.stringify(flowEvents.filter(e=>e.source!=='isolated-shared')))}, [flowEvents])
   useEffect(() => storage.setItem('clinivol-upstream-feedback', JSON.stringify(upstreamFeedback)), [upstreamFeedback])
   useEffect(() => storage.setItem('clinivol-user-profile', JSON.stringify(userProfile)), [userProfile])
   useEffect(() => storage.setItem('clinivol-notification-preferences', JSON.stringify(notificationPreferences)), [notificationPreferences])

@@ -1,0 +1,22 @@
+# 当前16个完整关联项目
+
+Project.orderId均指向同表Order.id，Task.projectId均指向对应Project.id；完整任务负责人和依赖见私有运行库。非工程师被分配的任务不会泄露给陈屿。
+
+| 统一业务编号 | Order.id | Project.id | 项目状态 | 全部Task IDs | 来源 |
+| --- | --- | --- | --- | --- | --- |
+| CV-2026-0001 | SO-83c79ca9 | PRJ-20cfddf0-7b75-4fa9-8356-e0c5049ff8f6 | 进行中 | TASK-f757aff0-4bd4-4b10-8294-9e47ffcf0065、TASK-eb90be46-2d77-470e-b151-ee0ca49878ba、TASK-be047644-f1f5-41bd-afc7-832aa84ca84f、TASK-b07c14b1-ebe9-4aeb-a8e0-9d3ba67a8572 | 原关联保留 |
+| CV-2026-0002 | SO-5500d12e | PRJ-7085b10d-b93c-4c70-b2f6-e2a293057179 | 进行中 | TASK-52cbd0f8-5142-4ea0-b7c1-2d615a8355a0、TASK-ab9b8f97-a524-4c23-ba24-21031cc29d77、TASK-1d755a0c-e064-4abc-87ef-0a8286dc18a2、TASK-011b6614-f5af-49c2-ae59-0e6c9a3acb5d | 原关联保留 |
+| CV-2026-0003 | DEMO-LINK-20261123-01 | PRJ-1a998b9c-8648-4cb3-b3d3-a2802120d0dc | 未开始 | TASK-8afde856-31bd-4573-b925-8f3eb06c19b0、TASK-a2d84b95-e243-4c03-86a9-984269e6c215、TASK-18bbd7de-c869-404f-a1ad-5b5812fdbdaf、TASK-91269d82-bbfb-4101-bb31-3e3a29968b0c | 新建隔离关联场景 |
+| CV-2026-0004 | DEMO-LINK-20261123-02 | PRJ-81daa5f1-dc54-4a9a-92df-b98f94f4bbcd | 未开始 | TASK-fd755777-bc7f-4d3a-a69c-9e81aa4beb34、TASK-fe245d21-fc00-4bad-925b-03cf88c8a00a | 新建隔离关联场景 |
+| CV-2026-0005 | DEMO-LINK-20261123-03 | PRJ-d3659d65-0203-4a34-b6a7-2cd647d93b57 | 未开始 | TASK-2f3a3a01-6ddc-4278-95c9-503c8f84a112 | 新建隔离关联场景 |
+| CV-2026-0006 | DEMO-LINK-20261123-04 | PRJ-b3808478-7a27-476d-81a3-c832e195ccee | 进行中 | TASK-64aa79f2-7d46-4f68-a562-d63c198f9699、TASK-e76b3e58-2f90-44dc-b59b-6bae0ecf1553、TASK-7c2b3b2d-dc44-42fb-b0fe-5cdb76993750、TASK-611a8cc3-4f47-450d-baf9-78034dcd4e94 | 新建隔离关联场景 |
+| CV-2026-0007 | DEMO-LINK-20261123-05 | PRJ-619da2fc-95d0-4e9a-9c7e-9fd0afdd1f0d | 进行中 | TASK-fdca6afa-886d-457c-a3ef-32ba0a6931fa、TASK-aea761a0-d574-4254-af48-3db62fe33973 | 新建隔离关联场景 |
+| CV-2026-0008 | DEMO-LINK-20261123-06 | PRJ-a72b4648-50c1-4627-9ec5-492eec58a449 | 进行中 | TASK-5fd6fc92-21d8-48a1-8959-279e6b1c2a86 | 新建隔离关联场景 |
+| CV-2026-0009 | DEMO-LINK-20261123-07 | PRJ-842c9232-2a7a-4449-ad8b-7b5248f95069 | 待审核 | TASK-cf544e32-f6f8-4036-87b0-c5090725c2f2、TASK-e0cdda65-689f-438e-8456-b98f313471e5、TASK-a2ce64d5-d135-4276-8e05-9558aac5c3f4、TASK-11bbecec-5383-4fbe-8e78-bfc4d21485c6 | 新建隔离关联场景 |
+| CV-2026-0010 | DEMO-LINK-20261123-08 | PRJ-fba2a232-94b1-443b-be31-1d78b0144fe8 | 待审核 | TASK-7a1b9a0c-396c-4feb-a80b-a84a1d8c714d、TASK-4d1ea14d-10e2-4564-baab-f8f9e0c33c83 | 新建隔离关联场景 |
+| CV-2026-0011 | DEMO-LINK-20261123-09 | PRJ-fca7f2be-f1a1-4de8-a4e3-469f30480d7f | 待审核 | TASK-8cbae053-e5be-4350-8d83-694a749ba962 | 新建隔离关联场景 |
+| CV-2026-0012 | DEMO-LINK-20261123-10 | PRJ-15cc35bf-a4bc-43d3-b743-0b938de683be | 审核退回 | TASK-8d0f26e5-e96d-447f-a7ac-362632991502、TASK-659ee26b-cc48-4b35-b497-210a606bf0cf、TASK-b3a7f594-62b5-42ca-a256-59f706eb88af、TASK-b2afff02-7071-4c82-bbed-f9a07c329353 | 新建隔离关联场景 |
+| CV-2026-0013 | DEMO-LINK-20261123-11 | PRJ-a61c5dab-29bf-4f0f-8a9b-6bf16089f1ba | 审核退回 | TASK-eb6a47f3-4b29-46b4-aff4-b53040507361 | 新建隔离关联场景 |
+| CV-2026-0014 | DEMO-LINK-20261123-12 | PRJ-920630e9-2034-49ba-b3f8-a99be6d4143c | 已完成 | TASK-c63421ee-c938-4f91-9009-e494224234d7、TASK-73103229-fe8e-43b8-82b2-ba62a7d6a221、TASK-880b5052-5fd7-4176-a2e0-0b78870bab14、TASK-15d91629-060a-46f6-bf26-458b267f0d3e | 新建隔离关联场景 |
+| CV-2026-0015 | DEMO-LINK-20261123-13 | PRJ-d930bbec-d381-4ce4-bda3-0f792126bbc6 | 已完成 | TASK-65e45783-6627-4806-9eb0-f26def6e1f53、TASK-61bccf17-d00d-45e1-b5b0-4aa7be849a07 | 新建隔离关联场景 |
+| CV-2026-0016 | DEMO-LINK-20261123-14 | PRJ-f5179ab3-f10b-4041-8ba6-cbbcbb8fd561 | 已完成 | TASK-cb155a57-96b8-4e49-bf8b-7b88014f9c76 | 新建隔离关联场景 |

@@ -10,15 +10,18 @@ export async function unifiedRequest<T>(action: string, body?: unknown): Promise
     return result;
 }
 export type SharedSales = {
+    catalogMode?: 'linked-only';
     orders: Order[];
     projects: NonNullable<SalesData['projects']>;
     events: SalesData['events'];
 };
 export type SharedDesigner = {
+    catalogMode?: 'linked-only';
     tasks: Task[];
     events: FlowEvent[];
 };
 export function mergeSharedSales(current: SalesData, shared: SharedSales): SalesData {
+    if(shared.catalogMode==='linked-only'){const oldOrderTargets=new Set([...(current.orders||[]).map(o=>o.id),...(current.projects||[]).map(p=>p.id)]);return {...current,presentationRevision:28,orders:shared.orders,projects:shared.projects,events:[...current.events.filter(e=>!oldOrderTargets.has(e.target)&&e.source!=='isolated-shared'),...shared.events.map(e=>({...e,read:current.events.find(old=>old.id===e.id)?.read??e.read}))]};}
     const ids = new Set(shared.orders.map(o => o.id)), projectIds = new Set(shared.projects.map(p => p.id)), eventIds = new Set(shared.events.map(e => e.id));
     return { ...current, orders: [...current.orders.filter(o => o.source !== 'isolated-shared' && !ids.has(o.id)), ...shared.orders], projects: [...(current.projects || []).filter(p => p.source !== 'isolated-shared' && !projectIds.has(p.id)), ...shared.projects], events: [...current.events.filter(e => e.source !== 'isolated-shared' && !eventIds.has(e.id)), ...shared.events.map(event => ({ ...event, read: current.events.find(old => old.id === event.id)?.read ?? event.read }))] };
 }

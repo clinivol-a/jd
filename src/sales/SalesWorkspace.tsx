@@ -235,7 +235,7 @@ export default function SalesWorkspace() {
   );
   useEffect(()=>{
     let alive=true;
-    const sync=async()=>{if(document.hidden)return;try{const shared=await unifiedRequest<SharedSales>('sales');if(alive)setData(current=>{const next=mergeSharedSales(current,shared);if(JSON.stringify(next)===JSON.stringify(current))return current;storage.setItem('sales-v1',JSON.stringify(next));return next})}catch{/* Existing history stays available; writes report service failures. */}};
+    let failureShown=false;const sync=async()=>{if(document.hidden)return;try{const shared=await unifiedRequest<SharedSales>('sales');failureShown=false;if(alive)setData(current=>{const next=mergeSharedSales(current,shared);if(JSON.stringify(next)===JSON.stringify(current))return current;storage.setItem('sales-v1',JSON.stringify(next));return next})}catch(error){if(alive&&!failureShown){failureShown=true;void MessagePlugin.error((error as Error).message||'业务数据同步失败，请稍后重试。')}}};
     void sync();const timer=window.setInterval(sync,8000);window.addEventListener('focus',sync);
     return()=>{alive=false;window.clearInterval(timer);window.removeEventListener('focus',sync)};
   },[account.id,storage]);

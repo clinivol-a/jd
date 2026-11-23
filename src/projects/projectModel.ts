@@ -27,7 +27,7 @@ export function periodRange(period:Period, now=new Date()):DateRange {
 export const defaultFilters = ():Filters => ({view:'projects',search:'',period:'3m',range:periodRange('3m'),stage:'全部',status:'全部',page:1})
 export const ownerId = (task:Task) => task.sharedBusiness?task.assigneeId:task.owner.split('（')[0]==='陈屿' ? CURRENT_ENGINEER : 'CV-DS-OTHER'
 export const owns = (task:Task) => task.sharedBusiness?task.accessible===true:ownerId(task)===CURRENT_ENGINEER
-export const projectNumber=(project:Project)=>project.businessNo||project.id
+export const projectNumber=(project:Project)=>project.businessNo||(project.orderId?'-':project.id)
 export const cleanOwner = (task:Task) => displayPerson(task.owner)
 export function isoDisplayTime(text:string, now=new Date()):string {
   if(!text || text==='-')return ''
@@ -196,7 +196,7 @@ export function displayPerson(value:string) {
 
 // Presentation-only catalog: no engineering assets, no writes to task/audit stores.
 export function withDemoProjects(existing:Project[]):Project[] {
- if(existing.some(p=>p.dataOrigin==='production'))return existing
+ if(existing.some(p=>p.dataOrigin==='production')||existing.length>0&&existing.every(p=>p.tasks.every(t=>t.sharedBusiness)))return existing
  const names=['颌面联合修复规划','颅颌面重建项目','下颌骨精准修复','眶颧复合体修复','颅骨缺损修复','上颌骨重建规划','颌骨联合设计','下颌角修复规划']
  const hospitals=['安徽医科大学第一附属医院','安徽省立医院','中国科学技术大学附属第一医院','合肥市第一人民医院','蚌埠医学院第一附属医院']
  const states:TaskStatus[]=['进行中','已完成','待审核','审核退回','进行中','已完成','待审核','审核退回']

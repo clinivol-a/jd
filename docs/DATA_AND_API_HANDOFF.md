@@ -54,7 +54,7 @@ scan/create增加provider=wechat|wecom；未绑定且本地可信fixture有手�
 | POST /api/admin/business/save | order、version；保存草稿或修改退回订单 | 可编辑字段白名单、稳定ID、客户/医院/科室范围、并发版本；允许未填完整的草稿 |
 | POST /api/admin/business/submit | order、version；校验并首次分配businessNo | 同一事务；patient引用及既有orderErrors；待审核重复请求返回原记录 |
 | POST /api/admin/business/delete | 内部id、version | 仅本人未提交草稿；保留实际删除事件 |
-| GET /api/admin/state | 管理端原数据加共享订单/任务/事件的授权投影 | 管理角色、orders:read、医院范围；资产/日志分别受权限控制 |
+| GET /api/admin/state | 管理端授权投影；linked-only时订单/任务/业务资产以共享服务为准，机构等保留现有来源 | 管理角色、orders:read、医院范围；资产/日志分别受权限控制 |
 | POST /api/admin/command | 原command契约：takeover/reassign/review-order/assign-task | 共享ID路由至同一服务；实际责任人、审核/分配权限、能力与日期校验 |
 | GET /api/admin/business/designer | 当前受让人的Task、项目摘要、实际相关事件 | designer + projects:own；仅assigneeId匹配记录 |
 | POST /api/admin/business/task | id、version、start或submit；可附待审核成果ID/版本 | 上游正式成果门禁、任务所属人、状态；不生成审核通过/发布结果 |
@@ -77,3 +77,20 @@ scan/create增加provider=wechat|wecom；未绑定且本地可信fixture有手�
 4. 原工程自动保存仍使用既有按账号/Task ID隔离的工程机制，未借本轮改写；原正式成果与审核历史不迁移、不改身份。
 
 启动现有集成服务：`CV_DEV_PORT=5260 CV_AUTH_PORT=5261 node server/admin/dev.mjs`。不需要新的Vercel项目或部署配置。
+
+
+## 2026-11-23｜统一目录与可恢复的演示数据迁移
+
+当前本地演示目录以UnifiedBusinessService为业务权威。销售、管理员、设计师分别读取`/api/admin/business/sales`、`/api/admin/state`、`/api/admin/business/designer`，响应投影遵循账号、医院、任务受让人权限。`catalogMode: linked-only`时不再合并旧SO、ADM或独立CV目录记录。UI表头、布局、筛选、分页与专业界面不在本轮变更范围。
+
+迁移工具：`scripts/migrate-linked-demo.mjs`。默认仅在临时副本生成计划；`--apply`才写入私有本地业务库。整个计划先离盘计算，完成后在原服务写锁内校验基线哈希并原子提交。失败不消费编号、不留下部分项目；重复执行按revision返回既有身份。拒绝Production/Vercel/公开认证环境运行。
+
+本轮后续授权改为归档无可靠关系数据，并保留不少于15条可关联项目。当前20条销售记录/16个设计师项目不是未来上限。2个原关联不变，另建14组隔离合成项目，4条销售受理前/取消状态不提前进入设计师。旧30条订单/13个独立项目及事件在legacyArchives和私有备份中完整保留；不得把归档改名冒充关联成功。
+
+新增订单的实际接口路径仍为：save（无号草稿）→submit（原子分配businessNo、待审核）→现有admin command审核退回/重提/受理→唯一Project及申请阶段Task→assign-task→授权设计师投影。重复受理返回同一个Project，不新增第二组任务。服务失败明确反馈，缓存不等于已同步成功。
+
+完整本地HTTP验收在临时目录、临时端口执行：20/16→新建→退回重提→受理→分配→21/17→重启恢复。证据见`docs/repairs/business-migration-20261123/new-order-chain.json`，临时数据不写入本机20/16演示基线。
+
+边界：本轮不是生产数据库/医院PACS/专业算法接入。合成专业审核事件仅由本地脚本准备，带synthetic来源；未增加公开审批后门。新场景附件使用已有fixtureAttachments的确定性文件，模型引用已有展示资源，不能宣称为实际患者成果。原2笔共享订单的NII附件元数据保留，但当前浏览器未找到相应Blob，未重建或冒充原文件。其他实际上传Blob已私有备份。
+
+运行数据和认证资料不提交Git，不放入public目录；仅拉取代码不会自动获得用户本机数据。恢复/移交数据时使用私有备份，按账号保留文件、业务库及本地存储，不把认证凭据写进交付报告。

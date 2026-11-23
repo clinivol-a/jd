@@ -28,3 +28,10 @@ test('sales cache replaces only authoritative shared records and preserves local
  const shared={orders:[{id:'shared',source:'isolated-shared',businessNo:'CV-2026-0001',status:'待审核'}],projects:[],events:[{id:'event',source:'isolated-shared',read:false}]};
  const merged=client.mergeSharedSales(current,shared);assert.deepEqual(merged.orders.map(o=>o.id),['old','shared']);assert.equal(merged.orders[1].businessNo,'CV-2026-0001');assert.equal(merged.events[0].id,'history');assert.equal(merged.events[1].read,true);assert.equal(current.orders[1].status,'草稿');
 });
+
+test('linked-only projections exclude archived business while preserving doctor activity and read state',()=>{
+ const current={orders:[{id:'archived'},{id:'live',source:'isolated-shared'}],projects:[{id:'archived-project'}],events:[{id:'old-order',target:'archived'},{id:'doctor',target:'doctor-1'},{id:'live-event',target:'live',source:'isolated-shared',read:true}]};
+ const shared={catalogMode:'linked-only',orders:[{id:'live',source:'isolated-shared',businessNo:'CV-2026-0001'}],projects:[{id:'project-1',orderId:'live'}],events:[{id:'live-event',target:'live',source:'isolated-shared',read:false}]};
+ const next=client.mergeSharedSales(current,shared);assert.deepEqual(next.orders.map(o=>o.id),['live']);assert.deepEqual(next.events.map(e=>e.id),['doctor','live-event']);assert.equal(next.events[1].read,true);assert.equal(current.orders.length,2);assert.equal(next.presentationRevision,28);
+ const tasks=[{id:'task',sharedBusiness:true,accessible:true,assigneeId:'engineer',catalogDemo:true,projectId:'project-1',orderId:'live',orderNo:'project-1',businessNo:'CV-2026-0001',title:'联合修复',owner:'陈屿',taskType:'三维重建',status:'未开始',patient:'ref',series:[],review:[],projectCreatedAt:'2026-11-23',agreedDueAt:'2026-12-21'}];assert.equal(pm.withDemoProjects(pm.projectsFor(tasks,[])).length,1);
+});

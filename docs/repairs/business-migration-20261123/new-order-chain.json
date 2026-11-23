@@ -1,0 +1,50 @@
+{
+  "environment": "isolated temporary HTTP service; no live data written",
+  "salesBefore": 20,
+  "salesAfter": 21,
+  "designerBefore": 16,
+  "designerAfter": 17,
+  "orderId": "HTTP-LINK-20261123",
+  "businessNo": "CV-2026-0020",
+  "projectId": "PRJ-e4ace00d-3343-403c-84c4-88a544bb3957",
+  "projectOrderId": "HTTP-LINK-20261123",
+  "tasks": [
+    {
+      "id": "TASK-cf86567c-a871-420c-862e-407501f680d0",
+      "projectId": "PRJ-e4ace00d-3343-403c-84c4-88a544bb3957",
+      "orderId": "HTTP-LINK-20261123",
+      "assigneeId": "chen-yu",
+      "stage": 0
+    },
+    {
+      "id": "TASK-aa22ddf9-4e15-402a-8d8b-f8162a27c840",
+      "projectId": "PRJ-e4ace00d-3343-403c-84c4-88a544bb3957",
+      "orderId": "HTTP-LINK-20261123",
+      "assigneeId": "chen-yu",
+      "stage": 1
+    },
+    {
+      "id": "TASK-97f52164-4831-4c00-b1b1-3c9c3f329bc6",
+      "projectId": "PRJ-e4ace00d-3343-403c-84c4-88a544bb3957",
+      "orderId": "HTTP-LINK-20261123",
+      "assigneeId": "other-stage",
+      "stage": 2
+    },
+    {
+      "id": "TASK-371f6d89-6574-4b94-9119-e956bc129be1",
+      "projectId": "PRJ-e4ace00d-3343-403c-84c4-88a544bb3957",
+      "orderId": "HTTP-LINK-20261123",
+      "assigneeId": "other-stage",
+      "stage": 3
+    }
+  ],
+  "checks": [
+    "draft has no number",
+    "submit stays pending without project",
+    "return/resubmit retains number and opinion",
+    "role/anonymous restrictions enforced",
+    "repeated acceptance reuses project",
+    "only assigned tasks are visible",
+    "restart preserves counts and chain"
+  ]
+}

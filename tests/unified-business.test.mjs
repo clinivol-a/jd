@@ -28,7 +28,7 @@ test('draft save, first submit, retries, return/resubmit, acceptance and four as
  o=service.salesSnapshot(seller).orders[0];assert.equal(o.status,'审核退回');assert.equal(o.businessNo,number);
  o=service.save(seller,{order:{...o,requirements:'已补充定位范围',clinicalRequirements:'已补充定位范围'},version:o.version},{submit:true});assert.equal(o.businessNo,number);
  o=approve(service,o);assert.equal(service.state.projects.length,1);const project=service.state.projects[0];assert.equal(project.orderId,o.id);assert.equal(o.projectId,project.id);
- assert.throws(()=>approve(service,o),/已处理/);assert.equal(service.state.projects.length,1);
+ const eventCount=service.state.events.length;assert.equal(approve(service,o).projectId,project.id);assert.equal(service.state.events.length,eventCount);assert.equal(service.state.projects.length,1);
  assert.equal(new Set(project.taskIds).size,4);
  for(const task of service.state.tasks)service.manage(admin,{action:'assign-task',id:task.id,version:task.version,assignee:designer.id,plannedDate:'2026-12-09'});
  const result=service.designerSnapshot(designer);assert.equal(result.tasks.length,4);assert.deepEqual(result.tasks.map(t=>t.taskType),['三维重建','CAD 设计','有限元分析','3D 打印']);
