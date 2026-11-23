@@ -1,0 +1,38 @@
+[
+  {
+    "label": "sales-orders",
+    "rows": [
+      {
+        "placeholder": "搜索订单编号",
+        "prefixIcons": 0
+      }
+    ]
+  },
+  {
+    "label": "sales-customers",
+    "rows": [
+      {
+        "placeholder": "搜索医生姓名或手机号",
+        "prefixIcons": 0
+      }
+    ]
+  },
+  {
+    "label": "designer-projects",
+    "rows": [
+      {
+        "placeholder": "搜索项目编号",
+        "prefixIcons": 0
+      }
+    ]
+  },
+  {
+    "label": "designer-reviews",
+    "rows": [
+      {
+        "placeholder": "搜索项目编号",
+        "prefixIcons": 0
+      }
+    ]
+  }
+]

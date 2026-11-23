@@ -1044,7 +1044,7 @@ export default function SalesWorkspace() {
               paginate={false}
               rows={todos.slice(0, 3)}
               fields={todoFields.filter((f) =>
-                ["object","status","at","actions"].includes(f.key),
+                ["type","object","status","at","actions"].includes(f.key),
               )}
             />
           </Card>

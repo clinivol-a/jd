@@ -33,7 +33,7 @@ import {
   BrowseIcon, CloudIcon,
   ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CloseIcon,
   FileIcon, HelpCircleIcon, HomeIcon, ImageIcon as TImageIcon, LockOnIcon, ViewListIcon, MoonIcon,
-  ListDemandIcon, LogoutIcon, Microphone1Icon, NotificationIcon, RefreshIcon, SearchIcon, SendIcon as TSendIcon, SettingIcon, SunnyIcon, TaskCheckedIcon,
+  ListDemandIcon, LogoutIcon, Microphone1Icon, NotificationIcon, RefreshIcon, SendIcon as TSendIcon, SettingIcon, SunnyIcon, TaskCheckedIcon,
   TaskCheckedFilledIcon, TaskFilledIcon, TaskIcon, TimeFilledIcon, TimeIcon,
   UserCircleIcon, UserSafetyIcon, WorkFilledIcon, WorkIcon,
 } from './design-system/tdesign'
@@ -643,7 +643,7 @@ function TaskTable({ tasks, allTasks = tasks, onDetail, onOpen }: { tasks: Task[
 function TaskList({ tasks, title, onDetail, onOpen }: { tasks: Task[]; title: string; onDetail: (id: string) => void; onOpen: (id: string) => void }) {
   const [filter, setFilter] = useState<TaskStatus | '全部'>('全部'); const [typeFilter, setTypeFilter] = useState<TaskType | '全部'>('全部'); const [query, setQuery] = useState('')
   const filtered = tasks.filter((task) => (filter === '全部' || task.status === filter) && (typeFilter === '全部' || task.taskType === typeFilter) && `${task.id}${task.title}${patientDisplayName(task)}${task.orderNo}${task.taskType}`.toLowerCase().includes(query.toLowerCase()))
-  return <div className="page"><Card className="dashboard-card list-card table-card unified-list-card" bordered={false}><section className="list-page-heading"><h1>{title}</h1><Input className="task-search" value={query} onChange={(value) => setQuery(String(value))} prefixIcon={<SearchIcon size={16} />} placeholder="搜索任务、患者或订单" clearable /></section><div className="filter-groups"><div className="filter-bar"><span>设计阶段</span>{(['全部', '三维重建', 'CAD 设计'] as const).map((item) => <Button key={item} size="small" theme={typeFilter === item ? 'primary' : 'default'} variant={typeFilter === item ? 'base' : 'text'} onClick={() => setTypeFilter(item)}>{item}</Button>)}</div><div className="filter-bar"><span>任务状态</span>{(['全部', '未开始', '进行中', '待审核', '审核退回', '已完成'] as const).map((item) => <Button key={item} size="small" theme={filter === item ? 'primary' : 'default'} variant={filter === item ? 'base' : 'text'} onClick={() => setFilter(item)}>{item}</Button>)}</div></div><TaskTable tasks={filtered} allTasks={tasks} onDetail={onDetail} onOpen={onOpen} /></Card></div>
+  return <div className="page"><Card className="dashboard-card list-card table-card unified-list-card" bordered={false}><section className="list-page-heading"><h1>{title}</h1><Input className="task-search" value={query} onChange={(value) => setQuery(String(value))} placeholder="搜索任务、患者或订单" clearable /></section><div className="filter-groups"><div className="filter-bar"><span>设计阶段</span>{(['全部', '三维重建', 'CAD 设计'] as const).map((item) => <Button key={item} size="small" theme={typeFilter === item ? 'primary' : 'default'} variant={typeFilter === item ? 'base' : 'text'} onClick={() => setTypeFilter(item)}>{item}</Button>)}</div><div className="filter-bar"><span>任务状态</span>{(['全部', '未开始', '进行中', '待审核', '审核退回', '已完成'] as const).map((item) => <Button key={item} size="small" theme={filter === item ? 'primary' : 'default'} variant={filter === item ? 'base' : 'text'} onClick={() => setFilter(item)}>{item}</Button>)}</div></div><TaskTable tasks={filtered} allTasks={tasks} onDetail={onDetail} onOpen={onOpen} /></Card></div>
 }
 
 function groupImagingStudies(seriesList: ImagingSeries[]) {
