@@ -1,3 +1,4 @@
+import {useViewportPagination} from '../tables/useViewportPagination';
 import {orderNumber,matchesBusinessKeyword} from './orderNumber.mjs';
 import {DoctorCredentials} from './DoctorCredentials';
 import {doctorSource,doctorEvent} from './doctorRecordRules.mjs';
@@ -53,8 +54,7 @@ import {
   TimeFilledIcon,
   FileAddFilledIcon,
   TaskCheckedFilledIcon,
-  MenuFoldIcon,
-  MenuUnfoldIcon,
+  ViewListIcon,
 } from "../design-system/tdesign";
 import { GlobalHeader, SettingsPage } from "../App";
 import { useAuth, useWorkspaceStorage } from "../auth/AuthContext";
@@ -114,12 +114,10 @@ function Grid({
   paginate = true,
   savedPage,
   onPage,
-  pageSize = 6,
   orderMode = false,
   highlight,
 }: {
   savedPage?: number;
-  pageSize?: number;
   orderMode?: boolean;
   highlight?: string;
   onPage?: (page: number) => void;
@@ -132,23 +130,9 @@ function Grid({
     render?: (row: Row) => React.ReactNode;
   }[];
 }) {
-  const [localPage, setLocalPage] = useState(1);
-  const page = Math.max(
-    1,
-    Math.min(savedPage ?? localPage, Math.ceil(rows.length / pageSize) || 1),
-  );
-  const setPage = (value: number) => {
-    setLocalPage(value);
-    onPage?.(value);
-  };
-  const rowIdentity = rows.map((r) => String(r.id)).join("|");
-  const previousRows = useRef(rowIdentity);
-  useEffect(() => {
-    if (previousRows.current !== rowIdentity) {
-      setPage(1);
-      previousRows.current = rowIdentity;
-    }
-  }, [rowIdentity]);
+  const rowIdentity = rows.map(r => String(r.id)).join("|");
+  const paging=useViewportPagination(rows.length,rowIdentity,{enabled:paginate,page:savedPage,onChange:onPage});
+  const {page,pageSize,setPage}=paging;
   const width = (key: string) =>
     ({
       id: 150,
@@ -163,7 +147,7 @@ function Grid({
       due: 130,
     })[key] || 120;
   return (
-    <div className="sales-table-scroll">
+    <div className="sales-table-scroll viewport-table" ref={paging.ref}>
       <Table
         tableContentWidth={
           "max(100%, " +
@@ -187,6 +171,7 @@ function Grid({
           title: c.label,
           width: c.width ?? width(c.key),
           align: "left" as const,
+          className: c.key === "actions" ? "business-action-cell" : undefined,
           ellipsis: c.key !== "actions",
           fixed:
             c.key === "actions"
@@ -199,27 +184,16 @@ function Grid({
             ? ({ row }: { row: Row }) => c.render!(row)
             : undefined,
         }))}
-        pagination={
-          paginate && !orderMode
-            ? {
-                current: page,
-                pageSize: 6,
-                total: rows.length,
-                showJumper: false,
-                showPageSize: false,
-                onCurrentChange: setPage,
-              }
-            : undefined
-        }
         empty={<Empty description={orderMode ? undefined : "暂无符合条件的记录"} />}
       />
-      {paginate && orderMode && (
-        <div className="project-pagination">
+      {paging.showPagination && (
+        <div className="project-pagination" data-viewport-pagination>
           <Pagination
             current={page}
             pageSize={pageSize}
             total={rows.length}
             showPageSize={false}
+            showJumper={false}
             onCurrentChange={setPage}
           />
         </div>
@@ -765,7 +739,7 @@ export default function SalesWorkspace() {
   );
   const matching = orders.filter(
     (o) =>
-      (!keyword || [o.status === "草稿" ? "" : orderNumber(o), o.name, o.patientName || data.cases.find(c=>c.id===o.caseId)?.patientName || ""].some((x) => x.includes(keyword))) &&
+      (!keyword || (orderNumber(o) !== "-" && orderNumber(o).toLowerCase().includes(keyword.toLowerCase()))) &&
       (!filter || o.status === filter) &&
       (!hospitalFilter || o.hospitalId === hospitalFilter) &&
       (!deptFilter || o.department === deptFilter) &&
@@ -809,12 +783,12 @@ export default function SalesWorkspace() {
   const tools = (
     <div className="project-filters sales-order-filters">
       <label>
-        <span>订单编号 / 名称</span>
+        <span>订单编号</span>
         <Input
           clearable
           value={search}
           onChange={setSearch}
-          placeholder="搜索编号、名称或患者"
+          placeholder="搜索订单编号"
         />
       </label>
       <div className="project-filter-date">
@@ -1058,7 +1032,7 @@ export default function SalesWorkspace() {
                     formatDate(o.created) <= homeRange[1],
                 )
                 .sort((a, b) => Date.parse(b.updated) - Date.parse(a.updated))
-                .slice(0, 6)}
+                .slice(0, 7)}
               fields={orderFields}
             />
           </Card>
@@ -1068,7 +1042,7 @@ export default function SalesWorkspace() {
             </div>
             <Grid
               paginate={false}
-              rows={todos.slice(0, 3)}
+              rows={todos.slice(0, 7)}
               fields={todoFields.filter((f) =>
                 ["object","status","at","actions"].includes(f.key),
               )}
@@ -1079,7 +1053,7 @@ export default function SalesWorkspace() {
               <h2>我的业务范围</h2>
               <Button variant="text" theme="primary" onClick={()=>go("customers/doctors")}>查看全部<ChevronRightIcon size={15}/></Button>
             </div>
-            <Grid paginate={false} rows={business.hospitals.slice(0,3)} fields={[
+            <Grid paginate={false} rows={business.hospitals.slice(0,7)} fields={[
               {key:"name",label:"医院"},{key:"departmentCount",label:"授权科室"},{key:"doctorCount",label:"关联医生"},{key:"processingCount",label:"进行中订单"},
             ]}/>
           </Card>
@@ -1099,7 +1073,7 @@ export default function SalesWorkspace() {
         <label><span>最近更新时间范围</span><DateRangePicker value={[itemFrom,itemTo]} onChange={v=>{setItemFrom(String(v[0]||""));setItemTo(String(v[1]||""));}} clearable/></label>
         <Button variant="outline" onClick={resetItems}>重置筛选</Button>
       </div>
-      <Grid key={[itemCategory,itemKeyword,itemType,itemStatus,itemFrom,itemTo].join("|")} pageSize={12} orderMode rows={itemRows} fields={todoFields}/>
+      <Grid key={[itemCategory,itemKeyword,itemType,itemStatus,itemFrom,itemTo].join("|")} orderMode rows={itemRows} fields={todoFields}/>
     </Card></div></>;
   }
   else if (section === "customers")
@@ -1143,7 +1117,7 @@ export default function SalesWorkspace() {
         ) : (
           <>
             <div className="project-filters sales-customer-filters">
-              <label><span>医生姓名 / 手机号</span><Input clearable value={search} onChange={setSearch} placeholder="搜索医生姓名或手机号" /></label>
+              <label><span>医生</span><Input clearable value={search} onChange={setSearch} placeholder="搜索医生姓名或手机号" /></label>
               <label><span>医院</span><Select value={hospitalFilter || "__all__"} options={[{value:"__all__",label:"全部"},...data.hospitals.map(h=>({value:h.id,label:h.name}))]} onChange={v=>{setHospitalFilter(allFilterValue(v));if(!data.hospitals.some(h=>(!allFilterValue(v)||h.id===allFilterValue(v))&&h.departments.includes(deptFilter)))setDeptFilter("");}} /></label>
               <label><span>科室</span><Select value={deptFilter || "__all__"} options={[{value:"__all__",label:"全部"},...[...new Set(data.hospitals.filter(h=>!hospitalFilter||h.id===hospitalFilter).flatMap(h=>h.departments))].map(value=>({value,label:value}))]} onChange={v=>setDeptFilter(allFilterValue(v))} /></label>
               <label><span>资质审核状态</span><Select value={filter || "__all__"} options={[{value:"__all__",label:"全部"},...["草稿","待审核","审核通过","审核退回"].map(value=>({value,label:value}))]} onChange={v=>setFilter(allFilterValue(v))} /></label>
@@ -1152,7 +1126,7 @@ export default function SalesWorkspace() {
             <Grid
               key="doctor-list"
               orderMode
-              pageSize={12}
+
               savedPage={listPages.doctors || 1}
               onPage={(p) => rememberPage("doctors", p)}
               rows={data.doctors.filter(
@@ -1354,7 +1328,7 @@ export default function SalesWorkspace() {
           <Grid
             key={"order-list:" + detail}
             orderMode
-            pageSize={12}
+
             highlight={highlightOrder}
             savedPage={listPages.orders || 1}
             onPage={(p) => rememberPage("orders", p)}
@@ -1758,11 +1732,7 @@ export default function SalesWorkspace() {
               aria-label={collapsed ? "展开导航" : "收起导航"}
               onClick={() => setCollapsed(!collapsed)}
             >
-              {collapsed ? (
-                <MenuUnfoldIcon size={18} />
-              ) : (
-                <MenuFoldIcon size={18} />
-              )}
+              <ViewListIcon size={18} />
             </button>
           </Tooltip>
         </aside>

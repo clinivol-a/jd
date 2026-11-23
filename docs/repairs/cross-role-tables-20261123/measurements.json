@@ -1,0 +1,546 @@
+{
+  "measuredAt": "2026-11-23T03:15:51.780Z",
+  "measurements": [
+    {
+      "label": "designer-projects-short",
+      "cardBottom": 450,
+      "footerBottom": 450,
+      "headers": [
+        "项目编号",
+        "手术项目名称",
+        "医院",
+        "患者",
+        "设计阶段",
+        "当前状态",
+        "创建时间",
+        "预计交付时间",
+        "操作"
+      ],
+      "height": 650,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 1,
+      "width": 1440
+    },
+    {
+      "label": "designer-projects-tall",
+      "cardBottom": 570,
+      "footerBottom": 570,
+      "headers": [
+        "项目编号",
+        "手术项目名称",
+        "医院",
+        "患者",
+        "设计阶段",
+        "当前状态",
+        "创建时间",
+        "预计交付时间",
+        "操作"
+      ],
+      "height": 1080,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 3,
+      "width": 1440
+    },
+    {
+      "label": "designer-tasks-tall",
+      "cardBottom": 1050,
+      "footerBottom": 1050,
+      "headers": [
+        "项目编号",
+        "手术项目名称",
+        "医院",
+        "患者",
+        "设计阶段",
+        "当前状态",
+        "创建时间",
+        "预计交付时间",
+        "操作"
+      ],
+      "height": 1080,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 11,
+      "width": 1440
+    },
+    {
+      "label": "designer-tasks-short",
+      "cardBottom": 630,
+      "footerBottom": 630,
+      "headers": [
+        "项目编号",
+        "手术项目名称",
+        "医院",
+        "患者",
+        "设计阶段",
+        "当前状态",
+        "创建时间",
+        "预计交付时间",
+        "操作"
+      ],
+      "height": 650,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 4,
+      "width": 1440
+    },
+    {
+      "label": "designer-projects-first-short",
+      "cardBottom": 630,
+      "footerBottom": 630,
+      "headers": [
+        "项目编号",
+        "手术项目名称",
+        "医院",
+        "患者",
+        "设计阶段",
+        "当前状态",
+        "创建时间",
+        "预计交付时间",
+        "操作"
+      ],
+      "height": 650,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 4,
+      "width": 1440
+    },
+    {
+      "label": "designer-projects-first-tall",
+      "cardBottom": 1050,
+      "footerBottom": 1050,
+      "headers": [
+        "项目编号",
+        "手术项目名称",
+        "医院",
+        "患者",
+        "设计阶段",
+        "当前状态",
+        "创建时间",
+        "预计交付时间",
+        "操作"
+      ],
+      "height": 1080,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 11,
+      "width": 1440
+    },
+    {
+      "label": "sales-home",
+      "cardBottom": 866,
+      "headers": [
+        "订单编号",
+        "手术项目名称",
+        "医院",
+        "科室",
+        "医生",
+        "患者",
+        "设计阶段",
+        "订单状态",
+        "最近更新时间",
+        "创建时间",
+        "预计交付时间",
+        "操作",
+        "业务对象",
+        "当前状态",
+        "最近更新时间",
+        "操作",
+        "医院",
+        "授权科室",
+        "关联医生",
+        "进行中订单"
+      ],
+      "height": 1080,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 17,
+      "width": 1440
+    },
+    {
+      "label": "sales-orders-tall",
+      "cardBottom": 1042,
+      "footerBottom": 1042,
+      "headers": [
+        "订单编号",
+        "手术项目名称",
+        "医院",
+        "科室",
+        "医生",
+        "患者",
+        "设计阶段",
+        "订单状态",
+        "最近更新时间",
+        "创建时间",
+        "预计交付时间",
+        "操作"
+      ],
+      "height": 1080,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 11,
+      "width": 1440
+    },
+    {
+      "label": "sales-orders-short",
+      "cardBottom": 622,
+      "footerBottom": 622,
+      "headers": [
+        "订单编号",
+        "手术项目名称",
+        "医院",
+        "科室",
+        "医生",
+        "患者",
+        "设计阶段",
+        "订单状态",
+        "最近更新时间",
+        "创建时间",
+        "预计交付时间",
+        "操作"
+      ],
+      "height": 650,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 4,
+      "width": 1440
+    },
+    {
+      "label": "sales-orders-two-results",
+      "cardBottom": 622,
+      "footerBottom": 622,
+      "headers": [
+        "订单编号",
+        "手术项目名称",
+        "医院",
+        "科室",
+        "医生",
+        "患者",
+        "设计阶段",
+        "订单状态",
+        "最近更新时间",
+        "创建时间",
+        "预计交付时间",
+        "操作"
+      ],
+      "height": 650,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 4,
+      "width": 1440
+    },
+    {
+      "label": "sales-two-results-confirmed",
+      "cardBottom": 430,
+      "headers": [
+        "订单编号",
+        "手术项目名称",
+        "医院",
+        "科室",
+        "医生",
+        "患者",
+        "设计阶段",
+        "订单状态",
+        "最近更新时间",
+        "创建时间",
+        "预计交付时间",
+        "操作"
+      ],
+      "height": 650,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 2,
+      "width": 1440
+    },
+    {
+      "label": "sales-doctors-short",
+      "cardBottom": 574,
+      "footerBottom": 574,
+      "headers": [
+        "医生",
+        "联系电话",
+        "所属医院",
+        "科室",
+        "职称",
+        "资质审核状态",
+        "负责销售",
+        "最近更新时间",
+        "操作"
+      ],
+      "height": 650,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 4,
+      "width": 1440
+    },
+    {
+      "label": "sales-doctors-tall",
+      "cardBottom": 1054,
+      "footerBottom": 1054,
+      "headers": [
+        "医生",
+        "联系电话",
+        "所属医院",
+        "科室",
+        "职称",
+        "资质审核状态",
+        "负责销售",
+        "最近更新时间",
+        "操作"
+      ],
+      "height": 1080,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 12,
+      "width": 1440
+    },
+    {
+      "label": "admin-orders-tall",
+      "cardBottom": 1032.5,
+      "footerBottom": 1032.5,
+      "headers": [
+        "订单编号",
+        "手术项目名称",
+        "医院",
+        "医生",
+        "订单状态",
+        "负责销售",
+        "负责组长",
+        "创建时间",
+        "预计交付时间",
+        "操作"
+      ],
+      "height": 1080,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 11,
+      "width": 1440
+    },
+    {
+      "label": "admin-orders-short",
+      "cardBottom": 612.5,
+      "footerBottom": 612.5,
+      "headers": [
+        "订单编号",
+        "手术项目名称",
+        "医院",
+        "医生",
+        "订单状态",
+        "负责销售",
+        "负责组长",
+        "创建时间",
+        "预计交付时间",
+        "操作"
+      ],
+      "height": 650,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 4,
+      "width": 1440
+    },
+    {
+      "label": "admin-任务调度",
+      "cardBottom": 1044.5,
+      "footerBottom": 1044.5,
+      "headers": [
+        "任务编号",
+        "订单编号",
+        "设计阶段",
+        "上游依赖",
+        "当前状态",
+        "负责人",
+        "执行条件",
+        "计划时间",
+        "操作"
+      ],
+      "height": 1080,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 12,
+      "width": 1440
+    },
+    {
+      "label": "admin-审核中心",
+      "cardBottom": 550.5,
+      "headers": [
+        "医生",
+        "医院",
+        "科室",
+        "联系手机号",
+        "建档来源",
+        "资质状态",
+        "操作"
+      ],
+      "height": 1080,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 4,
+      "width": 1440
+    },
+    {
+      "label": "admin-机构与人员",
+      "cardBottom": 550.5,
+      "headers": [
+        "医院名称",
+        "所属区域",
+        "联系信息",
+        "当前负责组长",
+        "关联医生",
+        "当前状态",
+        "操作"
+      ],
+      "height": 1080,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 4,
+      "width": 1440
+    },
+    {
+      "label": "admin-权限与审批",
+      "cardBottom": 736.5,
+      "headers": [
+        "申请事项",
+        "申请人",
+        "被申请人",
+        "所属组织",
+        "申请岗位",
+        "书面审批依据",
+        "申请时间",
+        "审批状态",
+        "操作"
+      ],
+      "height": 1080,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 7,
+      "width": 1440
+    },
+    {
+      "label": "admin-数据资产",
+      "cardBottom": 550.5,
+      "headers": [
+        "成果名称",
+        "所属订单",
+        "专业任务",
+        "审计版本",
+        "审核状态",
+        "发布状态",
+        "操作"
+      ],
+      "height": 1080,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 4,
+      "width": 1440
+    },
+    {
+      "label": "admin-审计日志",
+      "cardBottom": 1048.5,
+      "footerBottom": 1048.5,
+      "headers": [
+        "事件",
+        "业务类型",
+        "业务对象ID",
+        "操作人",
+        "操作时间",
+        "操作结果",
+        "原因 / 审批依据",
+        "操作"
+      ],
+      "height": 1080,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 11,
+      "width": 1440
+    },
+    {
+      "label": "sales-doctors-last-page",
+      "cardBottom": 454,
+      "footerBottom": 454,
+      "headers": [
+        "医生",
+        "联系电话",
+        "所属医院",
+        "科室",
+        "职称",
+        "资质审核状态",
+        "负责销售",
+        "最近更新时间",
+        "操作"
+      ],
+      "height": 1080,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 2,
+      "width": 1440
+    },
+    {
+      "label": "sales-todos-tall",
+      "cardBottom": 1014,
+      "footerBottom": 1014,
+      "headers": [
+        "业务类型",
+        "订单编号",
+        "医院",
+        "业务对象",
+        "当前状态",
+        "最近更新时间",
+        "操作"
+      ],
+      "height": 1080,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 9,
+      "width": 1440
+    },
+    {
+      "label": "sales-todos-short",
+      "cardBottom": 594,
+      "footerBottom": 594,
+      "headers": [
+        "业务类型",
+        "订单编号",
+        "医院",
+        "业务对象",
+        "当前状态",
+        "最近更新时间",
+        "操作"
+      ],
+      "height": 650,
+      "icon": "t-icon t-icon-view-list cv-icon ",
+      "rows": 2,
+      "width": 1440
+    }
+  ],
+  "alignment": {
+    "project": {
+      "header": 1310.984375,
+      "text": 1310.984375
+    },
+    "task": {
+      "header": 1232,
+      "text": 1232
+    },
+    "review": {
+      "header": 1306,
+      "text": 1306
+    },
+    "adminOrder": {
+      "header": 1332,
+      "text": 1332
+    }
+  },
+  "pageTraversal": {
+    "doctors": {
+      "pages": [
+        12,
+        2
+      ],
+      "unique": 14,
+      "total": 14
+    },
+    "reviews": {
+      "pages": [
+        12,
+        12
+      ],
+      "unique": 24,
+      "total": 24
+    }
+  },
+  "search": {
+    "doctorNameMatches": 1,
+    "doctorPhoneMatches": 1,
+    "orderSurgeryNameMatches": 0,
+    "orderBusinessNoMatches": 2
+  },
+  "adminFilterReset": {
+    "fromPage": 2,
+    "filteredPage": 1,
+    "clearFromPage": 2,
+    "clearedPage": 1
+  },
+  "observationNotes": {
+    "designer-projects-short": "last page, not capacity",
+    "designer-projects-tall": "last page, not capacity",
+    "sales-orders-two-results": "captured before the existing debounce completed; use sales-two-results-confirmed"
+  }
+}

@@ -57,3 +57,5 @@ export const MobileIcon = adaptIcon(Catalog.MobileIcon)
 export const FileAddFilledIcon = adaptIcon(Catalog.FileAddFilledIcon)
 
 export const UserBusinessIcon = adaptIcon(Catalog.UserBusinessIcon)
+
+export const ViewListIcon = adaptIcon(Catalog.ViewListIcon)

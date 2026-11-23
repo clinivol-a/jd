@@ -1,0 +1,8 @@
+/* Scoped business-table actions: align actual link text to the header content edge. */
+.viewport-table .business-action-cell { text-align: left; }
+.viewport-table .business-action-cell .t-table__th-cell-inner { justify-content: flex-start; }
+.viewport-table .business-action-cell .t-button.t-button--variant-text:not(:disabled):not(.t-is-disabled),
+.viewport-table .business-action-cell .t-button.t-button--variant-text:disabled,
+.viewport-table .business-action-cell .t-button.t-button--variant-text.t-is-disabled { padding-inline: 0; border-inline-width: 0; justify-content: flex-start; }
+.viewport-table { min-width: 0; }
+.viewport-table [data-viewport-pagination] .t-pagination { width: 100%; }

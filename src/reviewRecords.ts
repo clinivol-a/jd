@@ -1,6 +1,6 @@
 import type { FlowEvent, Task } from './App'
 import { legacyTimestamp, timestamp } from './dateTime'
-import { projectEvents, projectsFor } from './projects/projectModel'
+import { projectEvents, projectsFor, projectNumber } from './projects/projectModel'
 
 export type ReviewStatus = '已提交审核' | '提交审核' | '审核通过' | '审核退回'
 export function isReviewStatus(status: string): status is ReviewStatus {
@@ -10,11 +10,13 @@ export function isReviewStatus(status: string): status is ReviewStatus {
  * Task activity remains in the event store; reviewer/actor identities are never rewritten.
  */
 export function reviewRecords(tasks: Task[], events: FlowEvent[]) {
+  const projects=projectsFor(tasks,events)
+  const byTask=new Map(projects.flatMap(project=>project.tasks.map(task=>[task.id,project] as const)))
   const records = tasks.flatMap(task => task.review.flatMap((review, index) => isReviewStatus(review.status)
     ? [{ ...review, eventId:undefined as string|undefined, task, recordId: `${task.id}-${index}-${review.time}`, at: legacyTimestamp(review.time) }] : []))
   const mirrored = new Set<string>()
   const taskRecords = [...records]
-  for (const project of projectsFor(tasks, events)) {
+  for (const project of projects) {
     for (const event of projectEvents(project, events)) {
       const task = tasks.find(item => item.id === event.taskId)
       const isReviewEvent = /^(review-(?:submit|pass|return|history|\d+))$/.test(event.type)
@@ -28,5 +30,9 @@ export function reviewRecords(tasks: Task[], events: FlowEvent[]) {
       else records.push({ reviewerIdentity: undefined, eventId:event.id, task, recordId: event.id, time: event.at, at: event.at, actor: event.actor, status: event.name, note: event.description, version: event.version, submissionId: event.submissionId })
     }
   }
-  return records.map(record=>({...record, reviewerName: /^(已)?提交审核$/.test(record.status) ? '-' : record.reviewerIdentity?.name || record.actor || '-', submitter: /^(已)?提交审核$/.test(record.status) ? record.actor : undefined})).sort((a, b) => timestamp(b.at) - timestamp(a.at) || b.recordId.localeCompare(a.recordId))
+  return records.map(record=>{const project=byTask.get(record.task.id);return {...record,projectId:project?.id||record.task.projectId||record.task.orderNo,orderId:project?.orderId||record.task.orderId,projectNumber:project?projectNumber(project):(record.task.businessNo||(!record.task.sharedBusiness?record.task.orderNo:'-')),hospital:project?.hospital||record.task.hospital||'-',patientName:project?.patientName||record.task.patientName||'-',reviewerName: /^(已)?提交审核$/.test(record.status) ? '-' : record.reviewerIdentity?.name || record.actor || '-', submitter: /^(已)?提交审核$/.test(record.status) ? record.actor : undefined}}).sort((a, b) => timestamp(b.at) - timestamp(a.at) || b.recordId.localeCompare(a.recordId))
+}
+
+export function filterReviewRecords(records:ReturnType<typeof reviewRecords>,filters:{project:string;stage:string;status:string}) {
+  return records.filter(record=>(!filters.project||record.projectNumber.toLowerCase().includes(filters.project.trim().toLowerCase()))&&(!filters.stage||record.task.taskType===filters.stage)&&(!filters.status||record.status===filters.status))
 }

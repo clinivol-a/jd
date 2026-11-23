@@ -15,6 +15,10 @@
 
 默认继承text-color-primary；Header主题/通知/帮助/锁屏与Sidebar默认图标明确使用该Token。普通Hover中性容器灰；Selected/Active品牌色；选中侧栏为品牌底与白字白图标；Disabled使用text-color-disabled；Focus保持可见。语义通知、设计阶段、状态图标使用各自语义色，不强行涂成品牌绿。
 
+## 侧栏折叠入口
+
+销售、设计师、超级管理员及未来角色的左下角导航展开/收起统一使用tdesign-icons-react官方ViewListIcon，经tdesign.tsx的CliniVolIcon适配层导出，不手绘替代。两种状态使用同一图标，保留各入口既有16/20/24运行尺寸、按钮位置、颜色、Hover/Focus、Tooltip及动态aria-label；不改Sidebar宽度或动画。
+
 ## 四设计阶段
 
 统一线性自绘几何，24画板、1.5描边、20px运行尺寸，定义于DesignStageIcon。三维重建为梯形重建平面与两条层线，CAD为等轴测立方体线框，有限元为三个圆形节点的分析网络，3D打印为框架、喷头及分层。统一18px光学范围，减少交叠细节以保证20px下可读。设计师项目表、任务表及审核记录表只显示共享DesignStageIcon（独立20px，无Tag背景、边框或文字），Tooltip展示完整阶段名称；项目行显示实际阶段集合，任务行与审核行只显示对应单个阶段。详情及其他需要完整名称的区域继续通过StageLabel使用官方Tag的icon属性展示Icon+名称，组件内尺寸见下文Tag例外。只展示实际存在的阶段，不虚构任务。2026-11-20确认的这三类表格Icon-only规则覆盖此前列表统一Tag规定。

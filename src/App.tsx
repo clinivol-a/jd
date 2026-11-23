@@ -1,3 +1,4 @@
+import {useViewportPagination} from './tables/useViewportPagination';
 import {unifiedRequest} from './business/unifiedClient'
 import {useUnifiedDesigner} from './business/useUnifiedDesigner'
 import {patientDisplayName} from './projects/patientDisplay'
@@ -6,7 +7,7 @@ import {useAuth,useWorkspaceStorage} from './auth/AuthContext'
 import AccountMenu,{roleName} from './auth/AccountMenu'
 import AccountSecurity from './auth/AccountSecurity'
 import { formatAuditTime, formatDate, formatDateTime, formatOperation, formatSavedTime, legacyTimestamp, timestamp } from './dateTime'
-import { isReviewStatus, reviewRecords } from './reviewRecords'
+import { isReviewStatus, reviewRecords, filterReviewRecords } from './reviewRecords'
 import type { ReviewStatus } from './reviewRecords'
 import { MaskRegionIcon, ReferencePlaneIcon, BooleanUnionIcon, MaskSplitIcon, VolumeStatisticsIcon, StlStatisticsIcon } from './design-system/WorkspaceSemanticIcon'
 import { AiBoneIcon, BoneRebuildIcon, OrganIcon, LungVesselIcon, BronchusIcon, AbdomenIcon, SpineRibsIcon, AortaIcon, LungLobesIcon, SkinIcon, MeshEditIcon } from './design-system/MedicalToolIcon'
@@ -24,13 +25,13 @@ import { cadAsset } from './cad/cadProject'
 import ObjectStateIcon from './ObjectStateIcon'
 const CadWorkspace = lazy(() => import('./cad/CadWorkspace'))
 const engineerText = (value: string) => value.replace(/CAD\s+设计/g,'CAD设计').replace(/3D\s+打印/g,'3D打印').replace(/工作版本\s*V\d+/g, '当前成果').replace(/版本\s*V\d+/g, '成果').replace(/(^|\s)V\d+\b/g, '$1').replace(/\s{2,}/g, ' ').replace(/([\u4e00-\u9fff])\s+(?=[\u4e00-\u9fff])/g,'$1')
-import { Button, Card, Dialog, Drawer, Dropdown, Input, Menu as TMenu, MessagePlugin, Popup, Switch, Table, Tag, Textarea, Tooltip } from 'tdesign-react'
+import { Button, Card, Dialog, Drawer, Dropdown, Input, Pagination, Select, Empty, Menu as TMenu, MessagePlugin, Popup, Switch, Table, Tag, Textarea, Tooltip } from 'tdesign-react'
 import type { PrimaryTableCol } from 'tdesign-react/es/table'
 import {
   AssignmentCheckedIcon, AssignmentErrorFilledIcon, AssignmentErrorIcon, ChatMessageIcon,
   BrowseIcon, CloudIcon,
   ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CloseIcon,
-  FileIcon, HelpCircleIcon, HomeIcon, ImageIcon as TImageIcon, LockOnIcon, MenuFoldIcon, MenuUnfoldIcon, MoonIcon,
+  FileIcon, HelpCircleIcon, HomeIcon, ImageIcon as TImageIcon, LockOnIcon, ViewListIcon, MoonIcon,
   ListDemandIcon, LogoutIcon, Microphone1Icon, NotificationIcon, RefreshIcon, SearchIcon, SendIcon as TSendIcon, SettingIcon, SunnyIcon, TaskCheckedIcon,
   TaskCheckedFilledIcon, TaskFilledIcon, TaskIcon, TimeFilledIcon, TimeIcon,
   UserCircleIcon, UserSafetyIcon, WorkFilledIcon, WorkIcon,
@@ -598,7 +599,7 @@ function PlatformShell({ screen, goPlatform, collapsed, onCollapsedChange, child
   const routeKey = screen.kind === 'detail' || screen.kind === 'workspace' || screen.kind === 'cad-workspace' ? `${screen.kind}-${screen.taskId}` : screen.kind==='project'?`project-${screen.projectId}`:screen.kind
   const mainRef = useRef<HTMLElement>(null)
   useEffect(() => { mainRef.current?.scrollTo({ top: 0, left: 0 }) }, [routeKey])
-  return <div className={collapsed ? 'platform-shell nav-collapsed' : 'platform-shell'}><aside className="business-nav"><TMenu value={active} collapsed={collapsed} width={[layout.sidebar, layout.sidebarCollapsed]} onChange={(value) => goPlatform(value as 'home' | 'tasks' | 'reviews')}>{navItems.map((item) => { const Icon = item.icon; const menuIcon = <span className="nav-menu-icon"><Icon size={18} /></span>; return <TMenu.MenuItem key={item.key} value={item.key} icon={collapsed ? <Tooltip content={item.label} placement="right">{menuIcon}</Tooltip> : menuIcon} content={item.label} /> })}</TMenu><Tooltip content={collapsed ? '展开导航' : '收起导航'} placement="right"><button className="nav-collapse" aria-label={collapsed ? '展开导航' : '收起导航'} onClick={() => onCollapsedChange(!collapsed)}>{collapsed ? <MenuUnfoldIcon size={18} /> : <MenuFoldIcon size={18} />}</button></Tooltip></aside><main ref={mainRef} className="platform-main">{children}</main></div>
+  return <div className={collapsed ? 'platform-shell nav-collapsed' : 'platform-shell'}><aside className="business-nav"><TMenu value={active} collapsed={collapsed} width={[layout.sidebar, layout.sidebarCollapsed]} onChange={(value) => goPlatform(value as 'home' | 'tasks' | 'reviews')}>{navItems.map((item) => { const Icon = item.icon; const menuIcon = <span className="nav-menu-icon"><Icon size={18} /></span>; return <TMenu.MenuItem key={item.key} value={item.key} icon={collapsed ? <Tooltip content={item.label} placement="right">{menuIcon}</Tooltip> : menuIcon} content={item.label} /> })}</TMenu><Tooltip content={collapsed ? '展开导航' : '收起导航'} placement="right"><button className="nav-collapse" aria-label={collapsed ? '展开导航' : '收起导航'} onClick={() => onCollapsedChange(!collapsed)}><ViewListIcon size={18} /></button></Tooltip></aside><main ref={mainRef} className="platform-main">{children}</main></div>
 }
 
 function HomeDashboard({ userName, tasks, notices, onNotice, onDismissNotice, onDetail, onOpen, onAll }: { userName: string; tasks: Task[]; notices: Notice[]; onNotice: (notice: Notice) => void; onDismissNotice: (id: number) => void; onDetail: (id: string) => void; onOpen: (id: string) => void; onAll: () => void }) {
@@ -613,7 +614,7 @@ function HomeDashboard({ userName, tasks, notices, onNotice, onDismissNotice, on
     { label: '待审核任务', value: reviewCount, note: '成果已锁定', icon: TimeFilledIcon, tone: 'review' }, { label: '审核退回任务', value: tasks.filter((task) => task.status === '审核退回').length, note: '需要修改', icon: AssignmentErrorFilledIcon, tone: 'returned' },
     { label: '已完成任务', value: tasks.filter((task) => task.status === '已完成').length + 12, note: '本月累计', icon: TaskCheckedFilledIcon, tone: 'complete' },
   ]
-  const dashboardNotices = notices.filter((notice) => !notice.dismissed && (noticeFilter === '全部' || (noticeFilter === '未读' ? notice.unread : !notice.unread))).slice(0, 3)
+  const dashboardNotices = notices.filter((notice) => !notice.dismissed && (noticeFilter === '全部' || (noticeFilter === '未读' ? notice.unread : !notice.unread))).slice(0, 7)
   return <div className="page dashboard-page"><section className="dashboard-welcome"><div className="dashboard-welcome-copy"><h1>{greeting}，{userName}</h1><p>今天有 {actionableCount} 项任务需要处理，{reviewCount} 项成果等待医生审核。</p></div><time className="dashboard-date-text" dateTime={new Date().toISOString()}>{todayText}</time></section><section className="stat-grid" aria-label="任务统计">{stats.map(({ label, value, note, icon: Icon, tone }) => <Card key={label} className={`stat-card stat-${tone}`} bordered={false}><div className="stat-card-head"><span>{label}</span><i><Icon size={20} /></i></div><strong>{value}</strong><small>{note}</small></Card>)}</section><section className="dashboard-grid"><Card className="dashboard-card task-card table-card" bordered={false}><div className="section-heading"><h2>我的任务</h2><Button className="view-all-button" variant="text" theme="primary" onClick={onAll}><span>查看全部</span><ChevronRightIcon size={15} /></Button></div><TaskTable tasks={tasks} onDetail={onDetail} onOpen={onOpen} /></Card><div className="dashboard-aside"><Card className="dashboard-card recent-card" bordered={false}><div className="section-heading"><h2>最近任务</h2></div><div className="recent-table" role="table" aria-label="最近任务"><div className="recent-table-head" role="row"><span>任务名称</span><span>任务编号</span><span>最近操作</span><span aria-hidden="true" /></div>{tasks.slice(-3).reverse().map((task) => <button className="recent-item" key={task.id} onClick={() => onDetail(task.id)} role="row"><Tooltip content={task.title}><strong>{task.title}</strong></Tooltip><span>任务 {task.id}</span><Tooltip content={task.updated}><time>{formatNoticeTime(legacyTimestamp(task.updated))}</time></Tooltip><ChevronRightIcon size={16} /></button>)}</div></Card><Card className="dashboard-card attention-card" bordered={false}><div className="section-heading notice-heading"><h2>重要通知</h2><div className="notice-filters" aria-label="通知筛选">{(['全部', '未读', '已读'] as const).map((filter) => <Button key={filter} size="small" variant="text" theme={noticeFilter === filter ? 'primary' : 'default'} className={noticeFilter === filter ? 'notice-filter-active' : ''} onClick={() => setNoticeFilter(filter)}>{filter}</Button>)}</div></div><div className="dashboard-notice-table" role="table" aria-label={`${noticeFilter}通知`}><div className="dashboard-notice-head" role="row"><span>通知类型</span><span>内容</span><span>时间</span><span>状态</span><span aria-hidden="true" /></div>{dashboardNotices.length > 0 ? dashboardNotices.map((notice) => { return <div className={notice.unread ? 'dashboard-notice-row dashboard-notice-unread' : 'dashboard-notice-row'} key={notice.id} role="row"><button className="dashboard-notice-main" onClick={() => onNotice(notice)}><span className="notice-kind"><NoticeSymbol notice={notice} /><Tooltip content={notice.title}><strong>{notice.title}</strong></Tooltip></span><Tooltip content={notice.tone === 'warning' ? '查看意见并修改' : notice.detail}><span className="notice-summary">{notice.tone === 'warning' ? '查看意见并修改' : notice.detail}</span></Tooltip><time>{formatNoticeTime(noticeTimestamp(notice))}</time><em>{notice.unread ? '未读' : '已读'}</em><ChevronRightIcon size={16} /></button>{notice.tone === 'warning' && <Tooltip content="关闭通知"><button className="notice-dismiss" aria-label={`关闭${notice.title}`} onClick={() => onDismissNotice(notice.id)}><CloseIcon size={13} /></button></Tooltip>}</div> }) : <div className="notice-empty">暂无{noticeFilter}通知</div>}</div></Card></div></section></div>
 }
 
@@ -725,17 +726,25 @@ function InfoSection({ title, action, children }: { title: string; action?: Reac
 
 
 function Reviews({ tasks, events, onDetail }: { tasks: Task[]; events: FlowEvent[]; onDetail: (id: string) => void }) {
-  const records = reviewRecords(tasks, events)
+  const storage=useWorkspaceStorage()
+  const [filters,setFilters]=useState<{project:string;stage:string;status:string;page:number}>(()=>{try{return {...{project:'',stage:'',status:'',page:1},...JSON.parse(storage.getItem('designer-review-list')||'{}')}}catch{return {project:'',stage:'',status:'',page:1}}})
+  useEffect(()=>{storage.setItem('designer-review-list',JSON.stringify(filters))},[filters,storage])
+  const records = reviewRecords(tasks, events),matched=filterReviewRecords(records,filters)
+  const paging=useViewportPagination(matched.length,matched.map(r=>r.recordId).join('|'),{page:filters.page,onChange:page=>setFilters(previous=>({...previous,page}))})
+  const change=(patch:Partial<typeof filters>)=>setFilters(previous=>({...previous,...patch,page:1}))
   const columns: PrimaryTableCol<(typeof records)[number]>[] = [
+    {colKey:'projectNumber',title:'项目编号',width:150,fixed:'left',ellipsis:true},
+    {colKey:'taskName',title:'手术项目名称',width:220,fixed:'left',ellipsis:true,cell:({row})=>row.task.title},
+    {colKey:'hospital',title:'医院',width:210,ellipsis:true},
+    {colKey:'patientName',title:'患者',width:110,ellipsis:true},
     { colKey: 'taskType', title: '设计阶段', width: 130, cell: ({ row }) => <StageTypeIcon stage={row.task.taskType}/> },
-    { colKey: 'taskName', title: '手术项目名称', width: 220, fixed:'left', ellipsis: true, cell: ({ row }) => row.task.title },
     { colKey: 'status', title: '审核状态', width: 125, cell: ({ row }) => <Tag theme={row.status.includes('退回')?'danger':row.status.includes('通过')?'success':'warning'} variant="light">{row.status}</Tag> },
-    { colKey: 'note', title: '审核意见', width: 330, ellipsis: true, cell: ({ row }) => engineerText(row.note) },
+    { colKey: 'note', title: '审核意见', width: 330, ellipsis: true, cell: ({ row }) => row.note||'-' },
     { colKey: 'reviewerName', title: '审核人', width: 150 },
-    { colKey: 'time', title: '审核时间', width: 160, cell: ({ row }) => formatAuditTime(row.at) },
+    { colKey: 'time', title: '审核时间', width: 180, cell: ({ row }) => formatDateTime(row.at) },
     { colKey: 'operation', title: '操作', width: 108, align:'left', className:'designer-action-cell', fixed:'right', cell: ({ row }) => <Button variant="text" size="small" theme="primary" onClick={() => onDetail(row.task.id)}>查看任务</Button> },
   ]
-  return <div className="page"><Card className="dashboard-card review-card table-card unified-list-card" bordered={false}><section className="list-page-heading"><h1>审核记录</h1></section><Table className="app-table designer-review-table" rowKey="recordId" data={records} columns={columns} size="small" hover bordered={false} tableLayout="fixed" /></Card></div>
+  return <div className="page project-page"><Card className="dashboard-card review-card table-card unified-list-card" bordered={false}><section className="list-page-heading"><h1>审核记录</h1></section><div className="project-filters"><label><span>项目编号</span><Input clearable value={filters.project} placeholder="搜索项目编号" onChange={project=>change({project:String(project)})}/></label><label><span>设计阶段</span><Select value={filters.stage} options={[{label:'全部',value:''},...['三维重建','CAD 设计','有限元分析','3D 打印'].map(value=>({value,label:engineerText(value)}))]} onChange={stage=>change({stage:String(stage)})}/></label><label><span>审核状态</span><Select value={filters.status} options={[{label:'全部',value:''},...Array.from(new Set(records.map(r=>r.status))).map(value=>({value,label:value}))]} onChange={status=>change({status:String(status)})}/></label><Button variant="outline" onClick={()=>setFilters({project:'',stage:'',status:'',page:1})}>重置筛选</Button></div><div className="viewport-table" ref={paging.ref}><Table className="app-table designer-review-table" rowKey="recordId" data={matched.slice(paging.start,paging.end)} columns={columns} size="small" hover bordered={false} tableLayout="fixed" empty={<Empty description="暂无符合条件的审核记录"/>}/>{paging.showPagination&&<div className="project-pagination" data-viewport-pagination><Pagination current={paging.page} pageSize={paging.pageSize} total={matched.length} showPageSize={false} showJumper={false} onCurrentChange={paging.setPage}/></div>}</div></Card></div>
 }
 
 function Workspace({ task, dirty, savedAt, mode, activeSeriesId, comments, reviewFocus, reviewResetEnabled, onReviewFocusConsumed, onUpdateComment, onResetReview, onSeriesChange, onModeChange, onDirty, onSave, onSubmit, onSubmitSalesperson }: { task: Task; dirty: boolean; savedAt?: string; mode: WorkspaceMode; activeSeriesId: string; comments: ReviewComment[]; reviewFocus: { taskId: string; commentId?: string } | null; reviewResetEnabled: boolean; onReviewFocusConsumed: () => void; onUpdateComment: (commentId: string, changes: Partial<Pick<ReviewComment, 'status' | 'replies' | 'unread' | 'submitted'>>) => void; onResetReview: () => void; onSeriesChange: (seriesId: string) => void; onModeChange: (mode: WorkspaceMode) => void; onDirty: () => void; onSave: (announce?: boolean) => boolean; onSubmit: () => void; onSubmitSalesperson: () => void }) {

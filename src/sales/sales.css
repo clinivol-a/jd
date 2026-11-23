@@ -211,12 +211,11 @@ html.sales-invite-document body,html.sales-invite-document #root {min-width:0;he
 .sales-order-list-card > .t-card__body {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 104px);
+
 }
 .sales-order-list-card .sales-table-scroll {
   display: flex;
   flex-direction: column;
-  flex: 1;
 }
 .sales-order-list-card .project-pagination { margin-top: auto; }
 .sales-order-page .sales-order-filters { align-items: center; }
