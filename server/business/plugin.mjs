@@ -1,3 +1,6 @@
+import {localBusinessDirectory} from '../unified/directory.mjs';
+import {readFileSync} from 'node:fs';
+import {linkedResultImage} from './linkedPreview.mjs';
 import {seedLocalShareRecords} from './shareRecordsDemo.mjs';
 import {previewModel} from './previewModel.mjs';
 import {resultScenarios} from './resultCatalog.mjs';
@@ -41,7 +44,8 @@ export function businessDesignPlugin({ authOrigin = 'http://127.0.0.1:5211', get
                 }
                 catch { }
                 const resultImages=new Map();for(const [id,spec] of Object.entries(resultScenarios))for(let i=1;i<=spec.stages.length;i++){try{resultImages.set(`${id}-${i}`,await readFile(new URL(`./fixtures/results/${id}-${i}.png`,import.meta.url)))}catch{}}
-                service = new BusinessService({ key,state,demoShareCodes:true,resultModel:previewModel,resultImage:key=>resultImages.get(key), image: await readFile(new URL('./fixtures/approved-static-preview.png', import.meta.url)), persist: async (value) => { await writeFile(new URL('records.enc', dir), service.seal(value), { mode: 0o600 }); } });
+                const sharedCatalog=process.env.CV_ADMIN_LOCAL==='1'?()=>{try{const state=JSON.parse(readFileSync(new URL('../../.local/unified-business/state.json',import.meta.url),'utf8'));const admin=JSON.parse(readFileSync(new URL('../../.local/admin/state.json',import.meta.url),'utf8'));return {...state,hospitals:localBusinessDirectory({mode:'local',demoMode:true,accounts:[]},admin).hospitals}}catch(e){if(e.code==='ENOENT')return null;throw e}}:undefined;
+                service = new BusinessService({ key,state,sharedCatalog,linkedResultImage,demoShareCodes:true,resultModel:previewModel,resultImage:key=>resultImages.get(key), image: await readFile(new URL('./fixtures/approved-static-preview.png', import.meta.url)), persist: async (value) => { await writeFile(new URL('records.enc', dir), service.seal(value), { mode: 0o600 }); } });
             }
             vite.middlewares.use(async (req, res, next) => {
                 if (!req.url?.startsWith('/api/business-v31/'))
@@ -121,6 +125,7 @@ export function businessDesignPlugin({ authOrigin = 'http://127.0.0.1:5211', get
                         return send(200, await service.sample(user));
                     if (a === 'artifacts')
                         return send(200, { artifacts: service.artifacts(user, u.searchParams.get('orderId')) });
+                    if(a==='insurance-image')return binary(service.insuranceImage(user,u.searchParams.get('orderId'),u.searchParams.get('resultId'),u.searchParams.get('resultVersion')),'image/png');
                     if (a === 'image') {
                         const o = service.order(user, u.searchParams.get('orderId'));
                         if (!o.published)

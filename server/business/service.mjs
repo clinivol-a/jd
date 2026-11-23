@@ -1,3 +1,4 @@
+import {linkedInsuranceRows} from './linkedInsurance.mjs';
 import { ShareRecords } from './shareRecords.mjs';
 import { approvedDemoChain } from './resultCatalog.mjs';
 import { validIdentity } from '../../src/sales/patientRules.mjs';
@@ -11,7 +12,7 @@ export class BusinessFailure extends Error {
 const fail = (message, status = 400) => { throw new BusinessFailure(message, status); };
 const keyFields = ['patientName', 'sex', 'identityNumber', 'examNo', 'examDate', 'bodyPart', 'hospitalId'];
 export class BusinessService {
-    constructor({ state = { imports: {}, patients: {}, shares: {}, samples: {}, audit: [] }, key = randomBytes(32), image, now = () => new Date(), persist = async () => { }, resultImage, resultModel, demoShareCodes = false } = {}) { this.demoShareCodes = demoShareCodes === true && process.env.NODE_ENV !== 'production'; this.resultImage = resultImage; this.resultModel = resultModel; this.state = state; this.key = key; this.image = image; this.now = now; this.persist = persist; this.proofs = new InviteProof(); this.receipts = new Map(Object.entries(this.state.receipts || {})); this.projections = new Map(); this.state.orders ??= {}; this.scopes = new Map(); this.shareRecords=new ShareRecords(this); }
+    constructor({ state = { imports: {}, patients: {}, shares: {}, samples: {}, audit: [] }, key = randomBytes(32), image, now = () => new Date(), persist = async () => { }, resultImage, resultModel, sharedCatalog, linkedResultImage, demoShareCodes = false } = {}) { this.sharedCatalog=sharedCatalog; this.linkedResultImage=linkedResultImage; this.demoShareCodes = demoShareCodes === true && process.env.NODE_ENV !== 'production'; this.resultImage = resultImage; this.resultModel = resultModel; this.state = state; this.key = key; this.image = image; this.now = now; this.persist = persist; this.proofs = new InviteProof(); this.receipts = new Map(Object.entries(this.state.receipts || {})); this.projections = new Map(); this.state.orders ??= {}; this.scopes = new Map(); this.shareRecords=new ShareRecords(this); }
     sales(user) {
         if (!user || user.role !== 'sales' || user.status !== 'approved')
             fail('请使用已审核的销售账号。', 403);
@@ -193,26 +194,27 @@ export class BusinessService {
             const chain = approvedDemoChain(user, row);
             if (chain) {
                 const old = this.state.orders[row.id];
-                this.state.orders[row.id] = { id: row.id, owner: user.id, status: row.status, completedAt: row.completedAt, hospital: row.hospital, patientName: row.patientName, expectedRecipient:row.expectedRecipient?.id&&row.expectedRecipient.id===row.doctorId?{id:row.expectedRecipient.id,name:String(row.expectedRecipient.name||'')}:null, projectId: chain.projectId, sex: chain.sex, identityRecord: old?.identityRecord || this.seal({ identityNumber: chain.identityNumber }), surgery: row.name, standardMapped: false, allowedPhones: ['13900000001'], published: true, imageApproved: true, artifacts: chain.artifacts, dataOrigin: 'isolated-business-fixture' };
+                this.state.orders[row.id] = { id: row.id, businessNo:row.businessNo||row.id, owner: user.id, status: row.status, completedAt: row.completedAt, hospital: row.hospital, patientName: row.patientName, expectedRecipient:row.expectedRecipient?.id&&row.expectedRecipient.id===row.doctorId?{id:row.expectedRecipient.id,name:String(row.expectedRecipient.name||'')}:null, projectId: chain.projectId, sex: chain.sex, identityRecord: old?.identityRecord || this.seal({ identityNumber: chain.identityNumber }), surgery: row.name, standardMapped: false, allowedPhones: ['13900000001'], published: true, imageApproved: true, artifacts: chain.artifacts, dataOrigin: 'isolated-business-fixture' };
             }
             else if (this.state.orders[row.id]?.owner === user.id) {
                 this.state.orders[row.id].published = false;
             }
             if (row.status === '已完成')
-                projected.push({ id: String(row.id), owner: user.id, hospital: String(row.hospital || ''), patientName: String(row.patientName || ''), completedAt: row.completedAt, status: row.status, issues: ['患者性别、身份证号及已审核成果'], dataOrigin: 'local-order-projection' });
+                projected.push({ id: String(row.id), businessNo:row.businessNo||'-', surgery:row.name||'', sex:row.patientSex||'', owner: user.id, hospital: String(row.hospital || ''), patientName: String(row.patientName || ''), completedAt: row.completedAt, status: row.status, issues: ['患者性别、身份证号及已审核成果'], dataOrigin: 'local-order-projection' });
         }
         this.projections.set(user.id, projected);
         await this.persist(this.state);
         return { ok: true };
     }
     exportList(user, month) { this.permitted(user); if (!/^\d{4}-\d{2}$/.test(month))
-        fail('请选择有效月份。'); const map = new Map((this.projections.get(user.id) || []).filter(o => monthOf(o.completedAt) === month).map(o => [o.id, o])); for (const o of [...Object.values(this.state.orders), ...Object.values(this.state.samples)]) {
+        fail('请选择有效月份。'); const linked=linkedInsuranceRows(this,user);if(linked)return linked.filter(o=>monthOf(o.completedAt)===month).map(({identityNumber,image,...o})=>({...o,maskedIdentity:identityNumber?identityNumber.slice(0,6)+'********'+identityNumber.slice(-4):'',image:image?.length?'/api/business-v31/insurance-image?orderId='+encodeURIComponent(o.id)+'&resultId='+encodeURIComponent(o.resultId)+'&resultVersion='+encodeURIComponent(o.resultVersion):''})).sort((a,b)=>Date.parse(b.completedAt)-Date.parse(a.completedAt)); const map = new Map((this.projections.get(user.id) || []).filter(o => monthOf(o.completedAt) === month).map(o => [o.id, o])); for (const o of [...Object.values(this.state.orders), ...Object.values(this.state.samples)]) {
         if (o.owner !== user.id || this.state.orders[o.id] && this.scopes.has(user.id) && !this.scopes.get(user.id).has(o.id) || o.dataOrigin === 'isolated-acceptance' || o.status !== '已完成' || monthOf(o.completedAt) !== month)
             continue;
         const a = this.artifacts(user, o.id)[0], identity = o.identityRecord ? this.unseal(o.identityRecord).identityNumber : o.identityNumber;
         const { identityNumber, identityRecord, allowedPhones, ...safe } = o;
         map.set(o.id, { ...safe, maskedIdentity: identity ? identity.slice(0, 6) + '********' + identity.slice(-4) : '', image: a ? '/api/business-v31/image?orderId=' + encodeURIComponent(o.id) + '&resultId=' + encodeURIComponent(a.id) : '', resultId: a?.id, resultVersion: a?.version, issues: [...(!o.sex ? ['患者性别'] : []), ...(!identity ? ['身份证号'] : []), ...(!o.surgery ? ['手术项目名称'] : []), ...(!a || !o.imageApproved ? ['已审核成果图片'] : [])] });
     } return [...map.values()].sort((a, b) => Date.parse(b.completedAt) - Date.parse(a.completedAt)); }
+    insuranceImage(user,id,resultId,resultVersion){this.permitted(user);const row=linkedInsuranceRows(this,user)?.find(o=>o.id===id&&o.resultId===resultId&&o.resultVersion===resultVersion);if(!row?.image?.length)fail('无已审核成果预览权限。',403);return row.image;}
     exportCode(user) { this.permitted(user); return this.proofs.send('export:' + user.id, user.phone, +this.now()); }
     exportVerify(user, code) { this.permitted(user); return this.proofs.verify('export:' + user.id, user.phone, code, +this.now()); }
     async export(user, body) {
@@ -220,6 +222,8 @@ export class BusinessService {
         if (!Array.isArray(body.ids) || !body.ids.length || new Set(body.ids).size !== body.ids.length)
             fail('请选择有效订单。');
         const eligible = this.exportList(user, body.month);
+        const linked=linkedInsuranceRows(this,user);
+        if(linked){const rows=body.ids.map(id=>{const row=linked.find(o=>o.id===id&&monthOf(o.completedAt)===body.month);if(!row||row.issues.length)fail('订单'+(row?.businessNo||'-')+'：'+(row?.issues.join('、')||'无访问权限'),422);return row});const bytes=insuranceXlsx(rows);this.audit(user,'insurance-export',body.ids.join(','),`month=${body.month}; count=${rows.length}`);await this.persist(this.state);return bytes;}
         const rows = body.ids.map(id => {
             const row = eligible.find(o => o.id === id);
             if (!row || row.issues.length)
