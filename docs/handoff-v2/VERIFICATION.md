@@ -48,3 +48,7 @@ node --experimental-strip-types --test tests/linked-demo-migration.test.mjs test
 - vercel.json（仅新交付分支禁自动部署）
 
 应用src、server、public、package.json、锁文件、全局Token均保持源代码SHA逐字不变。原版交付文档保持历史可追溯，由新入口明确替代其过时状态。
+
+## GitHub推送实测
+
+已普通push创建远端design-handoff-v2，未创建PR或合并旧分支。交付版本以 `git rev-parse origin/design-handoff-v2` 和GitHub分支HEAD确认。部署防护随该分支提交；推送后只读检查A项目最新部署仍为原dpl_GnhPAoXqMwzJaVPpiVPwwvZMaiJX，未生成本轮部署。原始Patch的空行上下文包含合法行前空格，保持原始Git Diff，不为通过文档空白检查而改写Patch；其他新文档/配置通过git diff --check。
