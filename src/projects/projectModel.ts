@@ -110,6 +110,14 @@ export function noticeProjectTarget(notice:Notice,projects:Project[],events:Flow
   if(!project||(taskId&&!project.tasks.some(task=>task.id===taskId))||(event&&(event.orderNo!==project.id||(taskId&&event.taskId!==taskId))))return null
   return {projectId:project.id,...(taskId?{taskId}:{}),...(event?{eventId:event.id}:{})}
 }
+// A notice describes the event that occurred, not the task's possibly newer status.
+export function projectNoticeFields(notice:Notice,projects:Project[],events:FlowEvent[]) {
+ const target=noticeProjectTarget(notice,projects,events)
+ const project=target?projects.find(item=>item.id===target.projectId):undefined
+ const event=target?.eventId?events.find(item=>item.id===target.eventId):undefined
+ const eventStatus:Record<string,string>={'review-pass':'审核通过','review-return':'审核退回','review-submit':'待审核',assigned:'已分配'}
+ return {number:project?projectNumber(project):'—',name:project?.name||'—',hospital:project?.hospital||'—',status:eventStatus[event?.type??'']||event?.name||notice.title||'—'}
+}
 export function sortedNotices(notices:Notice[],events:FlowEvent[] = []) {return [...notices].sort((a,b)=>(parseTimestamp(noticeTimestamp(b,events))?.getTime()??-Infinity)-(parseTimestamp(noticeTimestamp(a,events))?.getTime()??-Infinity)||b.id-a.id)}
 export function canEnter(task:Task,tasks:Task[]) {
   if(task.sharedBusiness)return !!task.accessible&&(!task.upstreamTaskId||task.upstreamApproved===true)

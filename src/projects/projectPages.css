@@ -112,8 +112,12 @@ html[data-theme="dark"] .project-page .t-tag--primary:not(.status-in-progress) {
 .project-filters label .t-select__wrap .t-input__wrap { width: 100%; }
 .designer-list-page .project-page-heading { align-items: center; }
 .dashboard-notice-actions { display: flex; align-items: center; gap: 8px; }
-/* Reserve enough room for the required MM-DD HH:mm notice timestamp. */
-.project-dashboard .dashboard-notice-head, .project-dashboard .dashboard-notice-main { grid-template-columns: minmax(0,1.2fr) minmax(0,1.5fr) 104px 40px 16px; }
+/* Keep project identity and event status readable without changing summary row height. */
+.project-dashboard .dashboard-notice-table { overflow-x: auto; }
+.project-dashboard .dashboard-notice-content { min-width: 900px; }
+.project-dashboard .dashboard-notice-head, .project-dashboard .dashboard-notice-main { grid-template-columns: 160px 120px minmax(120px,1fr) minmax(110px,1fr) 104px 48px 16px; }
+.project-dashboard .dashboard-notice-main > .t-popup__reference { min-width: 0; overflow: hidden; }
+.project-dashboard .dashboard-notice-main .notice-summary { display: block; }
 
 /* Temporary route focus does not alter card geometry or task selection. */
 .project-navigation-focus { background-color: var(--td-brand-color-light); }
