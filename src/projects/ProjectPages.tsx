@@ -23,8 +23,8 @@ function StageTags({tasks,iconsOnly=false}:{tasks:Task[];iconsOnly?:boolean}){re
 export function ProjectTable({projects,onProject,paginated=false,page=1,onPage}:{projects:Project[];onProject:(id:string)=>void;paginated?:boolean;page?:number;onPage?:(page:number)=>void}){
   const columns:PrimaryTableCol<Project>[]=[
     {colKey:'id',title:'项目编号',width:150,fixed:'left',ellipsis:true,cell:({row})=>projectNumber(row)},
-    {colKey:'name',title:'手术项目名称',width:180,fixed:'left',ellipsis:true,cell:({row})=><button className="project-name-link" onClick={()=>onProject(row.id)}><span>{row.name}</span></button>},
-    {colKey:'hospital',title:'医院',width:210,fixed:'left',ellipsis:true},
+    {colKey:'name',title:'手术项目名称',width:180,fixed:'left',ellipsis:true,cell:({row})=><button className="project-name-link" onClick={()=>onProject(row.id)}><span title={row.name}>{row.name}</span></button>},
+    {colKey:'hospital',title:'医院',width:210,fixed:'left',ellipsis:true,cell:({row})=><span className="project-table-bounded-text" title={row.hospital}>{row.hospital}</span>},
     {colKey:'patient',title:'患者',width:150,ellipsis:true,cell:({row})=>row.patientName||'—'},
     {colKey:'stages',title:'设计阶段',width:150,cell:({row})=><StageTags tasks={row.tasks} iconsOnly/>},
     {colKey:'progress',title:'当前状态',width:155,ellipsis:true,cell:({row})=><ProjectStatus status={projectStatus(row)}/>},
@@ -48,8 +48,8 @@ export function ProjectList({projects,tasks,events=[],filters,onFilters,onProjec
   const change=(patch:Partial<Filters>)=>onFilters({...filters,...patch,source:patch.view==='projects'?undefined:filters.source,page:1})
   const taskColumns:PrimaryTableCol<{project:Project;task:Task}>[]=[
     {colKey:'projectId',title:'项目编号',width:150,fixed:'left',ellipsis:true,cell:({row})=>projectNumber(row.project)},
-    {colKey:'name',title:'手术项目名称',width:180,fixed:'left',ellipsis:true,cell:({row})=><button className="project-name-link" onClick={()=>onProject(row.project.id)}><span>{row.project.name}</span></button>},
-    {colKey:'hospital',title:'医院',width:210,fixed:'left',ellipsis:true,cell:({row})=>row.project.hospital},
+    {colKey:'name',title:'手术项目名称',width:180,fixed:'left',ellipsis:true,cell:({row})=><button className="project-name-link" onClick={()=>onProject(row.project.id)}><span title={row.project.name}>{row.project.name}</span></button>},
+    {colKey:'hospital',title:'医院',width:210,fixed:'left',ellipsis:true,cell:({row})=><span className="project-table-bounded-text" title={row.project.hospital}>{row.project.hospital}</span>},
     {colKey:'patient',title:'患者',width:150,ellipsis:true,cell:({row})=>row.project.patientName||'—'},
     {colKey:'stage',title:'设计阶段',width:150,cell:({row})=><StageTypeIcon stage={row.task.taskType}/>},
     {colKey:'status',title:'当前状态',width:155,cell:({row})=><ProjectStatus status={row.task.status}/>},
