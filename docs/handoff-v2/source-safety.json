@@ -1,0 +1,8 @@
+{
+  "sourceCommit": "caa9947376ad04fa0ddfde92b5e6741f8de2f212",
+  "newHistoryBlobsScanned": 1167,
+  "knownPrivateCredentialCountChecked": 2,
+  "findings": [],
+  "forbiddenTrackedPaths": [],
+  "limits": "Pattern and known-local-credential scan; not a certification of legal or clinical data provenance. Supplied demonstration assets remain demonstration only."
+}

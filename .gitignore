@@ -12,3 +12,13 @@ vite.config.d.ts
 .cache/
 
 .local/
+
+# Private development credentials and local logs
+*.log
+*.pem
+*.key
+/auth.json
+/accounts.json
+/sessions.json
+/sms-outbox.json
+/cookies*.json
