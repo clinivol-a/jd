@@ -110,6 +110,9 @@ html[data-theme="dark"] .project-page .t-tag--primary:not(.status-in-progress) {
 .app-table.project-data-table td.t-table__cell--fixed-left { position: sticky; }
 .project-filters label, .project-filter-date { flex: 0 0 auto; }
 .project-filters label .t-select__wrap .t-input__wrap { width: 100%; }
+.designer-list-page .project-page-heading { align-items: center; }
+.designer-list-page .project-view-switch { padding: 0; }
+.dashboard-notice-actions { display: flex; align-items: center; gap: 8px; }
 /* Reserve enough room for the required MM-DD HH:mm notice timestamp. */
 .project-dashboard .dashboard-notice-head, .project-dashboard .dashboard-notice-main { grid-template-columns: minmax(0,1.2fr) minmax(0,1.5fr) 104px 40px 16px; }
 

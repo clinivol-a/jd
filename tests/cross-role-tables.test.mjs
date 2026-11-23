@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {build} from 'esbuild';import{mkdtemp,rm,readFile}from'node:fs/promises';import{tmpdir}from'node:os';
 const dir=await mkdtemp(tmpdir()+'/cv-cross-tables-');test.after(()=>rm(dir,{recursive:true,force:true}));
-await build({entryPoints:['src/tables/useViewportPagination.ts','src/reviewRecords.ts'],outdir:dir,bundle:true,platform:'node',format:'esm',loader:{'.css':'empty'},outExtension:{'.js':'.mjs'}});
+await build({entryPoints:['src/tables/useViewportPagination.ts','src/reviewRecords.ts','src/projects/routes.ts'],outdir:dir,bundle:true,platform:'node',format:'esm',loader:{'.css':'empty'},outExtension:{'.js':'.mjs'}});
 const{pageCapacity,pageAfterResize}=await import(dir+'/tables/useViewportPagination.mjs');
 const{reviewRecords,filterReviewRecords}=await import(dir+'/reviewRecords.mjs');
 test('measured capacity grows with viewport, never inserts fake rows, and keeps the former first row on resize',()=>{
@@ -18,4 +18,9 @@ test('same-name cases stay distinct by task/project/order IDs; reviewer identity
 test('shared adapters cover all complete lists without altering export semantics',async()=>{
  for(const file of['src/admin/AdminTable.tsx','src/sales/SalesWorkspace.tsx','src/projects/ProjectPages.tsx','src/sales/business/InsuranceSummary.tsx'])assert.ok((await readFile(file,'utf8')).includes('useViewportPagination'),file);
  const insurance=await readFile('src/sales/business/InsuranceSummary.tsx','utf8');assert.deepEqual([...insurance.matchAll(/title: '([^']+)'/g)].map(m=>m[1]),['订单编号','手术项目名称','医院','患者','性别','身份证号','审核设计成果','完成时间']);assert.ok(insurance.includes("JSON.stringify({ month, ids })"));
+});
+
+test('dashboard secondary routes survive refresh and retain their own navigation identity',async()=>{
+ const{readProjectRoute,projectUrl}=await import(dir+'/projects/routes.mjs');
+ const before=globalThis.window;try{for(const kind of['recent-projects','notices']){globalThis.window={location:{hash:projectUrl({kind})}};assert.deepEqual(readProjectRoute(),{kind});}}finally{globalThis.window=before;}
 });

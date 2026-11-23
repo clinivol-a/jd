@@ -1042,7 +1042,7 @@ export default function SalesWorkspace() {
             </div>
             <Grid
               paginate={false}
-              rows={todos.slice(0, 7)}
+              rows={todos.slice(0, 3)}
               fields={todoFields.filter((f) =>
                 ["object","status","at","actions"].includes(f.key),
               )}
@@ -1051,9 +1051,9 @@ export default function SalesWorkspace() {
           <Card bordered={false} className="dashboard-card attention-card">
             <div className="section-heading">
               <h2>我的业务范围</h2>
-              <Button variant="text" theme="primary" onClick={()=>go("customers/doctors")}>查看全部<ChevronRightIcon size={15}/></Button>
+              <Button variant="text" theme="primary" onClick={()=>go("customers/doctors/home")}>查看全部<ChevronRightIcon size={15}/></Button>
             </div>
-            <Grid paginate={false} rows={business.hospitals.slice(0,7)} fields={[
+            <Grid paginate={false} rows={business.hospitals.slice(0,3)} fields={[
               {key:"name",label:"医院"},{key:"departmentCount",label:"授权科室"},{key:"doctorCount",label:"关联医生"},{key:"processingCount",label:"进行中订单"},
             ]}/>
           </Card>
@@ -1078,7 +1078,7 @@ export default function SalesWorkspace() {
   }
   else if (section === "customers")
     content = (
-      <Card bordered={false} className="project-list-card sales-order-list-card sales-customer-list-card">
+      <>{caseRoute==="home"&&<PageBack label="返回工作台" onBack={()=>go("home")}/>}<Card bordered={false} className="project-list-card sales-order-list-card sales-customer-list-card">
         {header(
           "客户管理",
           <>
@@ -1148,7 +1148,7 @@ export default function SalesWorkspace() {
             />
           </>
         )}
-      </Card>
+      </Card></>
     );
   else if (section === "hospital") {
     const hospital = account.permissions.includes("hospital.directory.read")
