@@ -3,7 +3,7 @@ import type {Attachment} from '../sales/model';
 type Filter={query?:string;status?:string;hospitalId?:string;department?:string;stage?:string;leaderId?:string;range?:string[]};
 export function orderMatches(order:Order,filters:Filter,localDay:(v:string)=>string):boolean;
 export function recentOrders(orders:Order[],range:string[],localDay:(v:string)=>string):Order[];
-export type OrderAction='assign-leader'|'change-leader'|'takeover'|'accept'|'return';
+export type OrderAction='assign-leader'|'change-leader'|'accept'|'return';
 export function orderActions(order:Order,account:{id:string;role:string|null;permissions:string[]}):OrderAction[];
 export function historyEvents<T extends AuditEvent>(events:T[]):T[];
 export function fileFormat(file:Attachment):string;

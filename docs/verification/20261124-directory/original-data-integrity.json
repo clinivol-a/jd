@@ -1,0 +1,10 @@
+{
+  ".local/auth/audit.json": true,
+  ".local/auth/accounts-before-admin-profile.json": true,
+  ".local/auth/sms-outbox.json": true,
+  ".local/auth/accounts.json": true,
+  ".local/auth/admin-credentials.json": true,
+  ".local/auth/dev-console-key": true,
+  ".local/admin/state.json": true,
+  ".local/unified-business/state.json": true
+}

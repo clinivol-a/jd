@@ -3,6 +3,7 @@ import {getFile} from './files';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 /** Original browser-only files remain local; invitation files use an authorized raster endpoint. */
 export async function doctorPreview(owner:string,file:Attachment,page=1):Promise<{blob:Blob;pages:number}>{
+ if(file.storage==='directory'){const response=await fetch('/api/admin/business/doctor-file?id='+encodeURIComponent(file.id)+'&page='+page);if(!response.ok)throw Error('资料不可用或无预览权限。');return {blob:await response.blob(),pages:Number(response.headers.get('X-Preview-Pages')||1)};}
   if(file.storage==='invitation'){
     const response=await fetch('/api/sales-demo/file-preview?id='+encodeURIComponent(file.id)+'&page='+page);
     if(!response.ok)throw Error((await response.json()).error||'资料不可预览。');

@@ -9,7 +9,7 @@ import {orderNumber} from '../src/sales/orderNumber.mjs';
 
 const now=Date.parse('2026-11-20T10:00:00+08:00');
 const seller={id:'sales-a',name:'李明',role:'sales',status:'approved',permissions:['sales:landing']};
-const admin={id:'admin-a',name:'管理员',role:'super_admin',status:'approved',permissions:['orders:read','orders:review','tasks:assign','audit:read']};
+const admin={id:'admin-a',name:'负责组长',role:'leader',hospitalIds:['H-A'],status:'approved',permissions:['orders:read','orders:review','tasks:assign','audit:read']};
 const designer={id:'engineer-a',name:'工程账号',role:'designer',status:'approved',permissions:['projects:own']};
 const directory={hospitals:[{id:'H-A',name:'江淮协同医院',departments:['骨科'],leaderId:admin.id}],doctors:[{id:'doctor-a',name:'周明哲',hospitalId:'H-A',department:'骨科',salesId:seller.id,status:'审核通过'}],salesScopes:{'sales-a':['H-A'],'sales-b':['H-A']},engineers:[{id:designer.id,name:designer.name,stages:[0,1,2,3],status:'已启用'}],people:[]};
 function setup(t){const path=mkdtempSync(join(tmpdir(),'cv-unified-'));t.after(()=>rmSync(path,{recursive:true,force:true}));const service=new UnifiedBusinessService({directory:path,directoryProvider:()=>directory,now:()=>now});return{service,path}}

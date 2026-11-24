@@ -230,7 +230,7 @@
 | 字段 | 语义与来源 |
 |---|---|
 | `Hospital.leaderId` | 当前唯一负责组长；变更只影响后续订单匹配 |
-| `Order.leaderId / version` | 订单当前审核/调度责任与并发版本；接管或变更负责组长保留前后身份、原因、执行人和时间 |
+| `Order.leaderId / version` | 订单当前审核/调度责任与并发版本；仅待审核/审核退回常规变更负责组长，保留前后身份、原因、执行人和时间；超级管理员无常规接管能力 |
 | `Order.requestedStages` | 管理员投影实际申请阶段的唯一顺序集合，来自Order.plannedStages，受理后才建立对应任务；筛选不生成额外阶段 |
 | `Order.quantity / clinicalContent` | 数量读取原记录，缺失为空值；结构化设计需求沿用同一安全只读渲染器，管理员概览数量一列、需求两列 |
 | `created / createdAt / updated` | 订单创建时间筛选只作用于createdAt（由created投影）；首页最近订单按有效updated排序，不能拿交付时间替代 |
@@ -307,3 +307,22 @@ CliniVol A方案当前采用“一单一主项目、多专业任务”的业务�
 - `Event.submissionId`与Task.review中的submissionId引用同一成果提交；一个决定的两种投影不得成为两条审核记录。未审核的提交人不冒充审核人。
 - `workspace.assetId: shared-jaw-demonstration`仅表示已有合成展示模型引用；真实Order、Project、Task、Artifact身份仍独立。演示资源不是对应患者的真实三维重建结果。
 - `.local/unified-business/state.json`是业务权威；账号本地`unified-linked-designer-v1`仅为离线恢复缓存。旧工程和CAD存储不清空。归档订单不能通过旧编号路径或legacy保存参数重新插入正常业务。
+
+
+## 2026-11-24｜共享机构目录与角色边界
+
+| 数据 | 当前字段/关系 | 约束 |
+|---|---|---|
+| Hospital | id/name/region/contact/leaderId/status/version | 稳定ID；区域/医院资格校验；默认组长变更不改历史订单 |
+| Department | id/hospitalId/name/previousNames/status/version | 属于唯一医院；名称修改保留ID及旧名；兼容Hospital.departments启用名称数组 |
+| SalesScope | salesId → hospitalIds | 仅已批准销售账号；管理员显式授权；不能由前端扩展 |
+| Doctor | id/hospitalId/departmentId/department/status/salesId/businessAccess/allowedSalesIds | 已审核且医院/科室有效及授权匹配才用于新订单；同名不合并 |
+| Invitation | invitationLeadId/invitationSubmittedAt/invitedBy/submissionMode/submittedBy | 服务端已验证手机号的实际提交；来源不等于正式销售归属；不自动批准 |
+| Qualification | fileId/category/type/size/owner/uploadedAt/uploadedByName | 文件字节实际归档，目录只输出元数据；预览按权限返回衍生图 |
+| Audit | id/objectId/actorId/actor/at/before/after/reason | 医院/科室/销售授权/医生审核分别保留事件与版本，不覆盖旧历史 |
+
+医生选择可基于授权医院的业务访问，不再强制必须由当前销售亲自建档；返回其他授权医生仅提供录单必要的姓名/稳定ID/归属/审核状态，不返回其完整手机号或资质私有文件。
+
+预计交付时间展示（仅销售/管理员本轮确认）：草稿与已取消“-”；待审核与审核退回“待排期”；处理中和已完成取confirmedDeliveryDate。requestedDueDate是提出的期望日期，不能替代组长确认的日期。确认日期缺失保留规范空值并报数据问题，不编造日期。
+
+统一Order.businessNo及Order→Project→Task身份不变。超级管理员只监督，当前负责组长受理并创建唯一项目和实际申请任务；正式组长账号和工作台尚待接入，本地适配不生成额外认证账号。

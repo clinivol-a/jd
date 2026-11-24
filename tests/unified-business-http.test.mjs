@@ -8,20 +8,22 @@ import {createAuthServer} from '../server/auth/http.mjs';
 import {seedSuperAdmin} from '../server/admin/seedAccount.mjs';
 import {AdminService} from '../server/admin/service.mjs';
 import {adminHandler} from '../server/admin/http.mjs';
+import {fixtureBytes} from '../src/sales/orderFixtures.mjs';
 import {UnifiedBusinessService} from '../server/unified/service.mjs';
 
-test('real HTTP sessions → sales submit → admin decision → assigned designer projection, with CSRF and role enforcement',async t=>{
+test('real HTTP sessions → sales submit → leader decision → administrator supervision → assigned designer projection, with CSRF and role enforcement',async t=>{
  const dir=mkdtempSync(join(tmpdir(),'cv-shared-http-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));
  const auth=new AuthService({directory:join(dir,'auth'),mode:'local',demoMode:true});auth.seedLocal();seedSuperAdmin(auth,{enabled:true});
  const sales={id:'isolated-sales-http',name:'李明',phone:'13800000002',role:'sales',status:'approved',requestedRole:'sales',permissions:['sales:landing']};
  const testPassword='IsolatedHttp123';auth.setPassword(sales,testPassword);auth.accounts.push(sales);auth.persist();
  const engineer=auth.accounts.find(a=>a.id==='chen-yu'),manager=auth.accounts.find(a=>a.role==='super_admin');
- const directory={salesScopes:{[sales.id]:['http-hospital']},hospitals:[{id:'http-hospital',name:'江淮协同医院',departments:['骨科'],leaderId:manager.id}],doctors:[{id:'http-doctor',name:'周明哲',hospitalId:'http-hospital',department:'骨科',status:'审核通过',salesId:sales.id}],engineers:[{id:engineer.id,name:engineer.name,stages:[0,1,2,3],status:'已启用'}],people:[]};
+ const lead={id:'http-leader',name:'负责组长',phone:'13800000010',role:'leader',status:'approved',permissions:['orders:read','orders:review','tasks:assign'],hospitalIds:['http-hospital']};auth.setPassword(lead,testPassword);auth.accounts.push(lead);auth.persist();
+ const directory={salesScopes:{[sales.id]:['http-hospital']},hospitals:[{id:'http-hospital',name:'江淮协同医院',departments:['骨科'],leaderId:lead.id}],doctors:[{id:'http-doctor',name:'周明哲',hospitalId:'http-hospital',department:'骨科',status:'审核通过',salesId:sales.id}],engineers:[{id:engineer.id,name:engineer.name,stages:[0,1,2,3],status:'已启用'}],people:[]};
  const shared=new UnifiedBusinessService({directory:join(dir,'business'),directoryProvider:()=>directory});
  const admin=new AdminService({directory:join(dir,'admin'),authService:auth,shared});const origin='http://127.0.0.1:5260';
  const server=createAuthServer(auth,{origin,adminHandler:adminHandler(auth,admin,{origin})});await new Promise(r=>server.listen(0,'127.0.0.1',r));t.after(()=>new Promise(r=>server.close(r)));
  const base=`http://127.0.0.1:${server.address().port}`;const clients=new Map();
- function client(id){if(clients.has(id))return clients.get(id);let cookie='';const request=async(path,body,extra={})=>{const response=await fetch(base+path,{method:body===undefined?'GET':'POST',headers:{cookie,...(body===undefined?{}:{Origin:origin,'Content-Type':'application/json','X-CliniVol-Request':'1'}),...extra},body:body===undefined?undefined:JSON.stringify(body)});const set=response.headers.get('set-cookie');if(set)cookie=set.split(';')[0];return {status:response.status,body:await response.json()}};clients.set(id,request);return request}
+ function client(id){if(clients.has(id))return clients.get(id);let cookie='';const request=async(path,body,extra={})=>{const response=await fetch(base+path,{method:body===undefined?'GET':'POST',headers:{cookie,...(body===undefined?{}:{Origin:origin,'Content-Type':'application/json','X-CliniVol-Request':'1'}),...extra},body:body===undefined?undefined:JSON.stringify(body)});const set=response.headers.get('set-cookie');if(set)cookie=set.split(';')[0];return {status:response.status,body:response.headers.get('content-type')?.includes('application/json')?await response.json():new Uint8Array(await response.arrayBuffer())}};clients.set(id,request);return request}
  const sale=client('sales'),management=client('admin'),design=client('designer'),anonymous=client('anonymous');
  assert.equal((await anonymous('/api/admin/business/sales')).status,401);
  assert.equal((await sale('/api/auth/login/password',{phone:sales.phone,password:testPassword,accepted:true})).status,200);
@@ -29,6 +31,15 @@ test('real HTTP sessions → sales submit → admin decision → assigned design
  assert.equal((await management('/api/auth/login/password',{...creds,accepted:true})).status,200);
  const chenCreds=JSON.parse(readFileSync(join(dir,'auth','test-credentials.json'),'utf8'));
  assert.equal((await design('/api/auth/login/password',{phone:engineer.phone,password:chenCreds[engineer.phone],accepted:true})).status,200);
+ const leadClient=client('leader');assert.equal((await leadClient('/api/auth/login/password',{phone:lead.phone,password:testPassword,accepted:true})).status,200);
+ const hospitalResult=await management('/api/admin/command',{action:'hospital-save',name:'机构目录HTTP验收',region:'安徽',leaderId:'ADM-L01',salesIds:[sales.id]});assert.equal(hospitalResult.status,200);let masterHospital=hospitalResult.body;
+ const departmentResult=await management('/api/admin/command',{action:'department-save',id:masterHospital.id,version:masterHospital.version,name:'口腔颌面外科',reason:'HTTP目录联动验证'});assert.equal(departmentResult.status,200);masterHospital=departmentResult.body;
+ assert((await sale('/api/admin/business/directory')).body.hospitals.some(h=>h.id===masterHospital.id));
+ const proofFiles=[];for(const category of ['identity','practice']){const uploaded=await sale('/api/admin/business/doctor-upload',{file:{name:category+'.png',type:'image/png',category,content:Buffer.from(fixtureBytes(2)).toString('base64')}});assert.equal(uploaded.status,200);proofFiles.push(uploaded.body)}
+ const doctorResult=await sale('/api/admin/business/doctor-save',{doctor:{id:'http-new-doctor',name:'顾承远',phone:'19900001001',hospitalId:masterHospital.id,department:'口腔颌面外科',title:'主治医师',certificate:'LOCAL-HTTP-001',materials:proofFiles},submit:true});assert.equal(doctorResult.status,200);assert.equal(doctorResult.body.status,'待审核');
+ assert(!(await sale('/api/admin/business/directory')).body.orderDoctors.some(d=>d.id==='http-new-doctor'));
+ const preview=await management('/api/admin/preview/'+proofFiles[0].id);assert.equal(preview.status,200);assert(preview.body.byteLength>0);assert.equal((await anonymous('/api/admin/preview/'+proofFiles[0].id)).status,401);
+ assert.equal((await management('/api/admin/command',{action:'review-doctor',id:'http-new-doctor',version:1,result:'approved'})).status,200);assert((await sale('/api/admin/business/directory')).body.orderDoctors.some(d=>d.id==='http-new-doctor'));
  const order={id:'http-order',name:'联合修复业务',hospitalId:'http-hospital',doctorId:'http-doctor',department:'骨科',quantity:1,patientName:'沈嘉宁',patientSex:'女',patientIdentityRef:'encrypted-test-reference',service:'数字模型',clinicalRequirements:'术前结构评估',due:'2027-12-20',plannedStages:['三维重建','CAD设计','有限元分析','3D打印'],materials:[{id:'private-file',name:'影像.nii',category:'imaging',status:'success',storage:'browser'}]};
  const saved=await sale('/api/admin/business/save',{order});assert.equal(saved.status,200);assert.equal(saved.body.businessNo,null);
  const submissions=await Promise.all(Array.from({length:5},()=>sale('/api/admin/business/submit',{order:saved.body,version:saved.body.version})));
@@ -37,12 +48,12 @@ test('real HTTP sessions → sales submit → admin decision → assigned design
  assert.equal((await sale('/api/admin/state')).status,403);assert.equal((await design('/api/admin/business/sales')).status,403);
  assert.equal((await sale('/api/admin/command',{action:'review-order',id:order.id,version:same.version,result:'approved',role:'super_admin'})).status,403);
  assert.equal((await management('/api/admin/command',{action:'review-order',id:order.id,version:same.version,result:'approved',confirmedDeliveryDate:'2027-12-20'},{Origin:'https://untrusted.invalid'})).status,403);
- assert.equal((await management('/api/admin/command',{action:'review-order',id:order.id,version:same.version,result:'returned',reason:'补充定位说明'})).status,200);
+ assert.equal((await leadClient('/api/admin/command',{action:'review-order',id:order.id,version:same.version,result:'returned',reason:'补充定位说明'})).status,200);
  let returned=(await sale('/api/admin/business/sales')).body.orders[0];assert.equal(returned.businessNo,number);assert.equal(returned.status,'审核退回');
  const resubmitted=await sale('/api/admin/business/submit',{order:{...returned,clinicalRequirements:'补齐定位说明'},version:returned.version});assert.equal(resubmitted.body.businessNo,number);
- assert.equal((await management('/api/admin/command',{action:'review-order',id:order.id,version:resubmitted.body.version,result:'approved',confirmedDeliveryDate:'2027-12-20'})).status,200);
+ assert.equal((await leadClient('/api/admin/command',{action:'review-order',id:order.id,version:resubmitted.body.version,result:'approved',confirmedDeliveryDate:'2027-12-20'})).status,200);
  adminView=(await management('/api/admin/state')).body;const tasks=adminView.tasks.filter(t=>t.orderId===order.id);assert.equal(tasks.length,4);assert.equal(new Set(tasks.map(t=>t.projectId)).size,1);
- for(const task of tasks)assert.equal((await management('/api/admin/command',{action:'assign-task',id:task.id,version:task.version,assignee:engineer.id,plannedDate:'2027-12-19'})).status,200);
+ for(const task of tasks)assert.equal((await leadClient('/api/admin/command',{action:'assign-task',id:task.id,version:task.version,assignee:engineer.id,plannedDate:'2027-12-19'})).status,200);
  const designView=await design('/api/admin/business/designer');assert.equal(designView.status,200);assert.equal(designView.body.tasks.length,4);assert.ok(designView.body.tasks.every(t=>t.businessNo===number&&t.orderId===order.id));
  assert.equal((await design('/api/admin/business/task',{id:tasks[1].id,action:'start',version:2})).status,409);
  assert.equal((await design('/api/admin/business/task',{id:tasks[0].id,action:'start',version:2})).status,200);

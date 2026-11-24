@@ -1,3 +1,4 @@
+import {renderDoctorPreview} from '../doctor-preview.mjs';
 import {AdminFailure} from './service.mjs';
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function adminHandler(auth,admin,{origin}) {
@@ -12,9 +13,13 @@ export function adminHandler(auth,admin,{origin}) {
    const actor=auth.require(auth.device(token));const url=new URL(req.url,origin);
    if(url.pathname.startsWith('/api/admin/business/')){
     const action=url.pathname.slice('/api/admin/business/'.length);let body={};
-    if(req.method==='POST'){let raw='';for await(const chunk of req){raw+=chunk;if(Buffer.byteLength(raw)>2*1024*1024)throw new AdminFailure('请求内容过大。',413)}try{body=JSON.parse(raw)}catch{throw new AdminFailure('请求格式不正确。')}}
+    if(req.method==='POST'){let raw='';for await(const chunk of req){raw+=chunk;if(Buffer.byteLength(raw)>(action==='doctor-upload'?29:2)*1024*1024)throw new AdminFailure('请求内容过大。',413)}try{body=JSON.parse(raw)}catch{throw new AdminFailure('请求格式不正确。')}}
     let result;
     if(req.method==='GET'&&action==='sales')result=admin.shared.salesSnapshot(actor);
+    else if(req.method==='GET'&&action==='directory')result=admin.institutions.salesSnapshot(actor);
+    else if(req.method==='POST'&&action==='doctor-upload')result=admin.institutions.upload(actor,body);
+    else if(req.method==='GET'&&action==='doctor-file'){const file=admin.institutions.file(actor,url.searchParams.get('id'));const rendered=await renderDoctorPreview(file.bytes,file.type,Number(url.searchParams.get('page')||1));res.setHeader('X-Preview-Pages',String(rendered.pages));res.setHeader('Content-Type','image/png');res.setHeader('X-Content-Type-Options','nosniff');res.end(rendered.bytes);return;}
+    else if(req.method==='POST'&&action==='doctor-save')result=admin.institutions.saveDoctor(actor,body);
     else if(req.method==='GET'&&action==='designer')result=admin.shared.designerSnapshot(actor);
     else if(req.method==='POST'&&action==='save')result=admin.shared.save(actor,body);
     else if(req.method==='POST'&&action==='submit')result=admin.receiveOrder(actor,body);
@@ -30,7 +35,7 @@ export function adminHandler(auth,admin,{origin}) {
     res.end(Buffer.from(result.bytes));return;
    }
    if(req.method==='GET'&&url.pathname.startsWith('/api/admin/preview/')){
-    const file=admin.preview(actor,decodeURIComponent(url.pathname.slice('/api/admin/preview/'.length)));res.setHeader('Content-Type','image/svg+xml; charset=utf-8');res.setHeader('Content-Disposition','inline');res.setHeader('Content-Security-Policy',"default-src 'none'; style-src 'unsafe-inline'; sandbox");res.end(`<svg xmlns="http://www.w3.org/2000/svg" width="720" height="480" viewBox="0 0 720 480"><rect width="720" height="480" fill="white"/><g fill="#333" font-family="sans-serif"><text x="56" y="88" font-size="28">隔离合成资质资料</text><text x="56" y="150" font-size="20">${escape(file.name)}</text><text x="56" y="200" font-size="18">提交来源：${escape(file.submittedBy)}</text><text x="56" y="250" font-size="18">仅用于本地审核交互，不含真实身份证或执业证件。</text></g></svg>`);return;
+    const id=decodeURIComponent(url.pathname.slice('/api/admin/preview/'.length));if(admin.institutions.snapshot().doctors.some(d=>d.materials?.some(m=>m.id===id))){const file=admin.institutions.file(actor,id),rendered=await renderDoctorPreview(file.bytes,file.type,Number(url.searchParams.get('page')||1));res.setHeader('X-Preview-Pages',String(rendered.pages));res.setHeader('Content-Type','image/png');res.setHeader('X-Content-Type-Options','nosniff');res.end(rendered.bytes);return;}const file=admin.preview(actor,id);res.setHeader('Content-Type','image/svg+xml; charset=utf-8');res.setHeader('Content-Disposition','inline');res.setHeader('Content-Security-Policy',"default-src 'none'; style-src 'unsafe-inline'; sandbox");res.end(`<svg xmlns="http://www.w3.org/2000/svg" width="720" height="480" viewBox="0 0 720 480"><rect width="720" height="480" fill="white"/><g fill="#333" font-family="sans-serif"><text x="56" y="88" font-size="28">隔离合成资质资料</text><text x="56" y="150" font-size="20">${escape(file.name)}</text><text x="56" y="200" font-size="18">提交来源：${escape(file.submittedBy)}</text><text x="56" y="250" font-size="18">仅用于本地审核交互，不含真实身份证或执业证件。</text></g></svg>`);return;
    }
    if(req.method==='POST'&&url.pathname==='/api/admin/command'){
     let text='';for await(const chunk of req){text+=chunk;if(Buffer.byteLength(text)>32768)throw new AdminFailure('请求内容过大。',413)}let body;try{body=JSON.parse(text)}catch{throw new AdminFailure('请求格式不正确。')};res.end(JSON.stringify(admin.command(actor,body)));return

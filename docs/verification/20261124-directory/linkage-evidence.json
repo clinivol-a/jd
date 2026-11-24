@@ -1,0 +1,262 @@
+{
+  "environment": "isolated-local-verification-copy",
+  "syntheticVerificationData": true,
+  "baseline": "987fcd6beb730feb0671fa0951579eff7366634c",
+  "hospital": {
+    "id": "H-79c3c14b-2347-4484-a339-e7d618f959d2",
+    "name": "徽州协同医学中心",
+    "region": "安徽",
+    "leaderId": "ADM-L02",
+    "departmentRecords": [
+      {
+        "id": "DEP-04d9436f-a0ef-4b3e-aad3-377e56c493f0",
+        "hospitalId": "H-79c3c14b-2347-4484-a339-e7d618f959d2",
+        "name": "口腔颌面外科",
+        "status": "已启用",
+        "version": 1
+      },
+      {
+        "id": "DEP-99e1becb-c038-4011-ba7a-81fcc09da4e0",
+        "hospitalId": "H-79c3c14b-2347-4484-a339-e7d618f959d2",
+        "name": "骨科门诊",
+        "status": "已启用",
+        "version": 2,
+        "previousNames": [
+          "骨科"
+        ]
+      }
+    ],
+    "version": 6
+  },
+  "doctor": {
+    "id": "D-QA-DIRECTORY-20261124",
+    "hospitalId": "H-79c3c14b-2347-4484-a339-e7d618f959d2",
+    "departmentId": "DEP-04d9436f-a0ef-4b3e-aad3-377e56c493f0",
+    "status": "审核通过",
+    "version": 2
+  },
+  "order": {
+    "id": "SO-1e6b565b",
+    "businessNo": "CV-2026-0020",
+    "hospitalId": "H-79c3c14b-2347-4484-a339-e7d618f959d2",
+    "departmentId": "DEP-04d9436f-a0ef-4b3e-aad3-377e56c493f0",
+    "doctorId": "D-QA-DIRECTORY-20261124",
+    "leaderId": "ADM-L02",
+    "status": "处理中",
+    "projectId": "PRJ-bea592fc-191e-4eff-b437-a1ff38c8c535",
+    "confirmedDeliveryDate": "2026-12-15",
+    "version": 5
+  },
+  "project": {
+    "id": "PRJ-bea592fc-191e-4eff-b437-a1ff38c8c535",
+    "orderId": "SO-1e6b565b",
+    "taskIds": [
+      "TASK-c86b90ef-e4d9-4b52-96a0-4df60710bedf",
+      "TASK-04cc9d77-aca9-41fb-b65c-9c7415b50d55"
+    ]
+  },
+  "tasks": [
+    {
+      "id": "TASK-c86b90ef-e4d9-4b52-96a0-4df60710bedf",
+      "orderId": "SO-1e6b565b",
+      "projectId": "PRJ-bea592fc-191e-4eff-b437-a1ff38c8c535",
+      "stage": 0,
+      "assignee": "chen-yu",
+      "status": "进行中",
+      "version": 3
+    },
+    {
+      "id": "TASK-04cc9d77-aca9-41fb-b65c-9c7415b50d55",
+      "orderId": "SO-1e6b565b",
+      "projectId": "PRJ-bea592fc-191e-4eff-b437-a1ff38c8c535",
+      "stage": 1,
+      "assignee": "chen-yu",
+      "status": "未开始",
+      "version": 2
+    }
+  ],
+  "events": [
+    {
+      "id": "82d861c2-d324-4f17-ac8d-f4181a1777a6",
+      "orderId": "SO-1e6b565b",
+      "projectId": null,
+      "taskId": null,
+      "actorId": "4wX73gX6C0PZ63nF9tMh-gs24LTG8OhkMA2t_b8vsn8",
+      "actor": "李明",
+      "title": "订单草稿已保存",
+      "at": "2026-11-24T10:13:36.102Z",
+      "before": null,
+      "after": {
+        "id": "SO-1e6b565b",
+        "leaderId": null,
+        "status": "草稿",
+        "assignee": null,
+        "version": 1
+      },
+      "reason": null
+    },
+    {
+      "id": "694deaad-1457-4f82-9343-ca0f01af996e",
+      "orderId": "SO-1e6b565b",
+      "projectId": null,
+      "taskId": null,
+      "actorId": "4wX73gX6C0PZ63nF9tMh-gs24LTG8OhkMA2t_b8vsn8",
+      "actor": "李明",
+      "title": "订单草稿已保存",
+      "at": "2026-11-24T10:14:33.305Z",
+      "before": {
+        "id": "SO-1e6b565b",
+        "leaderId": null,
+        "status": "草稿",
+        "assignee": null,
+        "version": 1
+      },
+      "after": {
+        "id": "SO-1e6b565b",
+        "leaderId": null,
+        "status": "草稿",
+        "assignee": null,
+        "version": 2
+      },
+      "reason": null
+    },
+    {
+      "id": "61dea16f-00cf-4150-97a3-0899eac19261",
+      "orderId": "SO-1e6b565b",
+      "projectId": null,
+      "taskId": null,
+      "actorId": "4wX73gX6C0PZ63nF9tMh-gs24LTG8OhkMA2t_b8vsn8",
+      "actor": "李明",
+      "title": "订单已提交审核",
+      "at": "2026-11-24T10:14:33.358Z",
+      "before": {
+        "id": "SO-1e6b565b",
+        "leaderId": null,
+        "status": "草稿",
+        "assignee": null,
+        "version": 2
+      },
+      "after": {
+        "id": "SO-1e6b565b",
+        "leaderId": "ADM-L01",
+        "status": "待审核",
+        "assignee": null,
+        "version": 3
+      },
+      "reason": null
+    },
+    {
+      "id": "2951201a-931b-405a-b921-1b598b140e2e",
+      "orderId": "SO-1e6b565b",
+      "projectId": null,
+      "taskId": null,
+      "actorId": "super-admin",
+      "actor": "周景明",
+      "title": "订单负责组长已变更",
+      "at": "2026-11-24T10:16:14.556Z",
+      "before": {
+        "id": "SO-1e6b565b",
+        "leaderId": "ADM-L01",
+        "status": "待审核",
+        "assignee": null,
+        "version": 3
+      },
+      "after": {
+        "id": "SO-1e6b565b",
+        "leaderId": "ADM-L02",
+        "status": "待审核",
+        "assignee": null,
+        "version": 4
+      },
+      "reason": "原组长缺少订单查看权限，交由具备完整业务资格的组长处理"
+    },
+    {
+      "id": "67d7bf8f-618e-4f27-85df-f14148b1786a",
+      "orderId": "SO-1e6b565b",
+      "projectId": "PRJ-bea592fc-191e-4eff-b437-a1ff38c8c535",
+      "taskId": null,
+      "actorId": "ADM-L02",
+      "actor": "许文清",
+      "title": "订单审核受理",
+      "at": "2026-11-24T10:16:24.036Z",
+      "before": {
+        "id": "SO-1e6b565b",
+        "leaderId": "ADM-L02",
+        "status": "待审核",
+        "assignee": null,
+        "version": 4
+      },
+      "after": {
+        "id": "SO-1e6b565b",
+        "leaderId": "ADM-L02",
+        "status": "处理中",
+        "assignee": null,
+        "version": 5
+      },
+      "reason": "按已核对的设计需求受理"
+    },
+    {
+      "id": "7d6e2c91-2c9b-4919-af10-5bdea38353c6",
+      "orderId": "SO-1e6b565b",
+      "projectId": "PRJ-bea592fc-191e-4eff-b437-a1ff38c8c535",
+      "taskId": "TASK-c86b90ef-e4d9-4b52-96a0-4df60710bedf",
+      "actorId": "ADM-L02",
+      "actor": "许文清",
+      "title": "专业任务已分配",
+      "at": "2026-11-24T10:16:36.110Z",
+      "before": {
+        "id": "TASK-c86b90ef-e4d9-4b52-96a0-4df60710bedf",
+        "leaderId": null,
+        "status": "未开始",
+        "assignee": null,
+        "version": 1
+      },
+      "after": {
+        "id": "TASK-c86b90ef-e4d9-4b52-96a0-4df60710bedf",
+        "leaderId": null,
+        "status": "未开始",
+        "assignee": "chen-yu",
+        "version": 2
+      },
+      "reason": null
+    },
+    {
+      "id": "3a857c54-45f9-48eb-8609-e8079ef9ac8d",
+      "orderId": "SO-1e6b565b",
+      "projectId": "PRJ-bea592fc-191e-4eff-b437-a1ff38c8c535",
+      "taskId": "TASK-04cc9d77-aca9-41fb-b65c-9c7415b50d55",
+      "actorId": "ADM-L02",
+      "actor": "许文清",
+      "title": "专业任务已分配",
+      "at": "2026-11-24T10:16:36.167Z",
+      "before": {
+        "id": "TASK-04cc9d77-aca9-41fb-b65c-9c7415b50d55",
+        "leaderId": null,
+        "status": "未开始",
+        "assignee": null,
+        "version": 1
+      },
+      "after": {
+        "id": "TASK-04cc9d77-aca9-41fb-b65c-9c7415b50d55",
+        "leaderId": null,
+        "status": "未开始",
+        "assignee": "chen-yu",
+        "version": 2
+      },
+      "reason": null
+    },
+    {
+      "id": "4dbf6bbc-e249-4eaf-9f85-5eb42071b251",
+      "orderId": "SO-1e6b565b",
+      "projectId": "PRJ-bea592fc-191e-4eff-b437-a1ff38c8c535",
+      "taskId": "TASK-c86b90ef-e4d9-4b52-96a0-4df60710bedf",
+      "actorId": "chen-yu",
+      "actor": "陈屿",
+      "title": "专业任务已开始",
+      "at": "2026-11-24T10:18:19.007Z",
+      "before": null,
+      "after": null,
+      "reason": null
+    }
+  ]
+}

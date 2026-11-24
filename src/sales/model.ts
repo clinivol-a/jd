@@ -3,7 +3,7 @@ import { doctorDraftDeleteError } from "./doctorFixtures.mjs";
 import { orderFixtures, syntheticPatients, stageTeams } from "./orderFixtures.mjs";
 import { localDate, designStages, orderErrors } from "./orderRules.mjs";
 import {doctorEventTitles} from "./doctorRecordRules.mjs";
-export type DoctorStatus = "草稿" | "待审核" | "审核通过" | "审核退回";
+export type DoctorStatus = "草稿" | "待审核" | "审核通过" | "审核退回" | "已停用";
 export type OrderStatus =
   | "草稿"
   | "待审核"
@@ -12,6 +12,8 @@ export type OrderStatus =
   | "已完成"
   | "已取消";
 export type Hospital = {
+  status?: string;
+  departmentRecords?: {id:string;hospitalId:string;name:string;status:string;version:number}[];
   id: string;
   name: string;
   region: string;
@@ -28,9 +30,12 @@ export type Attachment = {
   uploadedByName?: string;
   storageOwner?: string;
   status?: "success";
-  storage?: "browser" | "invitation" | "demo-fixture";
+  storage?: "browser" | "invitation" | "demo-fixture" | "directory";
 };
 export type Doctor = {
+  version?:number;
+  departmentId?:string;
+  orderSelectable?:boolean;
   id: string;
   name: string;
   phone: string;
@@ -147,6 +152,7 @@ export type Request = {
   reviewReason?: string;
 };
 export type SalesData = {
+  orderDoctors?:Doctor[];
   schema: 1;
   ownerId: string;
   hospitals: Hospital[];
@@ -483,10 +489,10 @@ export function transition(
     if (!Number.isInteger(v.quantity) || v.quantity < 1)
       fail("需求数量须为正整数。");
     const old = d.orders.find((x) => x.id === v.id),
-      doc = d.doctors.find((x) => x.id === v.doctorId);
+      doc = (d.orderDoctors||d.doctors).find((x) => x.id === v.doctorId);
     if (
       !doc ||
-      doc.owner !== d.ownerId ||
+      !(doc.orderSelectable||doc.owner === d.ownerId) ||
       doc.status !== "审核通过"
     )
       fail("请选择本人授权客户。");

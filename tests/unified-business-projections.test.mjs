@@ -11,7 +11,7 @@ const pm=await bundle('src/projects/projectModel.ts','projects'),client=await bu
 test.after(()=>rm(temp,{recursive:true,force:true}));
 
 test('a shared project expands to four independent task rows and searches only its visible business number',()=>{
- const actor={id:'sales',name:'李明',role:'sales',status:'approved',permissions:['sales:landing']},admin={id:'admin',name:'管理员',role:'super_admin',status:'approved',permissions:['orders:read','orders:review','tasks:assign']},engineer={id:'engineer',name:'已授权工程师',role:'designer',status:'approved',permissions:['projects:own']};
+ const actor={id:'sales',name:'李明',role:'sales',status:'approved',permissions:['sales:landing']},admin={id:'admin',name:'负责组长',role:'leader',hospitalIds:['H'],status:'approved',permissions:['orders:read','orders:review','tasks:assign']},engineer={id:'engineer',name:'已授权工程师',role:'designer',status:'approved',permissions:['projects:own']};
  const service=new UnifiedBusinessService({directoryProvider:()=>({salesScopes:{sales:['H']},hospitals:[{id:'H',name:'江淮协同医院',departments:['骨科'],leaderId:admin.id}],doctors:[{id:'D',hospitalId:'H',department:'骨科',salesId:actor.id,status:'审核通过'}],engineers:[{id:engineer.id,name:engineer.name,stages:[0,1,2,3],status:'已启用'}]})});
  const o=service.save(actor,{order:{id:'internal-order',name:'颌面业务',hospitalId:'H',department:'骨科',doctorId:'D',quantity:1,patientName:'合成身份',patientSex:'女',patientIdentityRef:'private-ref',service:'数字模型',clinicalRequirements:'术前结构评估',due:'2027-12-31',plannedStages:['3D打印','CAD设计','有限元分析','三维重建'],materials:[{name:'影像.nii',category:'imaging',status:'success',storage:'browser'}]}},{submit:true});
  service.manage(admin,{action:'review-order',id:o.id,version:o.version,result:'approved',confirmedDeliveryDate:'2027-12-31'});

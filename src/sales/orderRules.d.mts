@@ -9,3 +9,5 @@ export function orderErrors(
 ): Record<string, string>;
 
 export function confirmedDelivery(order: Partial<Order>): string;
+
+export function deliveryDisplay(order:{status?:string;confirmedDeliveryDate?:string|null},format?:(value:string)=>string):string;

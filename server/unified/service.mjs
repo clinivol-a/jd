@@ -120,13 +120,14 @@ export class UnifiedBusinessService {
             }
             else if (!o && incoming.status && incoming.status !== '草稿')
                 throw new BusinessFailure('历史订单需核实原编号后迁移。', 409);
-            const directory = this.directoryProvider(), doctor = directory.doctors.find(d => d.id === incoming.doctorId && d.salesId === actor.id && d.status === '审核通过'), hospital = directory.hospitals.find(h => h.id === doctor?.hospitalId);
-            if ((submit || incoming.doctorId) && (!doctor || !hospital || !this.sales(actor).includes(hospital.id) || incoming.hospitalId !== hospital.id || incoming.department !== doctor.department || !hospital.departments.includes(doctor.department)) || !incoming.doctorId && incoming.hospitalId && !this.sales(actor).includes(incoming.hospitalId))
-                throw new BusinessFailure('请选择本人授权医院及已审核客户。', 403);
+            const directory = this.directoryProvider(), doctor = directory.doctors.find(d => d.id === incoming.doctorId && (d.salesId === actor.id || d.businessAccess === 'hospital' || d.allowedSalesIds?.includes(actor.id)) && d.status === '审核通过'), hospital = directory.hospitals.find(h => h.id === incoming.hospitalId);
+            if ((submit || incoming.doctorId) && (!doctor || !hospital || hospital.status==='已停用' || !this.sales(actor).includes(hospital.id) || doctor.hospitalId !== hospital.id || incoming.department !== doctor.department || !hospital.departments.includes(doctor.department)) || !incoming.doctorId && incoming.hospitalId && (!hospital || hospital.status==='已停用'||!this.sales(actor).includes(incoming.hospitalId)))
+                throw new BusinessFailure('请选择有效的授权医院、科室及已审核医生。', 403);
             const values = Object.fromEntries(editable.filter(key => incoming[key] !== undefined).map(key => [key, copy(incoming[key])]));
             const at = new Date(this.now()).toISOString();
             o = { ...values, id, ownerSalesId: actor.id, createdBy: o?.createdBy || actor.id, created: o?.created || at, updated: at, businessDate: o?.businessDate || at, status: o?.status || '草稿', businessNo: o?.businessNo || null, version: (o?.version || 0) + 1, source: 'isolated-shared', reason: o?.reason || '', stages: [], ...Object.fromEntries(['projectId', 'taskIds', 'confirmedDeliveryDate', 'submittedAt', 'reviewedAt', 'leaderId', 'legacySource', 'designFixtureRevision'].filter(k => o?.[k] !== undefined).map(k => [k, o[k]])) };
             o.designRequirementConflicts=designDemand(o).conflicts;
+            o.departmentId=submit||!before?hospital?.departmentRecords?.find(d=>d.name===o.department&&d.status==='已启用')?.id||before?.departmentId:before?.departmentId;
             if (!Number.isInteger(o.quantity) || o.quantity < 1)
                 throw new BusinessFailure('需求数量须为正整数。');
             const contentError = clinicalContentError(o.clinicalContent, actor.id);
@@ -167,29 +168,34 @@ export class UnifiedBusinessService {
     manage(actor, { action, id, version, ...input }) {
         return this.transaction(() => {
             const isTask = action === 'assign-task', task = isTask ? this.state.tasks.find(t => t.id === id) : null, o = this.order(actor, task?.orderId || id);
-            if (!actor.permissions?.includes(isTask ? 'tasks:assign' : 'orders:review'))
+            if (!actor.permissions?.includes(action==='reassign'?'people:manage':isTask ? 'tasks:assign' : 'orders:review'))
                 throw new BusinessFailure('无管理权限。', 403);
+            if(action==='takeover')throw new BusinessFailure('常规接管已关闭，请按权限变更负责组长。',403);
+            if(['review-order','assign-task'].includes(action)&&actor.role!=='leader')throw new BusinessFailure('订单受理和专业任务分配须由当前负责组长执行。',403);
             // A replay of a successful acceptance returns the original identities, without a second event.
             if (action === 'review-order' && input.result === 'approved' && o.status === '处理中' && o.projectId && o.leaderId === actor.id)
                 return { ok: true, orderId: o.id, projectId: o.projectId };
             this.version(task || o, version);
             const before = copy(task || o);
             if (action === 'takeover' || action === 'reassign') {
+                if(!['待审核','审核退回'].includes(o.status))throw new BusinessFailure('当前订单不能常规变更负责组长。',409);
                 if (!input.reason?.trim())
                     throw new BusinessFailure('请填写责任变更原因。');
                 if (action === 'takeover' && actor.role !== 'super_admin')
                     throw new BusinessFailure('无接管权限。', 403);
                 const target = action === 'takeover' ? actor.id : input.leaderId;
-                if (action === 'reassign' && !this.directoryProvider().people?.some(p => p.id === target && p.role === '业务组长' && p.status === '已启用'))
+                const directory=this.directoryProvider(),hospital=directory.hospitals.find(h=>h.id===o.hospitalId);
+                if (action === 'reassign' && !directory.people?.some(p => p.id === target && p.role === '业务组长' && p.status === '已启用' && (p.scope?.includes(o.hospitalId)||p.regions?.includes(hospital?.region)||hospital?.leaderId===p.id)))
                     throw new BusinessFailure('负责组长无效。');
+                if(o.leaderId===target)throw new BusinessFailure('负责组长未发生变化。');
                 o.leaderId = target;
                 o.updated = new Date(this.now()).toISOString();
                 o.version++;
-                this.event(actor, o, '订单责任人已更新', action, { reason: input.reason, before, after: copy(o) });
+                this.event(actor, o, '订单负责组长已变更', action, { reason: input.reason, before, after: copy(o),previousLeaderId:before.leaderId,leaderId:target });
                 return { ok: true };
             }
             if (o.leaderId !== actor.id)
-                throw new BusinessFailure('请由当前责任人处理或先接管订单。', 403);
+                throw new BusinessFailure('请由当前负责组长处理。', 403);
             if (action === 'review-order') {
                 if (o.status !== '待审核')
                     throw new BusinessFailure('订单已处理，请刷新。', 409);

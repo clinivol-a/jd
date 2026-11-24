@@ -1,5 +1,6 @@
 import {useViewportPagination} from '../tables/useViewportPagination';
 import {orderNumber,matchesBusinessKeyword} from './orderNumber.mjs';
+import {archiveDoctorFiles} from '../business/doctorDirectoryFiles';
 import {DoctorCredentials} from './DoctorCredentials';
 import {doctorSource,doctorEvent} from './doctorRecordRules.mjs';
 import {business as businessRequest} from './business/client';
@@ -10,13 +11,13 @@ import './business/business.css';
 import {DoctorFields} from './DoctorFields';
 import {doctorErrors} from './doctorRules.mjs';
 import {PageBack} from '../PageBack';
-import {unifiedRequest,mergeSharedSales} from '../business/unifiedClient';
-import type {SharedSales} from '../business/unifiedClient';
+import {unifiedRequest,mergeSharedSales,mergeSalesDirectory} from '../business/unifiedClient';
+import type {SharedSales,SalesDirectory} from '../business/unifiedClient';
 import {dashboardOrderBuckets,salesBusiness} from "./dashboardBusiness.mjs";
 import { addOrderScenario } from "./orderFixtures.mjs";
 import { ChevronLeftIcon, ChevronRightIcon } from "../design-system/tdesign";
 import { OrderEditor, OrderDetail, OrderIcons } from "./OrderPages";
-import { confirmedDelivery, localDate } from "./orderRules.mjs";
+import { deliveryDisplay, localDate } from "./orderRules.mjs";
 import { periodRange } from "../projects/projectModel";
 import { RangeControl } from "../projects/RangeControl";
 import { migrateSales } from "./migrate";
@@ -236,7 +237,7 @@ export default function SalesWorkspace() {
   );
   useEffect(()=>{
     let alive=true;
-    let failureShown=false;const sync=async()=>{if(document.hidden)return;try{const shared=await unifiedRequest<SharedSales>('sales');failureShown=false;if(alive)setData(current=>{const next=mergeSharedSales(current,shared);if(JSON.stringify(next)===JSON.stringify(current))return current;storage.setItem('sales-v1',JSON.stringify(next));return next})}catch(error){if(alive&&!failureShown){failureShown=true;void MessagePlugin.error((error as Error).message||'业务数据同步失败，请稍后重试。')}}};
+    let failureShown=false;const sync=async()=>{if(document.hidden)return;try{const [shared,directory]=await Promise.all([unifiedRequest<SharedSales>('sales'),unifiedRequest<SalesDirectory>('directory')]);failureShown=false;if(alive)setData(current=>{const next=mergeSalesDirectory(mergeSharedSales(current,shared),directory);if(JSON.stringify(next)===JSON.stringify(current))return current;storage.setItem('sales-v1',JSON.stringify(next));return next})}catch(error){if(alive&&!failureShown){failureShown=true;void MessagePlugin.error((error as Error).message||'业务数据同步失败，请稍后重试。')}}};
     void sync();const timer=window.setInterval(sync,8000);window.addEventListener('focus',sync);
     return()=>{alive=false;window.clearInterval(timer);window.removeEventListener('focus',sync)};
   },[account.id,storage]);
@@ -323,6 +324,7 @@ export default function SalesWorkspace() {
   const [deleteOrderId, setDeleteOrderId] = useState("");
   const [deleteDoctorId,setDeleteDoctorId]=useState("");
   const [scenarioConfirm, setScenarioConfirm] = useState(false);
+  useEffect(()=>{const open=()=>setModal("专属码");window.addEventListener('clinivol-sales-open-invite',open);return()=>window.removeEventListener('clinivol-sales-open-invite',open)},[]);
   const [modal, setModal] = useState(""),
     [reason, setReason] = useState(""),
     [target, setTarget] = useState(""),
@@ -557,7 +559,7 @@ export default function SalesWorkspace() {
       (a, b) => Date.parse(b.created) - Date.parse(a.created),
     ),
     h = (hid: string) => data.hospitals.find((h) => h.id === hid)?.name || "",
-    doc = (did: string) => data.doctors.find((x) => x.id === did)?.name || "";
+    doc = (did: string) => data.doctors.find((x) => x.id === did)?.name || data.orderDoctors?.find(x=>x.id===did)?.name || "";
   const [section, detail, caseRoute] = route.split("/"),
     active =
       section === "hospital" ||
@@ -652,7 +654,7 @@ export default function SalesWorkspace() {
     {
       key: "due",
       label: "预计交付时间",
-      render: (r: Row) => confirmedDelivery(r) ? formatDate(confirmedDelivery(r)) : "待排期",
+      render: (r: Row) => deliveryDisplay(r,formatDate),
     },
     {
       key: "actions",
@@ -1202,14 +1204,15 @@ export default function SalesWorkspace() {
         initial={data.doctors.find(
           (d) => d.id === detail && (!d.owner || d.owner === account.id),
         )}
-        save={(d, submit) => {
-          if (
-            commit({
-              type: submit ? "doctor-save-submit" : "doctor-save",
-              value: d,
-            })
-          )
-            go("doctor/" + d.id);
+        save={async (d, submit) => {
+          try {
+            const materials=await archiveDoctorFiles(data.ownerId,d.materials);
+            await unifiedRequest('doctor-save',{doctor:{...d,materials},submit,version:d.version});
+            const directory=await unifiedRequest<SalesDirectory>('directory');
+            setData(current=>{const next=mergeSalesDirectory(current,directory);storage.setItem('sales-v1',JSON.stringify(next));return next});
+            void MessagePlugin.success(submit?'档案已提交审核':'草稿已保存');
+            go("doctor/"+d.id);
+          } catch(error){void MessagePlugin.error((error as Error).message)}
         }}
         cancel={() => {const origin=editOrigin.current;editOrigin.current=null;go(origin||"customers/doctors");}}
       />
@@ -2168,7 +2171,7 @@ function DoctorEditor({
 }: {
   data: SalesData;
   initial?: Doctor;
-  save: (d: Doctor, submit: boolean) => void;
+  save: (d: Doctor, submit: boolean) => Promise<void>;
   cancel: () => void;
 }) {
   const [d, set] = useState<Doctor>(
@@ -2186,17 +2189,21 @@ function DoctorEditor({
       reason: "",
       source: "销售建档",
       createdBy: data.ownerId,
+      ...(()=>{try{const value=JSON.parse(sessionStorage.getItem('clinivol-doctor-prefill')||'{}');return {hospitalId:value.hospitalId||'',department:value.department||''}}catch{return {}}})(),
     },
   );
+  useEffect(()=>{sessionStorage.removeItem('clinivol-doctor-prefill')},[]);
   const [errors, setErrors] = useState<Record<string, string>>({}),
     [busySlots, setBusySlots] = useState<Record<string, boolean>>({});
-  const busy = Object.values(busySlots).some(Boolean);
+  const [submitting,setSubmitting]=useState(false);
+  const busy = submitting||Object.values(busySlots).some(Boolean);
   const setUploadBusy = (slot: string, value: boolean) =>
     setBusySlots((previous) => ({ ...previous, [slot]: value }));
-  const submit = (review: boolean) => {
+  const submit = async (review: boolean) => {
+    if(busy)return;
     const e=doctorErrors(d,review);
     setErrors(e);
-    if (!Object.keys(e).length) save(d, review);
+    if (!Object.keys(e).length){setSubmitting(true);try{await save(d,review)}finally{setSubmitting(false)}}
   };
 
   return (

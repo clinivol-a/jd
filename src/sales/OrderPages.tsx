@@ -8,7 +8,7 @@ import {ClinicalEditor,ClinicalReadOnly,initialClinicalContent} from "./Clinical
 import {clinicalText,designDemand} from "./clinicalContent.mjs";
 import {orderNumber} from './orderNumber.mjs';
 import {PageBack} from '../PageBack';
-import { confirmedDelivery } from "./orderRules.mjs";
+import { deliveryDisplay } from "./orderRules.mjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
@@ -124,7 +124,7 @@ export function OrderEditor({
   const [o, setOrder] = useState<Order>(() => {
     let manualPrefill:Partial<Order>={};try{manualPrefill=JSON.parse(sessionStorage.getItem('v31-manual:'+data.ownerId)||'{}')}catch{}
     const c = data.cases.find((x) => x.id === caseId);
-    const doctor = data.doctors.find((d) => d.id === (c?.doctorId || doctorId));
+    const doctor = [...(data.orderDoctors||[]),...data.doctors].find((d) => d.id === (c?.doctorId || doctorId));
     const source=initial||prefill;
     return source
       ? {...structuredClone(source),clinicalContent:designDemand(source).content||initialClinicalContent(designDemand(source).text)}
@@ -182,6 +182,16 @@ export function OrderEditor({
     );
   };
   const changeDoctor = (value:string) => update({doctorId:value,caseId:initial?.caseId||""});
+  useEffect(()=>{
+    if(!data.orderDoctors)return;
+    setOrder(previous=>{
+      const hospital=data.hospitals.find(h=>h.id===previous.hospitalId&&h.status!=='已停用');
+      if(!hospital)return previous.hospitalId?{...previous,hospitalId:'',department:'',doctorId:'',caseId:''}:previous;
+      if(previous.department&&!hospital.departments.includes(previous.department))return {...previous,department:'',doctorId:'',caseId:''};
+      if(previous.doctorId&&!data.orderDoctors!.some(d=>d.id===previous.doctorId&&d.hospitalId===previous.hospitalId&&d.department===previous.department))return {...previous,doctorId:'',caseId:''};
+      return previous;
+    });
+  },[data.hospitals,data.orderDoctors]);
   const imagingFiles = useMemo(() => o.materials.filter(isImaging), [o.materials]);
   const otherFiles = useMemo(() => o.materials.filter((f) => !isImaging(f)), [o.materials]);
   const uploading = Object.values(busy).some(Boolean);
@@ -267,7 +277,8 @@ export function OrderEditor({
                   aria-label="医院"
                   value={o.hospitalId}
                   placeholder="选择医院"
-                  options={data.hospitals.map((h) => ({
+                  filterable
+                  options={data.hospitals.filter(h=>h.status!=="已停用").map((h) => ({
                     value: h.id,
                     label: h.name,
                   }))}
@@ -300,10 +311,10 @@ export function OrderEditor({
                   aria-label="医生"
                   value={o.doctorId}
                   placeholder="选择医生"
-                  options={data.doctors
+                  options={(data.orderDoctors||data.doctors)
                     .filter(
                       (d) =>
-                        d.owner === data.ownerId &&
+                        (d.orderSelectable || d.owner === data.ownerId) &&
                         d.status === "审核通过" &&
                         d.hospitalId === o.hospitalId &&
                         d.department === o.department,
@@ -312,6 +323,7 @@ export function OrderEditor({
                   onChange={(v) => changeDoctor(String(v))}
                 />
               </Field>
+              {o.hospitalId&&o.department&&!(data.orderDoctors||data.doctors).some(d=>(d.orderSelectable||d.owner===data.ownerId)&&d.status==='审核通过'&&d.hospitalId===o.hospitalId&&d.department===o.department)&&<div className="sales-doctor-empty"><p>该科室暂无可选择的已审核医生。</p><Button variant="text" theme="primary" onClick={()=>{sessionStorage.setItem('v31-manual:'+data.ownerId,JSON.stringify({...o,patientName}));sessionStorage.setItem('clinivol-doctor-prefill',JSON.stringify({hospitalId:o.hospitalId,department:o.department}));location.hash='sales/doctor-new'}}>新建医生档案</Button><Button variant="text" theme="primary" onClick={()=>window.dispatchEvent(new Event('clinivol-sales-open-invite'))}>邀请医生完善档案</Button></div>}
               <Field label="患者姓名" required error={errors.patientName}>
                 <Input
                   aria-label="患者姓名"
@@ -427,7 +439,7 @@ export function OrderEditor({
                 ["科室", o.department],
                 [
                   "医生",
-                  data.doctors.find((d) => d.id === o.doctorId)?.name,
+                  [...(data.orderDoctors||[]),...data.doctors].find((d) => d.id === o.doctorId)?.name,
                 ],
                 ["患者姓名", patientName],
                 ["手术项目名称", o.name],
@@ -583,7 +595,7 @@ export function OrderDetail({
           </Info>
           <Info label="科室">{order.department}</Info>
           <Info label="医生">
-            {data.doctors.find((d) => d.id === order.doctorId)?.name}
+            {[...(data.orderDoctors||[]),...data.doctors].find((d) => d.id === order.doctorId)?.name}
           </Info>
           <Info label="患者">{order.patientName ?? clinicalCase?.patientName ?? "未记录"}</Info>
           <Info label="设计阶段">
@@ -599,7 +611,7 @@ export function OrderDetail({
           </Info>
           <Info label="最近更新时间">{formatDateTime(order.updated)}</Info>
           <Info label="创建时间">{formatDateTime(order.created)}</Info>
-          <Info label="预计交付时间">{confirmedDelivery(order) ? formatDate(confirmedDelivery(order)) : "待排期"}</Info>
+          <Info label="预计交付时间">{deliveryDisplay(order,formatDate)}</Info>
         </dl>
       </Card>
       <Card bordered={false} className="project-info-card">

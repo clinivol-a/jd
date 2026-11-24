@@ -57,6 +57,7 @@ export async function getFile(owner: string, a: Attachment): Promise<Blob> {
     const kind = a.type === "application/pdf" ? 1 : a.type.startsWith("image/") ? 2 : 0;
     return new Blob([fixtureBytes(kind) as Uint8Array<ArrayBuffer>], {type:a.type});
   }
+  if(a.storage==="directory"){const response=await fetch("/api/admin/business/doctor-file?id="+encodeURIComponent(a.id));if(!response.ok)throw Error("文件不可用或无访问权限。");return response.blob();}
   if (a.storage === "invitation") {
     const response = await fetch(
       "/api/sales-demo/file?id=" + encodeURIComponent(a.id),

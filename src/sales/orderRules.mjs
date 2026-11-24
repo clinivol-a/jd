@@ -60,9 +60,17 @@ export function orderErrors(order, patientName, now = new Date()) {
 
 /** Approval accepts the agreed deadline; execution does not introduce another scheduling step. */
 export function confirmedDelivery(order) {
-  if (["草稿", "待审核", "审核退回"].includes(order.status)) return "";
+  if (["草稿", "待审核", "审核退回", "已取消"].includes(order.status)) return "";
   const date = ["处理中", "已完成"].includes(order.status)
     ? (order.confirmedDeliveryDate || order.requestedDueDate || order.due)
     : order.confirmedDeliveryDate;
   return date && /^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(Date.parse(date)) && new Date(date).toISOString().slice(0,10) === date ? date : "";
+}
+
+/** One presentation policy; never rewrites requested or confirmed dates. */
+export function deliveryDisplay(order,formatDate=value=>value){
+  if(['草稿','已取消'].includes(order.status))return '-';
+  if(['待审核','审核退回'].includes(order.status))return '待排期';
+  const value=order.confirmedDeliveryDate;
+  return value&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value?formatDate(value):'—';
 }
