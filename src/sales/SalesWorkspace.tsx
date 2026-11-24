@@ -17,6 +17,7 @@ import { addOrderScenario } from "./orderFixtures.mjs";
 import { ChevronLeftIcon, ChevronRightIcon } from "../design-system/tdesign";
 import { OrderEditor, OrderDetail, OrderIcons } from "./OrderPages";
 import { confirmedDelivery, localDate } from "./orderRules.mjs";
+import { periodRange } from "../projects/projectModel";
 import { RangeControl } from "../projects/RangeControl";
 import { migrateSales } from "./migrate";
 import {ensurePresentationOrders} from "./presentationFixtures.mjs";
@@ -250,8 +251,8 @@ export default function SalesWorkspace() {
     [hospitalFilter, setHospitalFilter] = useState(""),
     [deptFilter, setDeptFilter] = useState(""),
     [serviceFilter, setServiceFilter] = useState(""),
-    [from, setFrom] = useState(""),
-    [to, setTo] = useState(""),
+    [from, setFrom] = useState(() => periodRange("3m")[0]),
+    [to, setTo] = useState(() => periodRange("3m")[1]),
     [month, setMonth] = useState(localMonth(new Date()));
   const [listPages, setListPages] = useState<Record<string, number>>(() => {
     try {
@@ -521,8 +522,8 @@ export default function SalesWorkspace() {
         setHospitalFilter(state?.hospitalFilter || "");
         setDeptFilter(state?.deptFilter || "");
         setServiceFilter(state?.serviceFilter || "");
-        setFrom(state?.from || "");
-        setTo(state?.to || "");
+        setFrom(state?.from || periodRange("3m")[0]);
+        setTo(state?.to || periodRange("3m")[1]);
       }
     };
     window.addEventListener("hashchange", sync);
@@ -769,14 +770,14 @@ export default function SalesWorkspace() {
     {key:"actions",label:"操作",render:(r:Row)=><Button className="sales-order-link" theme="primary" variant="text" onClick={()=>openTodo(r)}>{r.category==="需要处理"?"去处理":"继续编辑"}</Button>},
   ];
   const resetOrders = () => {
-    filterCache.current["orders"]={search:"",filter:"",hospitalFilter:"",deptFilter:"",serviceFilter:"",from:"",to:""};
+    filterCache.current["orders"]={search:"",filter:"",hospitalFilter:"",deptFilter:"",serviceFilter:"",from:periodRange("3m")[0],to:periodRange("3m")[1]};
     setSearch("");
     setFilter("");
     setHospitalFilter("");
     setDeptFilter("");
     setServiceFilter("");
-    setFrom("");
-    setTo("");
+    setFrom(periodRange("3m")[0]);
+    setTo(periodRange("3m")[1]);
     rememberPage("orders", 1);
     if (route.startsWith("orders/")) go("orders");
   };
@@ -792,8 +793,9 @@ export default function SalesWorkspace() {
         />
       </label>
       <div className="project-filter-date">
-        <span>创建时间范围</span>
+        <span>订单创建时间</span>
         <RangeControl
+          ariaLabel="订单创建时间"
           period="custom"
           range={[from, to]}
           minDate={orderStart}

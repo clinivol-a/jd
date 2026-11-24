@@ -1,0 +1,52 @@
+[
+  {
+    "card": "待审核订单 1",
+    "lists": [
+      {
+        "rows": 1,
+        "total": "1"
+      }
+    ],
+    "excerpt": "- banner:\n  - img \"CliniVol\":\n  - button \"切换至深色模式\":\n  - button \"通知中心，0 条未读\":\n  - button \"帮助\":\n  - button \"锁定屏幕\":\n  - button \"周景明 超级管理员 个人账户\":\n    - img \"周景明头像\"\n    - strong: 周景明\n    - generic \"超级管理员\"\n- complementary:\n  - list:\n    - generic: 工作台\n    - generic: 业务工作\n    - generic: 订单管理\n    - generic: 任务调度\n    - generic: 审核中心\n    - generic: 组织与权限\n    - generic: 机构与人员\n    - generic: 权限与审批\n    - generic: 数据与审计\n    - generic: 数据资产\n    - generic: 审计日志\n  - button \"收起导航\":\n- main:\n  - heading \"订单管理\" [level=1]\n  - generic: 订单编号\n  - generic \"搜索订单编号\":\n    - textbox \"订单编号 搜索订单编号\":\n      - /placeholder: 搜索订单编号\n  - generic: 订单创建时间\n  - button \"订单创建时间\":\n    - text: 2026-11-09 — 2026-11-23\n  - generic: 医院\n  - textbox \"医院\":\n    - /placeholder: 请选择\n    - text: 全部\n  - generic: 科室\n  - textbox \"科室\":\n    - /placeholder: 请选择\n    - text: 全部\n  - generic: 设计阶段\n  - textbox \"设计阶段\":\n    - /placeholder: 请选择\n    - text: 全部\n  - generic: 订单状态\n  - textbox \"订单状态\":\n    - /placeholder: 请选择\n    - text: 待审核\n  - generic: 负责组长\n  - textbox \"负责组长\":\n    - /placeholder: 请选择\n    - text: 全部\n  - button \"重置筛选\":\n    - generic: 重置筛选\n  - table:\n    - rowgroup:\n      - row \"订单编号 手术项目名称 医院 科室 医生 患者 设计阶段 订单状态 负责组长 最近更新时间 创建时间 预计交付时间 操作\":\n        - columnheader \"订单编号\":\n          - generic: 订单编号\n        - columnheader \"手术项目名称\":\n          - generic: 手术项目名称\n        - columnheader \"医院\":\n          - generic: 医院\n        - columnheader \"科室\":\n          - generic: 科室\n        - columnheader \"医生\":\n          - generic: 医生\n        - columnheader \"患者\":\n          - generic: 患者\n        - columnheader \"设计阶段\":\n          - generic: 设计阶段\n        - columnheader \"订单状态\":\n          - generic: 订单状态\n        - columnheader \"负责组长\":\n          - generic: 负责组"
+  },
+  {
+    "card": "待分配任务 0",
+    "lists": [
+      {
+        "rows": 1,
+        "total": "0"
+      }
+    ],
+    "excerpt": "- banner:\n  - img \"CliniVol\":\n  - button \"切换至深色模式\":\n  - button \"通知中心，0 条未读\":\n  - button \"帮助\":\n  - button \"锁定屏幕\":\n  - button \"周景明 超级管理员 个人账户\":\n    - img \"周景明头像\"\n    - strong: 周景明\n    - generic \"超级管理员\"\n- complementary:\n  - list:\n    - generic: 工作台\n    - generic: 业务工作\n    - generic: 订单管理\n    - generic: 任务调度\n    - generic: 审核中心\n    - generic: 组织与权限\n    - generic: 机构与人员\n    - generic: 权限与审批\n    - generic: 数据与审计\n    - generic: 数据资产\n    - generic: 审计日志\n  - button \"收起导航\":\n- main:\n  - heading \"待分配任务\" [level=1]\n  - generic: 订单编号\n  - textbox \"订单编号\":\n    - /placeholder: 搜索订单编号\n  - generic: 设计阶段\n  - textbox \"设计阶段\":\n    - /placeholder: 全部\n    - text: 全部\n  - generic: 当前状态\n  - textbox \"当前状态\":\n    - /placeholder: 全部\n    - text: 全部\n  - generic: 任务负责人\n  - textbox \"任务负责人\":\n    - /placeholder: 全部\n    - text: 全部\n  - button \"重置筛选\":\n    - generic: 重置筛选\n  - table:\n    - rowgroup:\n      - row \"订单编号 手术项目名称 医院 设计阶段 当前状态 任务负责人 执行条件 计划时间 操作\":\n        - columnheader \"订单编号\":\n          - generic: 订单编号\n        - columnheader \"手术项目名称\":\n          - generic: 手术项目名称\n        - columnheader \"医院\":\n          - generic: 医院\n        - columnheader \"设计阶段\":\n          - generic: 设计阶段\n        - columnheader \"当前状态\":\n          - generic: 当前状态\n        - columnheader \"任务负责人\":\n          - generic: 任务负责人\n        - columnheader \"执行条件\":\n          - generic: 执行条件\n        - columnheader \"计划时间\":\n          - generic: 计划时间\n        - columnheader \"操作\":\n          - generic: 操作\n    - rowgroup:\n      - row \"暂无数据\":\n        - cell \"暂无数据\":\n          - generic: 暂无数据"
+  },
+  {
+    "card": "待处理审批 6",
+    "lists": [
+      {
+        "rows": 6,
+        "total": "6"
+      }
+    ],
+    "excerpt": "- banner:\n  - img \"CliniVol\":\n  - button \"切换至深色模式\":\n  - button \"通知中心，0 条未读\":\n  - button \"帮助\":\n  - button \"锁定屏幕\":\n  - button \"周景明 超级管理员 个人账户\":\n    - img \"周景明头像\"\n    - strong: 周景明\n    - generic \"超级管理员\"\n- complementary:\n  - list:\n    - generic: 工作台\n    - generic: 业务工作\n    - generic: 订单管理\n    - generic: 任务调度\n    - generic: 审核中心\n    - generic: 组织与权限\n    - generic: 机构与人员\n    - generic: 权限与审批\n    - generic: 数据与审计\n    - generic: 数据资产\n    - generic: 审计日志\n  - button \"收起导航\":\n- main:\n  - heading \"审核中心\" [level=1]\n  - generic: 医生档案审核\n  - generic: 员工与账号审核\n  - generic: 专业成果审核监管\n  - generic: 待处理审批\n  - generic: 关键词\n  - generic \"搜索名称或人员\":\n    - textbox \"关键词 搜索名称或人员\":\n      - /placeholder: 搜索名称或人员\n  - button \"重置筛选\":\n    - generic: 重置筛选\n  - table:\n    - rowgroup:\n      - row \"审核事项 申请人 状态 操作\":\n        - columnheader \"审核事项\":\n          - generic: 审核事项\n        - columnheader \"申请人\":\n          - generic: 申请人\n        - columnheader \"状态\":\n          - generic: 状态\n        - columnheader \"操作\":\n          - generic: 操作\n    - rowgroup:\n      - row \"账号开通 许安宁 待审批 查看\":\n        - cell \"账号开通\":\n          - generic: 账号开通\n        - cell \"许安宁\":\n          - generic: 许安宁\n        - cell \"待审批\":\n          - generic \"待审批\"\n        - cell \"查看\":\n          - button \"查看\":\n            - generic: 查看\n      - row \"历史订单访问 李明 待审批 查看\":\n        - cell \"历史订单访问\":\n          - generic: 历史订单访问\n        - cell \"李明\":\n          - generic: 李明\n        - cell \"待审批\":\n          - generic \"待审批\"\n        - cell \"查看\":\n          - button \"查看\":\n            - generic: 查看\n      - row \"医生销售归属变更 林致远 待审批 查看\":\n        - cell \"医生销售归属变更\":\n          - generic: 医生销售归属变更\n        - cell \"林致远\":\n          - generic: 林致远\n        - cell \"待审批\":\n          - generic \"待审批\""
+  },
+  {
+    "card": "进行中订单 13",
+    "lists": [
+      {
+        "rows": 6,
+        "total": "13"
+      }
+    ],
+    "excerpt": "- banner:\n  - img \"CliniVol\":\n  - button \"切换至深色模式\":\n  - button \"通知中心，0 条未读\":\n  - button \"帮助\":\n  - button \"锁定屏幕\":\n  - button \"周景明 超级管理员 个人账户\":\n    - img \"周景明头像\"\n    - strong: 周景明\n    - generic \"超级管理员\"\n- complementary:\n  - list:\n    - generic: 工作台\n    - generic: 业务工作\n    - generic: 订单管理\n    - generic: 任务调度\n    - generic: 审核中心\n    - generic: 组织与权限\n    - generic: 机构与人员\n    - generic: 权限与审批\n    - generic: 数据与审计\n    - generic: 数据资产\n    - generic: 审计日志\n  - button \"收起导航\":\n- main:\n  - heading \"订单管理\" [level=1]\n  - generic: 订单编号\n  - generic \"搜索订单编号\":\n    - textbox \"订单编号 搜索订单编号\":\n      - /placeholder: 搜索订单编号\n  - generic: 订单创建时间\n  - button \"订单创建时间\":\n    - text: 2026-11-09 — 2026-11-23\n  - generic: 医院\n  - textbox \"医院\":\n    - /placeholder: 请选择\n    - text: 全部\n  - generic: 科室\n  - textbox \"科室\":\n    - /placeholder: 请选择\n    - text: 全部\n  - generic: 设计阶段\n  - textbox \"设计阶段\":\n    - /placeholder: 请选择\n    - text: 全部\n  - generic: 订单状态\n  - textbox \"订单状态\":\n    - /placeholder: 请选择\n    - text: 处理中\n  - generic: 负责组长\n  - textbox \"负责组长\":\n    - /placeholder: 请选择\n    - text: 全部\n  - button \"重置筛选\":\n    - generic: 重置筛选\n  - table:\n    - rowgroup:\n      - row \"订单编号 手术项目名称 医院 科室 医生 患者 设计阶段 订单状态 负责组长 最近更新时间 创建时间 预计交付时间 操作\":\n        - columnheader \"订单编号\":\n          - generic: 订单编号\n        - columnheader \"手术项目名称\":\n          - generic: 手术项目名称\n        - columnheader \"医院\":\n          - generic: 医院\n        - columnheader \"科室\":\n          - generic: 科室\n        - columnheader \"医生\":\n          - generic: 医生\n        - columnheader \"患者\":\n          - generic: 患者\n        - columnheader \"设计阶段\":\n          - generic: 设计阶段\n        - columnheader \"订单状态\":\n          - generic: 订单状态\n        - columnheader \"负责组长\":\n          - generic: 负责组"
+  },
+  {
+    "card": "交付风险 0",
+    "lists": [
+      {
+        "rows": 1,
+        "total": "0"
+      }
+    ],
+    "excerpt": "- banner:\n  - img \"CliniVol\":\n  - button \"切换至深色模式\":\n  - button \"通知中心，0 条未读\":\n  - button \"帮助\":\n  - button \"锁定屏幕\":\n  - button \"周景明 超级管理员 个人账户\":\n    - img \"周景明头像\"\n    - strong: 周景明\n    - generic \"超级管理员\"\n- complementary:\n  - list:\n    - generic: 工作台\n    - generic: 业务工作\n    - generic: 订单管理\n    - generic: 任务调度\n    - generic: 审核中心\n    - generic: 组织与权限\n    - generic: 机构与人员\n    - generic: 权限与审批\n    - generic: 数据与审计\n    - generic: 数据资产\n    - generic: 审计日志\n  - button \"收起导航\":\n- main:\n  - heading \"交付风险订单\" [level=1]\n  - generic: 订单编号\n  - generic \"搜索订单编号\":\n    - textbox \"订单编号 搜索订单编号\":\n      - /placeholder: 搜索订单编号\n  - generic: 订单创建时间\n  - button \"订单创建时间\":\n    - text: 2026-11-09 — 2026-11-23\n  - generic: 医院\n  - textbox \"医院\":\n    - /placeholder: 请选择\n    - text: 全部\n  - generic: 科室\n  - textbox \"科室\":\n    - /placeholder: 请选择\n    - text: 全部\n  - generic: 设计阶段\n  - textbox \"设计阶段\":\n    - /placeholder: 请选择\n    - text: 全部\n  - generic: 订单状态\n  - textbox \"订单状态\":\n    - /placeholder: 请选择\n    - text: 全部\n  - generic: 负责组长\n  - textbox \"负责组长\":\n    - /placeholder: 请选择\n    - text: 全部\n  - button \"重置筛选\":\n    - generic: 重置筛选\n  - table:\n    - rowgroup:\n      - row \"订单编号 手术项目名称 医院 科室 医生 患者 设计阶段 订单状态 负责组长 最近更新时间 创建时间 预计交付时间 操作\":\n        - columnheader \"订单编号\":\n          - generic: 订单编号\n        - columnheader \"手术项目名称\":\n          - generic: 手术项目名称\n        - columnheader \"医院\":\n          - generic: 医院\n        - columnheader \"科室\":\n          - generic: 科室\n        - columnheader \"医生\":\n          - generic: 医生\n        - columnheader \"患者\":\n          - generic: 患者\n        - columnheader \"设计阶段\":\n          - generic: 设计阶段\n        - columnheader \"订单状态\":\n          - generic: 订单状态\n        - columnheader \"负责组长\":\n          - generic: 负责"
+  }
+]

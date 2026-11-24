@@ -1,0 +1,247 @@
+{
+  "environment": "private local copy only",
+  "businessNo": "CV-2026-0020",
+  "orderId": "DEMO-LINK-20261123-15",
+  "projectCount": 1,
+  "projects": [
+    {
+      "id": "PRJ-ffb37328-83a8-4bd2-9f1f-4171fdb31590",
+      "orderId": "DEMO-LINK-20261123-15",
+      "taskIds": [
+        "TASK-b200f33b-5154-448b-a85c-a818c653fed6",
+        "TASK-eea4042c-529f-4a01-9875-9c73f71f6557"
+      ],
+      "createdAt": "2026-11-24T06:24:10.214Z"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "TASK-b200f33b-5154-448b-a85c-a818c653fed6",
+      "projectId": "PRJ-ffb37328-83a8-4bd2-9f1f-4171fdb31590",
+      "orderId": "DEMO-LINK-20261123-15",
+      "stage": 0,
+      "status": "未开始",
+      "assignee": "chen-yu",
+      "upstreamId": null,
+      "version": 2
+    },
+    {
+      "id": "TASK-eea4042c-529f-4a01-9875-9c73f71f6557",
+      "projectId": "PRJ-ffb37328-83a8-4bd2-9f1f-4171fdb31590",
+      "orderId": "DEMO-LINK-20261123-15",
+      "stage": 1,
+      "status": "未开始",
+      "assignee": "chen-yu",
+      "upstreamId": "TASK-b200f33b-5154-448b-a85c-a818c653fed6",
+      "version": 2
+    }
+  ],
+  "orderFields": {
+    "name": "骨性结构重建申请",
+    "hospitalId": "H-A",
+    "doctorId": "D-1",
+    "department": "口腔颌面外科",
+    "patientName": "沈嘉宁",
+    "quantity": 1,
+    "clinicalContent": {
+      "version": 1,
+      "blocks": [
+        {
+          "id": "e2008d71-9027-4e90-a20e-9419c354c85e",
+          "type": "paragraph",
+          "text": "请根据颌面部影像完成骨组织与缺损区域重建，以健侧结构作为定位基准，标注修复体连接面及避让神经管的固定区域，并输出定位导板数字模型。",
+          "bold": false
+        }
+      ]
+    },
+    "confirmedDeliveryDate": "2026-12-21",
+    "status": "处理中",
+    "version": 7
+  },
+  "materials": [
+    {
+      "id": "DEMO-LINK-20261123-15:fixture-file:0",
+      "name": "影像资料.nii",
+      "type": "application/octet-stream",
+      "size": 360,
+      "category": "imaging",
+      "uploadedBy": "4wX73gX6C0PZ63nF9tMh-gs24LTG8OhkMA2t_b8vsn8",
+      "uploadedByName": null,
+      "uploadedAt": "2026-11-23T06:43:49.684Z",
+      "status": "success"
+    },
+    {
+      "id": "DEMO-LINK-20261123-15:fixture-file:1",
+      "name": "需求说明.pdf",
+      "type": "application/pdf",
+      "size": 695,
+      "category": "order-other",
+      "uploadedBy": "4wX73gX6C0PZ63nF9tMh-gs24LTG8OhkMA2t_b8vsn8",
+      "uploadedByName": null,
+      "uploadedAt": "2026-11-23T06:43:49.684Z",
+      "status": "success"
+    },
+    {
+      "id": "DEMO-LINK-20261123-15:fixture-file:2",
+      "name": "附件说明图.png",
+      "type": "image/png",
+      "size": 15500,
+      "category": "order-other",
+      "uploadedBy": "4wX73gX6C0PZ63nF9tMh-gs24LTG8OhkMA2t_b8vsn8",
+      "uploadedByName": null,
+      "uploadedAt": "2026-11-23T06:43:49.684Z",
+      "status": "success"
+    }
+  ],
+  "events": [
+    {
+      "id": "94cde7e4-7a30-45ee-9ffb-a06084dad6b4",
+      "title": "订单草稿已保存",
+      "actor": "李明",
+      "at": "2026-11-23T05:31:31.891Z",
+      "reason": null,
+      "taskId": null
+    },
+    {
+      "id": "285ea6d8-92a4-4f02-b42b-4dd102345294",
+      "title": "资料附件已关联",
+      "actor": "李明",
+      "at": "2026-11-23T06:43:49.685Z",
+      "reason": null,
+      "taskId": null
+    },
+    {
+      "id": "08f2757f-bd9a-4868-ab94-604c029c45de",
+      "title": "订单已提交审核",
+      "actor": "李明",
+      "at": "2026-11-24T06:22:41.291Z",
+      "reason": null,
+      "taskId": null
+    },
+    {
+      "id": "de2991c5-a2f8-4adf-ae40-536f52be1584",
+      "title": "订单责任人已更新",
+      "actor": "周景明",
+      "at": "2026-11-24T06:23:02.448Z",
+      "reason": "本轮隔离管理员业务验收，核对责任归属。",
+      "taskId": null
+    },
+    {
+      "id": "b6ce5e63-eeae-4f8b-8db5-d6b32bf75c16",
+      "title": "订单审核退回",
+      "actor": "周景明",
+      "at": "2026-11-24T06:23:14.090Z",
+      "reason": "请补充定位基准与固定区域说明。",
+      "taskId": null
+    },
+    {
+      "id": "88c529c6-f40e-4de3-abf6-c825d23bbd63",
+      "title": "订单已提交审核",
+      "actor": "李明",
+      "at": "2026-11-24T06:23:49.384Z",
+      "reason": null,
+      "taskId": null
+    },
+    {
+      "id": "d236d83b-e04c-43b9-814c-e69bdaf65740",
+      "title": "订单审核受理",
+      "actor": "周景明",
+      "at": "2026-11-24T06:24:10.214Z",
+      "reason": "",
+      "taskId": null
+    },
+    {
+      "id": "62e0026a-70bf-40ff-8ac3-e441fd8eb5d1",
+      "title": "专业任务已分配",
+      "actor": "周景明",
+      "at": "2026-11-24T06:24:31.555Z",
+      "reason": null,
+      "taskId": "TASK-b200f33b-5154-448b-a85c-a818c653fed6"
+    },
+    {
+      "id": "25baf9ff-9497-4c47-9b18-326b1831e566",
+      "title": "专业任务已分配",
+      "actor": "周景明",
+      "at": "2026-11-24T06:24:44.852Z",
+      "reason": null,
+      "taskId": "TASK-eea4042c-529f-4a01-9875-9c73f71f6557"
+    }
+  ],
+  "postConflict": {
+    "orderVersion": 8,
+    "leaderId": "ADM-L02",
+    "projectCount": 1,
+    "events": [
+      {
+        "id": "94cde7e4-7a30-45ee-9ffb-a06084dad6b4",
+        "title": "订单草稿已保存",
+        "actor": "李明",
+        "at": "2026-11-23T05:31:31.891Z",
+        "reason": null
+      },
+      {
+        "id": "285ea6d8-92a4-4f02-b42b-4dd102345294",
+        "title": "资料附件已关联",
+        "actor": "李明",
+        "at": "2026-11-23T06:43:49.685Z",
+        "reason": null
+      },
+      {
+        "id": "08f2757f-bd9a-4868-ab94-604c029c45de",
+        "title": "订单已提交审核",
+        "actor": "李明",
+        "at": "2026-11-24T06:22:41.291Z",
+        "reason": null
+      },
+      {
+        "id": "de2991c5-a2f8-4adf-ae40-536f52be1584",
+        "title": "订单责任人已更新",
+        "actor": "周景明",
+        "at": "2026-11-24T06:23:02.448Z",
+        "reason": "本轮隔离管理员业务验收，核对责任归属。"
+      },
+      {
+        "id": "b6ce5e63-eeae-4f8b-8db5-d6b32bf75c16",
+        "title": "订单审核退回",
+        "actor": "周景明",
+        "at": "2026-11-24T06:23:14.090Z",
+        "reason": "请补充定位基准与固定区域说明。"
+      },
+      {
+        "id": "88c529c6-f40e-4de3-abf6-c825d23bbd63",
+        "title": "订单已提交审核",
+        "actor": "李明",
+        "at": "2026-11-24T06:23:49.384Z",
+        "reason": null
+      },
+      {
+        "id": "d236d83b-e04c-43b9-814c-e69bdaf65740",
+        "title": "订单审核受理",
+        "actor": "周景明",
+        "at": "2026-11-24T06:24:10.214Z",
+        "reason": ""
+      },
+      {
+        "id": "62e0026a-70bf-40ff-8ac3-e441fd8eb5d1",
+        "title": "专业任务已分配",
+        "actor": "周景明",
+        "at": "2026-11-24T06:24:31.555Z",
+        "reason": null
+      },
+      {
+        "id": "25baf9ff-9497-4c47-9b18-326b1831e566",
+        "title": "专业任务已分配",
+        "actor": "周景明",
+        "at": "2026-11-24T06:24:44.852Z",
+        "reason": null
+      },
+      {
+        "id": "62f57b1f-a093-46a4-bfab-d9b983a711e5",
+        "title": "订单责任人已更新",
+        "actor": "周景明",
+        "at": "2026-11-24T06:49:30.328Z",
+        "reason": "隔离并发测试：模拟另一管理窗口先完成责任变更。"
+      }
+    ]
+  }
+}

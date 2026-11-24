@@ -1,0 +1,26 @@
+{
+  ".local/auth/audit.json": {
+    "unchanged": true
+  },
+  ".local/auth/accounts-before-admin-profile.json": {
+    "unchanged": true
+  },
+  ".local/auth/sms-outbox.json": {
+    "unchanged": true
+  },
+  ".local/auth/accounts.json": {
+    "unchanged": true
+  },
+  ".local/auth/admin-credentials.json": {
+    "unchanged": true
+  },
+  ".local/auth/dev-console-key": {
+    "unchanged": true
+  },
+  ".local/admin/state.json": {
+    "unchanged": true
+  },
+  ".local/unified-business/state.json": {
+    "unchanged": true
+  }
+}

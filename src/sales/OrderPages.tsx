@@ -620,7 +620,7 @@ export function OrderDetail({
             },
             {
               colKey: "type",
-              title: "类型",
+              title: "格式",
               width: 85,
               cell: ({ row }) => row.name.split(".").at(-1)?.toUpperCase(),
             },

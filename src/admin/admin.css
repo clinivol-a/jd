@@ -47,13 +47,10 @@
 .admin-app .admin-action-cell .t-button { padding-inline:0; border-width:0; justify-content:flex-start; }
 .admin-app .app-table .admin-business-number.t-button:not(:disabled):not(.t-is-disabled) { color:var(--td-text-color-primary); padding-inline:0; border-width:0; justify-content:flex-start; }
 .admin-app .app-table .admin-business-number.t-button:not(:disabled):not(.t-is-disabled):hover { color:var(--td-text-color-primary); background:var(--td-bg-color-container-hover); }
-.admin-app .admin-field-wide { grid-column:1/-1; }
-.admin-app .admin-field-wide dd { white-space:normal; overflow-wrap:anywhere; }
-.admin-app .admin-management-card .admin-actions { justify-content:flex-end; }
 .admin-app .admin-muted { margin:0; color:var(--td-text-color-secondary); }
 .admin-app .admin-page .project-stages { container-type:inline-size; }
 .admin-app .admin-page .project-stage { min-width:0; }
-.admin-app .admin-page .project-stage-title { flex-wrap:wrap; }
+.admin-app .admin-page .project-stage-title { flex-wrap:nowrap; }
 .admin-app .admin-page .project-stage p { margin:12px 0 0; }
 .admin-drawer-content .admin-drawer-actions { margin-top:24px; }
 .admin-app .admin-data-table th,.admin-app .admin-data-table td { font:var(--td-font-body-medium); }
@@ -68,3 +65,22 @@ html[theme-mode="dark"] .admin-app .business-nav .t-menu__item.t-is-active:not(.
 html[theme-mode="dark"] .admin-app .business-nav .t-menu__item.t-is-active:not(.t-is-disabled):hover,
 html[theme-mode="dark"] .admin-app .business-nav .t-menu__item.t-is-active .t-icon,
 html[theme-mode="dark"] .admin-app .business-nav .t-menu__item.t-is-active .t-menu__content { color:var(--td-font-gray-1) !important; }
+/* Administrator order composition follows the sales three-row stage and field rhythm. */
+.admin-app .admin-order-overview .section-heading { padding:0; margin:0 0 20px; }
+.admin-app .admin-order-overview .section-heading h2 { margin:0; }
+.admin-app .admin-field-demand { grid-column:span 2; }
+.admin-app .admin-field-demand dd { white-space:normal; overflow-wrap:anywhere; }
+.admin-app .admin-return-reason { margin-top:20px; }
+.admin-app .admin-return-reason > span { color:var(--td-text-color-secondary); }
+.admin-app .admin-return-reason p { margin:5px 0 0; }
+.admin-app .admin-more-button.t-button { width:32px; height:32px; padding:0; justify-content:center; }
+.admin-app .admin-order-filters .project-range-trigger { white-space:nowrap; }
+.admin-app .admin-design-stage .project-stage-title h3 { display:flex; align-items:center; gap:var(--td-comp-margin-xs); margin:0; min-width:0; }
+.admin-app .admin-design-stage .admin-stage-progress { display:flex; align-items:center; gap:var(--td-comp-margin-s); min-height:22px; margin-top:var(--td-comp-margin-m); }
+.admin-app .admin-stage-progress > span { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.admin-app .admin-stage-progress .t-button { height:22px; padding:0; border:0; }
+.admin-app .admin-history-stage { margin-left:16px; color:var(--td-text-color-secondary); }
+.admin-drawer-content details { margin-top:16px; }
+
+.admin-command-summary { margin-bottom:24px; }
+.admin-command-summary .project-info-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }

@@ -230,8 +230,12 @@
 | 字段 | 语义与来源 |
 |---|---|
 | `Hospital.leaderId` | 当前唯一负责组长；变更只影响后续订单匹配 |
-| `Order.leaderId / version` | 订单当前审核/调度责任与并发版本；接管或转派保留前后身份、原因、执行人和时间 |
-| `Order.requestedStages` | 实际请求阶段的唯一顺序集合，受理后才建立对应任务 |
+| `Order.leaderId / version` | 订单当前审核/调度责任与并发版本；接管或变更负责组长保留前后身份、原因、执行人和时间 |
+| `Order.requestedStages` | 管理员投影实际申请阶段的唯一顺序集合，来自Order.plannedStages，受理后才建立对应任务；筛选不生成额外阶段 |
+| `Order.quantity / clinicalContent` | 数量读取原记录，缺失为空值；结构化设计需求沿用同一安全只读渲染器，管理员概览数量一列、需求两列 |
+| `created / createdAt / updated` | 订单创建时间筛选只作用于createdAt（由created投影）；首页最近订单按有效updated排序，不能拿交付时间替代 |
+| `Doctor/Hospital.managementEditable` | 管理登记写入能力标记；只有已接通管理服务的对象开放写操作，共享目录资料不能因可查看而冒充可编辑 |
+| `Order.materials[].id / uploadedBy / uploadedByName / uploadedAt / status` | 两端读取同一附件身份和元数据；上传人按实际身份映射，不能用当前查看账号冒充；缺失不补造。预览另行校验能力与权限 |
 | `Task.upstreamId / assignee / plannedDate / version` | 上游依赖、具备阶段能力负责人、计划日期与版本；分配不等于解锁或开始 |
 | `Person.permissions / scope / stages` | 管理授权、医院范围、专业能力分别管理；岗位名称不代替权限与专业审核资格 |
 | `Approval.basis / approverId / executorId / hospitalIds` | 书面审批依据、批准人、实际执行人、生效范围；明确本地认证申请或隔离业务登记来源 |

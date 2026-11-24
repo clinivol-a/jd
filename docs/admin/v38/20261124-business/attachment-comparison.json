@@ -1,0 +1,83 @@
+{
+  "sameOrderId": true,
+  "orderId": "DEMO-LINK-20261123-16",
+  "businessNo": "CV-2026-0017",
+  "attachmentCount": 3,
+  "metadataIdentical": true,
+  "attachments": [
+    {
+      "id": "DEMO-LINK-20261123-16:fixture-file:0",
+      "name": "影像资料.nii",
+      "type": "application/octet-stream",
+      "size": 360,
+      "uploadedBy": "4wX73gX6C0PZ63nF9tMh-gs24LTG8OhkMA2t_b8vsn8",
+      "uploadedAt": "2026-11-23T06:43:49.685Z"
+    },
+    {
+      "id": "DEMO-LINK-20261123-16:fixture-file:1",
+      "name": "需求说明.pdf",
+      "type": "application/pdf",
+      "size": 695,
+      "uploadedBy": "4wX73gX6C0PZ63nF9tMh-gs24LTG8OhkMA2t_b8vsn8",
+      "uploadedAt": "2026-11-23T06:43:49.685Z"
+    },
+    {
+      "id": "DEMO-LINK-20261123-16:fixture-file:2",
+      "name": "附件说明图.png",
+      "type": "image/png",
+      "size": 15500,
+      "uploadedBy": "4wX73gX6C0PZ63nF9tMh-gs24LTG8OhkMA2t_b8vsn8",
+      "uploadedAt": "2026-11-23T06:43:49.685Z"
+    }
+  ],
+  "hospitals": [
+    {
+      "id": "ADM-H01",
+      "name": "江淮协同医院",
+      "managementEditable": true
+    },
+    {
+      "id": "ADM-H02",
+      "name": "皖中康复医院",
+      "managementEditable": true
+    },
+    {
+      "id": "ADM-H03",
+      "name": "滨湖数字医学中心",
+      "managementEditable": true
+    },
+    {
+      "id": "H-A",
+      "name": "江淮协同医院",
+      "managementEditable": false
+    },
+    {
+      "id": "H-B",
+      "name": "皖中康复医院",
+      "managementEditable": false
+    },
+    {
+      "id": "H-C",
+      "name": "新安数字医学中心",
+      "managementEditable": false
+    }
+  ],
+  "doctorWrites": [
+    {
+      "id": "ADM-D01",
+      "managementEditable": true
+    },
+    {
+      "id": "ADM-D02",
+      "managementEditable": true
+    },
+    {
+      "id": "ADM-D03",
+      "managementEditable": true
+    },
+    {
+      "id": "D-1",
+      "managementEditable": false
+    }
+  ]
+}

@@ -9,7 +9,7 @@ export function validRange(range: DateRange) {
 }
 
 // Calendar edits are a draft. Only this component's confirm action commits a filter.
-export function RangeControl({ period, range, onChange, minDate, maxDate, allowedMonths }: { period: Period; range: DateRange; onChange: (period: Period, range: DateRange) => void; minDate?: string; maxDate?: string; allowedMonths?: number }) {
+export function RangeControl({ period, range, onChange, minDate, maxDate, allowedMonths, ariaLabel = "项目创建时间范围" }: { period: Period; range: DateRange; onChange: (period: Period, range: DateRange) => void; minDate?: string; maxDate?: string; allowedMonths?: number; ariaLabel?: string }) {
   const permitted = (value: DateRange) => validRange(value) && (!minDate || value[0] >= minDate) && (!maxDate || value[1] <= maxDate)
   const [open, setOpen] = useState(false)
   const [picking, setPicking] = useState(false)
@@ -26,6 +26,6 @@ export function RangeControl({ period, range, onChange, minDate, maxDate, allowe
     <DateRangePickerPanel key={String(open)} value={validRange(draft) ? draft : []} format="YYYY-MM-DD" firstDayOfWeek={1} disableDate={minDate || maxDate ? { before: minDate, after: maxDate } : undefined} onCellClick={() => setPicking(true)} onChange={value => { setDraft(value as DateRange); setDraftPeriod('custom'); setPicking(false) }} />
     <div className="project-date-footer"><div className="project-date-presets">{(['3m', '6m', '12m'] as const).filter(value => !allowedMonths || Number(value.slice(0, -1)) <= allowedMonths).map((value, index) => <Button key={value} variant="text" aria-pressed={draftPeriod === value} theme={draftPeriod === value ? 'primary' : 'default'} onClick={() => { setDraft(periodRange(value)); setDraftPeriod(value); setPicking(false) }}>{['近三个月', '近六个月', '近一年'][index]}</Button>)}</div><div className="project-date-actions"><Button variant="outline" onClick={() => setOpen(false)}>取消</Button><Button theme="primary" disabled={picking || !permitted(draft)} onClick={() => { onChange(draftPeriod, [...draft]); setOpen(false) }}>确认</Button></div></div>
   </div>}>
-    <Button className="project-range-trigger" variant="outline" icon={<CalendarIcon size={16} />} aria-label="项目创建时间范围" aria-expanded={open}>{range[0] && range[1] ? `${range[0]} — ${range[1]}` : '选择日期范围'}<ChevronDownIcon size={14} /></Button>
+    <Button className="project-range-trigger" variant="outline" icon={<CalendarIcon size={16} />} aria-label={ariaLabel} aria-expanded={open}>{range[0] && range[1] ? `${range[0]} — ${range[1]}` : '选择日期范围'}<ChevronDownIcon size={14} /></Button>
   </Popup>
 }

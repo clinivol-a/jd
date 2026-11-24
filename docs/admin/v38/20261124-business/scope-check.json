@@ -1,0 +1,49 @@
+{
+  "baseline": "be32e0554104bc259e183734feeba546bd703163",
+  "branch": "codex/admin-business-review-20261124",
+  "trackedChanged": [
+    "design-system/component-rules.md",
+    "design-system/ui-ux-consistency.md",
+    "docs/product/field-dictionary.md",
+    "server/admin/service.mjs",
+    "server/unified/service.mjs",
+    "src/admin/AdminWorkspace.tsx",
+    "src/admin/admin.css",
+    "src/admin/model.ts",
+    "src/projects/RangeControl.tsx",
+    "src/sales/OrderPages.tsx",
+    "src/sales/SalesWorkspace.tsx",
+    "tests/admin-service.test.mjs"
+  ],
+  "protectedPaths": {
+    "src/App.tsx": true,
+    "src/projects/ProjectPages.tsx": true,
+    "src/projects/projectModel.ts": true,
+    "src/index.css": true,
+    "src/auth": true,
+    "src/cad": true,
+    "src/admin/AdminTable.tsx": true,
+    "src/design-system": true,
+    "src/sales/sales.css": true
+  },
+  "originalDataFilesUnchanged": 8,
+  "noDeploymentOrPush": true,
+  "sourceAndSpecificationChanged": [
+    "design-system/component-rules.md",
+    "design-system/ui-ux-consistency.md",
+    "docs/product/field-dictionary.md",
+    "server/admin/service.mjs",
+    "server/unified/service.mjs",
+    "src/admin/AdminWorkspace.tsx",
+    "src/admin/admin.css",
+    "src/admin/model.ts",
+    "src/admin/orderRules.d.mts",
+    "src/admin/orderRules.mjs",
+    "src/projects/RangeControl.tsx",
+    "src/sales/OrderPages.tsx",
+    "src/sales/SalesWorkspace.tsx",
+    "tests/admin-orders-20261124.test.mjs",
+    "tests/admin-request-network.test.mjs",
+    "tests/admin-service.test.mjs"
+  ]
+}

@@ -1,0 +1,406 @@
+diff --git a/design-system/component-rules.md b/design-system/component-rules.md
+index adcf77b..130ced2 100644
+--- a/design-system/component-rules.md
++++ b/design-system/component-rules.md
+@@ -102,0 +103,3 @@ AI十项开放正常颜色的参数确认入口，替代上文统一禁用要求
++- **管理员订单Table**：订单编号、手术项目名称、医院、科室、医生、患者、设计阶段、订单状态、负责组长、最近更新时间、创建时间、预计交付时间、操作。固定右操作列，单层水平滚动，不缩小14/22字号；操作文字与表头同起点，MoreIcon保留32px点击区域。
++- **RangeControl**：订单管理复用已确认日期面板，通过可选ariaLabel区分订单/项目；默认及重置近三个月与设计师自然月算法一致。筛选顺序、范围与首页统计口径见一致性文档第5章，不另建日期算法。
++- **订单资料Table**：销售/管理员同为文件名、类别、格式、大小、上传人、上传时间、状态、操作。格式优先真实扩展名/MIME，大小与销售既有KB格式一致，上传时间formatDateTime；缺身份不以内部ID充当姓名。管理员没有跨账号文件预览服务时明确禁用，不从销售IndexedDB取文件绕过权限。
+diff --git a/design-system/ui-ux-consistency.md b/design-system/ui-ux-consistency.md
+index ed51d58..fb199d5 100644
+--- a/design-system/ui-ux-consistency.md
++++ b/design-system/ui-ux-consistency.md
+@@ -64 +64,7 @@
+-条件变化立即生效，多条件AND，关键词采用已有合理防抖（销售现有250ms）；不无故新增应用按钮。重置清理筛选并恢复第一页；筛选变化亦恢复第一页。返回保留本来源上下文，不跨账号继承筛选数据。首页日期范围、任务视角统计过滤与销售订单筛选是不同作用域，不能混用。
++条件变化立即生效，多条件AND，关键词采用已有合理防抖（销售现有250ms）；不无故新增应用按钮。重置清理筛选并恢复第一页；订单管理的日期例外恢复近三个月实际区间，不能清空。筛选变化亦恢复第一页。返回保留本来源上下文，不跨账号继承筛选数据。首页日期范围、任务视角统计过滤与销售订单筛选是不同作用域，不能混用。
++
++### 管理员订单筛选
++
++订单编号 → 订单创建时间 → 医院 → 科室 → 设计阶段 → 订单状态 → 负责组长 → 重置筛选。Select第一项显式“全部”；医院切换仅保留仍属该医院的科室。所有条件AND，阶段匹配Order实际申请阶段，先过滤后分页。销售与管理员订单管理默认及重置均使用设计师periodRange('3m')：从两个月前自然月首日至本地今天，边界含首尾自然日；销售保留原授权历史范围，不扩大接口可见范围。管理员复用RangeControl，提供3/6/12个月与自定义；无障碍名称为“订单创建时间”，设计师默认名称及行为不变。
++
++管理员首页统计卡沿用全部授权历史口径，Tooltip说明范围；点击列表使用对应全部历史日期范围与状态，不能被默认三个月意外截断。统计卡后的首张业务摘要为“订单管理”，展示授权近三个月全状态订单，真实更新时间倒序、稳定ID次序，最多7条；字段为订单编号、医院、科室、负责组长、状态。查看全部使用Text Button+ChevronRight，进入近三个月、全部状态订单列表，位于待处理审批之前。
+@@ -100,0 +107,8 @@
++### 管理员订单详情与动作
++
++订单概览、资料附件、设计阶段、操作记录固定四张纵向Card，不额外增加管理操作或重复任务表。概览三列：编号/名称/医院；科室/医生/患者；设计阶段/订单状态/组长；真实数量占一列、结构化设计需求占两列；交付/创建/更新时间。退回原因以独立状态信息保留，不伪造数量或审核意见。
++
++列表操作为“查看详情 + MoreIcon”。More按实际状态、权限及责任归属显示指派组长、变更组长、接管、审核受理或退回，均经Dialog确认；受理前展示订单核对信息和有效交付日期。专业任务分配仅在已建立任务的调度模块进行。未接通写入服务的共享医生/医院登记只读，不能提供必然失败或假成功的编辑操作。
++
++设计阶段复用销售三行、20px内边距、6px圆角、负责人到进度12px及既有容器响应式；表格只显示阶段Icon，详情使用既有StageLabel。未受理只展示实际申请阶段，不伪造Task。管理员仅展示授权的轻量查看任务操作，不复制销售分享权限。两行绿色Timeline按事件ID去重并按原始时间倒序；保留操作人、意见来源与阶段，不改变原事件。销售与管理员同一共享事件直接读取同一标题；冻结的设计师项目视图保留原先项目化标题映射，不借本轮更改其页面。
++
+diff --git a/docs/product/field-dictionary.md b/docs/product/field-dictionary.md
+index 68278c4..43b6edb 100644
+--- a/docs/product/field-dictionary.md
++++ b/docs/product/field-dictionary.md
+@@ -233,2 +233,6 @@
+-| `Order.leaderId / version` | 订单当前审核/调度责任与并发版本；接管或转派保留前后身份、原因、执行人和时间 |
+-| `Order.requestedStages` | 实际请求阶段的唯一顺序集合，受理后才建立对应任务 |
++| `Order.leaderId / version` | 订单当前审核/调度责任与并发版本；接管或变更负责组长保留前后身份、原因、执行人和时间 |
++| `Order.requestedStages` | 管理员投影实际申请阶段的唯一顺序集合，来自Order.plannedStages，受理后才建立对应任务；筛选不生成额外阶段 |
++| `Order.quantity / clinicalContent` | 数量读取原记录，缺失为空值；结构化设计需求沿用同一安全只读渲染器，管理员概览数量一列、需求两列 |
++| `created / createdAt / updated` | 订单创建时间筛选只作用于createdAt（由created投影）；首页最近订单按有效updated排序，不能拿交付时间替代 |
++| `Doctor/Hospital.managementEditable` | 管理登记写入能力标记；只有已接通管理服务的对象开放写操作，共享目录资料不能因可查看而冒充可编辑 |
++| `Order.materials[].id / uploadedBy / uploadedByName / uploadedAt / status` | 两端读取同一附件身份和元数据；上传人按实际身份映射，不能用当前查看账号冒充；缺失不补造。预览另行校验能力与权限 |
+diff --git a/server/admin/service.mjs b/server/admin/service.mjs
+index 5dbd8b4..37fc828 100644
+--- a/server/admin/service.mjs
++++ b/server/admin/service.mjs
+@@ -24,0 +25 @@ export class AdminService {
++ s.doctors=s.doctors.map(d=>({...d,managementEditable:this.state.doctors.some(row=>row.id===d.id)}));s.hospitals=s.hospitals.map(h=>({...h,managementEditable:this.state.hospitals.some(row=>row.id===h.id)}));
+diff --git a/server/unified/service.mjs b/server/unified/service.mjs
+index 37d5836..9dad56f 100644
+--- a/server/unified/service.mjs
++++ b/server/unified/service.mjs
+@@ -166 +166 @@ export class UnifiedBusinessService {
+-        throw new BusinessFailure('无订单访问权限。', 403); const directory = this.directoryProvider(), orders = this.state.orders.filter(o => o.businessNo && (actor.role === 'super_admin' || actor.hospitalIds?.includes(o.hospitalId))), ids = new Set(orders.map(o => o.id)); return { orders: orders.map(o => ({ ...copy(o), salesId: o.ownerSalesId, requestedStages: o.plannedStages.map(s => designStages.indexOf(s)), createdAt: o.created, patientRef: o.patientIdentityRef, version: o.version })), tasks: copy(this.state.tasks.filter(t => ids.has(t.orderId))), hospitals: copy(directory.hospitals.filter(h => orders.some(o => o.hospitalId === h.id))), doctors: copy(directory.doctors.filter(d => orders.some(o => o.doctorId === d.id))), people: copy(directory.people || []), assets: copy(this.state.artifacts.filter(a => actor.permissions.includes('assets:read') && ids.has(a.orderId)).map(a => ({ ...a, name: '专业提交成果', stage: this.state.tasks.find(t => t.id === a.taskId).stage, publishStatus: '未发布', sourceFileAvailable: false, revision: 1 }))), events: copy(this.state.events.filter(e => actor.permissions.includes('audit:read') && ids.has(e.orderId)).map(e => ({ ...e, objectId: e.taskId || e.orderId, category: e.taskId ? '任务调度' : '订单审核', result: '成功', reason: e.reason || '' }))) }; }
++        throw new BusinessFailure('无订单访问权限。', 403); const directory = this.directoryProvider(), orders = this.state.orders.filter(o => o.businessNo && (actor.role === 'super_admin' || actor.hospitalIds?.includes(o.hospitalId))), ids = new Set(orders.map(o => o.id)); return { orders: orders.map(o => ({ ...copy(o), salesId: o.ownerSalesId, requestedStages: o.plannedStages.map(s => designStages.indexOf(s)), createdAt: o.created, patientRef: o.patientIdentityRef, version: o.version })), tasks: copy(this.state.tasks.filter(t => ids.has(t.orderId))), hospitals: copy(directory.hospitals.filter(h => actor.role === 'super_admin' || actor.hospitalIds?.includes(h.id))), doctors: copy(directory.doctors.filter(d => orders.some(o => o.doctorId === d.id))), people: copy(directory.people || []), assets: copy(this.state.artifacts.filter(a => actor.permissions.includes('assets:read') && ids.has(a.orderId)).map(a => ({ ...a, name: '专业提交成果', stage: this.state.tasks.find(t => t.id === a.taskId)?.stage ?? null, publishStatus: '未发布', sourceFileAvailable: false, revision: 1 }))), events: copy(this.state.events.filter(e => actor.permissions.includes('audit:read') && ids.has(e.orderId)).map(e => ({ ...e, objectId: e.taskId || e.orderId, category: e.taskId ? '任务调度' : '订单审核', result: '成功', reason: e.reason || '' }))) }; }
+@@ -185,0 +186 @@ export class UnifiedBusinessService {
++                o.updated = new Date(this.now()).toISOString();
+diff --git a/src/admin/AdminWorkspace.tsx b/src/admin/AdminWorkspace.tsx
+index 4204fef..17f71e9 100644
+--- a/src/admin/AdminWorkspace.tsx
++++ b/src/admin/AdminWorkspace.tsx
+@@ -5 +5 @@ import type {CSSProperties,ReactNode} from 'react';
+-import {Button,Card,DatePicker,DateRangePicker,Dialog,Drawer,Empty,Form,Input,Menu,MessagePlugin,Select,Switch,Tabs,Tag,Textarea,Tooltip} from 'tdesign-react';
++import {Button,Card,DatePicker,DateRangePicker,Dialog,Dropdown,Drawer,Empty,Form,Input,Menu,MessagePlugin,Select,Switch,Tabs,Tag,Textarea,Tooltip} from 'tdesign-react';
+@@ -13,0 +14,6 @@ import {HomeIcon,TaskIcon,UserBusinessIcon,UserSafetyIcon,ListDemandIcon,FileIco
++import {MoreIcon} from 'tdesign-icons-react';
++import {ChevronRightIcon} from '../design-system/tdesign';
++import {RangeControl} from '../projects/RangeControl';
++import {periodRange} from '../projects/projectModel';
++import type {DateRange} from '../projects/projectModel';
++import {orderMatches,recentOrders,orderActions,historyEvents,fileFormat,fileCategory,fileSize} from './orderRules.mjs';
+@@ -24,2 +30,2 @@ function Status({value}:{value:string}){const theme=['处理中','进行中'].in
+-function Fields({items}:{items:[string,ReactNode][]}){return <dl className="project-info-grid">{items.map(([label,value])=><div key={label} className={label==='设计需求'?'admin-field-wide':undefined}><dt>{label}</dt><dd>{value||'—'}</dd></div>)}</dl>}
+-function History({events}:{events:AuditEvent[]}){return events.length?<ol className="timeline">{[...events].sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)).map(e=><li className="timeline-item" key={e.id}><i/><div><strong>{e.title}</strong><p>{formatAuditTime(e.at)} · {e.actor}{(e.noteSource!=='system-default'&&e.reason||e.note&&e.noteSource!=='system-default')&&<>　{e.reason||e.note}</>}{e.basis&&<>　依据：{e.basis}</>}</p></div></li>)}</ol>:<Empty title="暂无操作记录" description={null}/>}
++function Fields({items}:{items:[string,ReactNode][]}){return <dl className="project-info-grid">{items.map(([label,value])=><div key={label} className={label==='设计需求'?'admin-field-demand':undefined}><dt>{label}</dt><dd>{value===null||value===undefined||value===''?'—':value}</dd></div>)}</dl>}
++function History({events,tasks=[]}:{events:AuditEvent[];tasks?:Task[]}){return events.length?<ol className="timeline">{historyEvents(events).map(e=>{const stage=tasks.find(t=>t.id===e.objectId)?.stage;return <li className="timeline-item" key={e.id}><i/><div><strong>{e.title}</strong>{stage!==undefined&&<span className="admin-history-stage">{STAGES[stage]}</span>}<p>{formatAuditTime(e.at)} · {e.actor}{(e.noteSource!=='system-default'&&e.reason||e.note&&e.noteSource!=='system-default')&&<>　{e.reason||e.note}</>}{e.basis&&<>　依据：{e.basis}</>}</p></div></li>})}</ol>:<Empty title="暂无操作记录" description={null}/>}
+@@ -37,2 +43,3 @@ export default function AdminWorkspace(){
+- const [notices,setNotices]=useState(false),[query,setQuery]=useState(''),[status,setStatus]=useState(''),[hospitalId,setHospitalId]=useState(''),[leaderId,setLeaderId]=useState(''),[range,setRange]=useState<string[]>([]);
+- const tableFilterSignature=JSON.stringify([query,status,hospitalId,leaderId,range,tab,stageFilter,assigneeFilter]);
++ const [notices,setNotices]=useState(false),[query,setQuery]=useState(''),[status,setStatus]=useState(''),[hospitalId,setHospitalId]=useState(''),[leaderId,setLeaderId]=useState(''),[range,setRange]=useState<string[]>(()=>periodRange('3m'));
++ const [department,setDepartment]=useState('');
++ const tableFilterSignature=JSON.stringify([query,status,hospitalId,leaderId,department,range,tab,stageFilter,assigneeFilter]);
+@@ -42 +49 @@ export default function AdminWorkspace(){
+- const [command,setCommand]=useState<Command|null>(null),[reason,setReason]=useState(''),[basis,setBasis]=useState(''),[selection,setSelection]=useState(''),[date,setDate]=useState(''),[commandError,setCommandError]=useState(''),[busy,setBusy]=useState(false),[preview,setPreview]=useState('');
++ const [command,setCommand]=useState<Command|null>(null),[reason,setReason]=useState(''),[basis,setBasis]=useState(''),[selection,setSelection]=useState(''),[date,setDate]=useState(''),[commandError,setCommandError]=useState(''),[commandConflict,setCommandConflict]=useState(false),[busy,setBusy]=useState(false),[preview,setPreview]=useState('');
+@@ -48,4 +55,4 @@ export default function AdminWorkspace(){
+- const returnContext=useRef<{route:string;query:string;status:string;hospitalId:string;leaderId:string;range:string[];tab:string;stage:string;assignee:string;scroll:number}[]>([]);
+- const moduleContexts=useRef<Record<string,{query:string;status:string;hospitalId:string;leaderId:string;range:string[];stage:string;assignee:string}>>({});
+- const go=(value:string,remember=true,reset=false)=>{if(remember&&!route.includes('/'))moduleContexts.current[route]={query,status,hospitalId,leaderId,range,stage:stageFilter,assignee:assigneeFilter};if(remember&&(value.startsWith('order/')||value.startsWith('hospital/')))returnContext.current.push({route,query,status,hospitalId,leaderId,range,tab,stage:stageFilter,assignee:assigneeFilter,scroll:document.querySelector('.platform-main')?.scrollTop||0});else if(remember)returnContext.current=[];setQuery('');setStatus('');setHospitalId('');setLeaderId('');setRange([]);setStageFilter('');setAssigneeFilter('');const saved=!reset?moduleContexts.current[value]:undefined;if(saved){setQuery(saved.query);setStatus(saved.status);setHospitalId(saved.hospitalId);setLeaderId(saved.leaderId);setRange(saved.range);setStageFilter(saved.stage);setAssigneeFilter(saved.assignee)}location.hash=`admin/${value}`;setRoute(value)};
+- const goBack=(fallback:string)=>{const previous=returnContext.current.pop();if(!previous){go(fallback);return}go(previous.route,false);setQuery(previous.query);setStatus(previous.status);setHospitalId(previous.hospitalId);setLeaderId(previous.leaderId);setRange(previous.range);setStageFilter(previous.stage);setAssigneeFilter(previous.assignee);setModuleTab(previous.route.split('/')[0],previous.tab);requestAnimationFrame(()=>{const main=document.querySelector('.platform-main');if(main)main.scrollTop=previous.scroll})};
++ const returnContext=useRef<{route:string;query:string;status:string;hospitalId:string;leaderId:string;department:string;range:string[];tab:string;stage:string;assignee:string;scroll:number}[]>([]);
++ const moduleContexts=useRef<Record<string,{query:string;status:string;hospitalId:string;leaderId:string;department:string;range:string[];stage:string;assignee:string}>>({});
++ const go=(value:string,remember=true,reset=false)=>{if(remember&&!route.includes('/'))moduleContexts.current[route]={query,status,hospitalId,leaderId,department,range,stage:stageFilter,assignee:assigneeFilter};if(remember&&(value.startsWith('order/')||value.startsWith('hospital/')))returnContext.current.push({route,query,status,hospitalId,leaderId,department,range,tab,stage:stageFilter,assignee:assigneeFilter,scroll:document.querySelector('.platform-main')?.scrollTop||0});else if(remember)returnContext.current=[];setQuery('');setStatus('');setHospitalId('');setLeaderId('');setDepartment('');setRange(value==='orders'||value==='orders/risk'?periodRange('3m'):[]);setStageFilter('');setAssigneeFilter('');const saved=!reset?moduleContexts.current[value]:undefined;if(saved){setQuery(saved.query);setStatus(saved.status);setHospitalId(saved.hospitalId);setLeaderId(saved.leaderId);setDepartment(saved.department);setRange(saved.range);setStageFilter(saved.stage);setAssigneeFilter(saved.assignee)}location.hash=`admin/${value}`;setRoute(value)};
++ const goBack=(fallback:string)=>{const previous=returnContext.current.pop();if(!previous){go(fallback);return}go(previous.route,false);setQuery(previous.query);setStatus(previous.status);setHospitalId(previous.hospitalId);setLeaderId(previous.leaderId);setDepartment(previous.department);setRange(previous.range);setStageFilter(previous.stage);setAssigneeFilter(previous.assignee);setModuleTab(previous.route.split('/')[0],previous.tab);requestAnimationFrame(()=>{const main=document.querySelector('.platform-main');if(main)main.scrollTop=previous.scroll})};
+@@ -54 +61 @@ export default function AdminWorkspace(){
+- const start=(value:Command)=>{setCommand(value);setReason('');setBasis(value.basis||'');setSelection(value.options?.length===1?value.options[0].value:'');setDate(value.date||'');setCommandError('')};
++ const start=(value:Command)=>{setCommand(value);setReason('');setBasis(value.basis||'');setSelection(value.options?.length===1?value.options[0].value:'');setDate(value.date||'');setCommandError('');setCommandConflict(false)};
+@@ -56 +63 @@ export default function AdminWorkspace(){
+- const commit=async()=>{if(!command||busy||commandFlight.current)return;const invalid=command.options&&!selection?'请选择'+(command.selectLabel||'操作对象')+'。':(['assign-task'].includes(command.action)||command.action==='review-order'&&command.result==='approved')&&!/^\d{4}-\d{2}-\d{2}$/.test(date)?'请选择有效日期。':(command.action==='revoke-permission'||command.result==='approved'&&['review-doctor','review-account','approve-permission'].includes(command.action)||command.action==='request-permission')&&!basis.trim()?'请填写书面审批依据。':command.result!=='approved'&&!reason.trim()?'请填写'+(command.result==='returned'?'退回原因':'操作原因')+'。':'';if(invalid){setCommandError(invalid);return}commandFlight.current=true;setBusy(true);setCommandError('');try{const result=await adminRequest<{ok:boolean;data?:unknown}>('command',{action:command.action,id:command.id,version:command.version,result:command.result,reason,basis,leaderId:selection,assignee:selection,reviewerId:selection,permission:selection,plannedDate:date,confirmedDeliveryDate:date});if(result.data){const url=URL.createObjectURL(new Blob([JSON.stringify(result.data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='admin-isolated-asset-metadata.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}await refresh();await auth.refresh();setCommand(null);setInspect(null);void MessagePlugin.success('操作已完成')}catch(e){setCommandError((e as Error).message)}finally{commandFlight.current=false;setBusy(false)}};
++ const commit=async()=>{if(!command||busy||commandFlight.current)return;const invalid=command.options&&!selection?'请选择'+(command.selectLabel||'操作对象')+'。':(['assign-task'].includes(command.action)||command.action==='review-order'&&command.result==='approved')&&!/^\d{4}-\d{2}-\d{2}$/.test(date)?'请选择有效日期。':(command.action==='revoke-permission'||command.result==='approved'&&['review-doctor','review-account','approve-permission'].includes(command.action)||command.action==='request-permission')&&!basis.trim()?'请填写书面审批依据。':command.result!=='approved'&&!reason.trim()?'请填写'+(command.result==='returned'?'退回原因':'操作原因')+'。':'';if(invalid){setCommandError(invalid);return}commandFlight.current=true;setBusy(true);setCommandError('');try{const result=await adminRequest<{ok:boolean;data?:unknown}>('command',{action:command.action,id:command.id,version:command.version,result:command.result,reason,basis,leaderId:selection,assignee:selection,reviewerId:selection,permission:selection,plannedDate:date,confirmedDeliveryDate:date});if(result.data){const url=URL.createObjectURL(new Blob([JSON.stringify(result.data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='admin-isolated-asset-metadata.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}await refresh();await auth.refresh();setCommand(null);setInspect(null);void MessagePlugin.success('操作已完成')}catch(e){setCommandError((e as Error).message);if((e as Error & {status?:number}).status===409){setCommandConflict(true);await refresh()}}finally{commandFlight.current=false;setBusy(false)}};
+@@ -67 +73,0 @@ export default function AdminWorkspace(){
+- const canManage=(o:Order)=>can('orders:review')&&['待审核','处理中','审核退回'].includes(o.status);
+@@ -74,0 +81,19 @@ export default function AdminWorkspace(){
++ const actionNames={'assign-leader':'指派负责组长','change-leader':'变更负责组长',takeover:'接管订单',accept:'审核受理',return:'审核退回'};
++ const moreActions=(o:Order)=>{const options=orderActions(o,account).map(value=>({content:actionNames[value],value}));return options.length?<Dropdown trigger="click" options={options} onClick={({value})=>{
++  if(value==='assign-leader'||value==='change-leader')start({action:'reassign',id:o.id,version:o.version,title:actionNames[value],options:leaders().filter(l=>l.value!==o.leaderId),selectLabel:'负责组长'});
++  else if(value==='takeover')start({action:'takeover',id:o.id,version:o.version,title:'接管订单'});
++  else start({action:'review-order',id:o.id,version:o.version,title:value==='accept'?'审核受理':'审核退回',result:value==='accept'?'approved':'returned',kind:'order',date:o.requestedDueDate});
++ }}><Button variant="text" theme="default" className="admin-more-button" aria-label={`更多订单操作 ${businessNo(o.id)}`} icon={<MoreIcon size={20}/>}/></Dropdown>:null};
++ const selectFilter=(label:string,value:string,setValue:(value:string)=>void,options:{label:string;value:string}[])=><label><span>{label}</span><Select aria-label={label+'筛选'} value={value||'__all__'} options={[{label:'全部',value:'__all__'},...options]} onChange={v=>setValue(v==='__all__'?'':String(v||''))}/></label>;
++ const resetOrderFilters=()=>{setQuery('');setStatus('');setHospitalId('');setDepartment('');setLeaderId('');setStageFilter('');setRange(periodRange('3m'));window.dispatchEvent(new Event('clinivol-admin-reset-pages'))};
++ const orderFilters=<div className="project-filters admin-filters admin-order-filters">
++  <label><span>订单编号</span><Input value={query} clearable placeholder="搜索订单编号" aria-label="搜索订单编号" onChange={setQuery}/></label>
++  <div className="project-filter-date"><span>订单创建时间</span><RangeControl ariaLabel="订单创建时间" period={(['3m','6m','12m'] as const).find(period=>JSON.stringify(periodRange(period))===JSON.stringify(range))||'custom'} range={range as DateRange} maxDate={formatDate(new Date().toISOString())} onChange={(_,next)=>setRange(next)}/></div>
++  {selectFilter('医院',hospitalId,value=>{setHospitalId(value);if(!data?.hospitals.some(h=>(!value||h.id===value)&&h.departments.includes(department)))setDepartment('')},data?.hospitals.map(h=>({label:h.name,value:h.id}))||[])}
++  {selectFilter('科室',department,setDepartment,[...new Set(data?.hospitals.filter(h=>!hospitalId||h.id===hospitalId).flatMap(h=>h.departments)||[])].map(label=>({label,value:label})))}
++  {selectFilter('设计阶段',stageFilter,setStageFilter,STAGES.map((label,i)=>({label,value:String(i)})))}
++  {selectFilter('订单状态',status,setStatus,['草稿','待审核','审核退回','处理中','已完成','已取消'].map(label=>({label,value:label})))}
++  {selectFilter('负责组长',leaderId,setLeaderId,[...leaders(),{label:account.name,value:account.id}].filter((p,i,a)=>a.findIndex(x=>x.value===p.value)===i))}
++  <Button variant="outline" onClick={resetOrderFilters}>重置筛选</Button>
++ </div>;
++ const allTimeOrders=()=>{const dates=data?.orders.map(o=>formatDate(o.createdAt)).filter(v=>/^\d{4}-\d{2}-\d{2}$/.test(v)).sort()||[];setRange(dates.length?[dates[0],dates.at(-1)!]:periodRange('3m'))};
+@@ -78,0 +104 @@ export default function AdminWorkspace(){
++ {key:'department',label:'科室',width:160,render:r=><FullText>{r.department||'—'}</FullText>},
+@@ -84 +110,2 @@ export default function AdminWorkspace(){
+- {key:'created',label:'创建时间',width:125,render:r=>formatDate(r.createdAt)},
++ {key:'updated',label:'最近更新时间',width:160,render:r=>r.updated?formatDateTime(r.updated):'—'},
++ {key:'created',label:'创建时间',width:160,render:r=>formatDateTime(r.createdAt)},
+@@ -86 +113 @@ export default function AdminWorkspace(){
+- {key:'actions',label:'操作',width:110,render:r=>button('查看详情',()=>go(`order/${r.id}`))}];
++ {key:'actions',label:'操作',width:155,render:r=><div className="admin-actions">{button('查看详情',()=>go(`order/${r.id}`))}{moreActions(r)}</div>}];
+@@ -100 +127 @@ export default function AdminWorkspace(){
+- const fieldFilters=(states:string[],extra=false)=><div className="project-filters admin-filters"><label><span>{section==='orders'?'订单编号':'关键词'}</span><Input value={query} clearable placeholder={section==='orders'?'搜索订单编号':'搜索名称或人员'} aria-label={section==='orders'?'搜索订单编号':'搜索名称或人员'} onChange={setQuery}/></label>{states.length>0&&<label><span>状态</span><Select value={status} clearable placeholder="全部" aria-label="状态筛选" options={states.map(v=>({label:v,value:v}))} onChange={v=>setStatus(String(v||''))}/></label>}{extra&&<><label><span>医院</span><Select value={hospitalId} clearable placeholder="全部" aria-label="医院筛选" options={data?.hospitals.map(h=>({label:h.name,value:h.id}))} onChange={v=>setHospitalId(String(v||''))}/></label><label><span>负责组长</span><Select value={leaderId} clearable placeholder="全部" aria-label="组长筛选" options={[...leaders(),{label:account.name,value:account.id}]} onChange={v=>setLeaderId(String(v||''))}/></label><label><span>创建时间</span><DateRangePicker value={range} allowInput clearable onChange={v=>setRange(v as string[])}/></label></>}<Button variant="outline" onClick={()=>{setQuery('');setStatus('');setHospitalId('');setLeaderId('');setRange([]);setStageFilter('');setAssigneeFilter('');if(section==='audit')setTab('');window.dispatchEvent(new Event('clinivol-admin-reset-pages'))}}>重置筛选</Button></div>;
++ const fieldFilters=(states:string[],extra=false)=><div className="project-filters admin-filters"><label><span>{section==='orders'?'订单编号':'关键词'}</span><Input value={query} clearable placeholder={section==='orders'?'搜索订单编号':'搜索名称或人员'} aria-label={section==='orders'?'搜索订单编号':'搜索名称或人员'} onChange={setQuery}/></label>{states.length>0&&<label><span>状态</span><Select value={status} clearable placeholder="全部" aria-label="状态筛选" options={[{label:'全部',value:''},...states.map(v=>({label:v,value:v}))]} onChange={v=>setStatus(String(v||''))}/></label>}{extra&&<><label><span>医院</span><Select value={hospitalId} clearable placeholder="全部" aria-label="医院筛选" options={data?.hospitals.map(h=>({label:h.name,value:h.id}))} onChange={v=>setHospitalId(String(v||''))}/></label><label><span>负责组长</span><Select value={leaderId} clearable placeholder="全部" aria-label="组长筛选" options={[...leaders(),{label:account.name,value:account.id}]} onChange={v=>setLeaderId(String(v||''))}/></label><label><span>创建时间</span><DateRangePicker value={range} allowInput clearable onChange={v=>setRange(v as string[])}/></label></>}<Button variant="outline" onClick={()=>{setQuery('');setStatus('');setHospitalId('');setLeaderId('');setRange([]);setStageFilter('');setAssigneeFilter('');if(section==='audit')setTab('');window.dispatchEvent(new Event('clinivol-admin-reset-pages'))}}>重置筛选</Button></div>;
+@@ -103 +130 @@ export default function AdminWorkspace(){
+- const filteredOrders=data?.orders.filter(o=>matches(businessNo(o.id),o.status)&&(!hospitalId||o.hospitalId===hospitalId)&&(!leaderId||o.leaderId===leaderId)&&(!range[0]||formatDate(o.createdAt)>=range[0])&&(!range[1]||formatDate(o.createdAt)<=range[1])&&(!route.endsWith('/risk')||buckets?.risks.some(r=>r.id===o.id)))||[];
++ const filteredOrders=data?.orders.filter(o=>orderMatches(o,{query,status,hospitalId,department,leaderId,stage:stageFilter,range},formatDate)&&(!route.endsWith('/risk')||buckets?.risks.some(r=>r.id===o.id)))||[];
+@@ -110 +137 @@ export default function AdminWorkspace(){
+-  const stats=[{label:'待审核订单',count:buckets.orders.length,note:'由当前负责组长处理',tone:'review',Icon:TimeFilledIcon,run:()=>{go('orders',true,true);setStatus('待审核')}},{label:'待分配任务',count:buckets.tasks.length,note:'已受理订单中的专业任务',tone:'pending',Icon:TaskFilledIcon,run:()=>go('tasks/unassigned')},{label:'待处理审批',count:buckets.reviews.length,note:'账号、资质及权限申请',tone:'review',Icon:TaskCheckedFilledIcon,run:()=>{go('reviews/pending',true,true);setModuleTab('reviews','combined')}},{label:'进行中订单',count:buckets.processing.length,note:'专业设计处理中',tone:'progress',Icon:WorkFilledIcon,run:()=>{go('orders',true,true);setStatus('处理中')}},{label:'交付风险',count:buckets.risks.length,note:'已超过约定交付日期',tone:'returned',Icon:AssignmentErrorFilledIcon,run:()=>go('orders/risk')}];
++  const stats=[{label:'待审核订单',count:buckets.orders.length,note:'由当前负责组长处理',tone:'review',Icon:TimeFilledIcon,run:()=>{go('orders',true,true);setStatus('待审核');allTimeOrders()}},{label:'待分配任务',count:buckets.tasks.length,note:'已受理订单中的专业任务',tone:'pending',Icon:TaskFilledIcon,run:()=>go('tasks/unassigned')},{label:'待处理审批',count:buckets.reviews.length,note:'账号、资质及权限申请',tone:'review',Icon:TaskCheckedFilledIcon,run:()=>{go('reviews/pending',true,true);setModuleTab('reviews','combined')}},{label:'进行中订单',count:buckets.processing.length,note:'专业设计处理中',tone:'progress',Icon:WorkFilledIcon,run:()=>{go('orders',true,true);setStatus('处理中');allTimeOrders()}},{label:'交付风险',count:buckets.risks.length,note:'已超过约定交付日期',tone:'returned',Icon:AssignmentErrorFilledIcon,run:()=>{go('orders/risk',true,true);allTimeOrders()}}];
+@@ -112 +139,2 @@ export default function AdminWorkspace(){
+-  content=<><section className="dashboard-welcome"><div className="dashboard-welcome-copy"><h1>{new Date().getHours()<12?'上午好':new Date().getHours()<18?'下午好':'晚上好'}，{account.name}</h1><p>当前有 {buckets.orders.length+buckets.tasks.length+buckets.reviews.length+buckets.risks.length} 项事项需要关注，其中 {pending.length} 项审批待处理。</p></div><time className="dashboard-date-text">{formatDate(new Date().toISOString())}</time></section><section className="stat-grid" aria-label="管理员业务统计">{stats.map(s=><Card bordered={false} className={`stat-card stat-${s.tone}`} key={s.label}><button className="project-stat-action" aria-label={`${s.label} ${s.count}`} onClick={s.run}><div className="stat-card-head"><span>{s.label}</span><i><s.Icon size={20}/></i></div><strong>{s.count}</strong><small>{s.note}</small></button></Card>)}</section><section className="dashboard-grid admin-home-grid">
++  content=<><section className="dashboard-welcome"><div className="dashboard-welcome-copy"><h1>{new Date().getHours()<12?'上午好':new Date().getHours()<18?'下午好':'晚上好'}，{account.name}</h1><p>当前有 {buckets.orders.length+buckets.tasks.length+buckets.reviews.length+buckets.risks.length} 项事项需要关注，其中 {pending.length} 项审批待处理。</p></div><time className="dashboard-date-text">{formatDate(new Date().toISOString())}</time></section><section className="stat-grid" aria-label="管理员业务统计">{stats.map(s=><Card bordered={false} className={`stat-card stat-${s.tone}`} key={s.label}><Tooltip content="统计范围：全部授权历史；首页订单摘要为近三个月"><button className="project-stat-action" aria-label={`${s.label} ${s.count}`} onClick={s.run}><div className="stat-card-head"><span>{s.label}</span><i><s.Icon size={20}/></i></div><strong>{s.count}</strong><small>{s.note}</small></button></Tooltip></Card>)}</section><section className="dashboard-grid admin-home-grid">
++   <Card bordered={false} className="dashboard-card table-card"><div className="section-heading"><h2>订单管理</h2><Button theme="primary" variant="text" onClick={()=>go('orders',true,true)}>查看全部<ChevronRightIcon size={16}/></Button></div><AdminTable paginate={false} rows={recentOrders(data.orders,periodRange('3m'),formatDate)} columns={[{key:'id',label:'订单编号',width:155,render:r=>orderLink(r.id)},{key:'hospital',label:'医院',width:220,render:r=><FullText>{hospital(r.hospitalId)}</FullText>},{key:'department',label:'科室',width:170,render:r=><FullText>{r.department||'—'}</FullText>},{key:'leader',label:'负责组长',width:120,render:r=>person(r.leaderId)},{key:'status',label:'状态',width:110,render:r=><Status value={r.status}/>}]}/></Card>
+@@ -114 +142 @@ export default function AdminWorkspace(){
+-   {buckets.orders.length>0&&<Card bordered={false} className="dashboard-card table-card"><div className="section-heading"><h2>订单审核概况</h2>{button('查看全部',()=>{go('orders',true,true);setStatus('待审核')})}</div><AdminTable paginate={false} rows={chronological(buckets.orders,r=>r.createdAt).slice(0,7)} columns={[{key:'id',label:'订单编号',render:r=>orderLink(r.id)},{key:'hospital',label:'医院',render:r=>hospital(r.hospitalId)},{key:'leader',label:'负责组长',render:r=>person(r.leaderId)},{key:'status',label:'状态',render:r=><Status value={r.status}/>}]}/></Card>}
++
+@@ -119 +147 @@ export default function AdminWorkspace(){
+- else if(section==='orders')content=<Card bordered={false} className="project-list-card">{title(route.endsWith('/risk')?'交付风险订单':'订单管理')}{fieldFilters(['草稿','待审核','审核退回','处理中','已完成','已取消'],true)}<AdminTable rows={filteredOrders} columns={orderColumns}/></Card>;
++ else if(section==='orders')content=<Card bordered={false} className="project-list-card">{title(route.endsWith('/risk')?'交付风险订单':'订单管理')}{orderFilters}<AdminTable rows={filteredOrders} columns={orderColumns}/></Card>;
+@@ -124 +152 @@ export default function AdminWorkspace(){
+-   <Card bordered={false} className="project-info-card"><h2>订单概览</h2><Fields items={[
++   <Card bordered={false} className="project-info-card admin-order-overview"><div className="section-heading"><h2>订单概览</h2>{moreActions(order)}</div><Fields items={[
+@@ -127,2 +155,2 @@ export default function AdminWorkspace(){
+-    ['订单状态',<Status value={order.status}/>],['设计阶段',<div className="project-stage-tags">{order.requestedStages.map(stage=><StageLabel key={stage} stage={stageNames[stage]}/>)}</div>],['负责组长',person(order.leaderId)],
+-    ['设计需求',<ClinicalReadOnly owner={order.ownerSalesId||order.salesId} value={order.clinicalContent} fallback={order.designRequirements||order.clinicalRequirements||order.requirements||'—'}/>],
++    ['设计阶段',<div className="project-stage-tags">{order.requestedStages.map(stage=><StageLabel key={stage} stage={stageNames[stage]}/>)}</div>],['订单状态',<Status value={order.status}/>],['负责组长',person(order.leaderId)],
++    ['需求数量',order.quantity??'—'],['设计需求',<ClinicalReadOnly owner={order.ownerSalesId||order.salesId} value={order.clinicalContent} fallback={order.designRequirements||order.clinicalRequirements||order.requirements||'—'}/>],
+@@ -130,5 +158 @@ export default function AdminWorkspace(){
+-   ]}/></Card>
+-   {canManage(order)&&<Card bordered={false} className="project-info-card admin-management-card"><h2>管理操作</h2><div className="admin-actions">
+-    <Button variant="outline" onClick={()=>start({action:'reassign',id:order.id,version:order.version,title:'重新指派负责组长',options:leaders().filter(l=>l.value!==order.leaderId),selectLabel:'新负责组长'})}>重新指派</Button>
+-    {order.leaderId!==account.id?account.role==='super_admin'&&<Button theme="primary" onClick={()=>start({action:'takeover',id:order.id,version:order.version,title:'接管订单'})}>接管订单</Button>:order.status==='待审核'&&<><Button variant="outline" onClick={()=>start({action:'review-order',id:order.id,version:order.version,title:'退回订单',result:'returned',kind:'order'})}>审核退回</Button><Button theme="primary" onClick={()=>start({action:'review-order',id:order.id,version:order.version,title:'受理订单',result:'approved',kind:'order',date:order.requestedDueDate})}>审核受理</Button></>}
+-   </div></Card>}
++   ]}/>{order.status==='审核退回'&&<div className="admin-return-reason"><span>审核退回原因</span><p>{order.reason||'未记录'}</p></div>}</Card>
+@@ -137,3 +161,6 @@ export default function AdminWorkspace(){
+-    {key:'type',label:'类型',width:160,render:r=>r.type||'—'},
+-    {key:'size',label:'大小',width:110,render:r=>Number.isFinite(r.size)?r.size<1024?r.size+' B':r.size<1024*1024?(r.size/1024).toFixed(1)+' KB':(r.size/1024/1024).toFixed(1)+' MB':'—'},
+-    {key:'at',label:'上传时间',width:155,render:r=>r.uploadedAt?formatAuditTime(r.uploadedAt):'—'},
++    {key:'category',label:'类别',width:110,render:fileCategory},
++    {key:'type',label:'格式',width:85,render:fileFormat},
++    {key:'size',label:'大小',width:90,render:fileSize},
++    {key:'uploader',label:'上传人',width:110,render:r=>r.uploadedByName||data.people.find(p=>p.id===r.uploadedBy)?.name||'未记录'},
++    {key:'at',label:'上传时间',width:155,render:r=>r.uploadedAt?formatDateTime(r.uploadedAt):'未记录'},
++    {key:'status',label:'状态',width:100,render:r=>r.status==='success'?'已上传':'旧记录待核验'},
+@@ -142,3 +169,2 @@ export default function AdminWorkspace(){
+-   <Card bordered={false} className="project-stages-card"><div className="section-heading"><h2>设计阶段</h2></div><div className="project-stages">{order.requestedStages.map((stage,index)=>{const task=orderTasks.find(t=>t.stage===stage);return <div className="project-stage" key={stage}><div className="project-stage-title"><span className="project-stage-number">{String(index+1).padStart(2,'0')}</span><h3><StageLabel stage={stageNames[stage]}/></h3><Status value={task?.status||'未开始'}/></div><p>负责人：{person(task?.assignee)}</p><p>{task?.upstreamId&&data.tasks.find(t=>t.id===task.upstreamId)?.status!=='已完成'?'等待上游成果审核通过':task?.status==='已完成'?'审核通过，正式成果已锁定':task?.status==='待审核'?'成果已提交，等待审核':task?.status==='审核退回'?'审核退回，需根据意见修改':task?.status==='进行中'?'专业任务正在处理中':task?.assignee?'已分配，尚未开始':'待分配专业任务'}</p></div>})}</div></Card>
+-   {orderTasks.length>0&&<Card bordered={false} className="table-card"><div className="section-heading"><h2>任务分配与进度</h2></div><AdminTable paginate={false} rows={orderTasks} columns={taskColumns}/></Card>}
+-   <Card bordered={false} className="project-info-card"><h2>操作记录</h2><History events={data.events.filter(e=>e.objectId===order.id||orderTasks.some(t=>t.id===e.objectId))}/></Card>
++   <Card bordered={false} className="project-stages-card"><div className="section-heading"><h2>设计阶段</h2></div><div className="project-stages">{order.requestedStages.map((stage,index)=>{const task=orderTasks.find(t=>t.stage===stage);return <section className="project-stage admin-design-stage" key={stage}><div className="project-stage-title"><h3>{String(index+1).padStart(2,'0')} <StageLabel stage={stageNames[stage]}/></h3><Status value={task?.status||'未开始'}/></div><p>负责人：{task?.assignee?person(task.assignee):'待分配'}</p><div className="admin-stage-progress"><span>{!task?'订单受理后建立专业任务':task.upstreamId&&data.tasks.find(t=>t.id===task.upstreamId)?.status!=='已完成'?'等待上游成果审核通过':task.status==='已完成'?'审核通过，正式成果已锁定':task.status==='待审核'?'成果已提交，等待审核':task.status==='审核退回'?'审核退回，需根据意见修改':task.status==='进行中'?'专业任务正在处理中':task.assignee?'已分配，尚未开始':'待分配专业任务'}</span>{task&&can('tasks:assign')&&button('查看任务',()=>show('task',task))}</div></section>})}</div></Card>
++   <Card bordered={false} className="project-info-card"><h2>操作记录</h2><History tasks={orderTasks} events={data.events.filter(e=>e.objectId===order.id||orderTasks.some(t=>t.id===e.objectId))}/></Card>
+@@ -149,3 +175,3 @@ export default function AdminWorkspace(){
+- <label><span>设计阶段</span><Select value={stageFilter} clearable placeholder="全部" options={STAGES.map((label,i)=>({label,value:String(i)}))} onChange={v=>setStageFilter(String(v??''))}/></label>
+- <label><span>当前状态</span><Select value={status} clearable placeholder="全部" options={['未开始','进行中','待审核','审核退回','已完成'].map(label=>({label,value:label}))} onChange={v=>setStatus(String(v||''))}/></label>
+- <label><span>任务负责人</span><Select value={assigneeFilter} clearable placeholder="全部" options={[{label:'未分配',value:'unassigned'},...data.people.filter(p=>p.role==='工程师').map(p=>({label:p.name,value:p.id}))]} onChange={v=>setAssigneeFilter(String(v||''))}/></label>
++ <label><span>设计阶段</span><Select value={stageFilter} clearable placeholder="全部" options={[{label:'全部',value:''},...STAGES.map((label,i)=>({label,value:String(i)}))]} onChange={v=>setStageFilter(String(v??''))}/></label>
++ <label><span>当前状态</span><Select value={status} clearable placeholder="全部" options={[{label:'全部',value:''},...['未开始','进行中','待审核','审核退回','已完成'].map(label=>({label,value:label}))]} onChange={v=>setStatus(String(v||''))}/></label>
++ <label><span>任务负责人</span><Select value={assigneeFilter} clearable placeholder="全部" options={[{label:'全部',value:''},{label:'未分配',value:'unassigned'},...data.people.filter(p=>p.role==='工程师').map(p=>({label:p.name,value:p.id}))]} onChange={v=>setAssigneeFilter(String(v||''))}/></label>
+@@ -161 +187 @@ export default function AdminWorkspace(){
+-  const h=data.hospitals.find(h=>h.id===detail);content=h?<><PageBack label={backLabel('机构与人员')} onBack={()=>goBack('organizations')}/><Card bordered={false} className="project-info-card"><div className="section-heading"><h2>医院基本资料</h2>{button('变更负责组长',()=>start({action:'hospital-leader',id:h.id,version:h.version,title:'变更医院负责组长',options:leaders(),selectLabel:'新负责组长'}))}</div><Fields items={[["医院",h.name],["所属区域",h.region],["联系信息",h.contact],["当前负责组长",person(h.leaderId)],["当前状态",<Status value={h.status}/>],["科室",h.departments.join('、')]]}/></Card><Card bordered={false} className="table-card"><div className="section-heading"><h2>关联医生</h2></div><AdminTable paginate={false} rows={data.doctors.filter(d=>d.hospitalId===h.id)} columns={doctorColumns()}/></Card><Card bordered={false} className="table-card"><div className="section-heading"><h2>关联订单</h2></div><AdminTable paginate={false} rows={data.orders.filter(o=>o.hospitalId===h.id)} columns={orderColumns}/></Card><Card bordered={false} className="project-info-card"><h2>负责人变更记录</h2><History events={data.events.filter(e=>e.objectId===h.id)}/></Card></>:<Empty description="医院不存在"/>;
++  const h=data.hospitals.find(h=>h.id===detail);content=h?<><PageBack label={backLabel('机构与人员')} onBack={()=>goBack('organizations')}/><Card bordered={false} className="project-info-card"><div className="section-heading"><h2>医院基本资料</h2>{button('变更负责组长',()=>start({action:'hospital-leader',id:h.id,version:h.version,title:'变更医院负责组长',options:leaders(),selectLabel:'新负责组长'}),!h.managementEditable)}</div><Fields items={[["医院",h.name],["所属区域",h.region],["联系信息",h.contact],["当前负责组长",person(h.leaderId)],["当前状态",<Status value={h.status}/>],["科室",h.departments.join('、')]]}/></Card><Card bordered={false} className="table-card"><div className="section-heading"><h2>关联医生</h2></div><AdminTable paginate={false} rows={data.doctors.filter(d=>d.hospitalId===h.id)} columns={doctorColumns()}/></Card><Card bordered={false} className="table-card"><div className="section-heading"><h2>关联订单</h2></div><AdminTable paginate={false} rows={data.orders.filter(o=>o.hospitalId===h.id)} columns={orderColumns}/></Card><Card bordered={false} className="project-info-card"><h2>负责人变更记录</h2><History events={data.events.filter(e=>e.objectId===h.id)}/></Card></>:<Empty description="医院不存在"/>;
+@@ -165 +191 @@ export default function AdminWorkspace(){
+- else if(section==='audit')content=<Card bordered={false} className="project-list-card">{title('审计日志')}{fieldFilters(['成功','已记录'])}<div className="project-filters admin-filters"><label><span>业务类型</span><Select clearable value={tab.startsWith('category:')?tab.slice(9):''} placeholder="全部业务类型" aria-label="业务类型筛选" options={[...new Set(data.events.map(e=>e.category))].map(v=>({label:v,value:v}))} onChange={v=>setTab(v?`category:${v}`:'')}/></label><label><span>操作时间</span><DateRangePicker value={range} clearable onChange={v=>setRange(v as string[])}/></label></div><AdminTable rows={chronological(data.events,e=>e.at).filter(e=>matches(`${e.title} ${auditObject(e)} ${e.actor} ${e.reason||''} ${e.basis||''}`,e.result)&&(!tab.startsWith('category:')||e.category===tab.slice(9))&&(!range[0]||formatDate(e.at)>=range[0])&&(!range[1]||formatDate(e.at)<=range[1]))} columns={[{key:'title',label:'事件',width:190,render:r=>r.title},{key:'category',label:'业务类型',width:130,render:r=>r.category},{key:'object',label:'业务对象',width:170,render:r=>auditObject(r)},{key:'actor',label:'操作人',width:110,render:r=>r.actor},{key:'time',label:'操作时间',width:150,render:r=>formatAuditTime(r.at)},{key:'result',label:'操作结果',width:100,render:r=>r.result},{key:'reason',label:'原因 / 审批依据',width:220,render:r=><FullText>{r.basis||r.reason||'—'}</FullText>},{key:'action',label:'操作',width:90,render:r=>button('详情',()=>show('audit',r))}]}/></Card>;
++ else if(section==='audit')content=<Card bordered={false} className="project-list-card">{title('审计日志')}{fieldFilters(['成功','已记录'])}<div className="project-filters admin-filters"><label><span>业务类型</span><Select clearable value={tab.startsWith('category:')?tab.slice(9):''} placeholder="全部业务类型" aria-label="业务类型筛选" options={[{label:'全部',value:''},...[...new Set(data.events.map(e=>e.category))].map(v=>({label:v,value:v}))]} onChange={v=>setTab(v?`category:${v}`:'')}/></label><label><span>操作时间</span><DateRangePicker value={range} clearable onChange={v=>setRange(v as string[])}/></label></div><AdminTable rows={chronological(data.events,e=>e.at).filter(e=>matches(`${e.title} ${auditObject(e)} ${e.actor} ${e.reason||''} ${e.basis||''}`,e.result)&&(!tab.startsWith('category:')||e.category===tab.slice(9))&&(!range[0]||formatDate(e.at)>=range[0])&&(!range[1]||formatDate(e.at)<=range[1]))} columns={[{key:'title',label:'事件',width:190,render:r=>r.title},{key:'category',label:'业务类型',width:130,render:r=>r.category},{key:'object',label:'业务对象',width:170,render:r=>auditObject(r)},{key:'actor',label:'操作人',width:110,render:r=>r.actor},{key:'time',label:'操作时间',width:150,render:r=>formatAuditTime(r.at)},{key:'result',label:'操作结果',width:100,render:r=>r.result},{key:'reason',label:'原因 / 审批依据',width:220,render:r=><FullText>{r.basis||r.reason||'—'}</FullText>},{key:'action',label:'操作',width:90,render:r=>button('详情',()=>show('audit',r))}]}/></Card>;
+@@ -167,4 +193,4 @@ export default function AdminWorkspace(){
+- function doctorColumns():Column<Doctor>[]{return [{key:'name',label:'医生',width:110,render:r=>r.name},{key:'hospital',label:'医院',width:180,render:r=>hospital(r.hospitalId)},{key:'department',label:'科室',width:140,render:r=>r.department},{key:'phone',label:'联系手机号',width:140,render:r=>r.phone},{key:'source',label:'建档来源',width:130,render:r=>r.source},{key:'status',label:'资质状态',width:110,render:r=><Status value={r.status}/>},{key:'actions',label:'操作',width:110,render:r=>button('查看档案',()=>show('doctor',r))}]}
+- function peopleColumns():Column<Person>[]{return [{key:'name',label:'姓名',width:110,render:r=>r.name},{key:'role',label:'主要职责',width:130,render:r=>r.role},{key:'organization',label:'所属组织',width:170,render:r=>r.organization},{key:'scope',label:'生效范围',width:220,render:r=>r.scope.map(hospital).join('、')||'本人任务'},{key:'permissions',label:'具体权限',width:250,render:r=>r.permissions.map(permissionName).join('、')},{key:'status',label:'账号状态',width:110,render:r=><Status value={r.status}/>},{key:'actions',label:'操作',width:100,render:r=>button('查看',()=>show('person',r))}]}
+- function hospitalColumns():Column<Hospital>[]{return [{key:'name',label:'医院名称',width:200,render:r=>button(r.name,()=>go(`hospital/${r.id}`))},{key:'region',label:'所属区域',width:100,render:r=>r.region},{key:'contact',label:'联系信息',width:150,render:r=>r.contact},{key:'leader',label:'当前负责组长',width:130,render:r=>person(r.leaderId)},{key:'doctors',label:'关联医生',width:110,render:r=>data?.doctors.filter(d=>d.hospitalId===r.id).length},{key:'status',label:'当前状态',width:110,render:r=><Status value={r.status}/>},{key:'actions',label:'操作',width:180,render:r=><div className="admin-actions">{button('查看',()=>go(`hospital/${r.id}`))}{button('变更组长',()=>start({action:'hospital-leader',id:r.id,version:r.version,title:'变更医院负责组长',options:leaders(),selectLabel:'新负责组长'}))}</div>}]}
+- function assetColumns():Column<Asset>[]{return [{key:'name',label:'成果名称',width:170,render:r=>r.name},{key:'order',label:'所属订单',width:140,render:r=>orderLink(r.orderId)},{key:'stage',label:'设计阶段',width:110,render:r=><StageTypeIcon stage={stageNames[r.stage]}/>},{key:'version',label:'成果版本',width:100,render:r=>r.version},{key:'review',label:'审核状态',width:110,render:r=><Status value={r.reviewStatus}/>},{key:'publish',label:'发布状态',width:110,render:r=><Status value={r.publishStatus}/>},{key:'action',label:'操作',width:110,render:r=>button('追溯详情',()=>show('asset',r))}]}
++ function doctorColumns():Column<Doctor>[]{return [{key:'name',label:'医生',width:110,render:r=>r.name},{key:'hospital',label:'医院',width:180,render:r=>hospital(r.hospitalId)},{key:'department',label:'科室',width:140,render:r=>r.department},{key:'phone',label:'联系手机号',width:140,render:r=>r.phone||'—'},{key:'source',label:'建档来源',width:130,render:r=>r.source||'未记录'},{key:'status',label:'资质状态',width:110,render:r=><Status value={r.status}/>},{key:'actions',label:'操作',width:110,render:r=>button('查看档案',()=>show('doctor',r))}]}
++ function peopleColumns():Column<Person>[]{return [{key:'name',label:'姓名',width:110,render:r=>r.name},{key:'role',label:'主要职责',width:130,render:r=>r.role},{key:'organization',label:'所属组织',width:170,render:r=>r.organization||'—'},{key:'scope',label:'生效范围',width:220,render:r=>r.scope.map(hospital).join('、')||'本人任务'},{key:'permissions',label:'具体权限',width:250,render:r=>r.permissions.map(permissionName).join('、')},{key:'status',label:'账号状态',width:110,render:r=><Status value={r.status}/>},{key:'actions',label:'操作',width:100,render:r=>button('查看',()=>show('person',r))}]}
++ function hospitalColumns():Column<Hospital>[]{return [{key:'name',label:'医院名称',width:200,render:r=>button(r.name,()=>go(`hospital/${r.id}`))},{key:'region',label:'所属区域',width:100,render:r=>r.region||'—'},{key:'contact',label:'联系信息',width:150,render:r=>r.contact||'—'},{key:'leader',label:'当前负责组长',width:130,render:r=>person(r.leaderId)},{key:'doctors',label:'关联医生',width:110,render:r=>data?.doctors.filter(d=>d.hospitalId===r.id).length},{key:'status',label:'当前状态',width:110,render:r=><Status value={r.status}/>},{key:'actions',label:'操作',width:180,render:r=><div className="admin-actions">{button('查看',()=>go(`hospital/${r.id}`))}{button('变更组长',()=>start({action:'hospital-leader',id:r.id,version:r.version,title:'变更医院负责组长',options:leaders(),selectLabel:'新负责组长'}),!r.managementEditable)}</div>}]}
++ function assetColumns():Column<Asset>[]{return [{key:'name',label:'成果名称',width:170,render:r=>r.name},{key:'order',label:'所属订单',width:140,render:r=>orderLink(r.orderId)},{key:'stage',label:'设计阶段',width:110,render:r=>r.stage===null?'—':<StageTypeIcon stage={stageNames[r.stage]}/>},{key:'version',label:'成果版本',width:100,render:r=>r.version},{key:'review',label:'审核状态',width:110,render:r=><Status value={r.reviewStatus}/>},{key:'publish',label:'发布状态',width:110,render:r=><Status value={r.publishStatus}/>},{key:'action',label:'操作',width:110,render:r=>button('追溯详情',()=>show('asset',r))}]}
+@@ -175 +201 @@ export default function AdminWorkspace(){
+-  if(inspectKind==='doctor'){const d=data.doctors.find(d=>d.id===inspect.id);if(!d)return <Empty title="档案不存在或无查看权限" description={null}/>;return <><Fields items={[["医生",d.name],["联系手机号",d.phone],["医院",hospital(d.hospitalId)],["科室",d.department],["职称",d.title],["建档来源",d.source],["邀请销售",d.invitedBy?person(d.invitedBy):'—'],["正式负责销售",person(d.salesId)],["资质状态",<Status value={d.status}/>]]}/><h3>资质材料</h3>{['身份证明','执业证明材料','其他附件'].map(category=><div className="admin-material-group" key={category}><label>{category}</label>{data.materials.filter(m=>m.doctorId===d.id&&m.category===category).length?data.materials.filter(m=>m.doctorId===d.id&&m.category===category).map(m=><div key={m.id}><button className="admin-file-link" onClick={()=>setPreview(m.id)}>{m.name}</button><span>{m.submittedBy} · {formatAuditTime(m.at)} 提交</span></div>):<span>暂无附件</span>}</div>)}<h3>操作记录</h3><History events={data.doctorHistory.filter(h=>h.objectId===d.id)}/>{d.status==='待审核'&&can('doctors:review')?<div className="admin-drawer-actions"><Button onClick={()=>start({action:'review-doctor',id:d.id,version:d.version,title:'医生档案审核退回',kind:'doctor',result:'returned'})}>审核退回</Button><Button theme="primary" onClick={()=>start({action:'review-doctor',id:d.id,version:d.version,title:'医生档案审核通过',kind:'doctor',result:'approved'})}>审核通过</Button></div>:can('doctors:review')&&['审核通过','已停用'].includes(d.status)&&<Button theme={d.status==='已停用'?'primary':'danger'} variant="outline" onClick={()=>start({action:'doctor-status',id:d.id,version:d.version,title:d.status==='已停用'?'恢复医生档案':'停用医生档案'})}>{d.status==='已停用'?'恢复档案':'停用档案'}</Button>}</>}
++  if(inspectKind==='doctor'){const d=data.doctors.find(d=>d.id===inspect.id);if(!d)return <Empty title="档案不存在或无查看权限" description={null}/>;return <><Fields items={[["医生",d.name],["联系手机号",d.phone],["医院",hospital(d.hospitalId)],["科室",d.department],["职称",d.title],["建档来源",d.source],["邀请销售",d.invitedBy?person(d.invitedBy):'—'],["正式负责销售",person(d.salesId)],["资质状态",<Status value={d.status}/>]]}/><h3>资质材料</h3>{['身份证明','执业证明材料','其他附件'].map(category=><div className="admin-material-group" key={category}><label>{category}</label>{data.materials.filter(m=>m.doctorId===d.id&&m.category===category).length?data.materials.filter(m=>m.doctorId===d.id&&m.category===category).map(m=><div key={m.id}><button className="admin-file-link" onClick={()=>setPreview(m.id)}>{m.name}</button><span>{m.submittedBy} · {formatAuditTime(m.at)} 提交</span></div>):<span>暂无附件</span>}</div>)}<h3>操作记录</h3><History events={data.doctorHistory.filter(h=>h.objectId===d.id)}/>{!d.managementEditable&&<p className="admin-boundary">此共享档案的管理写入服务尚未接通，仅可查看现有资料。</p>}{d.managementEditable&&d.status==='待审核'&&can('doctors:review')?<div className="admin-drawer-actions"><Button onClick={()=>start({action:'review-doctor',id:d.id,version:d.version,title:'医生档案审核退回',kind:'doctor',result:'returned'})}>审核退回</Button><Button theme="primary" onClick={()=>start({action:'review-doctor',id:d.id,version:d.version,title:'医生档案审核通过',kind:'doctor',result:'approved'})}>审核通过</Button></div>:d.managementEditable&&can('doctors:review')&&['审核通过','已停用'].includes(d.status)&&<Button theme={d.status==='已停用'?'primary':'danger'} variant="outline" onClick={()=>start({action:'doctor-status',id:d.id,version:d.version,title:d.status==='已停用'?'恢复医生档案':'停用医生档案'})}>{d.status==='已停用'?'恢复档案':'停用档案'}</Button>}</>}
+@@ -182 +208 @@ export default function AdminWorkspace(){
+-  const e=inspect as AuditEvent;return <><Fields items={[["事件",e.title],["业务类型",e.category],["业务对象",auditObject(e)],["业务对象ID",e.objectId],["操作人",e.actor],["操作时间",formatDateTime(e.at)],["结果",e.result],["原因",e.reason],["审批依据",e.basis],["数据来源",e.source==='local-auth'?'本地认证服务':e.source==='isolated-shared'?'共享业务服务':'隔离管理业务']]}/>{e.before!==undefined&&<><h3>变更前</h3><pre className="admin-json">{JSON.stringify(e.before,null,2)}</pre></>}{e.after!==undefined&&<><h3>变更后</h3><pre className="admin-json">{JSON.stringify(e.after,null,2)}</pre></>}</>;
++  const e=inspect as AuditEvent;return <><Fields items={[["事件",e.title],["业务类型",e.category],["业务对象",auditObject(e)],["业务对象ID",e.objectId],["操作人",e.actor],["操作时间",formatDateTime(e.at)],["结果",e.result],["原因",e.reason],["审批依据",e.basis],["数据来源",e.source==='local-auth'?'本地认证服务':e.source==='isolated-shared'?'共享业务服务':'隔离管理业务']]}/>{e.before!==undefined&&<details><summary>变更前原始记录</summary><pre className="admin-json">{JSON.stringify(e.before,null,2)}</pre></details>}{e.after!==undefined&&<details><summary>变更后原始记录</summary><pre className="admin-json">{JSON.stringify(e.after,null,2)}</pre></details>}</>;
+@@ -188 +214 @@ export default function AdminWorkspace(){
+- <Dialog visible={!!command} header={command?.title} confirmBtn={{content:'确认',loading:busy,disabled:busy}} cancelBtn="取消" onConfirm={()=>void commit()} onClose={()=>{if(!busy)setCommand(null)}} destroyOnClose><Form className="admin-command-form" labelAlign="top">
++ <Dialog visible={!!command} header={command?.title} confirmBtn={{content:'确认',loading:busy,disabled:busy||commandConflict}} cancelBtn="取消" onConfirm={()=>void commit()} onClose={()=>{if(!busy)setCommand(null)}} destroyOnClose>{command?.kind==='order'&&data&&(()=>{const o=data.orders.find(o=>o.id===command.id);return o?<div className="admin-command-summary"><Fields items={[["订单编号",businessNo(o.id)],["手术项目名称",o.name],["医院",hospital(o.hospitalId)],["患者",o.patientName],["当前状态",<Status value={o.status}/>],["设计阶段",<div className="project-stage-tags">{o.requestedStages.map(stage=><StageLabel key={stage} stage={stageNames[stage]}/>)}</div>]]}/></div>:null})()}<Form className="admin-command-form" labelAlign="top">
+@@ -192,0 +219 @@ export default function AdminWorkspace(){
++ {commandConflict&&<Button variant="outline" onClick={()=>{setCommand(null);void refresh()}}>关闭并刷新</Button>}
+diff --git a/src/admin/admin.css b/src/admin/admin.css
+index c9b741c..47f99fd 100644
+--- a/src/admin/admin.css
++++ b/src/admin/admin.css
+@@ -50,3 +49,0 @@
+-.admin-app .admin-field-wide { grid-column:1/-1; }
+-.admin-app .admin-field-wide dd { white-space:normal; overflow-wrap:anywhere; }
+-.admin-app .admin-management-card .admin-actions { justify-content:flex-end; }
+@@ -56 +53 @@
+-.admin-app .admin-page .project-stage-title { flex-wrap:wrap; }
++.admin-app .admin-page .project-stage-title { flex-wrap:nowrap; }
+@@ -70,0 +68,19 @@ html[theme-mode="dark"] .admin-app .business-nav .t-menu__item.t-is-active .t-me
++/* Administrator order composition follows the sales three-row stage and field rhythm. */
++.admin-app .admin-order-overview .section-heading { padding:0; margin:0 0 20px; }
++.admin-app .admin-order-overview .section-heading h2 { margin:0; }
++.admin-app .admin-field-demand { grid-column:span 2; }
++.admin-app .admin-field-demand dd { white-space:normal; overflow-wrap:anywhere; }
++.admin-app .admin-return-reason { margin-top:20px; }
++.admin-app .admin-return-reason > span { color:var(--td-text-color-secondary); }
++.admin-app .admin-return-reason p { margin:5px 0 0; }
++.admin-app .admin-more-button.t-button { width:32px; height:32px; padding:0; justify-content:center; }
++.admin-app .admin-order-filters .project-range-trigger { white-space:nowrap; }
++.admin-app .admin-design-stage .project-stage-title h3 { display:flex; align-items:center; gap:var(--td-comp-margin-xs); margin:0; min-width:0; }
++.admin-app .admin-design-stage .admin-stage-progress { display:flex; align-items:center; gap:var(--td-comp-margin-s); min-height:22px; margin-top:var(--td-comp-margin-m); }
++.admin-app .admin-stage-progress > span { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
++.admin-app .admin-stage-progress .t-button { height:22px; padding:0; border:0; }
++.admin-app .admin-history-stage { margin-left:16px; color:var(--td-text-color-secondary); }
++.admin-drawer-content details { margin-top:16px; }
++
++.admin-command-summary { margin-bottom:24px; }
++.admin-command-summary .project-info-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+diff --git a/src/admin/model.ts b/src/admin/model.ts
+index c5777e0..695fdcc 100644
+--- a/src/admin/model.ts
++++ b/src/admin/model.ts
+@@ -4 +4 @@ export const STAGES=['三维重建','CAD设计','有限元分析','3D打印'];
+-export type Hospital={id:string;name:string;region:string;contact:string;departments:string[];leaderId:string;status:string;version:number};
++export type Hospital={managementEditable?:boolean;id:string;name:string;region:string;contact:string;departments:string[];leaderId:string;status:string;version:number};
+@@ -6,2 +6,2 @@ export type Person={id:string;name:string;role:string;organization:string;status
+-export type Doctor={id:string;name:string;hospitalId:string;department:string;title:string;phone:string;status:string;source:string;submittedBy:string;salesId:string|null;invitedBy:string|null;materials:string[];version:number};
+-export type Order={id:string;businessNo?:string;projectId?:string;name:string;hospitalId:string;doctorId:string;salesId:string;leaderId:string;status:string;requestedStages:number[];createdAt:string;requestedDueDate:string;confirmedDeliveryDate:string|null;clinicalRequirements:string;patientRef:string;patientName?:string;department?:string;clinicalContent?:ClinicalContent;designRequirements?:string;requirements?:string;materials?:Attachment[];ownerSalesId?:string;updated?:string;version:number};
++export type Doctor={managementEditable?:boolean;id:string;name:string;hospitalId:string;department:string;title:string;phone:string;status:string;source:string;submittedBy:string;salesId:string|null;invitedBy:string|null;materials:string[];version:number};
++export type Order={id:string;businessNo?:string;projectId?:string;name:string;hospitalId:string;doctorId:string;salesId:string;leaderId:string;status:string;requestedStages:number[];createdAt:string;requestedDueDate:string;confirmedDeliveryDate:string|null;clinicalRequirements:string;patientRef:string;quantity?:number;reason?:string;patientName?:string;department?:string;clinicalContent?:ClinicalContent;designRequirements?:string;requirements?:string;materials?:Attachment[];ownerSalesId?:string;updated?:string;version:number};
+@@ -9 +9 @@ export type Task={id:string;orderId:string;stage:number;upstreamId:string|null;s
+-export type Asset={id:string;orderId:string;projectId:string;taskId:string;stage:number;name:string;version:string;reviewStatus:string;publishStatus:string;type:string;source:string;sourceFileAvailable:boolean;revision:number;reviewerId?:string};
++export type Asset={id:string;orderId:string;projectId:string;taskId:string;stage:number|null;name:string;version:string;reviewStatus:string;publishStatus:string;type:string;source:string;sourceFileAvailable:boolean;revision:number;reviewerId?:string};
+@@ -15 +15,7 @@ export type AdminState={source:string;hospitals:Hospital[];people:Person[];docto
+-export async function adminRequest<T>(action='state',body?:unknown):Promise<T>{const response=await fetch(`/api/admin/${action}`,{credentials:'same-origin',method:body===undefined?'GET':'POST',headers:body===undefined?{}:{'Content-Type':'application/json','X-CliniVol-Request':'1'},body:body===undefined?undefined:JSON.stringify(body)});const result=await response.json();if(!response.ok)throw new Error(result.error||'操作未完成，请重试。');return result}
++export async function adminRequest<T>(action='state',body?:unknown):Promise<T>{
++ let response:Response;
++ try{response=await fetch(`/api/admin/${action}`,{credentials:'same-origin',method:body===undefined?'GET':'POST',headers:body===undefined?{}:{'Content-Type':'application/json','X-CliniVol-Request':'1'},body:body===undefined?undefined:JSON.stringify(body)})}
++ catch{throw new Error('网络连接中断，请确认服务可用后重试。')}
++ let result;try{result=await response.json()}catch{throw new Error('管理服务响应异常，请重试。')}
++ if(!response.ok)throw Object.assign(new Error(result.error||'操作未完成，请重试。'),{status:response.status});return result;
++}
+diff --git a/src/admin/orderRules.d.mts b/src/admin/orderRules.d.mts
+new file mode 100644
+index 0000000..f4ee3a1
+--- /dev/null
++++ b/src/admin/orderRules.d.mts
+@@ -0,0 +1,11 @@
++import type {Order,AuditEvent} from './model';
++import type {Attachment} from '../sales/model';
++type Filter={query?:string;status?:string;hospitalId?:string;department?:string;stage?:string;leaderId?:string;range?:string[]};
++export function orderMatches(order:Order,filters:Filter,localDay:(v:string)=>string):boolean;
++export function recentOrders(orders:Order[],range:string[],localDay:(v:string)=>string):Order[];
++export type OrderAction='assign-leader'|'change-leader'|'takeover'|'accept'|'return';
++export function orderActions(order:Order,account:{id:string;role:string|null;permissions:string[]}):OrderAction[];
++export function historyEvents<T extends AuditEvent>(events:T[]):T[];
++export function fileFormat(file:Attachment):string;
++export function fileCategory(file:Attachment):string;
++export function fileSize(file:Attachment):string;
+diff --git a/src/admin/orderRules.mjs b/src/admin/orderRules.mjs
+new file mode 100644
+index 0000000..932d4ef
+--- /dev/null
++++ b/src/admin/orderRules.mjs
+@@ -0,0 +1,31 @@
++// Read-only administrator projections: do not mutate orders, identities or audit history.
++export function orderMatches(order, filters, localDay) {
++ const created=localDay(order.createdAt);
++ return (!filters.query||(order.businessNo||'').toLowerCase().includes(filters.query.trim().toLowerCase()))
++  &&(!filters.status||order.status===filters.status)
++  &&(!filters.hospitalId||order.hospitalId===filters.hospitalId)
++  &&(!filters.department||order.department===filters.department)
++  &&(filters.stage===''||filters.stage===undefined||order.requestedStages.includes(Number(filters.stage)))
++  &&(!filters.leaderId||order.leaderId===filters.leaderId)
++  &&(!filters.range?.[0]||created!=='—'&&created>=filters.range[0])
++  &&(!filters.range?.[1]||created!=='—'&&created<=filters.range[1]);
++}
++export function recentOrders(orders, range, localDay) {
++ return orders.filter(o=>orderMatches(o,{range},localDay)).slice().sort((a,b)=>(Date.parse(b.updated)||0)-(Date.parse(a.updated)||0)||a.id.localeCompare(b.id)).slice(0,7);
++}
++export function orderActions(order, account) {
++ if(!account.permissions.includes('orders:review')||!['待审核','处理中','审核退回'].includes(order.status))return [];
++ const actions=[order.leaderId?'change-leader':'assign-leader'];
++ if(order.leaderId!==account.id&&account.role==='super_admin')actions.push('takeover');
++ if(order.leaderId===account.id&&order.status==='待审核')actions.push('accept','return');
++ return actions;
++}
++export function historyEvents(events) {
++ return [...new Map(events.map(e=>[e.id,e])).values()].sort((a,b)=>(Date.parse(b.at)||0)-(Date.parse(a.at)||0)||a.id.localeCompare(b.id));
++}
++export function fileFormat(file) {
++ const ext=file.name.split('.').pop();
++ return ext&&ext!==file.name?ext.toUpperCase():({'application/pdf':'PDF','image/png':'PNG','image/jpeg':'JPG','application/dicom':'DICOM'}[file.type]||'—');
++}
++export function fileCategory(file) { return file.category==='imaging'||/\.(dcm|dicom|nii|nii.gz|zip)$/i.test(file.name)?'医学影像':'其他附件'; }
++export const fileSize=file=>Number.isFinite(file.size)?(file.size/1024).toFixed(1)+' KB':'—';
+diff --git a/src/projects/RangeControl.tsx b/src/projects/RangeControl.tsx
+index 1ab02cd..8b7d946 100644
+--- a/src/projects/RangeControl.tsx
++++ b/src/projects/RangeControl.tsx
+@@ -12 +12 @@ export function validRange(range: DateRange) {
+-export function RangeControl({ period, range, onChange, minDate, maxDate, allowedMonths }: { period: Period; range: DateRange; onChange: (period: Period, range: DateRange) => void; minDate?: string; maxDate?: string; allowedMonths?: number }) {
++export function RangeControl({ period, range, onChange, minDate, maxDate, allowedMonths, ariaLabel = "项目创建时间范围" }: { period: Period; range: DateRange; onChange: (period: Period, range: DateRange) => void; minDate?: string; maxDate?: string; allowedMonths?: number; ariaLabel?: string }) {
+@@ -29 +29 @@ export function RangeControl({ period, range, onChange, minDate, maxDate, allowe
+-    <Button className="project-range-trigger" variant="outline" icon={<CalendarIcon size={16} />} aria-label="项目创建时间范围" aria-expanded={open}>{range[0] && range[1] ? `${range[0]} — ${range[1]}` : '选择日期范围'}<ChevronDownIcon size={14} /></Button>
++    <Button className="project-range-trigger" variant="outline" icon={<CalendarIcon size={16} />} aria-label={ariaLabel} aria-expanded={open}>{range[0] && range[1] ? `${range[0]} — ${range[1]}` : '选择日期范围'}<ChevronDownIcon size={14} /></Button>
+diff --git a/src/sales/OrderPages.tsx b/src/sales/OrderPages.tsx
+index 5126940..1a19d00 100644
+--- a/src/sales/OrderPages.tsx
++++ b/src/sales/OrderPages.tsx
+@@ -623 +623 @@ export function OrderDetail({
+-              title: "类型",
++              title: "格式",
+diff --git a/src/sales/SalesWorkspace.tsx b/src/sales/SalesWorkspace.tsx
+index 0afb62e..4d23816 100644
+--- a/src/sales/SalesWorkspace.tsx
++++ b/src/sales/SalesWorkspace.tsx
+@@ -19,0 +20 @@ import { confirmedDelivery, localDate } from "./orderRules.mjs";
++import { periodRange } from "../projects/projectModel";
+@@ -253,2 +254,2 @@ export default function SalesWorkspace() {
+-    [from, setFrom] = useState(""),
+-    [to, setTo] = useState(""),
++    [from, setFrom] = useState(() => periodRange("3m")[0]),
++    [to, setTo] = useState(() => periodRange("3m")[1]),
+@@ -524,2 +525,2 @@ export default function SalesWorkspace() {
+-        setFrom(state?.from || "");
+-        setTo(state?.to || "");
++        setFrom(state?.from || periodRange("3m")[0]);
++        setTo(state?.to || periodRange("3m")[1]);
+@@ -772 +773 @@ export default function SalesWorkspace() {
+-    filterCache.current["orders"]={search:"",filter:"",hospitalFilter:"",deptFilter:"",serviceFilter:"",from:"",to:""};
++    filterCache.current["orders"]={search:"",filter:"",hospitalFilter:"",deptFilter:"",serviceFilter:"",from:periodRange("3m")[0],to:periodRange("3m")[1]};
+@@ -778,2 +779,2 @@ export default function SalesWorkspace() {
+-    setFrom("");
+-    setTo("");
++    setFrom(periodRange("3m")[0]);
++    setTo(periodRange("3m")[1]);
+@@ -795 +796 @@ export default function SalesWorkspace() {
+-        <span>创建时间范围</span>
++        <span>订单创建时间</span>
+@@ -796,0 +798 @@ export default function SalesWorkspace() {
++          ariaLabel="订单创建时间"
+diff --git a/tests/admin-orders-20261124.test.mjs b/tests/admin-orders-20261124.test.mjs
+new file mode 100644
+index 0000000..ef2803f
+--- /dev/null
++++ b/tests/admin-orders-20261124.test.mjs
+@@ -0,0 +1,15 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {orderMatches,recentOrders,orderActions,historyEvents,fileFormat,fileCategory,fileSize} from '../src/admin/orderRules.mjs';
++const day=v=>{const d=new Date(v);return Number.isNaN(+d)?'—':`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
++const base={id:'a',businessNo:'CV-2026-0001',createdAt:'2026-09-01T00:00:00+08:00',updated:'2026-11-24T08:00:00+08:00',status:'待审核',hospitalId:'h',department:'骨科',requestedStages:[0,1],leaderId:'lead'};
++const superadmin={id:'sa',role:'super_admin',permissions:['orders:review']};
++test('order filters combine AND, include local natural start/end dates, and match actual requested stage',()=>{const f={query:'CV-2026-0001',range:['2026-09-01','2026-11-24'],hospitalId:'h',department:'骨科',stage:'1',status:'待审核',leaderId:'lead'};assert(orderMatches(base,f,day));for(const change of [{query:'unknown'},{status:'已完成'},{hospitalId:'other'},{department:'外科'},{stage:'2'},{leaderId:'other'},{range:['2026-09-02','2026-11-24']}])assert(!orderMatches(base,{...f,...change},day));assert(orderMatches({...base,createdAt:'2026-11-24T23:59:59+08:00'},f,day));assert(!orderMatches({...base,createdAt:'bad'},f,day));assert(!orderMatches({...base,businessNo:undefined},{query:'a'},day));});
++test('home uses every authorized status, latest actual timestamp, stable ID ties, maximum seven, and does not mutate input',()=>{const states=['待审核','处理中','已完成','审核退回','已取消'];const rows=Array.from({length:10},(_,i)=>({...base,id:String(i),status:states[i%5],updated:new Date(Date.parse(base.updated)+i*1000).toISOString()}));const copy=structuredClone(rows);assert.deepEqual(recentOrders(rows,['2026-09-01','2026-11-24'],day).map(r=>r.id),['9','8','7','6','5','4','3']);assert.deepEqual(rows,copy);assert.equal(recentOrders(rows,['2026-10-01','2026-11-24'],day).length,0);assert.deepEqual(recentOrders([{...base,id:'b'},{...base,id:'a'}],[],day).map(r=>r.id),['a','b']);});
++test('More follows permissions, assignment, ownership and state, never treating task assignment as order review',()=>{assert.deepEqual(orderActions(base,superadmin),['change-leader','takeover']);assert.deepEqual(orderActions({...base,leaderId:'sa'},superadmin),['change-leader','accept','return']);assert.deepEqual(orderActions({...base,leaderId:null},superadmin),['assign-leader','takeover']);assert.deepEqual(orderActions({...base,status:'已完成'},superadmin),[]);assert.deepEqual(orderActions(base,{...superadmin,permissions:[]}),[]);assert.deepEqual(orderActions(base,{...superadmin,role:'leader'}),['change-leader']);});
++test('history identity dedup preserves separate same-title events and sorts epoch across timezones without changing audit data',()=>{const a={id:'a',title:'受理',at:'2026-01-01T10:00:00+08:00'},b={id:'b',title:'受理',at:'2026-01-01T02:30:00Z'};const events=[a,b,a],before=structuredClone(events);assert.deepEqual(historyEvents(events).map(e=>e.id),['b','a']);assert.deepEqual(events,before)});
++test('file metadata renders actual format/category/bytes without synthesizing a file or upload identity',()=>{assert.equal(fileFormat({name:'a.nii',type:'application/octet-stream'}),'NII');assert.equal(fileCategory({name:'a.nii'}),'医学影像');assert.equal(fileCategory({name:'a.pdf',category:'order-other'}),'其他附件');assert.equal(fileSize({size:1536}),'1.5 KB');assert.equal(fileSize({}),'—');});
++import {UnifiedBusinessService} from '../server/unified/service.mjs';
++test('incomplete asset linkage stays visible with an unknown stage instead of crashing the management snapshot',()=>{const service=new UnifiedBusinessService({directoryProvider:()=>({hospitals:[],doctors:[],people:[]})});service.state.orders.push({...base,plannedStages:['三维重建'],created:base.createdAt});service.state.artifacts.push({id:'asset-orphan',orderId:base.id,taskId:'missing-task',version:'1'});const result=service.adminSnapshot({...superadmin,status:'approved',permissions:['orders:read','assets:read']});assert.equal(result.assets.length,1);assert.equal(result.assets[0].stage,null);assert.equal(result.assets[0].taskId,'missing-task');assert.equal(service.state.events.length,0)});
++test('authorized hospital dictionary remains complete even when a hospital has no order yet; scope cannot expand',()=>{const service=new UnifiedBusinessService({directoryProvider:()=>({hospitals:[{id:'h1',name:'一院'},{id:'h2',name:'二院'}],doctors:[],people:[]})});const admin={...superadmin,status:'approved',permissions:['orders:read']};assert.equal(service.adminSnapshot(admin).hospitals.length,2);assert.deepEqual(service.adminSnapshot({...admin,role:'admin',hospitalIds:['h2']}).hospitals.map(h=>h.id),['h2']);assert.equal(service.state.events.length,0)});
++test('actual responsibility updates advance the order update timestamp, while stale commands cannot rewrite it',()=>{const at=Date.parse('2026-11-24T16:00:00+08:00');const s=new UnifiedBusinessService({now:()=>at});s.state.orders.push({...base,plannedStages:['三维重建'],version:1,created:base.createdAt});const actor={...superadmin,status:'approved',permissions:['orders:read','orders:review']};s.manage(actor,{action:'takeover',id:'a',version:1,reason:'隔离交接'});assert.equal(s.state.orders[0].updated,new Date(at).toISOString());assert.throws(()=>s.manage(actor,{action:'takeover',id:'a',version:1,reason:'旧请求'}));assert.equal(s.state.orders[0].version,2);assert.equal(s.state.events.length,1)});
+diff --git a/tests/admin-request-network.test.mjs b/tests/admin-request-network.test.mjs
+new file mode 100644
+index 0000000..6dd7951
+--- /dev/null
++++ b/tests/admin-request-network.test.mjs
+@@ -0,0 +1,2 @@
++import test from 'node:test';import assert from 'node:assert/strict';import{createServer}from'node:http';import{mkdtempSync,rmSync}from'node:fs';import{join}from'node:path';import{tmpdir}from'node:os';import{build}from'esbuild';
++test('actual connection failure and conflict remain errors, not a resolved successful command',async t=>{const dir=mkdtempSync(join(tmpdir(),'cv-admin-network-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));await build({entryPoints:['src/admin/model.ts'],outfile:join(dir,'model.mjs'),bundle:true,format:'esm',platform:'node'});const{adminRequest}=await import(join(dir,'model.mjs'));let calls=0;const server=createServer((req,res)=>{calls++;if(req.url==='/api/admin/command'){req.socket.destroy();return}res.writeHead(409,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'订单已更新，请刷新后重试。'}))});await new Promise(r=>server.listen(0,'127.0.0.1',r));const real=globalThis.fetch;globalThis.fetch=(path,options)=>real(`http://127.0.0.1:${server.address().port}`+path,options);try{await assert.rejects(()=>adminRequest('command',{id:'isolated'}),/网络连接中断/);await assert.rejects(()=>adminRequest('state'),/订单已更新/);assert.equal(calls,2)}finally{globalThis.fetch=real;await new Promise(r=>server.close(r))}});
+diff --git a/tests/admin-service.test.mjs b/tests/admin-service.test.mjs
+index 185ece3..44dc115 100644
+--- a/tests/admin-service.test.mjs
++++ b/tests/admin-service.test.mjs
+@@ -15 +15 @@ test('seed forbidden in production and conflicts never alter accounts',t=>{const
+-test('statistics use the same business records and stages respect request/dependency',t=>{const{service:s}=setup(t);const state=s.snapshot(actor);assert.equal(state.orders.filter(o=>o.status==='待审核').length,5);assert(state.hospitals.every(h=>typeof h.leaderId==='string'));assert.equal(state.hospitals.filter(h=>h.leaderId==='ADM-L01').length,2);for(const o of state.orders){const ts=state.tasks.filter(t=>t.orderId===o.id);assert(o.leaderId===state.hospitals.find(h=>h.id===o.hospitalId).leaderId);if(['待审核','审核退回'].includes(o.status))assert.equal(ts.length,0);else assert.deepEqual(ts.map(t=>t.stage),o.requestedStages)}assert.equal(state.events.length,0)});
++test('statistics use the same business records and stages respect request/dependency',t=>{const{service:s}=setup(t);const state=s.snapshot(actor);assert.equal(state.orders.filter(o=>o.status==='待审核').length,5);assert(state.hospitals.every(h=>typeof h.leaderId==='string'));assert.equal(state.hospitals.filter(h=>h.managementEditable&&h.leaderId==='ADM-L01').length,2);for(const o of state.orders){const ts=state.tasks.filter(t=>t.orderId===o.id);assert(o.leaderId===state.hospitals.find(h=>h.id===o.hospitalId).leaderId);if(['待审核','审核退回'].includes(o.status))assert.equal(ts.length,0);else assert.deepEqual(ts.map(t=>t.stage),o.requestedStages)}assert.equal(state.events.length,0)});
