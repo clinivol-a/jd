@@ -1,0 +1,38 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtempSync,readFileSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {AuthService} from '../server/auth/service.mjs';
+import {seedSuperAdmin} from '../server/admin/seedAccount.mjs';
+import {AdminService} from '../server/admin/service.mjs';
+import {adminHandler} from '../server/admin/http.mjs';
+import {createAuthServer} from '../server/auth/http.mjs';
+import {fixtureAttachments,fixtureBytes} from '../src/sales/orderFixtures.mjs';
+
+test('order preview reads the exact authorized attachment bytes; rejects foreign order/file, incomplete uploads, missing bytes and unauthorized roles',async t=>{
+ const directory=mkdtempSync(join(tmpdir(),'cv-order-preview-'));t.after(()=>rmSync(directory,{recursive:true,force:true}));
+ const auth=new AuthService({directory,mode:'local',demoMode:true});auth.seedLocal();seedSuperAdmin(auth,{enabled:true});
+ const admin=new AdminService({authService:auth});
+ const order={id:'preview-order',businessNo:'CV-2026-0099',hospitalId:'preview-hospital',plannedStages:['三维重建'],materials:fixtureAttachments('sales-owner','preview-order','2026-11-24T00:00:00Z')};
+ admin.shared.state.orders.push(order);
+ const actor=auth.accounts.find(a=>a.role==='super_admin');
+ for(let i=0;i<3;i++)assert.deepEqual(admin.orderAttachment(actor,order.id,order.materials[i].id).bytes,fixtureBytes(i));
+ assert.throws(()=>admin.orderAttachment({...actor,role:'sales'},order.id,order.materials[0].id),e=>e.status===403);
+ assert.throws(()=>admin.orderAttachment({...actor,role:'admin',hospitalIds:[]},order.id,order.materials[0].id),e=>e.status===404);
+ assert.throws(()=>admin.orderAttachment(actor,'foreign-order',order.materials[0].id),e=>e.status===404);
+ assert.throws(()=>admin.orderAttachment(actor,order.id,'foreign-file'),e=>e.status===404);
+ order.materials.push({...order.materials[1],id:'incomplete',status:'progress'},{...order.materials[1],id:'missing',storage:'browser'});
+ assert.throws(()=>admin.orderAttachment(actor,order.id,'incomplete'),e=>e.status===409);
+ assert.throws(()=>admin.orderAttachment(actor,order.id,'missing'),e=>e.status===404);
+ const origin='http://127.0.0.1:5260',server=createAuthServer(auth,{origin,adminHandler:adminHandler(auth,admin,{origin})});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));t.after(()=>new Promise(resolve=>server.close(resolve)));
+ const base=`http://127.0.0.1:${server.address().port}`,path=`/api/admin/order-attachment?orderId=${order.id}&fileId=${encodeURIComponent(order.materials[1].id)}`;
+ assert.equal((await fetch(base+path)).status,401);
+ const credentials=JSON.parse(readFileSync(join(directory,'admin-credentials.json')));
+ const login=await fetch(base+'/api/auth/login/password',{method:'POST',headers:{origin,'X-CliniVol-Request':'1','Content-Type':'application/json'},body:JSON.stringify({...credentials,accepted:true})});assert.equal(login.status,200);
+ const cookie=login.headers.get('set-cookie').split(';')[0];
+ const response=await fetch(base+path,{headers:{cookie}});assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'application/pdf');assert.equal(response.headers.get('content-disposition'),'inline');assert.equal(response.headers.get('cache-control'),'no-store');assert.equal(response.headers.get('x-content-type-options'),'nosniff');assert.deepEqual(new Uint8Array(await response.arrayBuffer()),fixtureBytes(1));
+ assert.equal((await fetch(base+path,{headers:{cookie,origin:'https://unrelated.invalid'}})).status,403);
+ assert.equal((await fetch(base+'/api/admin/download/'+order.materials[1].id,{headers:{cookie}})).status,404);
+});

@@ -4,6 +4,7 @@ import {join} from 'node:path';
 import {initialAdminState,managementPermissions,stages} from './seed.mjs';
 import {UnifiedBusinessService} from '../unified/service.mjs';
 import {localBusinessDirectory} from '../unified/directory.mjs';
+import {fixtureBytes} from '../../src/sales/orderFixtures.mjs';
 export class AdminFailure extends Error {constructor(message,status=400){super(message);this.status=status}}
 const clone=value=>structuredClone(value);
 const validDate=v=>{if(typeof v!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(v))return false;const d=new Date(v+'T00:00:00Z');return Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===v};
@@ -84,6 +85,18 @@ export class AdminService {
   if(!Array.isArray(input.requestedStages)||!input.requestedStages.length||input.requestedStages.some(s=>!Number.isInteger(s)||s<0||s>3)||new Set(input.requestedStages).size!==input.requestedStages.length||!validDate(input.requestedDueDate))throw new AdminFailure('请核对服务阶段与期望完成时间。');
   const order={id:input.id,name:requireText(input.name,'手术项目名称'),hospitalId:hospital.id,doctorId:doctor.id,salesId:actor.id,leaderId:hospital.leaderId,status:'待审核',requestedStages:[...input.requestedStages].sort(),createdAt:new Date(this.now()).toISOString(),requestedDueDate:input.requestedDueDate,confirmedDeliveryDate:null,clinicalRequirements:requireText(input.clinicalRequirements,'临床需求'),patientRef:'未关联患者标识',version:1};
   this.state.orders.push(order);this.event(actor,'订单已提交审核','订单审核',order.id,null,order,'');this.persist();return clone(order)
+ }
+ orderAttachment(actor,orderId,fileId){
+  this.authorize(actor,'orders:read');
+  const order=this.snapshot(actor).orders.find(o=>o.id===orderId);
+  if(!order)throw new AdminFailure('订单不存在或无查看权限。',404);
+  const file=order.materials?.find(f=>f.id===fileId);
+  if(!file)throw new AdminFailure('文件不存在或不属于此订单。',404);
+  if(file.status!=='success')throw new AdminFailure('文件尚未上传完成。',409);
+  if(file.storage!=='demo-fixture')throw new AdminFailure('原文件内容尚未归档，无法读取预览。',404);
+  const kind=/\.nii$/i.test(file.name)?0:file.type==='application/pdf'?1:file.type==='image/png'?2:null;
+  if(kind===null)throw new AdminFailure('当前文件格式暂不支持预览。',415);
+  return {file,bytes:fixtureBytes(kind),type:kind===0?'application/octet-stream':file.type};
  }
  preview(actor,id){this.authorize(actor,'doctors:review');const file=this.find('materials',id,actor),doctor=this.find('doctors',file.doctorId,actor);this.event(actor,'资质资料已预览','文件访问',id,null,{doctorId:doctor.id},'');this.persist();return file}
 }

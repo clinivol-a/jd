@@ -24,6 +24,11 @@ export function adminHandler(auth,admin,{origin}) {
     res.end(JSON.stringify(result));return;
    }
    if(req.method==='GET'&&url.pathname==='/api/admin/state'){res.end(JSON.stringify(admin.snapshot(actor)));return}
+   if(req.method==='GET'&&url.pathname==='/api/admin/order-attachment'){
+    const result=admin.orderAttachment(actor,url.searchParams.get('orderId'),url.searchParams.get('fileId'));
+    res.setHeader('Content-Type',result.type);res.setHeader('Content-Disposition','inline');res.setHeader('X-Content-Type-Options','nosniff');
+    res.end(Buffer.from(result.bytes));return;
+   }
    if(req.method==='GET'&&url.pathname.startsWith('/api/admin/preview/')){
     const file=admin.preview(actor,decodeURIComponent(url.pathname.slice('/api/admin/preview/'.length)));res.setHeader('Content-Type','image/svg+xml; charset=utf-8');res.setHeader('Content-Disposition','inline');res.setHeader('Content-Security-Policy',"default-src 'none'; style-src 'unsafe-inline'; sandbox");res.end(`<svg xmlns="http://www.w3.org/2000/svg" width="720" height="480" viewBox="0 0 720 480"><rect width="720" height="480" fill="white"/><g fill="#333" font-family="sans-serif"><text x="56" y="88" font-size="28">隔离合成资质资料</text><text x="56" y="150" font-size="20">${escape(file.name)}</text><text x="56" y="200" font-size="18">提交来源：${escape(file.submittedBy)}</text><text x="56" y="250" font-size="18">仅用于本地审核交互，不含真实身份证或执业证件。</text></g></svg>`);return;
    }
