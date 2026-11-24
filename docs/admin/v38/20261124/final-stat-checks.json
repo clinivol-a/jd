@@ -1,0 +1,32 @@
+[
+  {
+    "label": "待审核订单",
+    "card": 1,
+    "list": 1,
+    "pass": true
+  },
+  {
+    "label": "待分配任务",
+    "card": 0,
+    "list": 0,
+    "pass": true
+  },
+  {
+    "label": "待处理审批",
+    "card": 6,
+    "list": 6,
+    "pass": true
+  },
+  {
+    "label": "进行中订单",
+    "card": 13,
+    "list": 13,
+    "pass": true
+  },
+  {
+    "label": "交付风险",
+    "card": 0,
+    "list": 0,
+    "pass": true
+  }
+]

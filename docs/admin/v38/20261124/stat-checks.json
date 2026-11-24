@@ -1,0 +1,40 @@
+{
+  "domMetrics": {
+    "cards": [
+      134,
+      134,
+      134,
+      134,
+      134
+    ],
+    "header": 56,
+    "nav": 224
+  },
+  "statCheck": [
+    {
+      "card": "待审核订单 1",
+      "total": "1",
+      "url": "http://127.0.0.1:5260/#admin/orders"
+    },
+    {
+      "card": "待分配任务 0",
+      "total": "0",
+      "url": "http://127.0.0.1:5260/#admin/tasks/unassigned"
+    },
+    {
+      "card": "待处理审批 6",
+      "total": "6",
+      "url": "http://127.0.0.1:5260/#admin/reviews/pending"
+    },
+    {
+      "card": "进行中订单 13",
+      "total": "13",
+      "url": "http://127.0.0.1:5260/#admin/orders"
+    },
+    {
+      "card": "交付风险 0",
+      "total": "0",
+      "url": "http://127.0.0.1:5260/#admin/orders/risk"
+    }
+  ]
+}

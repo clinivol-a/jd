@@ -5,7 +5,6 @@
 .admin-app .admin-actions, .admin-drawer-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .admin-app .admin-home-grid .t-card__body { padding:0; }
 .admin-app .admin-home-grid .section-heading { padding:20px 24px 12px; margin:0; }
-.admin-app .admin-home-grid .admin-data-table { min-height:224px; }
 .admin-app .admin-data-table { width:100%; min-width:0; }
 .admin-app .admin-data-table .t-table__content { overflow-x:auto; }
 .admin-app .admin-data-table .table-pagination { padding:16px 24px; }
@@ -34,3 +33,38 @@
 .admin-app .admin-filters > label .t-select__wrap { width:160px; }
 .admin-app .admin-filters > label .t-select__wrap .t-input__wrap { width:100%; }
 .admin-app .admin-filters > label .t-range-input-popup { width:280px; }
+/* Administrator-only composition; all colors and typography inherit the confirmed A system. */
+.admin-app .admin-nav-group { padding:20px 16px 8px; color:var(--td-text-color-secondary); font:var(--td-font-body-medium); }
+.admin-app .admin-home-grid { align-items:start; }
+.admin-app .admin-home-grid .admin-data-table { min-height:0; }
+.admin-app .admin-home-grid .dashboard-card { align-self:start; }
+.admin-app .admin-home-grid .dashboard-card:only-child { grid-column:1/-1; }
+.admin-app .admin-full-table .t-table__empty { padding-block:120px; }
+.admin-app .admin-embedded-table .t-table__empty { padding-block:32px; }
+.admin-app .admin-data-table .t-table th { background:var(--td-bg-color-container); }
+.admin-app .admin-action-cell { text-align:left; }
+.admin-app .admin-action-cell .t-table__cell-inner { justify-content:flex-start; }
+.admin-app .admin-action-cell .t-button { padding-inline:0; border-width:0; justify-content:flex-start; }
+.admin-app .app-table .admin-business-number.t-button:not(:disabled):not(.t-is-disabled) { color:var(--td-text-color-primary); padding-inline:0; border-width:0; justify-content:flex-start; }
+.admin-app .app-table .admin-business-number.t-button:not(:disabled):not(.t-is-disabled):hover { color:var(--td-text-color-primary); background:var(--td-bg-color-container-hover); }
+.admin-app .admin-field-wide { grid-column:1/-1; }
+.admin-app .admin-field-wide dd { white-space:normal; overflow-wrap:anywhere; }
+.admin-app .admin-management-card .admin-actions { justify-content:flex-end; }
+.admin-app .admin-muted { margin:0; color:var(--td-text-color-secondary); }
+.admin-app .admin-page .project-stages { container-type:inline-size; }
+.admin-app .admin-page .project-stage { min-width:0; }
+.admin-app .admin-page .project-stage-title { flex-wrap:wrap; }
+.admin-app .admin-page .project-stage p { margin:12px 0 0; }
+.admin-drawer-content .admin-drawer-actions { margin-top:24px; }
+.admin-app .admin-data-table th,.admin-app .admin-data-table td { font:var(--td-font-body-medium); }
+.admin-command-form label { color:var(--td-text-color-primary); }
+.admin-app .admin-home-grid { grid-template-columns:minmax(0,1fr); }
+.admin-drawer-content .admin-actions { display:flex; align-items:center; gap:12px; }
+.admin-command-form .t-form__item { margin:0; }
+.admin-close-button { display:flex; align-items:center; justify-content:center; width:24px; height:24px; padding:0; border:0; background:transparent; color:var(--td-text-color-primary); cursor:pointer; }
+.admin-close-button:focus-visible { outline:2px solid var(--td-brand-color-focus); outline-offset:2px; }
+/* The confirmed dark Brand8 surface needs the official dark-on-light text primitive. */
+html[theme-mode="dark"] .admin-app .business-nav .t-menu__item.t-is-active:not(.t-is-disabled),
+html[theme-mode="dark"] .admin-app .business-nav .t-menu__item.t-is-active:not(.t-is-disabled):hover,
+html[theme-mode="dark"] .admin-app .business-nav .t-menu__item.t-is-active .t-icon,
+html[theme-mode="dark"] .admin-app .business-nav .t-menu__item.t-is-active .t-menu__content { color:var(--td-font-gray-1) !important; }

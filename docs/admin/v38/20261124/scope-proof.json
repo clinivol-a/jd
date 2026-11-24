@@ -1,0 +1,16 @@
+{
+  "baseline": "99305934b699c76b1b032e968e0fe4fa6dc1732a",
+  "originalDataFileCount": 8,
+  "originalDataChanges": [],
+  "frozenCodeChanges": [],
+  "refs": {
+    "HEAD": "99305934b699c76b1b032e968e0fe4fa6dc1732a",
+    "codex/backup-admin-review-20261124": "99305934b699c76b1b032e968e0fe4fa6dc1732a",
+    "main": "40325227135e20c0b7cbabee7080bcacedb264e8",
+    "design-handoff": "3f4911050c6b21e496c20a809730ca70cdfcd8f9"
+  },
+  "deploymentsExecuted": false,
+  "pushExecuted": false,
+  "finalPreview": "http://127.0.0.1:5260/",
+  "previewData": "Persistent isolated copy of original data; QA writes excluded"
+}

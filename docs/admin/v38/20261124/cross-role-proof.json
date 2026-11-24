@@ -1,0 +1,118 @@
+{
+  "businessNo": "CV-2026-0017",
+  "orderId": "DEMO-LINK-20261123-16",
+  "project": {
+    "id": "PRJ-503f3ff9-b91d-487f-9af8-bb7f9edadda1",
+    "orderId": "DEMO-LINK-20261123-16",
+    "createdAt": "2026-11-24T01:45:51.365Z",
+    "taskIds": [
+      "TASK-4b5f9a01-7614-41c6-8885-0aaa840cdb2b",
+      "TASK-fa66ed19-d367-4235-9091-fa2e71d16021"
+    ],
+    "source": "isolated-shared"
+  },
+  "tasks": [
+    {
+      "id": "TASK-4b5f9a01-7614-41c6-8885-0aaa840cdb2b",
+      "orderId": "DEMO-LINK-20261123-16",
+      "projectId": "PRJ-503f3ff9-b91d-487f-9af8-bb7f9edadda1",
+      "stage": 0,
+      "status": "未开始",
+      "assignee": "chen-yu",
+      "upstreamId": null
+    },
+    {
+      "id": "TASK-fa66ed19-d367-4235-9091-fa2e71d16021",
+      "orderId": "DEMO-LINK-20261123-16",
+      "projectId": "PRJ-503f3ff9-b91d-487f-9af8-bb7f9edadda1",
+      "stage": 1,
+      "status": "未开始",
+      "assignee": "chen-yu",
+      "upstreamId": "TASK-4b5f9a01-7614-41c6-8885-0aaa840cdb2b"
+    }
+  ],
+  "projectCount": 1,
+  "events": [
+    {
+      "id": "2951f042-10b9-48e4-b8ee-2b322a55c969",
+      "title": "订单草稿已保存",
+      "orderId": "DEMO-LINK-20261123-16",
+      "taskId": null,
+      "actor": "李明",
+      "at": "2026-11-23T05:31:31.891Z",
+      "reason": null
+    },
+    {
+      "id": "d44cf102-46c8-45aa-96dc-4b2346a9a8cf",
+      "title": "订单已提交审核",
+      "orderId": "DEMO-LINK-20261123-16",
+      "taskId": null,
+      "actor": "李明",
+      "at": "2026-11-23T05:35:31.891Z",
+      "reason": null
+    },
+    {
+      "id": "b24861c2-4a84-412c-adac-f49b9baebe6d",
+      "title": "资料附件已关联",
+      "orderId": "DEMO-LINK-20261123-16",
+      "taskId": null,
+      "actor": "李明",
+      "at": "2026-11-23T06:43:49.685Z",
+      "reason": null
+    },
+    {
+      "id": "719a2656-727b-4bcb-abc9-09e02df11339",
+      "title": "订单责任人已更新",
+      "orderId": "DEMO-LINK-20261123-16",
+      "taskId": null,
+      "actor": "周景明",
+      "at": "2026-11-24T01:39:45.807Z",
+      "reason": "隔离验收：核对订单信息并承担本次审核责任。"
+    },
+    {
+      "id": "8702f9c2-811b-4bef-8440-ba6366affa2d",
+      "title": "订单审核退回",
+      "orderId": "DEMO-LINK-20261123-16",
+      "taskId": null,
+      "actor": "周景明",
+      "at": "2026-11-24T01:39:48.272Z",
+      "reason": "请补充修复区域和定位基准说明。"
+    },
+    {
+      "id": "8feca651-b26a-46a8-b357-ba6ca1235108",
+      "title": "订单已提交审核",
+      "orderId": "DEMO-LINK-20261123-16",
+      "taskId": null,
+      "actor": "李明",
+      "at": "2026-11-24T01:44:49.726Z",
+      "reason": null
+    },
+    {
+      "id": "5c51adc8-d103-43f6-a45d-27e710fa805d",
+      "title": "订单审核受理",
+      "orderId": "DEMO-LINK-20261123-16",
+      "taskId": null,
+      "actor": "周景明",
+      "at": "2026-11-24T01:45:51.365Z",
+      "reason": ""
+    },
+    {
+      "id": "f40df6e5-1f3d-4d5c-94c0-b83c34b2d6ee",
+      "title": "专业任务已分配",
+      "orderId": "DEMO-LINK-20261123-16",
+      "taskId": "TASK-4b5f9a01-7614-41c6-8885-0aaa840cdb2b",
+      "actor": "周景明",
+      "at": "2026-11-24T01:46:07.623Z",
+      "reason": null
+    },
+    {
+      "id": "396895ed-3b0d-4938-8b09-62a7f564b5b5",
+      "title": "专业任务已分配",
+      "orderId": "DEMO-LINK-20261123-16",
+      "taskId": "TASK-fa66ed19-d367-4235-9091-fa2e71d16021",
+      "actor": "周景明",
+      "at": "2026-11-24T01:46:10.052Z",
+      "reason": null
+    }
+  ]
+}

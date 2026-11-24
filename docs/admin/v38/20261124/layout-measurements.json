@@ -1,0 +1,140 @@
+{
+  "back": {
+    "font": "14px",
+    "height": 32,
+    "padding": "0px 15px"
+  },
+  "backRow": {
+    "bottom": 112,
+    "top": 80
+  },
+  "fields": [
+    {
+      "gap": "normal",
+      "label": "订单编号",
+      "labelSize": "14px",
+      "valueSize": "14px",
+      "width": 351.328125,
+      "x": 272,
+      "y": 192
+    },
+    {
+      "gap": "normal",
+      "label": "手术项目名称",
+      "labelSize": "14px",
+      "valueSize": "14px",
+      "width": 351.3359375,
+      "x": 651.328125,
+      "y": 192
+    },
+    {
+      "gap": "normal",
+      "label": "医院",
+      "labelSize": "14px",
+      "valueSize": "14px",
+      "width": 351.3359375,
+      "x": 1030.6640625,
+      "y": 192
+    },
+    {
+      "gap": "normal",
+      "label": "科室",
+      "labelSize": "14px",
+      "valueSize": "14px",
+      "width": 351.328125,
+      "x": 272,
+      "y": 261
+    },
+    {
+      "gap": "normal",
+      "label": "医生",
+      "labelSize": "14px",
+      "valueSize": "14px",
+      "width": 351.3359375,
+      "x": 651.328125,
+      "y": 261
+    },
+    {
+      "gap": "normal",
+      "label": "患者",
+      "labelSize": "14px",
+      "valueSize": "14px",
+      "width": 351.3359375,
+      "x": 1030.6640625,
+      "y": 261
+    },
+    {
+      "gap": "normal",
+      "label": "订单状态",
+      "labelSize": "14px",
+      "valueSize": "14px",
+      "width": 351.328125,
+      "x": 272,
+      "y": 330
+    },
+    {
+      "gap": "normal",
+      "label": "设计阶段",
+      "labelSize": "14px",
+      "valueSize": "14px",
+      "width": 351.3359375,
+      "x": 651.328125,
+      "y": 330
+    },
+    {
+      "gap": "normal",
+      "label": "负责组长",
+      "labelSize": "14px",
+      "valueSize": "14px",
+      "width": 351.3359375,
+      "x": 1030.6640625,
+      "y": 330
+    },
+    {
+      "gap": "normal",
+      "label": "设计需求",
+      "labelSize": "14px",
+      "valueSize": "14px",
+      "width": 1110,
+      "x": 272,
+      "y": 431
+    },
+    {
+      "gap": "normal",
+      "label": "预计交付时间",
+      "labelSize": "14px",
+      "valueSize": "14px",
+      "width": 351.328125,
+      "x": 272,
+      "y": 530
+    },
+    {
+      "gap": "normal",
+      "label": "创建时间",
+      "labelSize": "14px",
+      "valueSize": "14px",
+      "width": 351.3359375,
+      "x": 651.328125,
+      "y": 530
+    },
+    {
+      "gap": "normal",
+      "label": "最近更新时间",
+      "labelSize": "14px",
+      "valueSize": "14px",
+      "width": 351.3359375,
+      "x": 1030.6640625,
+      "y": 530
+    }
+  ],
+  "firstCard": {
+    "radius": "6px",
+    "top": 124
+  },
+  "stageHeights": [
+    135.5,
+    135.5,
+    135.5,
+    135.5
+  ]
+}

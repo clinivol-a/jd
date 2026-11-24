@@ -1,0 +1,50 @@
+{
+  "backMeasure": {
+    "heading": {
+      "bottom": 136,
+      "height": 32,
+      "left": 272,
+      "right": 368,
+      "top": 104,
+      "width": 96,
+      "x": 272,
+      "y": 104
+    },
+    "query": "CV-2026-0017"
+  },
+  "backGap": {
+    "button": {
+      "bottom": 112,
+      "height": 32,
+      "left": 248,
+      "right": 396,
+      "top": 80,
+      "width": 148,
+      "x": 248,
+      "y": 80
+    },
+    "card": {
+      "bottom": 595,
+      "height": 471,
+      "left": 248,
+      "right": 1406,
+      "top": 124,
+      "width": 1158,
+      "x": 248,
+      "y": 124
+    },
+    "gap": 12,
+    "row": {
+      "bottom": 112,
+      "height": 32,
+      "left": 248,
+      "right": 1406,
+      "top": 80,
+      "width": 1158,
+      "x": 248,
+      "y": 80
+    }
+  },
+  "pageBefore": "CV-2026-0009\n\t\n颅骨修复体设计\n\t\n江淮协同医院\n\t\n林致远\n\t\n沈嘉宁\n\t\n\t\n处理中\n\t\n周景明\n\t\n2026-11-15\n\t\n2026-12-21\n\t\n查看详情",
+  "pageAfter": "CV-2026-0001\n\t\n颌面联合数字修复规划\n\t\n江淮协同医院\n\t\n林致远\n\t\n沈嘉宁\n\t\n\t\n处理中\n\t\n周景明\n\t\n2026-11-20\n\t\n2026-12-10\n\t\n查看详情"
+}
