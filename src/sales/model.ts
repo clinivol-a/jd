@@ -33,6 +33,10 @@ export type Attachment = {
   storage?: "browser" | "invitation" | "demo-fixture" | "directory";
 };
 export type Doctor = {
+  seedOrigin?:string;
+  salesId?:string|null;
+  salesName?:string;
+  createdAt?:string;
   version?:number;
   departmentId?:string;
   orderSelectable?:boolean;

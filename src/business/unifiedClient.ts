@@ -23,7 +23,7 @@ export type SharedDesigner = {
 export type SalesDirectory={hospitals:Hospital[];orderDoctors:Doctor[];ownDoctors:(Doctor&{salesId?:string})[];events?:{id:string;objectId:string;at:string;actor:string;title:string;reason?:string;note?:string;noteSource?:'system-default'|'reviewer'}[]};
 export function mergeSalesDirectory(current:SalesData,directory:SalesDirectory):SalesData{
  const doctors=[...current.doctors];
- for(const row of directory.ownDoctors){const index=doctors.findIndex(d=>d.id===row.id);if(index>=0)doctors[index]={...doctors[index],...row,owner:row.status==='审核通过'?row.salesId||current.ownerId:doctors[index].owner};else if(row.phone)doctors.push({...row,owner:row.status==='审核通过'?row.salesId||current.ownerId:null});}
+ for(const row of directory.ownDoctors){const index=doctors.findIndex(d=>d.id===row.id);const editedLocalFixture=row.seedOrigin==='existing-sales-synthetic-fixtures'&&row.version===1&&index>=0&&current.events.some(e=>e.target===row.id&&!e.id.startsWith('doctor-fixture:')&&e.source!=='institution-directory');if(editedLocalFixture)continue;if(index>=0)doctors[index]={...doctors[index],...row,owner:row.salesId||null};else if(row.phone)doctors.push({...row,owner:row.salesId||null});}
  const events=(directory.events||[]).map(e=>({id:e.id,target:e.objectId,at:e.at,actor:e.actor,title:e.title,detail:e.reason||e.note||'',read:current.events.find(old=>old.id===e.id)?.read??false,source:'institution-directory',reviewNoteSource:e.noteSource}));
  return {...current,hospitals:directory.hospitals,orderDoctors:directory.orderDoctors,doctors,events:[...current.events.filter(e=>!events.some(row=>row.id===e.id)),...events]};
 }

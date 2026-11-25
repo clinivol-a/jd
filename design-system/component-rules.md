@@ -7,7 +7,8 @@
 | Tooltip | 只限定`.t-tooltip--default`，Light容器白底/主要文字/shadow-2/8px；Dark对应表面/浅字。箭头为12px同表面图形，和主体重叠衔接，无菱形边框拼缝。 |
 | Dropdown/Popover | 保留TDesign机制、完整14/22文案、不裁切；radius-medium8px、shadow-2；不继承Tooltip专用白底覆盖。 |
 | Dialog | radius-large12px与shadow-3，标题Medium；保持原关闭/确认/取消及真实权限，不新增假成功。 |
-| Table | 全部正文表头14/22 Regular，单行、省略+Tooltip；固定项目编号/医院/名称三列和右操作列，中间横向滚动。各角色首页摘要表最多7条，真实不足不补造；完整列表按实测高度动态分页。 |
+| Table | 全部正文表头14/22 Regular，单行、省略+Tooltip；固定项目编号/医院/名称三列和右操作列，中间横向滚动。各角色首页摘要表最多7条，真实不足不补造；完整列表按实测高度动态分页；医生详情关联订单固定6条是内嵌表格例外，6条以下无分页，不补空白行，返回保留Doctor ID及页码。 |
+| Drawer | 管理审批使用TDesign固定Header/可滚动Body/固定Footer；Footer不得放进Body末尾。次按钮在左、主按钮在右，仅待审核且有权限可操作；无权限/已处理不显示重复审批。退回必填原因，通过沿用书面依据；失败保留输入，Loading与服务端版本共同防重。 |
 | Card | 白色或主题表面；首页大卡片/平台通用Card使用tdesign-react 1.18.4官方默认6px（.t-card → --td-radius-medium，官方值6px），不强制8px；无额外常驻描边阴影；设计阶段卡片是既有浅边框例外；宽内容1140起四列、760起两列、否则单列。 |
 | GlobalHeader | 固定56px和既有Logo区域，保持现有头像与任务Tabs；四公共操作Icon用主要文字色，Hover灰，无新增分割线/投影。 |
 | Sidebar | 原宽度224/64；选中品牌底白字，默认图标主要文字色，Hover灰；底部收起入口保留。 |
@@ -168,5 +169,7 @@ AI十项开放正常颜色的参数确认入口，替代上文统一禁用要求
 ### 2026-11-24｜医院维护与级联选择
 
 医院及科室表单直接使用TDesign Dialog/Form/FormItem/Input/Select，必填和服务错误反馈独立，不扩大通用表单尺寸。受控字段使用明确的本地表单状态，不能被无name的FormItem覆盖。医院Select使用filterable，不允许自由输入创建正式机构。无医生反馈置于医生字段后，不更换全局Empty规则。默认/Hover/Focus/Disabled均继承现有Token，不改数值。
+
+医生客户表和详情字段配置共用`src/doctors/doctorDisplay.mjs`：销售列表9项基本字段+操作、详情前9项；管理审核列表前8项+操作、Drawer前8项。资质材料共用`DoctorMaterials`的Label→Value、绿色文件名轻预览与正文色提交信息；文件省略+Tooltip，不设重复预览按钮。证书编号位于资质区。操作记录共用`DoctorTimeline`：完整审计时间、真实操作人、两行绿色时间轴、稳定事件ID去重；系统默认通过说明不重复。
 
 销售和管理员调用同一`deliveryDisplay`展示订单交付日期；状态映射见字段字典。本轮没有调整设计师日期或专业软件保存逻辑。

@@ -1,0 +1,14 @@
+/* Doctor record detail only; inherit A's existing Label/Value and timeline tokens. */
+.project-info-grid.doctor-credential-fields { grid-template-columns:minmax(0,1fr); }
+.doctor-credential-file { display:flex; align-items:baseline; flex-wrap:nowrap; gap:var(--td-comp-margin-s); min-width:0; }
+.doctor-credential-file + .doctor-credential-file { margin-top:var(--td-comp-margin-m); }
+.doctor-credential-name { display:block; flex:0 1 auto; min-width:0; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:inherit; color:var(--td-brand-color); background:none; border:0; padding:0; margin:0; cursor:pointer; line-height:inherit; text-align:left; }
+.doctor-credential-name:hover { background:none; color:var(--td-brand-color); }
+.doctor-credential-name:focus-visible { outline:2px solid var(--td-brand-color-focus); outline-offset:2px; }
+.doctor-credential-name:disabled { color:var(--td-text-color-disabled); cursor:wait; }
+.doctor-credential-meta { flex-shrink:0; color:var(--td-text-color-primary); white-space:nowrap; }
+.doctor-history .timeline-item strong { display:block; }
+.doctor-history .timeline-item p { display:flex; flex-wrap:wrap; column-gap:var(--td-comp-margin-s); }
+
+.doctor-preview-pages { display:flex; justify-content:center; align-items:center; gap:var(--td-comp-margin-m); margin-top:var(--td-comp-margin-l); }
+@media(max-width:600px) { .doctor-credential-file { flex-wrap:wrap; } .doctor-credential-meta { white-space:normal; } }

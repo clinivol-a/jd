@@ -1,0 +1,1341 @@
+diff --git a/design-system/component-rules.md b/design-system/component-rules.md
+index e5d8291..66a187d 100644
+--- a/design-system/component-rules.md
++++ b/design-system/component-rules.md
+@@ -7,7 +7,8 @@
+ | Tooltip | 只限定`.t-tooltip--default`，Light容器白底/主要文字/shadow-2/8px；Dark对应表面/浅字。箭头为12px同表面图形，和主体重叠衔接，无菱形边框拼缝。 |
+ | Dropdown/Popover | 保留TDesign机制、完整14/22文案、不裁切；radius-medium8px、shadow-2；不继承Tooltip专用白底覆盖。 |
+ | Dialog | radius-large12px与shadow-3，标题Medium；保持原关闭/确认/取消及真实权限，不新增假成功。 |
+-| Table | 全部正文表头14/22 Regular，单行、省略+Tooltip；固定项目编号/医院/名称三列和右操作列，中间横向滚动。各角色首页摘要表最多7条，真实不足不补造；完整列表按实测高度动态分页。 |
++| Table | 全部正文表头14/22 Regular，单行、省略+Tooltip；固定项目编号/医院/名称三列和右操作列，中间横向滚动。各角色首页摘要表最多7条，真实不足不补造；完整列表按实测高度动态分页；医生详情关联订单固定6条是内嵌表格例外，6条以下无分页，不补空白行，返回保留Doctor ID及页码。 |
++| Drawer | 管理审批使用TDesign固定Header/可滚动Body/固定Footer；Footer不得放进Body末尾。次按钮在左、主按钮在右，仅待审核且有权限可操作；无权限/已处理不显示重复审批。退回必填原因，通过沿用书面依据；失败保留输入，Loading与服务端版本共同防重。 |
+ | Card | 白色或主题表面；首页大卡片/平台通用Card使用tdesign-react 1.18.4官方默认6px（.t-card → --td-radius-medium，官方值6px），不强制8px；无额外常驻描边阴影；设计阶段卡片是既有浅边框例外；宽内容1140起四列、760起两列、否则单列。 |
+ | GlobalHeader | 固定56px和既有Logo区域，保持现有头像与任务Tabs；四公共操作Icon用主要文字色，Hover灰，无新增分割线/投影。 |
+ | Sidebar | 原宽度224/64；选中品牌底白字，默认图标主要文字色，Hover灰；底部收起入口保留。 |
+@@ -169,4 +170,6 @@ AI十项开放正常颜色的参数确认入口，替代上文统一禁用要求
+ 
+ 医院及科室表单直接使用TDesign Dialog/Form/FormItem/Input/Select，必填和服务错误反馈独立，不扩大通用表单尺寸。受控字段使用明确的本地表单状态，不能被无name的FormItem覆盖。医院Select使用filterable，不允许自由输入创建正式机构。无医生反馈置于医生字段后，不更换全局Empty规则。默认/Hover/Focus/Disabled均继承现有Token，不改数值。
+ 
++医生客户表和详情字段配置共用`src/doctors/doctorDisplay.mjs`：销售列表9项基本字段+操作、详情前9项；管理审核列表前8项+操作、Drawer前8项。资质材料共用`DoctorMaterials`的Label→Value、绿色文件名轻预览与正文色提交信息；文件省略+Tooltip，不设重复预览按钮。证书编号位于资质区。操作记录共用`DoctorTimeline`：完整审计时间、真实操作人、两行绿色时间轴、稳定事件ID去重；系统默认通过说明不重复。
++
+ 销售和管理员调用同一`deliveryDisplay`展示订单交付日期；状态映射见字段字典。本轮没有调整设计师日期或专业软件保存逻辑。
+diff --git a/design-system/ui-ux-consistency.md b/design-system/ui-ux-consistency.md
+index a50fb8b..c8e979c 100644
+--- a/design-system/ui-ux-consistency.md
++++ b/design-system/ui-ux-consistency.md
+@@ -76,7 +76,7 @@
+ - 首页摘要与完整表共享业务源，各角色每张首页表格最多7条；销售我的待办/我的业务范围、设计师最近项目/重要通知四张摘要卡最多3条，均保留查看全部进入完整列表；不足则展示真实数量，通过“查看全部”进入完整列表，不强制分页、不补造数据。最近项目字段为项目编号、手术项目名称、医院、最近操作。
+ - 不把不同表类型的已有尺寸当成新全局硬编码：项目表头48px、项目行70px；首页最近项目/重要通知保留既有表头、行高及标题区节奏，内容按真实数量展示。其他销售表保持自己的既定行高，不能机械改成项目行高。
+ - 工程师项目表原冻结项目编号/医院/名称及右操作列规则只适用该表。销售其他表不强加同样冻结列，不改变已确认字段顺序。
+-- 完整列表使用TDesign Pagination，实测视口、Header、标题/筛选、Card内边距、表头、数据行及分页区，计算可完整容纳的行数；不固定6/10/12条、不增加行高或空白行。数据足够时利用页面高度，分页靠近Card底部；稀疏数据及末页Card自然收缩，单页隐藏分页导航。窗口变化保留原首条所在位置并校正有效页，筛选变化回第一页；无每页数选择器、跳页框，不嵌套多层滚动。首页不应用此测量机制。
++- 完整列表使用TDesign Pagination，实测视口、Header、标题/筛选、Card内边距、表头、数据行及分页区，计算可完整容纳的行数；不固定6/10/12条、不增加行高或空白行。数据足够时利用页面高度，分页靠近Card底部；稀疏数据及末页Card自然收缩，单页隐藏分页导航。窗口变化保留原首条所在位置并校正有效页，筛选变化回第一页；无每页数选择器、跳页框，不嵌套多层滚动。首页不应用此测量机制。医生详情“关联订单”为明确例外：固定每页6条，20条为4页，6条及以下隐藏分页，Card按真实行数自然收缩；按Doctor.id关联，进入订单再返回保留医生ID与页码。医院详情的关联表使用独立内嵌分页，不从页面剩余高度计算容量。
+ 
+ ### 跨角色业务字段顺序
+ 
+@@ -223,16 +223,24 @@ Label独立显示；必填使用TDesign FormItem，错误在对应控件下方
+ - Table、Tag、Pagination 直接复用既有 A方案 TDesign 配置。内容区自适应可用高度，表格超出时单层滚动，分页位于表格底部，不用增大行高或空白行填充。
+ - 不为了填满界面伪造正式历史。合成账号和受控访问事件仅限隔离设计数据，标记来源并稳定持久化；不得写入真实业务审计，不因打开 Drawer 或刷新查询生成事件。
+ 
+-## 医生档案详情与资质记录（V3.7，2026-11-18）
++## 医生档案详情与资质记录（V3.8，2026-11-25）
+ 
++- 销售客户列表固定顺序：医生、联系电话、医院、科室、职称、资质审核状态、建档来源、负责销售、最近更新时间、操作。详情基本资料为同序前9项，沿用三列网格；执业证书编号归资质材料。管理员医生审核列表为同序前8项加操作，Drawer基本资料为前8项。表头采用显式共享字段配置，操作使用“查看详情”，文字左对齐。
++- 负责销售按正式salesId查询实际姓名，尚未关联显示待关联；禁止以当前查看账号补齐。最近更新时间取记录及所属稳定ID事件的最新有效时间，不依赖事件数组原顺序。
+ - 基本资料的建档来源只显示“销售建档”“医生自主建档”。邀请销售、提交人、邀请渠道及Token归属是独立底层字段；邀请不等于资质通过或正式销售归属。仅对指纹匹配且无用户编辑事件的隔离预置记录做来源迁移，不覆盖真实或已编辑档案。
+ - 资质材料使用与基本资料相同的`project-info-grid` Label→Value结构：继承14/22正文、次级Label、组内5px及纵向组间20px，不建立另一套大Margin。身份证明、执业证明材料、其他附件同一层级。
+-- 文件名与提交信息同一行。仅文件名使用品牌绿色，作为轻量文字操作，Pointer并可点击预览；保留键盘Focus，不出现Hover背景、位移或下划线。不另放“预览”按钮。提交信息使用正常正文色，格式“提交人 · 审计时间 提交”，缺项不臆造。
++- 文件名与提交信息同一行，长文件名单行省略并以Tooltip展示完整名称。销售和管理员复用同一DoctorMaterials布局及服务端授权预览。仅文件名使用品牌绿色，作为轻量文字操作，Pointer并可点击预览；保留键盘Focus，不出现Hover背景、位移或下划线。不另放“预览”按钮。提交信息使用正常正文色，格式“提交人 · 审计时间 提交”，缺项不臆造。
+ - 资质资料仅可授权预览，不提供销售原文件下载。服务端返回受权限校验的衍生预览，不以静态原文件地址或PDF下载工具栏代替权限控制；浏览器本地附件不是正式服务端文件权限体系，不能声称已防止本机取出原始数据。无其他附件时显示正文色“暂无附件”，不使用大型Empty。
+ - 医生档案审核事件使用明确映射：医生档案已提交审核、医生档案审核通过、医生档案审核退回、医生档案已重新提交审核。保留原审计时间、操作人及完整历史，最新在上；不按当前状态重写历史。
+ - 通过备注可为空；为空时在底层记录系统默认结果“审核通过”，以`reviewNoteSource=system-default`区别人工备注。退回必须有具体原因；已有历史缺原因显示“退回原因未记录”，不得用模板补造管理员意见。管理员实施规则见现有业务规划，普通销售不得执行审核。
+ 
+-补充展示确认：医生操作记录只用两行，第一行事件名，第二行具体时间·操作人。系统默认“审核通过”不重复显示；退回的实际原因接在第二行操作人后，不加“退回原因：”前缀。真实人工备注仍保留为第二行内容，原始结果与备注来源继续保存在数据中。
++医生操作记录共享DoctorTimeline，只用两行，第一行事件名，第二行完整YYYY-MM-DD HH:mm·实际操作人。稳定事件ID去重、实际时间倒序；仅记录已发生事实，创建和提交为独立真实事件，不能自动补齐退回/通过链。管理员合并目录历史与本地历史时使用相同规则。系统默认“审核通过”不重复显示；退回的实际原因接在第二行操作人后，不加“退回原因：”前缀。真实人工备注仍保留为第二行内容，原始结果与备注来源继续保存在数据中。
++
++### 医生审批与模块职责
++
++审核中心固定待处理审批、医生档案审核、账号注册审核、权限申请审批四个视角；聚合与分类按同一申请ID、权限范围读取与操作。机构与人员负责医院、科室、医生、人员基础管理，待审核医生只能明确跳转审核中心同一Doctor.id；停用/恢复属于医生管理，不混入资质审批。权限管理显示当前授权、申请状态与变更历史，申请审批统一在审核中心，不重复业务审批列表。专业成果监管与版本追溯归数据资产，管理权限不代表专业审核资格。
++
++医生及账号/权限审批Drawer采用TDesign固定Header、可滚动Body、固定Footer。待审核且具备对应权限才显示左侧次按钮“审核退回”、右侧Primary“审核通过”；退回原因必填，通过保留既有书面审批依据校验。已处理或无权限只读；Loading拒绝重复提交，失败保留表单，版本冲突刷新，成功刷新状态及历史而不重写旧记录。人员、资产等只读Drawer不增加伪审批按钮。
+ 
+ ## V3.8 销售与设计师列表补充（2026-11-20）
+ 
+diff --git a/docs/product/field-dictionary.md b/docs/product/field-dictionary.md
+index 8924006..e1f38fa 100644
+--- a/docs/product/field-dictionary.md
++++ b/docs/product/field-dictionary.md
+@@ -205,13 +205,15 @@
+ - `copyCount/accessCount/successCount/uniqueViewerCount/lastViewedAt`：从已持久化事件投影；复制不等于已微信发送、页面打开不等于查看成功、验证码通过不等于患者实名。失败、Drawer 查询和重复回调不增加成功。
+ - `visitorId/visitorName/visitorRole/maskedPhone`：实际验证成功后按可信授权映射解析；没有姓名/自然人角色映射时仅显示脱敏手机号及“获授权人员”。失败身份显示“未确认身份”，不得用患者或订单医生姓名补造。
+ 
+-## V3.7 医生建档、资质与审核语义
++## V3.8 医生建档、资质与审核语义（2026-11-25）
+ 
+ | 字段/事件 | 规范与数据边界 |
+ |---|---|
+ | 建档来源 | 销售建档 / 医生自主建档，基本资料不拼接销售姓名、邀请码或技术渠道 |
+ | `source` / `submissionMode` | 兼容历史原值，展示经共享`doctorSource`归一；sales-assisted为销售代填，invite为本人邀请建档 |
+ | `invitedBy` / `invitationCode` | 邀请来源，只记录邀请关系，不自动授予正式销售归属 |
++| `salesId` / `salesName` | 正式负责销售ID关联实际姓名；待关联不能用当前查看者替代，邀请销售不是正式归属 |
++| `updatedAt` / `createdAt` / Event.at | 最近更新时间取该Doctor ID全部有效记录时间的最大值；不取无序事件第一项 |
+ | `submittedBy` | 实际提交来源，与当前负责销售独立；不可用当前登录销售替换医生本人提交 |
+ | 资质附件 | identity身份证明、practice执业证明材料、other其他附件；销售只读预览，不提供原文件下载 |
+ | `uploadedBy` / `uploadedByName` | 记录上传身份及已知显示名；没有来源时显示未记录，不生成姓名 |
+@@ -223,7 +225,11 @@
+ | `doctorEvent=resubmitted` | 医生档案已重新提交审核，生成新事件，不覆盖旧退回 |
+ | `reviewNoteSource` | system-default为系统默认结果，reviewer为真实填写备注；旧记录只作展示映射，原文、原操作人及时间不改写 |
+ 
+-通过无备注时默认内容“审核通过”；有备注时保留原文。退回展示“退回原因：实际原因”。旧记录缺原因不得补造，只标记未记录。审核责任归实际授权审核人，普通销售不能审批。本地测试管理员能力不等于正式管理员业务接口。
++通过无备注时默认内容“审核通过”；有备注时保留原文。操作记录第一行事件，第二行完整审计时间·实际操作人·必要备注；实际退回原因接第二行，不再添加“退回原因：”前缀。默认通过结果不重复为第三行；实际人工通过备注保留。旧记录缺原因不得补造，只标记未记录。审核责任归实际授权审核人，普通销售不能审批。本地测试管理员能力不等于正式管理员业务接口。
++
++销售列表展示顺序：医生、联系电话、医院、科室、职称、资质审核状态、建档来源、负责销售、最近更新时间、操作。销售基本资料采用同序前9项；管理员审核表为前8项+操作、Drawer前8项。证书编号保留于资质材料，不占第10个基本字段。
++
++Doctor.id→Order.doctorId是关联订单唯一依据；详情内嵌表固定6条、20条4页、单页隐藏分页，不改变其他完整列表动态分页。目录事件保留原始ID、actor/actorId、at、reason/note/noteSource；两端按ID去重显示相同事实，不能根据当前状态补造完整历史。历史合成资料补齐只限明确指纹匹配的服务端预置空壳，保留原ID及原合成事件；不覆盖已编辑用户档案。
+ 
+ ## V3.8 管理端字段与权限边界
+ 
+@@ -244,6 +250,8 @@
+ 
+ `super_admin`仅由明确本地幂等初始化创建，不允许普通注册申请或测试控制台提权。原陈屿与李明账号不重置。`requestedDueDate`与`confirmedDeliveryDate`继续原语义；无受理排期不造确认交期，专业任务开始不决定订单交期。
+ 
++审核中心是医生档案、账号注册、权限申请的唯一业务审批入口，待处理只是同ID聚合视角。机构与人员维护基础资料及合法启停，待审核档案通过同Doctor ID跳转审核中心。权限管理维护当前授权/范围/申请状态/变更历史，不重复审批列表；专业成果监管归数据资产且保持只读。
++
+ 新增ADM资料均属隔离合成业务；不作为销售/工程师已有记录或正式临床审计。新提交订单已接入隔离本地跨角色统一服务；生产业务服务、专业成果审核写入及销售分享管理员接口仍待接入，详见管理端交付文档。
+ 
+ ## V3.8 列表字段与身份边界（2026-11-20）
+diff --git a/server/admin/service.mjs b/server/admin/service.mjs
+index 7c874e0..64145d2 100644
+--- a/server/admin/service.mjs
++++ b/server/admin/service.mjs
+@@ -22,11 +22,12 @@ export class AdminService {
+  audit(actor){this.authorize(actor,'audit:read');const scopeIds=new Set(this.state.orders.filter(o=>actor.role==='super_admin'||actor.hospitalIds?.includes(o.hospitalId)).map(o=>o.id));const business=this.state.events.filter(e=>actor.role==='super_admin'||e.actorId===actor.id||scopeIds.has(e.objectId));const auth=(actor.role==='super_admin'?this.authService?.audit||[]:[]).map(e=>({id:`auth-${e.id}`,category:'账号与登录',title:({login:'账号登录',logout:'退出登录','admin-local-seeded':'本地管理员初始化','registration':'提交账号申请','password-changed':'密码修改','profile-updated':'个人资料更新'})[e.type]||'账号安全事件',objectId:e.accountId||'认证服务',actor:this.authService.accounts.find(a=>a.id===e.accountId)?.name||'未确认身份',actorId:e.accountId,at:new Date(e.at).toISOString(),result:'已记录',reason:'',source:'local-auth'}));return [...business,...auth].sort((a,b)=>Date.parse(b.at)-Date.parse(a.at))}
+  snapshot(actor){this.authorize(actor,'orders:read');const s=clone(this.state),allowedHospital=id=>actor.role==='super_admin'||actor.hospitalIds?.includes(id);s.hospitals=s.hospitals.filter(h=>allowedHospital(h.id));s.orders=s.orders.filter(o=>allowedHospital(o.hospitalId));const ids=new Set(s.orders.map(o=>o.id));s.tasks=s.tasks.filter(t=>ids.has(t.orderId));s.assets=actor.permissions.includes('assets:read')?s.assets.filter(t=>ids.has(t.orderId)):[];s.shares=actor.permissions.includes('shares:manage')?s.shares.filter(t=>ids.has(t.orderId)):[];s.doctors=s.doctors.filter(d=>allowedHospital(d.hospitalId));s.materials=s.materials.filter(m=>s.doctors.some(d=>d.id===m.doctorId));s.doctorHistory=s.doctorHistory.filter(h=>s.doctors.some(d=>d.id===h.objectId));s.events=actor.permissions.includes('audit:read')?this.audit(actor):[];
+  if(actor.role!=='super_admin'){s.people=s.people.filter(p=>p.id===actor.id||p.scope.some(allowedHospital));s.approvals=s.approvals.filter(p=>p.hospitalIds.every(allowedHospital))}
+- if(actor.permissions.includes('accounts:approve')&&this.authService){for(const a of this.authService.accounts.filter(a=>a.appliedAt&&a.status==='pending'))s.approvals.push({id:`AUTH-${a.id}`,type:'账号开通',subjectId:a.id,subjectName:a.name,applicant:a.name,organization:a.department,requestedRole:a.requestedRole,permissions:[],hospitalIds:[],basis:'',status:'待审批',at:new Date(a.appliedAt).toISOString(),version:a.reviewVersion||1,source:'local-auth'})}
++ if(actor.permissions.includes('accounts:approve')&&this.authService){for(const a of this.authService.accounts.filter(a=>a.appliedAt&&['pending','approved','rejected'].includes(a.status)))s.approvals.push({id:`AUTH-${a.id}`,type:'账号开通',subjectId:a.id,subjectName:a.name,applicant:a.name,organization:a.department,requestedRole:a.requestedRole,permissions:[],hospitalIds:[],basis:a.reviewBasis||'',status:({pending:'待审批',approved:'审批通过',rejected:'审批退回'})[a.status],approver:this.authService.accounts.find(p=>p.id===a.reviewedBy)?.name,reviewedAt:a.reviewedAt?new Date(a.reviewedAt).toISOString():undefined,reviewNote:a.reviewNote,at:new Date(a.appliedAt).toISOString(),version:a.reviewVersion||1,source:'local-auth'})}
+  const shared=this.shared.adminSnapshot(actor);if(this.shared.state.catalogMode==='linked-only'){s.orders=[];s.tasks=[];s.assets=[];s.shares=[];s.events=s.events.filter(e=>!['订单审核','任务调度','成果管理'].includes(e.category))}for(const key of ['orders','tasks','hospitals','doctors','people','events','assets']){const ids=new Set(s[key].map(r=>r.id));s[key].push(...shared[key].filter(r=>!ids.has(r.id)))}
+  const directory=this.institutions.snapshot();s.hospitals=directory.hospitals.filter(h=>allowedHospital(h.id));const masterDoctors=directory.doctors.filter(d=>allowedHospital(d.hospitalId));s.doctors=[...s.doctors.filter(d=>!masterDoctors.some(row=>row.id===d.id)),...masterDoctors.map(d=>({...d,managementEditable:true}))];s.doctors=s.doctors.map(d=>({...d,managementEditable:d.managementEditable||this.state.doctors.some(row=>row.id===d.id)}));
+- s.salesAssignments=directory.salesScopes;s.doctorHistory.push(...directory.events.filter(e=>s.doctors.some(d=>d.id===e.objectId)));if(actor.permissions.includes('audit:read'))s.events.push(...directory.events.filter(e=>allowedHospital(directory.hospitals.find(h=>h.id===e.objectId)?.id||masterDoctors.find(d=>d.id===e.objectId)?.hospitalId)));
++ s.salesAssignments=directory.salesScopes;s.doctorHistory=[...new Map([...s.doctorHistory,...this.state.events,...directory.events].filter(e=>s.doctors.some(d=>d.id===e.objectId)).map(e=>[e.id,e])).values()].sort((a,b)=>Date.parse(b.at)-Date.parse(a.at));if(actor.permissions.includes('audit:read'))s.events.push(...directory.events.filter(e=>allowedHospital(directory.hospitals.find(h=>h.id===e.objectId)?.id||masterDoctors.find(d=>d.id===e.objectId)?.hospitalId)));
+  for(const d of masterDoctors)for(const m of d.materials||[])if(typeof m==='object')s.materials.push({...m,doctorId:d.id,category:({identity:'身份证明',practice:'执业证明材料',other:'其他附件'})[m.category]||'其他附件',submittedBy:m.uploadedByName||d.submittedBy,at:m.uploadedAt});
++ s.materials=[...new Map(s.materials.map(m=>[m.id,m])).values()];
+  s.people=s.people.map(p=>({...p,regions:directory.people.find(row=>row.id===p.id)?.regions,managementEditable:this.state.people.some(row=>row.id===p.id)&&!this.authService?.accounts.some(a=>a.id===p.id)}));s.events.sort((a,b)=>Date.parse(b.at)-Date.parse(a.at));
+  s.readiness={mode:'isolated-admin',crossRoleBusiness:true,professionalReviewWrite:false,sourceDownload:false};return s}
+  command(actor,{action,id,version,...input}){if(['hospital-save','hospital-status','hospital-leader','department-save','department-status'].includes(action))return this.institutions.command(actor,{action,id,version,...input});if(['review-doctor','doctor-status'].includes(action)&&this.institutions.snapshot().doctors.some(d=>d.id===id))return this.institutions.command(actor,{action:action==='review-doctor'?'doctor-review':action,id,version,...input});this.authorize(actor,actions[action]||'__unsupported__');if(action==='takeover')throw new AdminFailure('常规接管已关闭，请按权限变更负责组长。',403);if(['review-order','assign-task'].includes(action)&&actor.role!=='leader')throw new AdminFailure('订单受理和专业任务分配须由当前负责组长执行。',403);if(this.shared.has(id))return this.shared.manage(actor,{action,id,version,...input});if(action==='review-account'&&id?.startsWith('AUTH-'))return this.reviewLocalAccount(actor,{id,version,...input});const backup=clone(this.state);try{let row,before;
+diff --git a/server/unified/doctor-fixture-details.json b/server/unified/doctor-fixture-details.json
+new file mode 100644
+index 0000000..49611fb
+--- /dev/null
++++ b/server/unified/doctor-fixture-details.json
+@@ -0,0 +1,381 @@
++{
++  "source": "existing-sales-synthetic-fixtures",
++  "baseline": "a1a8e1b",
++  "rows": [
++    {
++      "doctor": {
++        "id": "D-1",
++        "name": "林致远",
++        "hospitalId": "H-A",
++        "department": "口腔颌面外科",
++        "phone": "19900001001",
++        "title": "主治医师",
++        "certificate": "DEMO-QUAL-1",
++        "status": "审核通过",
++        "owner": "__fixture_sales__",
++        "materials": [
++          {
++            "id": "doctor-fixture:D-1:identity",
++            "name": "合成材料-身份资料.pdf",
++            "type": "application/pdf",
++            "size": 695,
++            "category": "identity",
++            "status": "success",
++            "storage": "demo-fixture",
++            "uploadedAt": "2026-11-09T08:00:00+08:00",
++            "uploadedBy": "__fixture_sales__",
++            "storageOwner": "__fixture_sales__"
++          },
++          {
++            "id": "doctor-fixture:D-1:practice",
++            "name": "合成材料-执业资料.pdf",
++            "type": "application/pdf",
++            "size": 695,
++            "category": "practice",
++            "status": "success",
++            "storage": "demo-fixture",
++            "uploadedAt": "2026-11-09T08:00:00+08:00",
++            "uploadedBy": "__fixture_sales__",
++            "storageOwner": "__fixture_sales__"
++          }
++        ],
++        "reason": "",
++        "source": "销售建档",
++        "createdBy": "__fixture_sales__",
++        "updatedAt": "2026-11-10T10:00:00+08:00"
++      },
++      "events": [
++        {
++          "id": "doctor-fixture:D-1:review",
++          "target": "D-1",
++          "at": "2026-11-10T10:00:00+08:00",
++          "actor": "管理员",
++          "title": "医生档案审核通过",
++          "detail": "审核通过",
++          "doctorEvent": "approved",
++          "reviewNoteSource": "system-default",
++          "read": true
++        },
++        {
++          "id": "doctor-fixture:D-1:submit",
++          "target": "D-1",
++          "at": "2026-11-09T09:00:00+08:00",
++          "actor": "李明",
++          "title": "医生档案已提交审核",
++          "detail": "",
++          "read": true
++        },
++        {
++          "id": "doctor-fixture:D-1:created",
++          "target": "D-1",
++          "at": "2026-11-08T08:00:00+08:00",
++          "actor": "李明",
++          "title": "医生档案已创建",
++          "detail": "",
++          "read": true
++        }
++      ]
++    },
++    {
++      "doctor": {
++        "id": "D-2",
++        "name": "周明哲",
++        "hospitalId": "H-B",
++        "department": "康复医学科",
++        "phone": "19900001002",
++        "title": "副主任医师",
++        "certificate": "DEMO-QUAL-2",
++        "status": "审核通过",
++        "owner": "__fixture_sales__",
++        "materials": [
++          {
++            "id": "doctor-fixture:D-2:identity",
++            "name": "合成材料-身份资料.pdf",
++            "type": "application/pdf",
++            "size": 695,
++            "category": "identity",
++            "status": "success",
++            "storage": "demo-fixture",
++            "uploadedAt": "2026-11-09T08:00:00+08:00",
++            "uploadedBy": "D-2",
++            "uploadedByName": "周明哲",
++            "storageOwner": "__fixture_sales__"
++          },
++          {
++            "id": "doctor-fixture:D-2:practice",
++            "name": "合成材料-执业资料.pdf",
++            "type": "application/pdf",
++            "size": 695,
++            "category": "practice",
++            "status": "success",
++            "storage": "demo-fixture",
++            "uploadedAt": "2026-11-09T08:00:00+08:00",
++            "uploadedBy": "D-2",
++            "uploadedByName": "周明哲",
++            "storageOwner": "__fixture_sales__"
++          }
++        ],
++        "reason": "",
++        "source": "医生自主建档",
++        "invitedBy": "__fixture_sales__",
++        "submissionMode": "invite",
++        "submittedBy": "周明哲",
++        "createdBy": "__fixture_sales__",
++        "updatedAt": "2026-11-10T10:00:00+08:00"
++      },
++      "events": [
++        {
++          "id": "doctor-fixture:D-2:review",
++          "target": "D-2",
++          "at": "2026-11-10T10:00:00+08:00",
++          "actor": "管理员",
++          "title": "医生档案审核通过",
++          "detail": "审核通过",
++          "doctorEvent": "approved",
++          "reviewNoteSource": "system-default",
++          "read": true
++        },
++        {
++          "id": "doctor-fixture:D-2:submit",
++          "target": "D-2",
++          "at": "2026-11-09T09:00:00+08:00",
++          "actor": "周明哲",
++          "title": "医生档案已提交审核",
++          "detail": "",
++          "read": true
++        },
++        {
++          "id": "doctor-fixture:D-2:created",
++          "target": "D-2",
++          "at": "2026-11-08T08:00:00+08:00",
++          "actor": "周明哲",
++          "title": "医生档案已创建",
++          "detail": "",
++          "read": true
++        }
++      ]
++    },
++    {
++      "doctor": {
++        "id": "D26-9",
++        "name": "周景宁",
++        "phone": "19900002009",
++        "hospitalId": "H-C",
++        "department": "口腔科",
++        "title": "主治医师",
++        "certificate": "SYN-V26-9",
++        "status": "审核通过",
++        "owner": "__fixture_sales__",
++        "createdBy": "__fixture_sales__",
++        "materials": [
++          {
++            "id": "doctor-fixture:D26-9:identity",
++            "name": "合成材料-身份资料.pdf",
++            "type": "application/pdf",
++            "size": 695,
++            "category": "identity",
++            "status": "success",
++            "storage": "demo-fixture",
++            "uploadedAt": "2026-11-09T08:00:00+08:00",
++            "uploadedBy": "__fixture_sales__",
++            "storageOwner": "__fixture_sales__"
++          },
++          {
++            "id": "doctor-fixture:D26-9:practice",
++            "name": "合成材料-执业资料.pdf",
++            "type": "application/pdf",
++            "size": 695,
++            "category": "practice",
++            "status": "success",
++            "storage": "demo-fixture",
++            "uploadedAt": "2026-11-09T08:00:00+08:00",
++            "uploadedBy": "__fixture_sales__",
++            "storageOwner": "__fixture_sales__"
++          }
++        ],
++        "reason": "",
++        "source": "销售建档",
++        "updatedAt": "2026-11-11T08:00:00+08:00"
++      },
++      "events": [
++        {
++          "id": "doctor-fixture:D26-9:review",
++          "target": "D26-9",
++          "at": "2026-11-10T10:00:00+08:00",
++          "actor": "管理员",
++          "title": "医生档案审核通过",
++          "detail": "审核通过",
++          "doctorEvent": "approved",
++          "reviewNoteSource": "system-default",
++          "read": true
++        },
++        {
++          "id": "doctor-fixture:D26-9:submit",
++          "target": "D26-9",
++          "at": "2026-11-09T09:00:00+08:00",
++          "actor": "李明",
++          "title": "医生档案已提交审核",
++          "detail": "",
++          "read": true
++        },
++        {
++          "id": "doctor-fixture:D26-9:created",
++          "target": "D26-9",
++          "at": "2026-11-08T08:00:00+08:00",
++          "actor": "李明",
++          "title": "医生档案已创建",
++          "detail": "",
++          "read": true
++        }
++      ]
++    },
++    {
++      "doctor": {
++        "id": "D26-5",
++        "name": "许承安",
++        "phone": "19900002005",
++        "hospitalId": "H-B",
++        "department": "康复医学科",
++        "title": "主治医师",
++        "certificate": "SYN-V26-5",
++        "status": "审核通过",
++        "owner": "__fixture_sales__",
++        "createdBy": "__fixture_sales__",
++        "materials": [
++          {
++            "id": "doctor-fixture:D26-5:identity",
++            "name": "合成材料-身份资料.pdf",
++            "type": "application/pdf",
++            "size": 695,
++            "category": "identity",
++            "status": "success",
++            "storage": "demo-fixture",
++            "uploadedAt": "2026-11-09T08:00:00+08:00",
++            "uploadedBy": "__fixture_sales__",
++            "storageOwner": "__fixture_sales__"
++          },
++          {
++            "id": "doctor-fixture:D26-5:practice",
++            "name": "合成材料-执业资料.pdf",
++            "type": "application/pdf",
++            "size": 695,
++            "category": "practice",
++            "status": "success",
++            "storage": "demo-fixture",
++            "uploadedAt": "2026-11-09T08:00:00+08:00",
++            "uploadedBy": "__fixture_sales__",
++            "storageOwner": "__fixture_sales__"
++          }
++        ],
++        "reason": "",
++        "source": "销售建档",
++        "updatedAt": "2026-11-11T08:00:00+08:00"
++      },
++      "events": [
++        {
++          "id": "doctor-fixture:D26-5:review",
++          "target": "D26-5",
++          "at": "2026-11-10T10:00:00+08:00",
++          "actor": "管理员",
++          "title": "医生档案审核通过",
++          "detail": "审核通过",
++          "doctorEvent": "approved",
++          "reviewNoteSource": "system-default",
++          "read": true
++        },
++        {
++          "id": "doctor-fixture:D26-5:submit",
++          "target": "D26-5",
++          "at": "2026-11-09T09:00:00+08:00",
++          "actor": "李明",
++          "title": "医生档案已提交审核",
++          "detail": "",
++          "read": true
++        },
++        {
++          "id": "doctor-fixture:D26-5:created",
++          "target": "D26-5",
++          "at": "2026-11-08T08:00:00+08:00",
++          "actor": "李明",
++          "title": "医生档案已创建",
++          "detail": "",
++          "read": true
++        }
++      ]
++    },
++    {
++      "doctor": {
++        "id": "D26-1",
++        "name": "顾明哲",
++        "phone": "19900002001",
++        "hospitalId": "H-A",
++        "department": "口腔颌面外科",
++        "title": "主治医师",
++        "certificate": "SYN-V26-1",
++        "status": "审核通过",
++        "owner": "__fixture_sales__",
++        "createdBy": "__fixture_sales__",
++        "materials": [
++          {
++            "id": "doctor-fixture:D26-1:identity",
++            "name": "合成材料-身份资料.pdf",
++            "type": "application/pdf",
++            "size": 695,
++            "category": "identity",
++            "status": "success",
++            "storage": "demo-fixture",
++            "uploadedAt": "2026-11-09T08:00:00+08:00",
++            "uploadedBy": "__fixture_sales__",
++            "storageOwner": "__fixture_sales__"
++          },
++          {
++            "id": "doctor-fixture:D26-1:practice",
++            "name": "合成材料-执业资料.pdf",
++            "type": "application/pdf",
++            "size": 695,
++            "category": "practice",
++            "status": "success",
++            "storage": "demo-fixture",
++            "uploadedAt": "2026-11-09T08:00:00+08:00",
++            "uploadedBy": "__fixture_sales__",
++            "storageOwner": "__fixture_sales__"
++          }
++        ],
++        "reason": "",
++        "source": "销售建档",
++        "updatedAt": "2026-11-11T08:00:00+08:00"
++      },
++      "events": [
++        {
++          "id": "doctor-fixture:D26-1:review",
++          "target": "D26-1",
++          "at": "2026-11-10T10:00:00+08:00",
++          "actor": "管理员",
++          "title": "医生档案审核通过",
++          "detail": "审核通过",
++          "doctorEvent": "approved",
++          "reviewNoteSource": "system-default",
++          "read": true
++        },
++        {
++          "id": "doctor-fixture:D26-1:submit",
++          "target": "D26-1",
++          "at": "2026-11-09T09:00:00+08:00",
++          "actor": "李明",
++          "title": "医生档案已提交审核",
++          "detail": "",
++          "read": true
++        },
++        {
++          "id": "doctor-fixture:D26-1:created",
++          "target": "D26-1",
++          "at": "2026-11-08T08:00:00+08:00",
++          "actor": "李明",
++          "title": "医生档案已创建",
++          "detail": "",
++          "read": true
++        }
++      ]
++    }
++  ]
++}
+diff --git a/server/unified/institutionDirectory.mjs b/server/unified/institutionDirectory.mjs
+index 0548417..f0d03f9 100644
+--- a/server/unified/institutionDirectory.mjs
++++ b/server/unified/institutionDirectory.mjs
+@@ -1,6 +1,8 @@
+ import { randomUUID } from 'node:crypto';
+ import { mkdirSync, existsSync, readFileSync, writeFileSync, renameSync, openSync, closeSync, unlinkSync } from 'node:fs';
+ import { join } from 'node:path';
++import fixtureDetails from './doctor-fixture-details.json' with {type:'json'};
++import {fixtureBytes} from '../../src/sales/orderFixtures.mjs';
+ export class DirectoryFailure extends Error {
+     constructor(message, status = 400) { super(message); this.status = status; }
+ }
+@@ -16,7 +18,21 @@ export class InstitutionDirectory {
+         h.region ||= '';
+         h.contact ||= '';
+     } for (const d of this.state.doctors)
+-        d.version ||= 1; }); }
++        d.version ||= 1;
++        this.completeFixtureStubs(); }); }
++    completeFixtureStubs(){
++      for(const entry of fixtureDetails.rows){
++        const row=this.state.doctors.find(d=>d.id===entry.doctor.id),fixture=entry.doctor;
++        if(!row||row.version!==1||row.name!==fixture.name||row.hospitalId!==fixture.hospitalId||row.phone||this.state.events.some(e=>e.objectId===row.id))continue;
++        const salesId=row.salesId;if(!salesId)continue;
++        const replace=value=>JSON.parse(JSON.stringify(value).replaceAll('__fixture_sales__',salesId));
++        const original=replace(fixture);row.seedOrigin='existing-sales-synthetic-fixtures';
++        for(const key of ['phone','title','certificate','source','submissionMode','submittedBy','createdBy','invitedBy','updatedAt'])if(original[key]!==undefined)row[key]=original[key];
++        row.materials=original.materials.map(file=>({...file,uploadedByName:file.uploadedByName||this.seed().people.find(p=>p.id===salesId)?.name,storage:'directory'}));
++        for(const file of row.materials)this.state.files.push({...file,owner:salesId,content:Buffer.from(fixtureBytes(1)).toString('base64')});
++        for(const event of replace(entry.events))this.state.events.push({...event,objectId:row.id,reason:event.detail,noteSource:event.reviewNoteSource,source:'existing-sales-synthetic-fixtures'});
++      }
++    }
+     reload() { if (this.directory && existsSync(join(this.directory, 'state.json'))) {
+         const value = JSON.parse(readFileSync(join(this.directory, 'state.json'), 'utf8'));
+         if (value.source !== 'isolated-institution-directory' || value.schema !== 1)
+@@ -61,10 +77,10 @@ export class InstitutionDirectory {
+     current(row, version) { if (row.version !== version)
+         throw new DirectoryFailure('资料已更新，请刷新后重试。', 409); }
+     event(actor, title, objectId, before, after, reason = '') { this.state.events.push({ id: randomUUID(), title, objectId, actorId: actor.id, actor: actor.name, at: new Date(this.now()).toISOString(), category: '机构与人员', result: '成功', reason, before: clone(before), after: clone(after), source: 'isolated-institution-directory' }); }
+-    snapshot() { this.reload(); this.syncInvitations(); const seed = this.seed(), hospitals = this.state.hospitals.map(h => ({ ...clone(h), departments: h.departmentRecords.filter(d => d.status === '已启用').map(d => d.name), managementEditable: true })); return { ...seed, hospitals, doctors: clone(this.state.doctors), salesScopes: clone(this.state.salesScopes), events: clone(this.state.events) }; }
++    snapshot() { this.reload(); this.syncInvitations(); const seed = this.seed(), hospitals = this.state.hospitals.map(h => ({ ...clone(h), departments: h.departmentRecords.filter(d => d.status === '已启用').map(d => d.name), managementEditable: true })); return { ...seed, hospitals, doctors: clone(this.state.doctors).map(d=>({...d,salesName:seed.people.find(p=>p.id===d.salesId)?.name})), salesScopes: clone(this.state.salesScopes), events: clone(this.state.events) }; }
+     validLeader(id, hospitalId, region) { const p = this.seed().people.find(p => p.id === id && p.role === '业务组长' && p.status === '已启用' && ['orders:read', 'orders:review', 'tasks:assign'].every(permission => p.permissions?.includes(permission))); return !!(p && (p.scope?.includes(hospitalId) || p.regions?.includes(region) || this.state.hospitals.some(h => h.id === hospitalId && h.leaderId === id))); }
+     canSelectDoctor(actor, doctor, hospital, department) { return !!doctor && !!hospital && this.sales(actor).includes(hospital.id) && hospital.status === '已启用' && doctor.status === '审核通过' && doctor.hospitalId === hospital.id && doctor.department === department && hospital.departmentRecords.some(d => d.name === department && d.status === '已启用') && (doctor.salesId === actor.id || doctor.businessAccess === 'hospital' || doctor.allowedSalesIds?.includes(actor.id)); }
+-    salesSnapshot(actor) { this.reload(); const ids = this.sales(actor), hospitals = this.snapshot().hospitals.filter(h => ids.includes(h.id)), doctors = this.state.doctors.filter(d => ids.includes(d.hospitalId)); return { hospitals, orderDoctors: doctors.filter(d => this.canSelectDoctor(actor, d, this.state.hospitals.find(h => h.id === d.hospitalId), d.department)).map(d => ({ id: d.id, name: d.name, hospitalId: d.hospitalId, department: d.department, departmentId: d.departmentId, status: d.status, orderSelectable: true })), ownDoctors: clone(doctors.filter(d => d.salesId === actor.id || d.createdBy === actor.id || d.invitedBy === actor.id)), events: clone(this.state.events.filter(e => doctors.some(d => d.id === e.objectId && (d.salesId === actor.id || d.createdBy === actor.id || d.invitedBy === actor.id)))) }; }
++    salesSnapshot(actor) { this.reload(); const ids = this.sales(actor), hospitals = this.snapshot().hospitals.filter(h => ids.includes(h.id)), doctors = this.state.doctors.filter(d => ids.includes(d.hospitalId)); return { hospitals, orderDoctors: doctors.filter(d => this.canSelectDoctor(actor, d, this.state.hospitals.find(h => h.id === d.hospitalId), d.department)).map(d => ({ id: d.id, name: d.name, hospitalId: d.hospitalId, department: d.department, departmentId: d.departmentId, status: d.status, orderSelectable: true })), ownDoctors: clone(doctors.filter(d => d.salesId === actor.id || d.createdBy === actor.id || d.invitedBy === actor.id)).map(d=>({...d,salesName:this.seed().people.find(p=>p.id===d.salesId)?.name})), events: clone(this.state.events.filter(e => doctors.some(d => d.id === e.objectId && (d.salesId === actor.id || d.createdBy === actor.id || d.invitedBy === actor.id)))) }; }
+     command(actor, { action, id, version, ...input }) {
+         if (typeof action !== 'string')
+             throw new DirectoryFailure('请选择有效操作。');
+@@ -170,6 +186,7 @@ export class InstitutionDirectory {
+                         throw new DirectoryFailure('审核结果无效。');
+                     reason = input.result === 'returned' ? text(input.reason, '退回原因', 1000) : String(input.reason || '').trim();
+                     d.status = input.result === 'approved' ? '审核通过' : '审核退回';
++                    if (input.result === 'approved' && !input.basis?.trim())throw new DirectoryFailure('请填写书面审批依据。');
+                     if (input.result === 'approved')
+                         d.salesId = d.createdBy || d.invitedBy || d.salesId;
+                     d.reason = input.result === 'returned' ? reason : '';
+@@ -220,6 +237,7 @@ export class InstitutionDirectory {
+                 const before = existing ? clone(existing) : null, d = { ...existing, id: existing?.id || 'D-LEAD-' + lead.id, name: lead.name, phone: lead.phone, hospitalId: h.id, departmentId: dep.id, department: dep.name, title: lead.title, certificate: lead.certificate, materials: clone(materials), status: '待审核', salesId: null, createdBy: lead.owner, invitedBy: lead.owner, source: lead.submissionMode === 'sales-assisted' ? '销售建档' : '医生自主建档', submissionMode: lead.submissionMode, submittedBy: lead.submittedBy, phoneVerified: true, invitationLeadId: lead.id, invitationSubmittedAt: lead.at, updatedAt: lead.at, version: (existing?.version || 0) + 1, reason: '' };
+                 this.state.doctors = this.state.doctors.filter(row => row.id !== d.id);
+                 this.state.doctors.push(d);
++                if(!existing){this.event({id:lead.submissionMode==='sales-assisted'?lead.owner:'invite-'+lead.id,name:lead.submittedBy||lead.name},'医生档案已创建',d.id,null,d);this.state.events.at(-1).at=lead.at;}
+                 this.event({ id: lead.submissionMode === 'sales-assisted' ? lead.owner : 'invite-' + lead.id, name: lead.submittedBy || lead.name }, existing?.status === '审核退回' ? '医生档案已重新提交审核' : '医生档案已提交审核', d.id, before, d);
+                 this.state.events.at(-1).at = lead.at;
+             }
+@@ -276,6 +294,7 @@ export class InstitutionDirectory {
+             const d = { id: input.id, name: text(input.name, '医生姓名', 60), phone: input.phone, hospitalId: h.id, departmentId: dep.id, department: dep.name, title: String(input.title || ''), certificate: String(input.certificate || ''), materials, status: submit ? '待审核' : '草稿', salesId: null, createdBy: old?.createdBy || actor.id, source: lead?.submissionMode === 'invite' || old?.source === '医生自主建档' ? '医生自主建档' : '销售建档', submissionMode: lead?.submissionMode || old?.submissionMode || 'sales-assisted', invitedBy: lead ? actor.id : old?.invitedBy || null, submittedBy: lead?.submittedBy || old?.submittedBy || actor.name, version: (old?.version || 0) + 1, createdAt: old?.createdAt || new Date(this.now()).toISOString(), updatedAt: new Date(this.now()).toISOString(), reason: '' };
+             this.state.doctors = this.state.doctors.filter(row => row.id !== d.id);
+             this.state.doctors.push(d);
++            if(!old)this.event(actor,'医生档案已创建',d.id,null,d);
+             this.event(actor, submit ? (old?.status === '审核退回' ? '医生档案已重新提交审核' : '医生档案已提交审核') : '医生档案草稿已保存', d.id, old || null, d);
+             return d;
+         });
+diff --git a/src/admin/AdminTable.tsx b/src/admin/AdminTable.tsx
+index 717b0b8..8e979e7 100644
+--- a/src/admin/AdminTable.tsx
++++ b/src/admin/AdminTable.tsx
+@@ -4,17 +4,17 @@ import {useWorkspaceStorage} from '../auth/AuthContext';
+ import type {ReactNode} from 'react';
+ import {Empty,Pagination,Table,Tooltip} from 'tdesign-react';
+ export type Column<T>={key:string;label:string;width?:number;render:(row:T)=>ReactNode};
+-export function AdminTable<T extends {id:string}>({rows,columns,paginate=true}:{rows:T[];columns:Column<T>[];paginate?:boolean}){
++export function AdminTable<T extends {id:string}>({rows,columns,paginate=true,fixedPageSize}:{rows:T[];columns:Column<T>[];paginate?:boolean;fixedPageSize?:number}){
+  const storage=useWorkspaceStorage();
+  const identity=location.hash+columns.map(c=>c.key).join('|');
+  const key='admin-table-page:'+Array.from(identity).reduce((h,c)=>Math.imul(h,31)+c.charCodeAt(0)|0,0);
+  const readPage=()=>Math.max(1,Number(storage.getItem(key))||1);
+  const initialPage=useRef({key,page:readPage()});
+  const [page,setPage]=useState(readPage),total=rows.length;
+- const paging=useViewportPagination(total,key,{enabled:paginate,page,onChange:value=>{setPage(value);storage.setItem(key,String(value))}}),size=paging.pageSize;
++ const paging=useViewportPagination(total,key,{enabled:paginate&&!fixedPageSize,page,onChange:value=>{setPage(value);storage.setItem(key,String(value))}}),size=fixedPageSize||paging.pageSize;
+  useEffect(()=>{const reset=()=>{storage.setItem(key,'1');setPage(1)};window.addEventListener('clinivol-admin-reset-pages',reset);return()=>window.removeEventListener('clinivol-admin-reset-pages',reset)},[key,storage]);
+  useLayoutEffect(()=>{const saved=initialPage.current.key===key?initialPage.current.page:readPage();initialPage.current={key,page:saved};const frame=requestAnimationFrame(()=>{setPage(saved);storage.setItem(key,String(saved))});return()=>cancelAnimationFrame(frame)},[key]);
+  const safePage=Math.min(page,Math.max(1,Math.ceil(total/size))),visible=paginate?rows.slice((safePage-1)*size,safePage*size):rows;
+- return <div className={`admin-data-table viewport-table ${paginate?'admin-full-table':'admin-embedded-table'}`} ref={paging.ref} data-total={total} data-page-size={size}><Table<T> rowKey="id" data={visible} columns={columns.map(c=>({colKey:c.key,title:c.label,width:c.width||(['action','actions'].includes(c.key)?110:undefined),fixed:['action','actions'].includes(c.key)?'right' as const:undefined,align:'left' as const,className:['action','actions'].includes(c.key)?'business-action-cell admin-action-cell':undefined,ellipsis:true,cell:({row}:{row:T})=>c.render(row)}))} tableLayout="fixed" hover bordered={false} className="app-table" empty={<Empty title="暂无数据" description={null}/>}/>{paging.showPagination&&<div className="table-pagination" data-viewport-pagination><Pagination current={safePage} pageSize={size} total={total} showPageSize={false} showJumper={false} onCurrentChange={paging.setPage}/></div>}</div>
++ return <div className={`admin-data-table viewport-table ${paginate&&!fixedPageSize?'admin-full-table':'admin-embedded-table'}`} ref={paging.ref} data-total={total} data-page-size={size}><Table<T> rowKey="id" data={visible} columns={columns.map(c=>({colKey:c.key,title:c.label,width:c.width||(['action','actions'].includes(c.key)?110:undefined),fixed:['action','actions'].includes(c.key)?'right' as const:undefined,align:'left' as const,className:['action','actions'].includes(c.key)?'business-action-cell admin-action-cell':undefined,ellipsis:true,cell:({row}:{row:T})=>c.render(row)}))} tableLayout="fixed" hover bordered={false} className="app-table" empty={<Empty title="暂无数据" description={null}/>}/>{(fixedPageSize?paginate&&total>size:paging.showPagination)&&<div className="table-pagination" data-viewport-pagination><Pagination current={safePage} pageSize={size} total={total} showPageSize={false} showJumper={false} onCurrentChange={value=>{setPage(value);storage.setItem(key,String(value))}}/></div>}</div>
+ }
+ export function FullText({children}:{children:string}){return <Tooltip content={children}><span className="admin-ellipsis">{children}</span></Tooltip>}
+diff --git a/src/admin/AdminWorkspace.tsx b/src/admin/AdminWorkspace.tsx
+index 473cc0b..02eb2f7 100644
+--- a/src/admin/AdminWorkspace.tsx
++++ b/src/admin/AdminWorkspace.tsx
+@@ -26,10 +26,14 @@ import type {AdminState,Approval,Asset,AuditEvent,Department,Doctor,Hospital,Ord
+ import {AdminOrderAttachmentPreview} from './OrderAttachmentPreview';
+ import type {Attachment} from '../sales/model';
+ import './admin.css';
++import {doctorFields as doctorFieldConfig,doctorSales,doctorSource} from '../doctors/doctorDisplay.mjs';
++import {DoctorMaterials,DoctorTimeline} from '../doctors/DoctorDetails';
++import {DoctorMaterialPreview} from '../doctors/DoctorMaterialPreview';
++import {pendingApprovals} from './reviewRules.mjs';
+ type Setting='profile'|'security'|'preferences';
+ type Command={action:string;id:string;version?:number;title:string;kind?:'doctor'|'order'|'task'|'hospital'|'approval'|'person'|'asset';result?:string;date?:string;basis?:string;options?:{label:string;value:string}[];selectLabel?:string};
+ const stageNames=['三维重建','CAD 设计','有限元分析','3D 打印'] as const;
+-const menu=[['home','工作台',HomeIcon],['orders','订单管理',TaskIcon],['tasks','任务调度',WorkIcon],['reviews','审核中心',TaskCheckedIcon],['organizations','机构与人员',UserBusinessIcon],['permissions','权限与审批',UserSafetyIcon],['assets','数据资产',FileIcon],['audit','审计日志',ListDemandIcon]] as const;
++const menu=[['home','工作台',HomeIcon],['orders','订单管理',TaskIcon],['tasks','任务调度',WorkIcon],['reviews','审核中心',TaskCheckedIcon],['organizations','机构与人员',UserBusinessIcon],['permissions','权限管理',UserSafetyIcon],['assets','数据资产',FileIcon],['audit','审计日志',ListDemandIcon]] as const;
+ function Status({value}:{value:string}){const theme=['处理中','进行中'].includes(value)?'primary':['待审核','待审批'].includes(value)?'warning':['审核退回','审批退回','已停用'].includes(value)?'danger':['审核通过','已完成','已启用','审批通过','已发布','已授权'].includes(value)?'success':'default';return <Tag variant="light" theme={theme} className={['处理中','进行中'].includes(value)?'status-in-progress':''}>{value}</Tag>}
+ function Fields({items}:{items:[string,ReactNode][]}){return <dl className="project-info-grid">{items.map(([label,value])=><div key={label} className={label==='设计需求'?'admin-field-demand':undefined}><dt>{label}</dt><dd>{value===null||value===undefined||value===''?'—':value}</dd></div>)}</dl>}
+ function History({events,tasks=[]}:{events:AuditEvent[];tasks?:Task[]}){return events.length?<ol className="timeline">{historyEvents(events).map(e=>{const stage=tasks.find(t=>t.id===e.objectId)?.stage;return <li className="timeline-item" key={e.id}><i/><div><strong>{e.title}{stage!==undefined&&<span className="flow-source">{STAGES[stage]}</span>}</strong><p><span className="timeline-meta">{formatAuditTime(e.at)} · {e.actor}</span>{(e.noteSource!=='system-default'&&e.reason||e.note&&e.noteSource!=='system-default')&&<span className="timeline-note">{e.reason||e.note}</span>}{e.basis&&<span className="timeline-note">依据：{e.basis}</span>}</p></div></li>})}</ol>:<Empty title="暂无操作记录" description={null}/>}
+@@ -38,7 +42,7 @@ export default function AdminWorkspace(){
+  const [route,setRoute]=useState(location.hash.replace(/^#(?:admin\/?)?/,'')||'home');
+  const [moduleTabs,setModuleTabs]=useState<Record<string,string>>({});
+  const currentModule=route.split('/')[0];
+- const tab=moduleTabs[currentModule]||({reviews:'doctors',organizations:'hospitals',permissions:'requests',assets:'trace'} as Record<string,string>)[currentModule]||'';
++ const tab=moduleTabs[currentModule]||({reviews:'combined',organizations:'hospitals',permissions:'grants',assets:'trace'} as Record<string,string>)[currentModule]||'';
+  const setModuleTab=(module:string,value:string)=>setModuleTabs(previous=>({...previous,[module]:value}));
+  const setTab=(value:string)=>setModuleTab(currentModule,value);
+  const [data,setData]=useState<AdminState|null>(null),[error,setError]=useState(''),[loading,setLoading]=useState(true);
+@@ -66,16 +70,19 @@ export default function AdminWorkspace(){
+  const theme=(value:'light'|'dark'|'system')=>{const next=value==='dark'||value==='system'&&matchMedia('(prefers-color-scheme:dark)').matches;setDark(next);document.documentElement.setAttribute('theme-mode',next?'dark':'light');document.documentElement.dataset.theme=next?'dark':'light';localStorage.setItem('clinivol-theme-preference',value)};
+  const start=(value:Command)=>{setCommand(value);setReason('');setBasis(value.basis||'');setSelection(value.options?.length===1?value.options[0].value:'');setDate(value.date||'');setCommandError('');setCommandConflict(false)};
+  const commandFlight=useRef(false);
+- const commit=async()=>{if(!command||busy||commandFlight.current)return;const invalid=command.options&&!selection?'请选择'+(command.selectLabel||'操作对象')+'。':(['assign-task'].includes(command.action)||command.action==='review-order'&&command.result==='approved')&&!/^\d{4}-\d{2}-\d{2}$/.test(date)?'请选择有效日期。':(command.action==='revoke-permission'||command.result==='approved'&&['review-doctor','review-account','approve-permission'].includes(command.action)||command.action==='request-permission')&&!basis.trim()?'请填写书面审批依据。':command.result!=='approved'&&!reason.trim()?'请填写'+(command.result==='returned'?'退回原因':'操作原因')+'。':'';if(invalid){setCommandError(invalid);return}commandFlight.current=true;setBusy(true);setCommandError('');try{const result=await adminRequest<{ok:boolean;data?:unknown}>('command',{action:command.action,id:command.id,version:command.version,result:command.result,reason,basis,leaderId:selection,assignee:selection,reviewerId:selection,permission:selection,plannedDate:date,confirmedDeliveryDate:date});if(result.data){const url=URL.createObjectURL(new Blob([JSON.stringify(result.data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='admin-isolated-asset-metadata.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}await refresh();await auth.refresh();setCommand(null);setInspect(null);void MessagePlugin.success('操作已完成')}catch(e){setCommandError((e as Error).message);if((e as Error & {status?:number}).status===409){setCommandConflict(true);await refresh()}}finally{commandFlight.current=false;setBusy(false)}};
++ const commit=async()=>{if(!command||busy||commandFlight.current)return;const invalid=command.options&&!selection?'请选择'+(command.selectLabel||'操作对象')+'。':(['assign-task'].includes(command.action)||command.action==='review-order'&&command.result==='approved')&&!/^\d{4}-\d{2}-\d{2}$/.test(date)?'请选择有效日期。':(command.action==='revoke-permission'||command.result==='approved'&&['review-doctor','review-account','approve-permission'].includes(command.action)||command.action==='request-permission')&&!basis.trim()?'请填写书面审批依据。':command.result!=='approved'&&!reason.trim()?'请填写'+(command.result==='returned'?'退回原因':'操作原因')+'。':'';if(invalid){setCommandError(invalid);return}commandFlight.current=true;setBusy(true);setCommandError('');try{const result=await adminRequest<{ok:boolean;data?:unknown}>('command',{action:command.action,id:command.id,version:command.version,result:command.result,reason,basis,leaderId:selection,assignee:selection,reviewerId:selection,permission:selection,plannedDate:date,confirmedDeliveryDate:date});if(result.data){const url=URL.createObjectURL(new Blob([JSON.stringify(result.data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='admin-isolated-asset-metadata.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}await refresh();await auth.refresh();setCommand(null);if(!['review-doctor','review-account','approve-permission'].includes(command.action))setInspect(null);void MessagePlugin.success('操作已完成')}catch(e){setCommandError((e as Error).message);if((e as Error & {status?:number}).status===409){setCommandConflict(true);await refresh()}}finally{commandFlight.current=false;setBusy(false)}};
+  useEffect(()=>{setInspect(null);setCommand(null);setPreview('')},[route]);
++ useEffect(()=>{if(route.startsWith('reviews/doctor/')&&data){const d=data.doctors.find(d=>d.id===route.split('/')[2]);if(d){setInspectKind('doctor');setInspect(d)}}},[route,data]);
+  const user={...account,role:roleName(account)};
+  const section=route.split('/')[0],detail=route.split('/')[1],settings=['profile','security','preferences'].includes(section),active=section==='order'?'orders':section==='hospital'?'organizations':section;
+- const buckets=useMemo(()=>data?dashboardBuckets(data):null,[data]);
++ const buckets=useMemo(()=>data?dashboardBuckets(data,new Date(),account.permissions):null,[data,account.permissions]);
+  const person=(id?:string|null)=>id===account.id?account.name:data?.people.find(p=>p.id===id)?.name||'未分配';
+  const businessNo=(id:string)=>{const o=data?.orders.find(o=>o.id===id);return o?.status==='草稿'?'-':o?.businessNo||'—'};
+  const orderLink=(id:string)=><Button className="admin-business-number" variant="text" theme="default" disabled={!data?.orders.some(o=>o.id===id)} onClick={()=>go(`order/${id}`)}>{businessNo(id)}</Button>;
+  const can=(permission:string)=>account.permissions.includes(permission);
+- const visibleMenu=menu.filter(([value])=>value!=='tasks'&&(value==='home'||can(({orders:'orders:read',tasks:'tasks:assign',reviews:'doctors:review',organizations:'people:manage',permissions:'permissions:grant',assets:'assets:read',audit:'audit:read'} as Record<string,string>)[value])));
++ const canReview=['doctors:review','accounts:approve','permissions:grant'].some(can);
++ const doctorReviewMode=inspectKind==='doctor'&&(section==='reviews'||section==='home');
++ const visibleMenu=menu.filter(([value])=>value!=='tasks'&&(value==='home'||value==='reviews'&&canReview||can(({orders:'orders:read',tasks:'tasks:assign',reviews:'doctors:review',organizations:'people:manage',permissions:'permissions:grant',assets:'assets:read',audit:'audit:read'} as Record<string,string>)[value])));
+  const navGroup=(value?:string)=>['orders','tasks','reviews'].includes(value||'')?'业务工作':['organizations','permissions'].includes(value||'')?'组织与权限':['assets','audit'].includes(value||'')?'数据与审计':'';
+  const chronological=<T extends {id:string}>(rows:T[],at:(r:T)=>string)=>[...rows].sort((a,b)=>(Date.parse(at(b))||0)-(Date.parse(at(a))||0)||a.id.localeCompare(b.id));
+  const hospital=(id:string)=>data?.hospitals.find(h=>h.id===id)?.name||'—';
+@@ -137,10 +144,10 @@ export default function AdminWorkspace(){
+  if(settings)content=<SettingsPage section={section as Setting} onSectionChange={go} onBack={()=>go('home')} returnLabel="返回工作台" user={user} onUserChange={v=>auth.updateProfile({name:v.name,email:v.email,avatar:v.avatar})} themePreference={dark?'dark':'light'} onThemePreferenceChange={theme} notificationPreferences={preferences} onNotificationPreferencesChange={setPreferences} onLogout={()=>window.dispatchEvent(new Event('clinivol-request-logout'))}/>;
+  else if(loading)content=<Card bordered={false}>正在读取管理数据…</Card>;
+  else if(error||!data||!buckets)content=<Card bordered={false}><Empty description={error||'管理数据未加载'}/><Button onClick={()=>void refresh()}>重新加载</Button></Card>;
+- else if(({tasks:'tasks:assign',reviews:'doctors:review',organizations:'people:manage',hospital:'people:manage',permissions:'permissions:grant',assets:'assets:read',audit:'audit:read'} as Record<string,string>)[section]&&!can(({tasks:'tasks:assign',reviews:'doctors:review',organizations:'people:manage',hospital:'people:manage',permissions:'permissions:grant',assets:'assets:read',audit:'audit:read'} as Record<string,string>)[section]))content=<Empty title="无此模块访问权限" description={null}/>;
++ else if((section==='reviews'&&!canReview)||({tasks:'tasks:assign',organizations:'people:manage',hospital:'people:manage',permissions:'permissions:grant',assets:'assets:read',audit:'audit:read'} as Record<string,string>)[section]&&!can(({tasks:'tasks:assign',reviews:'doctors:review',organizations:'people:manage',hospital:'people:manage',permissions:'permissions:grant',assets:'assets:read',audit:'audit:read'} as Record<string,string>)[section]))content=<Empty title="无此模块访问权限" description={null}/>;
+  else if(section==='home'){
+   const stats=[{label:'待审核订单',count:buckets.orders.length,note:'由当前负责组长处理',tone:'review',Icon:TimeFilledIcon,run:()=>{go('orders',true,true);setStatus('待审核');allTimeOrders()}},{label:'待分配任务',count:buckets.tasks.length,note:'已受理订单中的专业任务',tone:'pending',Icon:TaskFilledIcon,run:()=>{go('orders/unassigned',true,true);allTimeOrders()}},{label:'待处理审批',count:buckets.reviews.length,note:'账号、资质及权限申请',tone:'review',Icon:TaskCheckedFilledIcon,run:()=>{go('reviews/pending',true,true);setModuleTab('reviews','combined')}},{label:'进行中订单',count:buckets.processing.length,note:'专业设计处理中',tone:'progress',Icon:WorkFilledIcon,run:()=>{go('orders',true,true);setStatus('处理中');allTimeOrders()}},{label:'交付风险',count:buckets.risks.length,note:'已超过约定交付日期',tone:'returned',Icon:AssignmentErrorFilledIcon,run:()=>{go('orders/risk',true,true);allTimeOrders()}}];
+-  const pending=chronological([...data.approvals.filter(a=>a.status==='待审批').map(a=>({id:a.id,type:a.type,applicant:a.applicant,status:a.status,at:a.at,row:a,kind:'approval'})),...data.doctors.filter(d=>d.status==='待审核').map(d=>({id:d.id,type:'医生档案',applicant:d.name,status:d.status,at:chronological(data.materials.filter(m=>m.doctorId===d.id),m=>m.at)[0]?.at||'',row:d,kind:'doctor'}))],r=>r.at);
++  const pending=pendingApprovals(data,account.permissions);
+   content=<><section className="dashboard-welcome"><div className="dashboard-welcome-copy"><h1>{new Date().getHours()<12?'上午好':new Date().getHours()<18?'下午好':'晚上好'}，{account.name}</h1><p>当前有 {buckets.orders.length+buckets.tasks.length+buckets.reviews.length+buckets.risks.length} 项事项需要关注，其中 {pending.length} 项审批待处理。</p></div><time className="dashboard-date-text">{formatDate(new Date().toISOString())}</time></section><section className="stat-grid" aria-label="管理员业务统计">{stats.map(s=><Card bordered={false} className={`stat-card stat-${s.tone}`} key={s.label}><Tooltip content="统计范围：全部授权历史；首页订单摘要为近三个月"><button className="project-stat-action" aria-label={`${s.label} ${s.count}`} onClick={s.run}><div className="stat-card-head"><span>{s.label}</span><i><s.Icon size={20}/></i></div><strong>{s.count}</strong><small>{s.note}</small></button></Tooltip></Card>)}</section><section className="dashboard-grid admin-home-grid">
+    <Card bordered={false} className="dashboard-card table-card"><div className="section-heading"><h2>订单管理</h2><Button theme="primary" variant="text" onClick={()=>go('orders',true,true)}>查看全部<ChevronRightIcon size={16}/></Button></div><AdminTable paginate={false} rows={recentOrders(data.orders,periodRange('3m'),formatDate)} columns={orderColumns}/></Card>
+    {pending.length>0&&<Card bordered={false} className="dashboard-card table-card"><div className="section-heading"><h2>待处理审批</h2>{button('查看全部',()=>{go('reviews/pending',true,true);setModuleTab('reviews','combined')})}</div><AdminTable paginate={false} rows={pending.slice(0,7)} columns={[{key:'type',label:'申请事项',render:r=>r.type},{key:'name',label:'申请人',render:r=>r.applicant},{key:'state',label:'当前状态',render:r=><Status value={r.status}/>},{key:'action',label:'操作',render:r=>button('查看',()=>show(r.kind,r.row))}]}/></Card>}
+@@ -184,23 +191,31 @@ export default function AdminWorkspace(){
+  <Button variant="outline" onClick={()=>{setQuery('');setStatus('');setStageFilter('');setAssigneeFilter('')}}>重置筛选</Button></div>
+  <AdminTable rows={data.tasks.filter(t=>matches(businessNo(t.orderId),t.status)&&(!stageFilter||String(t.stage)===stageFilter)&&(!assigneeFilter||(assigneeFilter==='unassigned'?!t.assignee:t.assignee===assigneeFilter))&&(!route.endsWith('/unassigned')||!t.assignee&&t.status==='未开始'))} columns={taskColumns}/></Card>;
+  else if(section==='reviews'){
+-  const reviewTab=tab==='combined'&&route.endsWith('/pending')?'combined':['doctors','accounts','professional'].includes(tab)?tab:'doctors';
+-  const combined=[...data.doctors.filter(d=>d.status==='待审核').map(d=>({id:d.id,type:'医生档案',name:d.name,status:d.status,at:'',row:d})),...data.approvals.filter(a=>a.status==='待审批').map(a=>({id:a.id,type:a.type,name:a.subjectName,status:a.status,at:a.at,row:a}))];
+-  content=<Card bordered={false} className="project-list-card">{title('审核中心')}<Tabs value={reviewTab} onChange={v=>{setTab(String(v));setQuery('');setStatus('')}}><Tabs.TabPanel value="doctors" label="医生档案审核"/><Tabs.TabPanel value="accounts" label="员工与账号审核"/><Tabs.TabPanel value="professional" label="专业成果审核监管"/>{route.endsWith('/pending')&&<Tabs.TabPanel value="combined" label="待处理审批"/>}</Tabs>{fieldFilters(reviewTab==='doctors'?['待审核','审核退回','审核通过','已停用']:[])}{reviewTab==='combined'?<AdminTable rows={combined.filter(r=>matches(`${r.name} ${r.type}`,r.status))} columns={[{key:'type',label:'审核事项',render:r=>r.type},{key:'name',label:'申请人',render:r=>r.name},{key:'status',label:'状态',render:r=><Status value={r.status}/>},{key:'actions',label:'操作',render:r=>button('查看',()=>show(r.type==='医生档案'?'doctor':'approval',r.row))}]}/>:reviewTab==='accounts'?<AdminTable rows={data.approvals.filter(a=>a.type==='账号开通'&&matches(`${a.subjectName} ${a.organization}`))} columns={approvalColumns}/>:reviewTab==='professional'?<AdminTable rows={data.assets.filter(a=>matches(`${a.name} ${businessNo(a.orderId)}`))} columns={assetColumns()}/>:<AdminTable rows={data.doctors.filter(d=>matches(`${d.name} ${hospital(d.hospitalId)}`,d.status))} columns={doctorColumns()}/>}</Card>;
++  const reviewTab=['combined','doctors','accounts','permissions'].includes(tab)?tab:'combined';
++  const combined=pendingApprovals(data,account.permissions);
++  content=<Card bordered={false} className="project-list-card">{title('审核中心')}<Tabs value={reviewTab} onChange={v=>{setTab(String(v));setQuery('');setStatus('')}}><Tabs.TabPanel value="combined" label="待处理审批"/><Tabs.TabPanel value="doctors" label="医生档案审核" disabled={!can('doctors:review')}/><Tabs.TabPanel value="accounts" label="账号注册审核" disabled={!can('accounts:approve')}/><Tabs.TabPanel value="permissions" label="权限申请审批" disabled={!can('permissions:grant')}/></Tabs>{fieldFilters(reviewTab==='doctors'?['待审核','审核退回','审核通过','已停用']:reviewTab==='combined'?[]:['待审批','审批通过','审批退回'])}{reviewTab==='combined'?<AdminTable rows={combined.filter(r=>matches(`${r.applicant} ${r.type}`,r.status))} columns={[{key:'type',label:'审核事项',render:r=>r.type},{key:'name',label:'申请人',render:r=>r.applicant},{key:'status',label:'状态',render:r=><Status value={r.status}/>},{key:'actions',label:'操作',render:r=>button('查看详情',()=>show(r.kind,r.row))}]}/>:reviewTab==='doctors'&&can('doctors:review')?<AdminTable rows={data.doctors.filter(d=>matches(`${d.name} ${hospital(d.hospitalId)}`,d.status))} columns={doctorColumns()}/>:reviewTab==='accounts'&&can('accounts:approve')?<AdminTable rows={data.approvals.filter(a=>a.type==='账号开通'&&matches(`${a.subjectName} ${a.organization}`,a.status))} columns={approvalColumns}/>:reviewTab==='permissions'&&can('permissions:grant')?<AdminTable rows={data.approvals.filter(a=>a.type!=='账号开通'&&matches(`${a.subjectName} ${a.applicant} ${a.type}`,a.status))} columns={approvalColumns}/>:<Empty title="无此审批权限" description={null}/>}</Card>;
+  }
+  else if(section==='organizations')content=<Card bordered={false} className="project-list-card">{title('机构与人员',(!tab||tab==='hospitals')&&can('people:manage')?<Button theme="primary" onClick={()=>setHospitalEdit(null)}>新建医院</Button>:undefined)}<Tabs value={['hospitals','people','doctors'].includes(tab)?tab:'hospitals'} onChange={v=>{setTab(String(v));setQuery('');setStatus('')}}><Tabs.TabPanel value="hospitals" label="医院管理"/><Tabs.TabPanel value="people" label="人员管理"/><Tabs.TabPanel value="doctors" label="医生管理"/></Tabs>{fieldFilters([])}{tab==='people'?<AdminTable rows={data.people.filter(p=>matches(`${p.name} ${p.role}`))} columns={peopleColumns()}/>:tab==='doctors'?<AdminTable rows={data.doctors.filter(d=>matches(`${d.name} ${hospital(d.hospitalId)}`))} columns={doctorColumns()}/>:<AdminTable rows={data.hospitals.filter(h=>matches(`${h.name} ${person(h.leaderId)}`))} columns={hospitalColumns()}/>}</Card>;
+  else if(section==='hospital'){
+   const h=data.hospitals.find(h=>h.id===detail);content=h?<><PageBack label={backLabel('机构与人员')} onBack={()=>goBack('organizations')}/><Card bordered={false} className="project-info-card"><div className="project-page-heading"><h2>医院基本资料</h2><div className="admin-actions">{button('编辑医院',()=>setHospitalEdit(h))}{button(h.status==='已启用'?'停用医院':'启用医院',()=>start({action:'hospital-status',id:h.id,version:h.version,title:h.status==='已启用'?'停用医院':'启用医院'}))}</div></div><Fields items={[["医院",h.name],["所属区域",h.region],["联系信息",h.contact],["当前负责组长",person(h.leaderId)],["当前状态",<Status value={h.status}/>],["科室",h.departments.join('、')]]}/></Card>
+-  <Card bordered={false} className="project-info-card"><div className="project-page-heading"><h2>所属科室</h2><Button theme="primary" onClick={()=>setDepartmentEdit({hospital:h})}>新增科室</Button></div><AdminTable paginate={false} rows={h.departmentRecords||[]} columns={[
++  <Card bordered={false} className="project-info-card"><div className="project-page-heading"><h2>所属科室</h2><Button theme="primary" onClick={()=>setDepartmentEdit({hospital:h})}>新增科室</Button></div><AdminTable fixedPageSize={6} rows={h.departmentRecords||[]} columns={[
+    {key:'name',label:'科室',render:r=>r.name},{key:'status',label:'当前状态',render:r=><Status value={r.status}/>},{key:'doctors',label:'关联医生',render:r=>data.doctors.filter(d=>d.hospitalId===h.id&&d.department===r.name).map(d=>d.name).join('、')||'—'},
+    {key:'actions',label:'操作',render:r=><div className="admin-actions">{button('编辑',()=>setDepartmentEdit({hospital:h,initial:r}))}{button(r.status==='已启用'?'停用':'启用',()=>start({action:'department-status',id:r.id,version:r.version,title:r.status==='已启用'?'停用科室':'启用科室'}))}</div>}
+-  ]}/></Card><Card bordered={false} className="table-card"><div className="section-heading"><h2>关联医生</h2></div><AdminTable paginate={false} rows={data.doctors.filter(d=>d.hospitalId===h.id)} columns={doctorColumns()}/></Card><Card bordered={false} className="table-card"><div className="section-heading"><h2>关联订单</h2></div><AdminTable paginate={false} rows={data.orders.filter(o=>o.hospitalId===h.id)} columns={orderColumns}/></Card><Card bordered={false} className="project-info-card"><h2>机构操作记录</h2><History events={data.events.filter(e=>e.objectId===h.id)}/></Card></>:<Empty description="医院不存在"/>;
++  ]}/></Card><Card bordered={false} className="table-card"><div className="section-heading"><h2>关联医生</h2></div><AdminTable fixedPageSize={6} rows={data.doctors.filter(d=>d.hospitalId===h.id)} columns={doctorColumns()}/></Card><Card bordered={false} className="table-card"><div className="section-heading"><h2>关联订单</h2></div><AdminTable fixedPageSize={6} rows={data.orders.filter(o=>o.hospitalId===h.id)} columns={orderColumns}/></Card><Card bordered={false} className="project-info-card"><h2>机构操作记录</h2><History events={data.events.filter(e=>e.objectId===h.id)}/></Card></>:<Empty description="医院不存在"/>;
+  }
+- else if(section==='permissions')content=<Card bordered={false} className="project-list-card">{title('权限与审批')}<Tabs value={tab==='grants'?'grants':'requests'} onChange={v=>{setTab(String(v));setQuery('');setStatus('')}}><Tabs.TabPanel value="requests" label="业务审批"/><Tabs.TabPanel value="grants" label="管理授权"/></Tabs>{fieldFilters(tab==='grants'?[]:['待审批','审批通过','审批退回'])}{tab==='grants'?<AdminTable rows={data.people.filter(p=>['管理员','业务组长'].includes(p.role)&&matches(`${p.name} ${p.role}`))} columns={peopleColumns()}/>:<AdminTable rows={data.approvals.filter(a=>matches(`${a.subjectName} ${a.applicant} ${a.type}`,a.status))} columns={approvalColumns}/>}</Card>;
+- else if(section==='assets')content=<Card bordered={false} className="project-list-card">{title('数据资产',<Tooltip content="仅导出当前授权范围内的隔离成果元数据"><Button disabled={!can('assets:export-metadata')} onClick={()=>start({action:'export-metadata',id:'metadata',title:'导出资产元数据'})}>受控导出元数据</Button></Tooltip>)}<Tabs value={tab==='shares'?'shares':'trace'} onChange={v=>{setTab(String(v));setQuery('');setStatus('')}}><Tabs.TabPanel value="trace" label="资产追溯"/><Tabs.TabPanel value="shares" label="成果分享管理"/></Tabs>{fieldFilters([])}{tab==='shares'?<><div className="admin-boundary">销售成果分享服务尚未接入管理查询；不生成访问记录，暂不开放撤销。</div><AdminTable rows={data.shares} columns={[{key:'name',label:'成果名称',render:r=>r.name},{key:'order',label:'所属订单',render:r=>businessNo(r.orderId)},{key:'initiator',label:'分享发起人',render:r=>r.initiatorName},{key:'views',label:'成功查看次数',render:r=>r.successCount},{key:'recent',label:'最近查看',render:r=>r.lastViewedAt?formatDateTime(r.lastViewedAt):'暂无查看记录'},{key:'action',label:'操作',render:()=>button('撤销分享',()=>{},true)}]}/></>:<AdminTable rows={data.assets.filter(a=>matches(`${a.name} ${businessNo(a.orderId)} ${a.id}`))} columns={assetColumns()}/>}</Card>;
++ else if(section==='permissions')content=<Card bordered={false} className="project-list-card">{title('权限管理')}<Tabs value={tab==='history'?'history':'grants'} onChange={v=>{setTab(String(v));setQuery('');setStatus('')}}><Tabs.TabPanel value="grants" label="当前权限"/><Tabs.TabPanel value="history" label="权限变更记录"/></Tabs>{fieldFilters([])}{tab==='history'?<AdminTable rows={chronological(data.events.filter(e=>['权限审批','权限与审批'].includes(e.category)||['权限已撤销','权限申请已提交','权限审批通过','权限审批退回'].includes(e.title)),e=>e.at).filter(e=>matches(`${e.title} ${e.actor}`))} columns={[{key:'event',label:'事件',render:r=>r.title},{key:'actor',label:'操作人',render:r=>r.actor},{key:'at',label:'时间',render:r=>formatDateTime(r.at)},{key:'actions',label:'操作',render:r=>button('查看详情',()=>show('audit',r))}]}/>:<AdminTable rows={data.people.filter(p=>matches(`${p.name} ${p.role}`))} columns={peopleColumns()}/>}</Card>;
++ else if(section==='assets')content=<Card bordered={false} className="project-list-card">{title('数据资产',<Tooltip content="仅导出当前授权范围内的隔离成果元数据"><Button disabled={!can('assets:export-metadata')} onClick={()=>start({action:'export-metadata',id:'metadata',title:'导出资产元数据'})}>受控导出元数据</Button></Tooltip>)}<Tabs value={['shares','professional'].includes(tab)?tab:'trace'} onChange={v=>{setTab(String(v));setQuery('');setStatus('')}}><Tabs.TabPanel value="trace" label="资产追溯"/><Tabs.TabPanel value="professional" label="专业成果监管"/><Tabs.TabPanel value="shares" label="成果分享管理"/></Tabs>{fieldFilters([])}{tab==='shares'?<><div className="admin-boundary">销售成果分享服务尚未接入管理查询；不生成访问记录，暂不开放撤销。</div><AdminTable rows={data.shares} columns={[{key:'name',label:'成果名称',render:r=>r.name},{key:'order',label:'所属订单',render:r=>businessNo(r.orderId)},{key:'initiator',label:'分享发起人',render:r=>r.initiatorName},{key:'views',label:'成功查看次数',render:r=>r.successCount},{key:'recent',label:'最近查看',render:r=>r.lastViewedAt?formatDateTime(r.lastViewedAt):'暂无查看记录'},{key:'action',label:'操作',render:()=>button('撤销分享',()=>{},true)}]}/></>:<AdminTable rows={data.assets.filter(a=>matches(`${a.name} ${businessNo(a.orderId)} ${a.id}`))} columns={assetColumns()}/>}</Card>;
+  else if(section==='audit')content=<Card bordered={false} className="project-list-card">{title('审计日志')}{fieldFilters(['成功','已记录'])}<div className="project-filters admin-filters"><label><span>业务类型</span><Select clearable value={tab.startsWith('category:')?tab.slice(9):''} placeholder="全部业务类型" aria-label="业务类型筛选" options={[{label:'全部',value:''},...[...new Set(data.events.map(e=>e.category))].map(v=>({label:v,value:v}))]} onChange={v=>setTab(v?`category:${v}`:'')}/></label><label><span>操作时间</span><DateRangePicker value={range} clearable onChange={v=>setRange(v as string[])}/></label></div><AdminTable rows={chronological(data.events,e=>e.at).filter(e=>matches(`${e.title} ${auditObject(e)} ${e.actor} ${e.reason||''} ${e.basis||''}`,e.result)&&(!tab.startsWith('category:')||e.category===tab.slice(9))&&(!range[0]||formatDate(e.at)>=range[0])&&(!range[1]||formatDate(e.at)<=range[1]))} columns={[{key:'title',label:'事件',width:190,render:r=>r.title},{key:'category',label:'业务类型',width:130,render:r=>r.category},{key:'object',label:'业务对象',width:170,render:r=>auditObject(r)},{key:'actor',label:'操作人',width:110,render:r=>r.actor},{key:'time',label:'操作时间',width:150,render:r=>formatAuditTime(r.at)},{key:'result',label:'操作结果',width:100,render:r=>r.result},{key:'reason',label:'原因 / 审批依据',width:220,render:r=><FullText>{r.basis||r.reason||'—'}</FullText>},{key:'action',label:'操作',width:90,render:r=>button('详情',()=>show('audit',r))}]}/></Card>;
+  else content=<Empty description="页面不存在"/>;
+- function doctorColumns():Column<Doctor>[]{return [{key:'name',label:'医生',width:110,render:r=>r.name},{key:'hospital',label:'医院',width:180,render:r=>hospital(r.hospitalId)},{key:'department',label:'科室',width:140,render:r=>r.department},{key:'phone',label:'联系手机号',width:140,render:r=>r.phone||'—'},{key:'source',label:'建档来源',width:130,render:r=>r.source||'未记录'},{key:'status',label:'资质状态',width:110,render:r=><Status value={r.status}/>},{key:'actions',label:'操作',width:110,render:r=>button('查看档案',()=>show('doctor',r))}]}
++ function doctorValue(d:Doctor,key:string):ReactNode{
++  if(key==='hospitalId')return hospital(d.hospitalId);
++  if(key==='status')return <Status value={d.status}/>;
++  if(key==='phone')return d.phone?d.phone.replace(/(\d{3})\d{4}(\d{4})/,'$1****$2'):'—';
++  if(key==='source')return doctorSource(d);
++  if(key==='sales')return doctorSales(d,data?.people);
++  return String(d[key as keyof Doctor]||'—');
++ }
++ function doctorColumns():Column<Doctor>[]{return [...doctorFieldConfig.slice(0,8).map(([key,label])=>({key,label,width:['hospitalId'].includes(key)?180:['phone','source','status'].includes(key)?135:110,render:(d:Doctor)=>key==='status'?doctorValue(d,key):<FullText>{String(doctorValue(d,key))}</FullText>})),{key:'actions',label:'操作',width:110,render:d=>button('查看详情',()=>show('doctor',d))}]}
+  function peopleColumns():Column<Person>[]{return [{key:'name',label:'姓名',width:110,render:r=>r.name},{key:'role',label:'主要职责',width:130,render:r=>r.role},{key:'organization',label:'所属组织',width:170,render:r=>r.organization||'—'},{key:'scope',label:'生效范围',width:220,render:r=>r.scope.map(hospital).join('、')||'本人任务'},{key:'permissions',label:'具体权限',width:250,render:r=>r.permissions.map(permissionName).join('、')},{key:'status',label:'账号状态',width:110,render:r=><Status value={r.status}/>},{key:'actions',label:'操作',width:100,render:r=>button('查看',()=>show('person',r))}]}
+  function hospitalColumns():Column<Hospital>[]{return [{key:'name',label:'医院名称',width:200,render:r=>button(r.name,()=>go(`hospital/${r.id}`))},{key:'region',label:'所属区域',width:100,render:r=>r.region||'—'},{key:'contact',label:'联系信息',width:150,render:r=>r.contact||'—'},{key:'leader',label:'当前负责组长',width:130,render:r=>person(r.leaderId)},{key:'doctors',label:'关联医生',width:110,render:r=>data?.doctors.filter(d=>d.hospitalId===r.id).length},{key:'status',label:'当前状态',width:110,render:r=><Status value={r.status}/>},{key:'actions',label:'操作',width:180,render:r=><div className="admin-actions">{button('查看',()=>go(`hospital/${r.id}`))}{button('编辑',()=>setHospitalEdit(r))}</div>}]}
+  function assetColumns():Column<Asset>[]{return [{key:'name',label:'成果名称',width:170,render:r=>r.name},{key:'order',label:'所属订单',width:140,render:r=>orderLink(r.orderId)},{key:'stage',label:'设计阶段',width:110,render:r=>r.stage===null?'—':<StageTypeIcon stage={stageNames[r.stage]}/>},{key:'version',label:'成果版本',width:100,render:r=>r.version},{key:'review',label:'审核状态',width:110,render:r=><Status value={r.reviewStatus}/>},{key:'publish',label:'发布状态',width:110,render:r=><Status value={r.publishStatus}/>},{key:'action',label:'操作',width:110,render:r=>button('追溯详情',()=>show('asset',r))}]}
+@@ -208,8 +223,8 @@ export default function AdminWorkspace(){
+   if(inspectKind==='task'){const t=data.tasks.find(t=>t.id===inspect.id);if(!t)return <Empty title="任务不存在或无查看权限" description={null}/>;const o=data.orders.find(o=>o.id===t.orderId);return <><Fields items={[
+  ['订单编号',businessNo(t.orderId)],['手术项目名称',o?.name],['医院',o?hospital(o.hospitalId):'—'],['设计阶段',<StageLabel stage={stageNames[t.stage]}/>],['当前状态',<Status value={t.status}/>],['任务负责人',person(t.assignee)],['执行条件',execution(t)],['计划时间',t.plannedDate||'—']
+  ]}/><div className="admin-drawer-actions">{button('查看订单',()=>go(`order/${t.orderId}`),!o)}<Tooltip content={o?.leaderId!==account.id?'请由当前负责组长处理':t.status!=='未开始'?'当前任务状态不允许重新分配':'按专业能力及启用状态选择负责人'}><span><Button theme="primary" disabled={account.role==='super_admin'||!can('tasks:assign')||!o||o.leaderId!==account.id||t.status!=='未开始'} onClick={()=>assign(t)}>{t.assignee?'调整分配':'分配任务'}</Button></span></Tooltip></div><h3>操作记录</h3><History events={data.events.filter(e=>e.objectId===t.id)}/></>}
+-  if(inspectKind==='doctor'){const d=data.doctors.find(d=>d.id===inspect.id);if(!d)return <Empty title="档案不存在或无查看权限" description={null}/>;return <><Fields items={[["医生",d.name],["联系手机号",d.phone],["医院",hospital(d.hospitalId)],["科室",d.department],["职称",d.title],["建档来源",d.source],["邀请销售",d.invitedBy?person(d.invitedBy):'—'],["正式负责销售",['审核通过','已停用'].includes(d.status)?person(d.salesId):'待核准'],["资质状态",<Status value={d.status}/>]]}/><h3>资质材料</h3>{['身份证明','执业证明材料','其他附件'].map(category=><div className="admin-material-group" key={category}><label>{category}</label>{data.materials.filter(m=>m.doctorId===d.id&&m.category===category).length?data.materials.filter(m=>m.doctorId===d.id&&m.category===category).map(m=><div key={m.id}><button className="admin-file-link" onClick={()=>setPreview(m.id)}>{m.name}</button><span>{m.submittedBy} · {formatAuditTime(m.at)} 提交</span></div>):<span>暂无附件</span>}</div>)}<h3>操作记录</h3><History events={data.doctorHistory.filter(h=>h.objectId===d.id)}/>{!d.managementEditable&&<p className="admin-boundary">此共享档案的管理写入服务尚未接通，仅可查看现有资料。</p>}{d.managementEditable&&d.status==='待审核'&&can('doctors:review')?<div className="admin-drawer-actions"><Button onClick={()=>start({action:'review-doctor',id:d.id,version:d.version,title:'医生档案审核退回',kind:'doctor',result:'returned'})}>审核退回</Button><Button theme="primary" onClick={()=>start({action:'review-doctor',id:d.id,version:d.version,title:'医生档案审核通过',kind:'doctor',result:'approved'})}>审核通过</Button></div>:d.managementEditable&&can('doctors:review')&&['审核通过','已停用'].includes(d.status)&&<Button theme={d.status==='已停用'?'primary':'danger'} variant="outline" onClick={()=>start({action:'doctor-status',id:d.id,version:d.version,title:d.status==='已停用'?'恢复医生档案':'停用医生档案'})}>{d.status==='已停用'?'恢复档案':'停用档案'}</Button>}</>}
+-  if(inspectKind==='approval'){const a=inspect as Approval;return <><Fields items={[["申请事项",a.type],["申请人",a.applicant],["被申请人",a.subjectName],["所属组织",a.organization],["申请岗位",a.requestedRole==='sales'?'销售':a.requestedRole==='designer'?'三维重建设计师':a.requestedRole],["申请时间",formatAuditTime(a.at)],["申请权限",a.permissions.map(permissionName).join('、')],["生效范围",a.hospitalIds.map(hospital).join('、')||'本人账号'],["书面审批依据",a.basis||'待补充'],["审批状态",<Status value={a.status}/>],["审批人",a.approver],["审批时间",a.reviewedAt?formatAuditTime(a.reviewedAt):'—'],["审批意见",a.reviewedAt?(a.reviewNote||data.events.find(e=>e.objectId===a.id&&e.title.endsWith(a.status))?.reason||'—'):'—']]}/>{a.source!=='local-auth'&&<p className="admin-boundary">当前申请属于隔离管理资料，不修改销售端或工程师端的既有权限。</p>}{a.status==='待审批'&&can(a.type==='账号开通'?'accounts:approve':'permissions:grant')&&<div className="admin-drawer-actions"><Button onClick={()=>start({action:a.type==='账号开通'?'review-account':'approve-permission',id:a.id,version:a.version,title:'审批退回',kind:'approval',result:'returned'})}>审批退回</Button><Button theme="primary" onClick={()=>start({action:a.type==='账号开通'?'review-account':'approve-permission',id:a.id,version:a.version,title:'审批通过',kind:'approval',result:'approved',basis:a.basis})}>审批通过</Button></div>}</>}
++  if(inspectKind==='doctor'){const d=data.doctors.find(d=>d.id===inspect.id);if(!d)return <Empty title="档案不存在或无查看权限" description={null}/>;return <><h3>基本资料</h3><Fields items={doctorFieldConfig.slice(0,8).map(([key,label])=>[label,doctorValue(d,key)])}/><h3>资质材料</h3><DoctorMaterials certificate={d.certificate} files={data.materials.filter(m=>m.doctorId===d.id)} onPreview={setPreview}/><h3>操作记录</h3><DoctorTimeline doctorId={d.id} events={data.doctorHistory}/></>}
++  if(inspectKind==='approval'){const a=data.approvals.find(a=>a.id===inspect.id);if(!a)return <Empty title="申请不存在或无查看权限" description={null}/>;return <><Fields items={[["申请事项",a.type],["申请人",a.applicant],["被申请人",a.subjectName],["所属组织",a.organization],["申请岗位",a.requestedRole==='sales'?'销售':a.requestedRole==='designer'?'三维重建设计师':a.requestedRole],["申请时间",formatAuditTime(a.at)],["申请权限",a.permissions.map(permissionName).join('、')],["生效范围",a.hospitalIds.map(hospital).join('、')||'本人账号'],["书面审批依据",a.basis||'待补充'],["审批状态",<Status value={a.status}/>],["审批人",a.approver],["审批时间",a.reviewedAt?formatAuditTime(a.reviewedAt):'—'],["审批意见",a.reviewedAt?(a.reviewNote||data.events.find(e=>e.objectId===a.id&&e.title.endsWith(a.status))?.reason||'—'):'—']]}/>{a.source!=='local-auth'&&<p className="admin-boundary">当前申请属于隔离管理资料，不修改销售端或工程师端的既有权限。</p>}</>}
+   if(inspectKind==='person'){const p=data.people.find(p=>p.id===inspect.id);if(!p)return <Empty title="人员不存在或无查看权限" description={null}/>;const management=['orders:read','orders:review','tasks:assign','doctors:review','people:manage','accounts:approve','permissions:grant','assets:read','assets:export-metadata','audit:read','shares:manage'];return <><Fields items={[["姓名",p.name],["主要职责",p.role],["所属组织",p.organization],["账号状态",p.status],["生效范围",p.scope.map(hospital).join('、')||'本人任务'],["专业阶段能力",p.stages.map(s=>STAGES[s]).join('、')||'—']]}/>
+   {can('people:manage')&&<div className="admin-permission-row"><span>人员启用状态</span><Tooltip content={p.managementEditable?'变更须确认操作原因':'认证账号启停服务尚未接入'}><span><Switch aria-label="人员启用状态" value={p.status==='已启用'} disabled={!p.managementEditable} onChange={()=>start({action:'person-status',id:p.id,version:p.version,title:p.status==='已启用'?'停用人员登记':'启用人员登记'})}/></span></Tooltip></div>}
+   <h3>{['管理员','业务组长'].includes(p.role)?'管理授权':'已授予权限'}</h3>{(['管理员','业务组长'].includes(p.role)?management:p.permissions).map(perm=>{const granted=p.permissions.includes(perm),pending=data.approvals.some(a=>a.subjectId===p.id&&a.status==='待审批'&&a.permissions.includes(perm));return <div className="admin-permission-row" key={perm}><span>{permissionName(perm)}</span><div className="admin-actions"><Status value={granted?'已授权':pending?'待审批':'未授权'}/>{p.managementEditable&&can('permissions:grant')&&(granted?button('撤销',()=>start({action:'revoke-permission',id:p.id,version:p.version,title:'撤销管理权限',options:[{label:permissionName(perm),value:perm}],selectLabel:'撤销权限'})):button(pending?'待审批':'申请授权',()=>start({action:'request-permission',id:p.id,version:p.version,title:'申请管理授权',options:[{label:permissionName(perm),value:perm}],selectLabel:'申请权限'}),pending||p.status!=='已启用'))}</div></div>})}
+@@ -217,13 +232,27 @@ export default function AdminWorkspace(){
+   if(inspectKind==='asset'){const a=inspect as Asset;const o=data.orders.find(o=>o.id===a.orderId);return <><Fields items={[["成果名称",a.name],["成果ID",a.id],["医院",o?hospital(o.hospitalId):'—'],["医生",o?doctor(o.doctorId):'—'],["患者",o?.patientName],["所属订单",businessNo(a.orderId)],["项目ID",a.projectId],["任务ID",a.taskId],["成果版本",a.version],["审核状态",a.reviewStatus],["发布状态",a.publishStatus],["指定审核人",a.reviewerId?doctor(a.reviewerId):'未指定']]}/><h3>资料权限</h3><p>当前成果尚未接入管理端授权预览与专业审核服务。</p><Button disabled>预览成果</Button><Button disabled>专业审核</Button>{o&&data.readiness.professionalReviewWrite&&a.reviewStatus!=='审核通过'&&button('指定审核关系',()=>start({action:'assign-reviewer',id:a.id,version:a.revision,title:'指定专业审核关系',selectLabel:'具备资格的审核人',options:data.doctors.filter(d=>d.id===o.doctorId&&d.status==='审核通过').map(d=>({label:d.name,value:d.id}))}))}<h3>成果与审核记录</h3><History events={data.events.filter(e=>e.objectId===a.id||e.objectId===a.taskId)}/></>}
+   const e=inspect as AuditEvent;return <><Fields items={[["事件",e.title],["业务类型",e.category],["业务对象",auditObject(e)],["业务对象ID",e.objectId],["操作人",e.actor],["操作时间",formatDateTime(e.at)],["结果",e.result],["原因",e.reason],["审批依据",e.basis],["数据来源",e.source==='local-auth'?'本地认证服务':e.source==='isolated-shared'?'共享业务服务':'隔离管理业务']]}/>{e.before!==undefined&&<details><summary>变更前原始记录</summary><pre className="admin-json">{JSON.stringify(e.before,null,2)}</pre></details>}{e.after!==undefined&&<details><summary>变更后原始记录</summary><pre className="admin-json">{JSON.stringify(e.after,null,2)}</pre></details>}</>;
+  }
++ function inspectorFooter(){
++  if(!inspect||!data)return false;
++  if(inspectKind==='doctor'){
++   const d=data.doctors.find(d=>d.id===inspect.id);if(!d)return false;
++   if(doctorReviewMode&&d.managementEditable&&d.status==='待审核'&&can('doctors:review'))return <><Button variant="outline" onClick={()=>start({action:'review-doctor',id:d.id,version:d.version,title:'医生档案审核退回',kind:'doctor',result:'returned'})}>审核退回</Button><Button theme="primary" onClick={()=>start({action:'review-doctor',id:d.id,version:d.version,title:'医生档案审核通过',kind:'doctor',result:'approved'})}>审核通过</Button></>;
++   if(!doctorReviewMode&&d.status==='待审核'&&can('doctors:review'))return <Button theme="primary" onClick={()=>{go('reviews/doctor/'+d.id);setModuleTab('reviews','doctors')}}>前往审核中心</Button>;
++   if(!doctorReviewMode&&d.managementEditable&&can('doctors:review')&&['审核通过','已停用'].includes(d.status))return <Button theme={d.status==='已停用'?'primary':'danger'} variant="outline" onClick={()=>start({action:'doctor-status',id:d.id,version:d.version,title:d.status==='已停用'?'恢复医生档案':'停用医生档案'})}>{d.status==='已停用'?'恢复档案':'停用档案'}</Button>;
++  }
++  if(inspectKind==='approval'){
++   const a=data.approvals.find(a=>a.id===inspect.id);if(!a||a.status!=='待审批'||!can(a.type==='账号开通'?'accounts:approve':'permissions:grant'))return false;
++   const action=a.type==='账号开通'?'review-account':'approve-permission';return <><Button variant="outline" onClick={()=>start({action,id:a.id,version:a.version,title:'审批退回',kind:'approval',result:'returned'})}>审批退回</Button><Button theme="primary" onClick={()=>start({action,id:a.id,version:a.version,title:'审批通过',kind:'approval',result:'approved',basis:a.basis})}>审批通过</Button></>;
++  }
++  return false;
++ }
+  return <div className="app admin-app" style={{'--layout-sidebar-width':'224px','--layout-sidebar-collapsed-width':'64px'} as CSSProperties}><GlobalHeader showTaskTabs={false} screen={{kind:'home'}} openTabs={[]} tasks={[]} user={user} theme={dark?'dark':'light'} goHome={()=>go('home')} openWorkspace={()=>{}} closeTab={()=>{}} unreadCount={0} onThemeToggle={()=>theme(dark?'light':'dark')} onNotifications={()=>setNotices(true)} onLock={()=>void auth.lock()} onOpenSettings={go} onLogout={()=>window.dispatchEvent(new Event('clinivol-request-logout'))}/><div className="content-stage"><div className={`platform-shell${collapsed?' nav-collapsed':''}`}><aside className={`business-nav${collapsed?' is-collapsed':''}`}><Menu value={active} collapsed={collapsed} width={[224,64]}>{visibleMenu.map(([value,label,Icon],index)=><div key={value}>{!collapsed&&navGroup(value)&&navGroup(value)!==navGroup(visibleMenu[index-1]?.[0])&&<div className="admin-nav-group">{navGroup(value)}</div>}<Menu.MenuItem key={value} value={value} icon={<span className="nav-menu-icon"><Icon size={20}/></span>} onClick={()=>go(value)}>{label}</Menu.MenuItem></div>)}</Menu><Tooltip content={collapsed?'展开导航':'收起导航'} placement="right"><button className="nav-collapse" aria-label={collapsed?'展开导航':'收起导航'} onClick={()=>setCollapsed(!collapsed)}><ViewListIcon size={20}/></button></Tooltip></aside><main className="platform-main">{settings?content:<div className={`page ${section==='home'?'dashboard-page':'project-page'} admin-page${section==='order'?' project-detail-page admin-order-page':''}`}>{content}</div>}</main></div></div>
+  {hospitalEdit!==undefined&&data&&<HospitalForm initial={hospitalEdit} data={data} onClose={()=>setHospitalEdit(undefined)} onSaved={refresh}/>}
+  {departmentEdit&&<DepartmentForm {...departmentEdit} onClose={()=>setDepartmentEdit(null)} onSaved={refresh}/>}
+- <Drawer closeBtn={<button type="button" className="admin-close-button" aria-label="关闭详情"><CloseIcon size={16}/></button>} visible={!!inspect} header={inspectKind==='doctor'?'医生档案审核':inspectKind==='approval'?'审批详情':inspectKind==='person'?'人员与权限':inspectKind==='asset'?'资产追溯':inspectKind==='task'?'专业任务详情':'审计详情'} size="680px" footer={false} onClose={()=>setInspect(null)} destroyOnClose><div className="admin-drawer-content">{inspector()}</div></Drawer>
++ <Drawer className="admin-details-drawer" closeBtn={<button type="button" className="admin-close-button" aria-label="关闭详情"><CloseIcon size={16}/></button>} visible={!!inspect} header={inspectKind==='doctor'?(doctorReviewMode?'医生档案审核':'医生档案详情'):inspectKind==='approval'?'审批详情':inspectKind==='person'?'人员与权限':inspectKind==='asset'?'资产追溯':inspectKind==='task'?'专业任务详情':'审计详情'} size="680px" footer={inspectorFooter()} onClose={()=>setInspect(null)} destroyOnClose><div className="admin-drawer-content">{inspector()}</div></Drawer>
+  <Drawer visible={notices} header="通知中心" size="400px" footer={false} onClose={()=>setNotices(false)}><Empty title="暂无通知" description={null}/></Drawer>
+  {orderFile&&<AdminOrderAttachmentPreview orderId={orderFile.orderId} file={orderFile.file} onClose={()=>setOrderFile(null)}/>}
+- <Dialog visible={!!preview} header="资质资料预览" footer={false} width="800px" onClose={()=>setPreview('')} destroyOnClose>{preview&&<img className="admin-preview" src={`/api/admin/preview/${preview}`} alt="隔离合成资质资料预览"/>}</Dialog>
++ {preview&&<DoctorMaterialPreview id={preview} onClose={()=>setPreview('')}/>}
+  <Dialog visible={!!command} header={command?.title} confirmBtn={{content:'确认',loading:busy,disabled:busy||commandConflict}} cancelBtn="取消" onConfirm={()=>void commit()} onClose={()=>{if(!busy)setCommand(null)}} destroyOnClose>{command?.kind==='order'&&data&&(()=>{const o=data.orders.find(o=>o.id===command.id);return o?<div className="admin-command-summary"><Fields items={[["订单编号",businessNo(o.id)],["手术项目名称",o.name],["医院",hospital(o.hospitalId)],["患者",o.patientName],["当前状态",<Status value={o.status}/>],["设计阶段",<div className="project-stage-tags">{o.requestedStages.map(stage=><StageLabel key={stage} stage={stageNames[stage]}/>)}</div>]]}/></div>:null})()}<Form className="admin-command-form" labelAlign="top">
+  {command?.options&&<Form.FormItem label={command.selectLabel} requiredMark status={commandError.startsWith('请选择')?'error':undefined} tips={commandError.startsWith('请选择')?commandError:undefined}><><Select aria-label={command.selectLabel} value={selection} options={command.options} placeholder="请选择" onChange={v=>{setSelection(String(v));setCommandError('')}}/></></Form.FormItem>}
+  {(command?.action==='assign-task'||command?.action==='review-order'&&command?.result==='approved')&&<Form.FormItem label={command.action==='assign-task'?'计划时间':'预计交付时间'} requiredMark status={commandError.includes('日期')?'error':undefined} tips={commandError.includes('日期')?commandError:undefined}><><DatePicker aria-label="操作日期" value={date} onChange={v=>{setDate(String(v));setCommandError('')}}/></></Form.FormItem>}
+diff --git a/src/admin/admin.css b/src/admin/admin.css
+index 2e15cf9..7b24c7b 100644
+--- a/src/admin/admin.css
++++ b/src/admin/admin.css
+@@ -89,3 +89,9 @@ html[theme-mode="dark"] .admin-app .business-nav .t-menu__item.t-is-active .t-me
+ .admin-app .admin-order-page .project-flow-card .timeline-item strong { flex-wrap:wrap; }
+ .admin-order-file-preview { display:block; width:100%; height:65vh; border:0; }
+ .admin-order-image-preview { display:block; max-width:100%; max-height:65vh; margin:auto; object-fit:contain; }
++
++/* TDesign supplies fixed header/footer and an overflow-auto flex body. */
++.admin-details-drawer .t-drawer__body { min-height:0; }
++.admin-details-drawer .t-drawer__footer { flex-shrink:0; text-align:right; }
++.admin-details-drawer .admin-drawer-content > h3:first-child { margin-top:0; }
++.admin-details-drawer .doctor-credential-fields { grid-template-columns:minmax(0,1fr); }
+diff --git a/src/admin/model.ts b/src/admin/model.ts
+index 5d2e469..d9ddf86 100644
+--- a/src/admin/model.ts
++++ b/src/admin/model.ts
+@@ -1,10 +1,11 @@
++import {pendingApprovals} from './reviewRules.mjs';
+ import type {ClinicalContent} from '../sales/clinicalContent.mjs';
+ import type {Attachment} from '../sales/model';
+ export const STAGES=['三维重建','CAD设计','有限元分析','3D打印'];
+ export type Department={id:string;hospitalId:string;name:string;status:string;version:number};
+ export type Hospital={managementEditable?:boolean;id:string;name:string;region:string;contact:string;departments:string[];departmentRecords?:Department[];leaderId:string;status:string;version:number};
+ export type Person={id:string;name:string;role:string;organization:string;status:string;stages:number[];permissions:string[];scope:string[];regions?:string[];version:number;managementEditable?:boolean};
+-export type Doctor={managementEditable?:boolean;id:string;name:string;hospitalId:string;department:string;title:string;phone:string;status:string;source:string;submittedBy:string;salesId:string|null;invitedBy:string|null;materials:string[];version:number};
++export type Doctor={salesName?:string;certificate?:string;updatedAt?:string;createdAt?:string;submissionMode?:string;managementEditable?:boolean;id:string;name:string;hospitalId:string;department:string;title:string;phone:string;status:string;source:string;submittedBy:string;salesId:string|null;invitedBy:string|null;materials:string[];version:number};
+ export type Order={id:string;businessNo?:string;projectId?:string;name:string;hospitalId:string;doctorId:string;salesId:string;leaderId:string;status:string;requestedStages:number[];createdAt:string;requestedDueDate:string;confirmedDeliveryDate:string|null;clinicalRequirements:string;patientRef:string;quantity?:number;reason?:string;patientName?:string;department?:string;clinicalContent?:ClinicalContent;designRequirements?:string;requirements?:string;materials?:Attachment[];ownerSalesId?:string;updated?:string;version:number};
+ export type Task={id:string;orderId:string;stage:number;upstreamId:string|null;status:string;assignee:string|null;plannedDate:string;version:number};
+ export type Asset={id:string;orderId:string;projectId:string;taskId:string;stage:number|null;name:string;version:string;reviewStatus:string;publishStatus:string;type:string;source:string;sourceFileAvailable:boolean;revision:number;reviewerId?:string};
+@@ -20,7 +21,7 @@ export async function adminRequest<T>(action='state',body?:unknown):Promise<T>{
+  let result;try{result=await response.json()}catch{throw new Error('管理服务响应异常，请重试。')}
+  if(!response.ok)throw Object.assign(new Error(result.error||'操作未完成，请重试。'),{status:response.status});return result;
+ }
+-export function dashboardBuckets(state:AdminState,now=new Date()){
++export function dashboardBuckets(state:AdminState,now=new Date(),permissions?:string[]){
+  const today=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');
+- return {orders:state.orders.filter(o=>o.status==='待审核'),tasks:state.tasks.filter(t=>!t.assignee&&t.status==='未开始'),reviews:[...state.doctors.filter(d=>d.status==='待审核'),...state.approvals.filter(a=>a.status==='待审批')],processing:state.orders.filter(o=>o.status==='处理中'),risks:state.orders.filter(o=>o.status==='处理中'&&!!o.confirmedDeliveryDate&&o.confirmedDeliveryDate<today)};
++ return {orders:state.orders.filter(o=>o.status==='待审核'),tasks:state.tasks.filter(t=>!t.assignee&&t.status==='未开始'),reviews:pendingApprovals(state,permissions),processing:state.orders.filter(o=>o.status==='处理中'),risks:state.orders.filter(o=>o.status==='处理中'&&!!o.confirmedDeliveryDate&&o.confirmedDeliveryDate<today)};
+ }
+diff --git a/src/admin/reviewRules.d.mts b/src/admin/reviewRules.d.mts
+new file mode 100644
+index 0000000..ccd8d90
+--- /dev/null
++++ b/src/admin/reviewRules.d.mts
+@@ -0,0 +1,2 @@
++import type {AdminState,Doctor,Approval} from './model';
++export function pendingApprovals(data:Pick<AdminState,'doctors'|'approvals'>,permissions?:string[]):{id:string;type:string;applicant:string;status:string;at:string;kind:string;row:Doctor|Approval}[];
+diff --git a/src/admin/reviewRules.mjs b/src/admin/reviewRules.mjs
+new file mode 100644
+index 0000000..3fc6903
+--- /dev/null
++++ b/src/admin/reviewRules.mjs
+@@ -0,0 +1,4 @@
++/** One application identity, independent of the entry point. No state changes here. */
++export function pendingApprovals(data,permissions=['doctors:review','accounts:approve','permissions:grant']){
++ return [...data.doctors.filter(d=>d.status==='待审核'&&permissions.includes('doctors:review')).map(d=>({id:'doctor:'+d.id,type:'医生档案',applicant:d.name,status:d.status,at:d.updatedAt||d.createdAt||'',kind:'doctor',row:d})),...data.approvals.filter(a=>a.status==='待审批'&&permissions.includes(a.type==='账号开通'?'accounts:approve':'permissions:grant')).map(a=>({id:'approval:'+a.id,type:a.type,applicant:a.applicant,status:a.status,at:a.at,kind:'approval',row:a}))].filter((r,i,rows)=>rows.findIndex(x=>x.id===r.id)===i).sort((a,b)=>(Date.parse(b.at)||0)-(Date.parse(a.at)||0)||a.id.localeCompare(b.id));
++}
+diff --git a/src/business/unifiedClient.ts b/src/business/unifiedClient.ts
+index e7b0913..c58c561 100644
+--- a/src/business/unifiedClient.ts
++++ b/src/business/unifiedClient.ts
+@@ -23,7 +23,7 @@ export type SharedDesigner = {
+ export type SalesDirectory={hospitals:Hospital[];orderDoctors:Doctor[];ownDoctors:(Doctor&{salesId?:string})[];events?:{id:string;objectId:string;at:string;actor:string;title:string;reason?:string;note?:string;noteSource?:'system-default'|'reviewer'}[]};
+ export function mergeSalesDirectory(current:SalesData,directory:SalesDirectory):SalesData{
+  const doctors=[...current.doctors];
+- for(const row of directory.ownDoctors){const index=doctors.findIndex(d=>d.id===row.id);if(index>=0)doctors[index]={...doctors[index],...row,owner:row.status==='审核通过'?row.salesId||current.ownerId:doctors[index].owner};else if(row.phone)doctors.push({...row,owner:row.status==='审核通过'?row.salesId||current.ownerId:null});}
++ for(const row of directory.ownDoctors){const index=doctors.findIndex(d=>d.id===row.id);const editedLocalFixture=row.seedOrigin==='existing-sales-synthetic-fixtures'&&row.version===1&&index>=0&&current.events.some(e=>e.target===row.id&&!e.id.startsWith('doctor-fixture:')&&e.source!=='institution-directory');if(editedLocalFixture)continue;if(index>=0)doctors[index]={...doctors[index],...row,owner:row.salesId||null};else if(row.phone)doctors.push({...row,owner:row.salesId||null});}
+  const events=(directory.events||[]).map(e=>({id:e.id,target:e.objectId,at:e.at,actor:e.actor,title:e.title,detail:e.reason||e.note||'',read:current.events.find(old=>old.id===e.id)?.read??false,source:'institution-directory',reviewNoteSource:e.noteSource}));
+  return {...current,hospitals:directory.hospitals,orderDoctors:directory.orderDoctors,doctors,events:[...current.events.filter(e=>!events.some(row=>row.id===e.id)),...events]};
+ }
+diff --git a/src/doctors/DoctorDetails.tsx b/src/doctors/DoctorDetails.tsx
+new file mode 100644
+index 0000000..d18bf21
+--- /dev/null
++++ b/src/doctors/DoctorDetails.tsx
+@@ -0,0 +1,13 @@
++import {Tooltip,Empty} from 'tdesign-react';
++import {formatAuditTime,formatDateTime} from '../dateTime';
++import {doctorHistory} from './doctorDisplay.mjs';
++import type {DoctorHistoryEvent} from './doctorDisplay.mjs';
++import './doctorDetails.css';
++export type CredentialFile={id:string;name:string;category:string;submittedBy?:string;at?:string};
++export function DoctorMaterials({files,certificate,onPreview,busy=false}:{files:CredentialFile[];certificate?:string;onPreview:(id:string)=>void;busy?:boolean}){
++ return <dl className="project-info-grid doctor-credential-fields">{certificate&&<div><dt>执业证书编号</dt><dd>{certificate}</dd></div>}{[['身份证明','identity'],['执业证明材料','practice'],['其他附件','other']].map(([label,category])=><div key={category}><dt>{label}</dt><dd>{files.filter(f=>f.category===category||f.category===label).length?files.filter(f=>f.category===category||f.category===label).map(file=><div className="doctor-credential-file" key={file.id}><Tooltip content={file.name}><button type="button" className="doctor-credential-name" disabled={busy} onClick={()=>onPreview(file.id)}>{file.name}</button></Tooltip><span className="doctor-credential-meta">{file.submittedBy||'提交人未记录'} · {file.at?formatAuditTime(file.at):'提交时间未记录'} 提交</span></div>):<span>暂无附件</span>}</dd></div>)}</dl>;
++}
++export function DoctorTimeline({events,doctorId}:{events:DoctorHistoryEvent[];doctorId:string}){
++ const rows=doctorHistory(events,doctorId);
++ return rows.length?<ol className="timeline doctor-history">{rows.map(e=><li className="timeline-item" key={e.id}><i/><div><strong>{e.title}</strong><p><span className="timeline-meta">{formatDateTime(e.at)} · {e.actor||'操作人未记录'}</span>{e.detail&&<span className="timeline-note">{e.detail}</span>}</p></div></li>)}</ol>:<Empty title="暂无操作记录" description={null}/>;
++}
+diff --git a/src/doctors/DoctorMaterialPreview.tsx b/src/doctors/DoctorMaterialPreview.tsx
+new file mode 100644
+index 0000000..bfd2639
+--- /dev/null
++++ b/src/doctors/DoctorMaterialPreview.tsx
+@@ -0,0 +1,14 @@
++import {useEffect,useState} from 'react';
++import {Button,Dialog,Empty,Loading} from 'tdesign-react';
++/** Authorized raster previews only; no source URL or download action is exposed. */
++export function DoctorMaterialPreview({id,onClose}:{id:string;onClose:()=>void}){
++ const [page,setPage]=useState(1),[pages,setPages]=useState(1),[url,setUrl]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[retry,setRetry]=useState(0);
++ useEffect(()=>{setPage(1)},[id]);
++ useEffect(()=>{
++  if(!id)return;
++  const abort=new AbortController();let objectUrl='';setBusy(true);setError('');setUrl('');
++  void (async()=>{try{const response=await fetch(`/api/admin/preview/${encodeURIComponent(id)}?page=${page}`,{credentials:'same-origin',signal:abort.signal});if(!response.ok)throw Error('资料不可用或无预览权限。');const blob=await response.blob();if(abort.signal.aborted)return;objectUrl=URL.createObjectURL(blob);setUrl(objectUrl);setPages(Math.max(1,Number(response.headers.get('X-Preview-Pages'))||1));}catch(e){if(!abort.signal.aborted)setError((e as Error).message)}finally{if(!abort.signal.aborted)setBusy(false)}})();
++  return()=>{abort.abort();if(objectUrl)URL.revokeObjectURL(objectUrl)};
++ },[id,page,retry]);
++ return <Dialog visible={!!id} header="资质资料预览" footer={false} width="min(800px, 90vw)" onClose={onClose} destroyOnClose><Loading loading={busy}><div className="doctor-credential-viewer">{error?<><Empty title="资料暂不可预览" description={error}/><Button variant="outline" onClick={()=>setRetry(v=>v+1)}>重试</Button></>:url?<img className="admin-preview" src={url} alt="资质资料授权预览"/>:null}{!error&&pages>1&&<div className="doctor-preview-pages"><Button variant="outline" disabled={busy||page<=1} onClick={()=>setPage(v=>v-1)}>上一页</Button><span>{page} / {pages}</span><Button variant="outline" disabled={busy||page>=pages} onClick={()=>setPage(v=>v+1)}>下一页</Button></div>}</div></Loading></Dialog>;
++}
+diff --git a/src/doctors/doctorDetails.css b/src/doctors/doctorDetails.css
+new file mode 100644
+index 0000000..1eab850
+--- /dev/null
++++ b/src/doctors/doctorDetails.css
+@@ -0,0 +1,14 @@
++/* Doctor record detail only; inherit A's existing Label/Value and timeline tokens. */
++.project-info-grid.doctor-credential-fields { grid-template-columns:minmax(0,1fr); }
++.doctor-credential-file { display:flex; align-items:baseline; flex-wrap:nowrap; gap:var(--td-comp-margin-s); min-width:0; }
++.doctor-credential-file + .doctor-credential-file { margin-top:var(--td-comp-margin-m); }
++.doctor-credential-name { display:block; flex:0 1 auto; min-width:0; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:inherit; color:var(--td-brand-color); background:none; border:0; padding:0; margin:0; cursor:pointer; line-height:inherit; text-align:left; }
++.doctor-credential-name:hover { background:none; color:var(--td-brand-color); }
++.doctor-credential-name:focus-visible { outline:2px solid var(--td-brand-color-focus); outline-offset:2px; }
++.doctor-credential-name:disabled { color:var(--td-text-color-disabled); cursor:wait; }
++.doctor-credential-meta { flex-shrink:0; color:var(--td-text-color-primary); white-space:nowrap; }
++.doctor-history .timeline-item strong { display:block; }
++.doctor-history .timeline-item p { display:flex; flex-wrap:wrap; column-gap:var(--td-comp-margin-s); }
++
++.doctor-preview-pages { display:flex; justify-content:center; align-items:center; gap:var(--td-comp-margin-m); margin-top:var(--td-comp-margin-l); }
++@media(max-width:600px) { .doctor-credential-file { flex-wrap:wrap; } .doctor-credential-meta { white-space:normal; } }
+diff --git a/src/doctors/doctorDisplay.d.mts b/src/doctors/doctorDisplay.d.mts
+new file mode 100644
+index 0000000..4bd4057
+--- /dev/null
++++ b/src/doctors/doctorDisplay.d.mts
+@@ -0,0 +1,7 @@
++export type DoctorDisplay={id:string;salesId?:string|null;owner?:string|null;salesName?:string;updatedAt?:string;createdAt?:string;source?:string;submissionMode?:string;invitedBy?:string|null};
++export type DoctorHistoryEvent={id:string;objectId?:string;target?:string;at:string;actor:string;title:string;reason?:string;note?:string;detail?:string;noteSource?:string;reviewNoteSource?:string};
++export const doctorFields: [string,string][];
++export function doctorSales(doctor:DoctorDisplay,people?:{id:string;name:string}[]):string;
++export function doctorUpdated(doctor:DoctorDisplay,events?:DoctorHistoryEvent[]):string;
++export function doctorHistory<T extends DoctorHistoryEvent>(events:T[],id:string):(T&{detail:string})[];
++export function doctorSource(doctor:DoctorDisplay):string;
+diff --git a/src/doctors/doctorDisplay.mjs b/src/doctors/doctorDisplay.mjs
+new file mode 100644
+index 0000000..350bfa3
+--- /dev/null
++++ b/src/doctors/doctorDisplay.mjs
+@@ -0,0 +1,19 @@
++import {doctorSource,doctorEvent} from '../sales/doctorRecordRules.mjs';
++export const doctorFields=[['name','医生'],['phone','联系电话'],['hospitalId','医院'],['department','科室'],['title','职称'],['status','资质审核状态'],['source','建档来源'],['sales','负责销售'],['updated','最近更新时间']];
++export function doctorSales(doctor,people=[]){
++ const id=doctor.salesId!==undefined?doctor.salesId:doctor.owner;
++ if(!id)return '待关联';
++ return people.find(p=>p.id===id)?.name||doctor.salesName||'未记录';
++}
++export function doctorUpdated(doctor,events=[]){
++ return [doctor.updatedAt,doctor.createdAt,...events.filter(e=>(e.objectId??e.target)===doctor.id).map(e=>e.at)].filter(v=>typeof v==='string'&&Number.isFinite(Date.parse(v))).sort((a,b)=>Date.parse(b)-Date.parse(a))[0]||'';
++}
++export function doctorHistory(events,id){
++ const byId=new Map();
++ for(const event of events){if(!event.id||(event.objectId??event.target)!==id)continue;byId.set(event.id,event);}
++ return [...byId.values()].sort((a,b)=>(Date.parse(b.at)||0)-(Date.parse(a.at)||0)||a.id.localeCompare(b.id)).map(event=>{
++  const mapped=doctorEvent({...event,detail:event.reason||event.note||event.detail||'',reviewNoteSource:event.noteSource||event.reviewNoteSource});
++  return {...event,title:mapped.title,detail:mapped.noteSource==='system-default'?'':mapped.detail.replace(/^退回原因：/,'' )};
++ });
++}
++export {doctorSource};
+diff --git a/src/sales/DoctorCredentials.tsx b/src/sales/DoctorCredentials.tsx
+index 7a34b75..6bd4d14 100644
+--- a/src/sales/DoctorCredentials.tsx
++++ b/src/sales/DoctorCredentials.tsx
+@@ -1,6 +1,6 @@
+ import {useEffect,useRef,useState} from 'react';
+ import {Button,Dialog,MessagePlugin} from 'tdesign-react';
+-import {formatAuditTime} from '../dateTime';
++import {DoctorMaterials} from '../doctors/DoctorDetails';
+ import {doctorPreview} from './doctorPreview';
+ import type {Attachment,Doctor} from './model';
+ export function DoctorCredentials({doctor,owner,ownerName}:{doctor:Doctor;owner:string;ownerName:string}){
+@@ -9,8 +9,5 @@ export function DoctorCredentials({doctor,owner,ownerName}:{doctor:Doctor;owner:
+   const open=async(file:Attachment,page=1)=>{if(doctor.owner&&doctor.owner!==owner)return;const current=++request.current;setBusy(true);try{const result=await doctorPreview(owner,file,page);if(current!==request.current)return;if(url.current)URL.revokeObjectURL(url.current);url.current=URL.createObjectURL(result.blob);setPreview({file,url:url.current,page,pages:result.pages});}catch(e){if(current===request.current)void MessagePlugin.error((e as Error).message)}finally{if(current===request.current)setBusy(false)}};
+   const close=()=>{request.current++;if(url.current)URL.revokeObjectURL(url.current);url.current='';setPreview(null);setBusy(false)};
+   if(doctor.owner&&doctor.owner!==owner)return <p>无资质附件访问权限</p>;
+-  return <><dl className="project-info-grid doctor-credential-fields">{([['identity','身份证明'],['practice','执业证明材料'],['other','其他附件']] as const).map(([category,label])=>{
+-    const files=doctor.materials.filter(f=>f.category===category||category==='other'&&!f.category);
+-    return <div key={category}><dt>{label}</dt><dd>{files.length?files.map(file=><div className="doctor-credential-file" key={file.id}><button type="button" className="doctor-credential-name" disabled={busy} onClick={()=>void open(file)}>{file.name}</button><span className="doctor-credential-meta">{file.uploadedByName||(file.uploadedBy===owner?ownerName:/^[\p{Script=Han}·]{2,20}$/u.test(file.uploadedBy||'')?file.uploadedBy:'提交人未记录')||'提交人未记录'} · {file.uploadedAt?formatAuditTime(file.uploadedAt):'提交时间未记录'} 提交</span></div>):<span>暂无附件</span>}</dd></div>
+-  })}</dl><Dialog visible={!!preview} header="资料预览" footer={false} onClose={close} width="min(800px, 90vw)">{preview&&<div className="doctor-credential-viewer"><img className="sales-attachment-preview" src={preview.url} alt={preview.file.name}/>{preview.pages>1&&<div className="sales-actions"><Button theme="default" variant="outline" disabled={busy||preview.page===1} onClick={()=>void open(preview.file,preview.page-1)}>上一页</Button><span>{preview.page} / {preview.pages}</span><Button theme="default" variant="outline" disabled={busy||preview.page===preview.pages} onClick={()=>void open(preview.file,preview.page+1)}>下一页</Button></div>}</div>}</Dialog></>;
++  return <><DoctorMaterials certificate={doctor.certificate} files={doctor.materials.map(file=>({id:file.id,name:file.name,category:file.category||'other',submittedBy:file.uploadedByName||(file.uploadedBy===owner?ownerName:/^[\p{Script=Han}·]{2,20}$/u.test(file.uploadedBy||'')?file.uploadedBy:undefined),at:file.uploadedAt}))} busy={busy} onPreview={id=>{const file=doctor.materials.find(f=>f.id===id);if(file)void open(file)}}/><Dialog visible={!!preview} header="资料预览" footer={false} onClose={close} width="min(800px, 90vw)">{preview&&<div className="doctor-credential-viewer"><img className="sales-attachment-preview" src={preview.url} alt={preview.file.name}/>{preview.pages>1&&<div className="sales-actions"><Button theme="default" variant="outline" disabled={busy||preview.page===1} onClick={()=>void open(preview.file,preview.page-1)}>上一页</Button><span>{preview.page} / {preview.pages}</span><Button theme="default" variant="outline" disabled={busy||preview.page===preview.pages} onClick={()=>void open(preview.file,preview.page+1)}>下一页</Button></div>}</div>}</Dialog></>;
+ }
+diff --git a/src/sales/OrderPages.tsx b/src/sales/OrderPages.tsx
+index 8a09dc7..d77d218 100644
+--- a/src/sales/OrderPages.tsx
++++ b/src/sales/OrderPages.tsx
+@@ -520,6 +520,7 @@ export function OrderDetail({
+   data,
+   ownerName,
+   onBack,
++  backLabel = "返回订单管理",
+   onEdit,
+   status,
+ }: {
+@@ -527,6 +528,7 @@ export function OrderDetail({
+   data: SalesData;
+   ownerName: string;
+   onBack: () => void;
++  backLabel?: string;
+   onEdit: () => void;
+   status: ReactNode;
+ }) {
+@@ -577,7 +579,7 @@ export function OrderDetail({
+   );
+   return (
+     <div className="project-page project-detail-page sales-order-page">
+-      <PageBack label="返回订单管理" onBack={onBack}/>
++      <PageBack label={backLabel} onBack={onBack}/>
+       <Card bordered={false} className="project-info-card">
+         <div className="project-page-heading">
+           <h2>订单概览</h2>
+diff --git a/src/sales/SalesWorkspace.tsx b/src/sales/SalesWorkspace.tsx
+index 14dd027..bfdf0b7 100644
+--- a/src/sales/SalesWorkspace.tsx
++++ b/src/sales/SalesWorkspace.tsx
+@@ -2,7 +2,9 @@ import {useViewportPagination} from '../tables/useViewportPagination';
+ import {orderNumber,matchesBusinessKeyword} from './orderNumber.mjs';
+ import {archiveDoctorFiles} from '../business/doctorDirectoryFiles';
+ import {DoctorCredentials} from './DoctorCredentials';
+-import {doctorSource,doctorEvent} from './doctorRecordRules.mjs';
++import {doctorEvent} from './doctorRecordRules.mjs';
++import {doctorFields as doctorFieldConfig,doctorSales,doctorSource,doctorUpdated} from '../doctors/doctorDisplay.mjs';
++import {DoctorTimeline} from '../doctors/DoctorDetails';
+ import {business as businessRequest} from './business/client';
+ import {OrderEntryDialog} from './business/OrderEntryDialog';
+ import {OrderImport} from './business/OrderImport';
+@@ -115,11 +117,13 @@ function Grid({
+   fields,
+   paginate = true,
+   savedPage,
++  fixedPageSize,
+   onPage,
+   orderMode = false,
+   highlight,
+ }: {
+   savedPage?: number;
++  fixedPageSize?: number;
+   orderMode?: boolean;
+   highlight?: string;
+   onPage?: (page: number) => void;
+@@ -133,8 +137,11 @@ function Grid({
+   }[];
+ }) {
+   const rowIdentity = rows.map(r => String(r.id)).join("|");
+-  const paging=useViewportPagination(rows.length,rowIdentity,{enabled:paginate,page:savedPage,onChange:onPage});
+-  const {page,pageSize,setPage}=paging;
++  const paging=useViewportPagination(rows.length,rowIdentity,{enabled:paginate&&!fixedPageSize,page:savedPage,onChange:onPage});
++  const [embeddedPage,setEmbeddedPage]=useState(1);
++  const pageSize=fixedPageSize||paging.pageSize;
++  const page=fixedPageSize?Math.min(savedPage??embeddedPage,Math.max(1,Math.ceil(rows.length/pageSize))):paging.page;
++  const setPage=fixedPageSize?(value:number)=>{setEmbeddedPage(value);onPage?.(value)}:paging.setPage;
+   const width = (key: string) =>
+     ({
+       id: 150,
+@@ -149,7 +156,7 @@ function Grid({
+       due: 130,
+     })[key] || 120;
+   return (
+-    <div className="sales-table-scroll viewport-table" ref={paging.ref}>
++    <div className={`sales-table-scroll${fixedPageSize?" sales-embedded-table":" viewport-table"}`} ref={paging.ref} data-page-size={pageSize} data-total={rows.length}>
+       <Table
+         tableContentWidth={
+           "max(100%, " +
+@@ -188,7 +195,7 @@ function Grid({
+         }))}
+         empty={<Empty description={orderMode ? undefined : "暂无符合条件的记录"} />}
+       />
+-      {paging.showPagination && (
++      {(fixedPageSize?paginate&&rows.length>pageSize:paging.showPagination) && (
+         <div className="project-pagination" data-viewport-pagination>
+           <Pagination
+             current={page}
+@@ -500,9 +507,14 @@ export default function SalesWorkspace() {
+     from,
+     to,
+   ]);
++  const doctorOrderOrigin=useRef<string|null>(null);
++  const doctorSubmitFlight=useRef(false);
++  const [doctorSubmitting,setDoctorSubmitting]=useState(false);
+   const editOrigin=useRef<string|null>(null);
+   const go = (r: string) => {
+     if((r.startsWith("doctor-new/")||r.startsWith("order-new/"))&&route==="todos")editOrigin.current=route;
++    if(r.startsWith("order/")&&route.startsWith("doctor/"))doctorOrderOrigin.current=route;
++    else if(!r.startsWith("order/")&&!r.startsWith("doctor/"))doctorOrderOrigin.current=null;
+     location.hash = "sales/" + r;
+   };
+   const openStat = (category: string) => {
+@@ -664,82 +676,18 @@ export default function SalesWorkspace() {
+   ];
+   const doctorPhone = (phone: string, _owner: unknown) =>
+     phone ? phone.replace(/(\d{3})\d{4}(\d{4})/, "$1****$2") : "未提供";
+-  const doctorFields = [
+-    { key: "name", label: "医生" },
+-    {
+-      key: "hospitalId",
+-      label: "所属医院",
+-      render: (r: Row) => h(String(r.hospitalId)),
+-    },
+-    { key: "department", label: "科室" },
+-    { key: "title", label: "职称" },
+-    {
+-      key: "recent",
+-      label: "最近更新时间",
+-      render: (r: Row) => {
+-        const at = r.updatedAt || data.events.find((e) => e.target === r.id)?.at;
+-        return at ? formatDynamicTime(String(at)) : "暂无记录";
+-      },
+-    },
+-    {
+-      key: "phone",
+-      label: "联系电话",
+-      render: (r: Row) => doctorPhone(String(r.phone || ""), r.owner),
+-    },
+-    {
+-      key: "status",
+-      label: "资质审核状态",
+-      render: (r: Row) => <Status value={String(r.status)} />,
+-    },
+-    {
+-      key: "owner",
+-      label: "负责销售",
+-      render: (r: Row) =>
+-        r.status === "审核通过" && r.owner === account.id
+-          ? "已关联 · " + account.name
+-          : r.status === "审核通过" && r.owner
+-            ? "已有其他销售"
+-            : "待关联",
+-    },
+-    {
+-      key: "actions",
+-      label: "操作",
+-      render: (r: Row) => (
+-        <div className="sales-order-row-actions"><Button
+-          className="sales-order-link"
+-          theme="primary"
+-          variant="text"
+-          onClick={() => go("doctor/" + r.id)}
+-        >
+-          查看详情
+-        </Button>{r.status==="草稿"&&(r.createdBy===account.id||account.permissions.includes("doctor.draft.delete"))&&<Button variant="text" theme="danger" className="sales-order-link" onClick={()=>setDeleteDoctorId(String(r.id))}>删除</Button>}</div>
+-      ),
+-    },
+-  ].sort(
+-    (a, b) =>
+-      [
+-        "name",
+-        "phone",
+-        "hospitalId",
+-        "department",
+-        "title",
+-        "status",
+-        "owner",
+-        "recent",
+-        "actions",
+-      ].indexOf(a.key) -
+-      [
+-        "name",
+-        "phone",
+-        "hospitalId",
+-        "department",
+-        "title",
+-        "status",
+-        "owner",
+-        "recent",
+-        "actions",
+-      ].indexOf(b.key),
+-  );
++  const doctorValue=(r:Row,key:string):React.ReactNode=>{
++    if(key==='hospitalId')return h(String(r.hospitalId));
++    if(key==='phone')return doctorPhone(String(r.phone||''),r.owner);
++    if(key==='status')return <Status value={String(r.status)}/>;
++    if(key==='source')return doctorSource(r as unknown as Doctor);
++    if(key==='sales')return doctorSales(r as unknown as Doctor,[{id:account.id,name:account.name}]);
++    if(key==='updated'){const at=doctorUpdated(r as unknown as Doctor,data.events);return at?formatDynamicTime(at):'—'}
++    return String(r[key]||'—');
++  };
++  const doctorFields = [...doctorFieldConfig.map(([key,label])=>({key,label,render:(r:Row)=>doctorValue(r,key)})),{
++    key:'actions',label:'操作',render:(r:Row)=><div className="sales-order-row-actions"><Button className="sales-order-link" theme="primary" variant="text" onClick={()=>go('doctor/'+r.id)}>查看详情</Button>{r.status==='草稿'&&(r.createdBy===account.id||account.permissions.includes('doctor.draft.delete'))&&<Button variant="text" theme="danger" className="sales-order-link" onClick={()=>setDeleteDoctorId(String(r.id))}>删除</Button>}</div>
++  }];
+   const matching = orders.filter(
+     (o) =>
+       (!keyword || (orderNumber(o) !== "-" && orderNumber(o).toLowerCase().includes(keyword.toLowerCase()))) &&
+@@ -1179,13 +1127,13 @@ export default function SalesWorkspace() {
+           </dl>
+           <Tabs defaultValue="doctors">
+             <Tabs.TabPanel value="doctors" label="科室与医生">
+-              <Grid
++              <Grid fixedPageSize={6}
+                 rows={data.doctors.filter((d) => d.hospitalId === detail)}
+                 fields={doctorFields}
+               />
+             </Tabs.TabPanel>
+             <Tabs.TabPanel value="orders" label="关联订单">
+-              <Grid
++              <Grid fixedPageSize={6}
+                 rows={orders.filter((o) => o.hospitalId === detail)}
+                 fields={orderFields}
+               />
+@@ -1253,9 +1201,8 @@ export default function SalesWorkspace() {
+                         (f) => f.category === "practice" || !f.category,
+                       )
+                     }
+-                    onClick={() =>
+-                      commit({ type: "doctor-submit", target: d.id })
+-                    }
++                    loading={doctorSubmitting}
++                    onClick={async()=>{if(doctorSubmitFlight.current)return;doctorSubmitFlight.current=true;setDoctorSubmitting(true);try{const materials=await archiveDoctorFiles(data.ownerId,d.materials);await unifiedRequest('doctor-save',{doctor:{...d,materials},submit:true,version:d.version});const directory=await unifiedRequest<SalesDirectory>('directory');setData(current=>mergeSalesDirectory(current,directory));void MessagePlugin.success('已提交审核')}catch(error){void MessagePlugin.error((error as Error).message)}finally{doctorSubmitFlight.current=false;setDoctorSubmitting(false)}}}
+                   >
+                     {d.status === "审核退回" ? "重新提交审核" : "提交审核"}
+                   </Button>
+@@ -1266,39 +1213,7 @@ export default function SalesWorkspace() {
+             </>,
+           )}
+ 
+-              <dl className="project-info-grid">
+-                {[
+-                  ["医生", d.name],
+-                  ["资质审核状态", <Status value={d.status}/>],
+-                  ["所属医院", h(d.hospitalId)],
+-                  ["所属科室", d.department],
+-                  ["职称", d.title],
+-                  ["联系电话", doctorPhone(d.phone || "", d.owner)],
+-                  ["执业证书编号", d.certificate || "未提供"],
+-                  [
+-                    "负责销售",
+-                    d.owner === account.id
+-                      ? account.name
+-                      : d.owner
+-                        ? "其他销售"
+-                        : "待关联",
+-                  ],
+-                  ["建档来源", doctorSource(d)],
+-                  [
+-                    "最近更新时间",
+-                    data.events.find((e) => e.target === d.id)?.at
+-                      ? formatAuditTime(
+-                          data.events.find((e) => e.target === d.id)!.at,
+-                        )
+-                      : "暂无记录",
+-                  ],
+-                ].map(([label, value]) => (
+-                  <div key={String(label)}>
+-                    <dt>{label}</dt>
+-                    <dd>{value}</dd>
+-                  </div>
+-                ))}
+-              </dl>
++          <dl className="project-info-grid">{doctorFieldConfig.map(([key,label])=><div key={key}><dt>{label}</dt><dd>{doctorValue(d as unknown as Row,key)}</dd></div>)}</dl>
+         </Card>
+         <Card bordered={false} className="project-info-card sales-doctor-detail-card sales-doctor-materials">
+           <div className="section-heading"><h2>资质材料</h2></div>
+@@ -1306,11 +1221,11 @@ export default function SalesWorkspace() {
+         </Card>
+         <Card bordered={false} className="project-info-card sales-doctor-detail-card">
+           <div className="section-heading"><h2>关联订单</h2></div>
+-          <Grid orderMode rows={orders.filter(o=>o.doctorId===d.id)} fields={orderFields.map(field=>field.key==="actions" ? {...field,render:(row:Row)=><Button className="sales-order-link" theme="primary" variant="text" onClick={()=>go("order/"+row.id)}>查看详情</Button>} : field)}/>
++          <Grid orderMode fixedPageSize={6} savedPage={listPages["doctor-orders:"+d.id]||1} onPage={page=>rememberPage("doctor-orders:"+d.id,page)} rows={orders.filter(o=>o.doctorId===d.id)} fields={orderFields.map(field=>field.key==="actions" ? {...field,render:(row:Row)=><Button className="sales-order-link" theme="primary" variant="text" onClick={()=>go("order/"+row.id)}>查看详情</Button>} : field)}/>
+         </Card>
+         <Card bordered={false} className="project-info-card sales-doctor-detail-card">
+           <div className="section-heading"><h2>操作记录</h2></div>
+-          {data.events.some(e=>e.target===d.id) ? <ul className="timeline sales-log">{logs(d.id)}</ul> : <Empty/>}
++          <DoctorTimeline events={data.events} doctorId={d.id}/>
+         </Card>
+       </>
+     ) : (
+@@ -1438,7 +1353,8 @@ export default function SalesWorkspace() {
+         order={o}
+         data={data}
+         ownerName={account.name}
+-        onBack={() => go("orders")}
++        backLabel={doctorOrderOrigin.current?"返回医生档案":"返回订单管理"}
++        onBack={() => go(doctorOrderOrigin.current||"orders")}
+         onEdit={() => go("order-new/" + o.id)}
+         status={<Status value={o.status} />}
+       />
+diff --git a/src/sales/model.ts b/src/sales/model.ts
+index 0a9ef6f..c11f95e 100644
+--- a/src/sales/model.ts
++++ b/src/sales/model.ts
+@@ -33,6 +33,10 @@ export type Attachment = {
+   storage?: "browser" | "invitation" | "demo-fixture" | "directory";
+ };
+ export type Doctor = {
++  seedOrigin?:string;
++  salesId?:string|null;
++  salesName?:string;
++  createdAt?:string;
+   version?:number;
+   departmentId?:string;
+   orderSelectable?:boolean;
+diff --git a/src/sales/sales.css b/src/sales/sales.css
+index efc92e0..af5b4a5 100644
+--- a/src/sales/sales.css
++++ b/src/sales/sales.css
+@@ -349,11 +349,4 @@ html.sales-invite-document body,html.sales-invite-document #root {min-width:0;he
+ 
+ /* Doctor details only: inherit the same Label/Value and field gaps as basic information. */
+ .sales-doctor-materials .doctor-credential-fields{grid-template-columns:minmax(0,1fr)}
+-.doctor-credential-file + .doctor-credential-file{margin-top:var(--td-comp-margin-m)}
+-.doctor-credential-file{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--td-comp-margin-s)}
+-.doctor-credential-name{font:inherit;color:var(--td-brand-color);background:none;border:0;padding:0;margin:0;cursor:pointer;line-height:inherit;text-align:left;overflow-wrap:anywhere;max-width:100%}
+-.doctor-credential-name:hover{background:none;color:var(--td-brand-color)}
+-.doctor-credential-name:focus-visible{outline:2px solid var(--td-brand-color-focus);outline-offset:2px}
+-.doctor-credential-name:disabled{color:var(--td-text-color-disabled);cursor:not-allowed}
+-.doctor-credential-meta{color:var(--td-text-color-primary)}
+ .doctor-credential-viewer{text-align:center}
+diff --git a/tests/doctor-review-consistency.test.mjs b/tests/doctor-review-consistency.test.mjs
+new file mode 100644
+index 0000000..a4edf9e
+--- /dev/null
++++ b/tests/doctor-review-consistency.test.mjs
+@@ -0,0 +1,15 @@
++import test from 'node:test';import assert from 'node:assert/strict';import {mkdtempSync,rmSync,readFileSync,writeFileSync} from 'node:fs';import {tmpdir} from 'node:os';import {join} from 'node:path';
++import {AuthService} from '../server/auth/service.mjs';import {AdminService} from '../server/admin/service.mjs';import {managementPermissions} from '../server/admin/seed.mjs';import {fixtureBytes} from '../src/sales/orderFixtures.mjs';
++import {doctorFields,doctorUpdated,doctorSales,doctorHistory} from '../src/doctors/doctorDisplay.mjs';import {pendingApprovals} from '../src/admin/reviewRules.mjs';import {mergeSalesDirectory} from '../src/business/unifiedClient.ts';
++const manager={id:'admin',name:'实际审核人',role:'super_admin',status:'approved',permissions:managementPermissions},sales={id:'li',phone:'13800000002',name:'李明',role:'sales',status:'approved',permissions:['sales:landing']};
++function setup(t){const root=mkdtempSync(join(tmpdir(),'doctor-review-'));t.after(()=>rmSync(root,{recursive:true,force:true}));const auth=new AuthService({directory:join(root,'auth'),mode:'local',demoMode:true});auth.seedLocal();auth.accounts.push(sales);const service=new AdminService({directory:join(root,'admin'),authService:auth});return {root,auth,service}}
++test('shared schema order; formal sales ownership and newest valid timestamp do not depend on viewer or array order',()=>{assert.deepEqual(doctorFields.map(r=>r[1]),['医生','联系电话','医院','科室','职称','资质审核状态','建档来源','负责销售','最近更新时间']);assert.equal(doctorSales({id:'d',salesId:null,owner:'viewer',salesName:'看客'}),'待关联');assert.equal(doctorSales({id:'d',salesId:'actual'},[{id:'actual',name:'实际负责销售'}]),'实际负责销售');assert.equal(doctorSales({id:'d',salesId:'unknown'}),'未记录');assert.equal(doctorUpdated({id:'d',updatedAt:'invalid'},[{id:'a',target:'d',at:'2025-01-01',actor:'a',title:'a'},{id:'b',objectId:'d',at:'2026-01-01',actor:'a',title:'b'},{id:'other',target:'other',at:'2027-01-01',actor:'a',title:'a'}]),'2026-01-01')});
++test('stable event IDs, real actor, chronological order, reviewer note and system default are preserved without synthesizing events',()=>{const e={id:'r',objectId:'d',title:'医生档案审核退回',at:'2026-11-01T10:00:00Z',actor:'真实审核人',reason:'实际退回意见'};const rows=doctorHistory([e,e,{id:'a',objectId:'d',at:'2026-11-02T10:00:00Z',actor:'另一审核人',title:'医生档案审核通过',note:'审核通过',noteSource:'system-default'},{...e,id:'other',objectId:'other'}],'d');assert.equal(rows.length,2);assert.equal(rows[0].detail,'');assert.equal(rows[1].detail,'实际退回意见');assert.equal(rows[1].actor,e.actor);assert.equal(e.reason,'实际退回意见')});
++test('pending aggregate uses one application identity and actual permission per type',()=>{const d={id:'same',name:'甲',status:'待审核'},a={id:'same',type:'账号开通',applicant:'乙',status:'待审批',at:'2026-01-01'},p={id:'p',type:'权限变更',applicant:'丙',status:'待审批',at:'2026-01-02'};const data={doctors:[d,d],approvals:[a,p,p]};assert.equal(pendingApprovals(data).length,3);assert.deepEqual(pendingApprovals(data,['accounts:approve']).map(r=>r.row.id),['same']);assert.equal(pendingApprovals(data,[]).length,0)});
++test('same doctor flows sales creation → return → resubmit → approve; immutable histories match admin, survive restart and enforce scope/version/basis',t=>{const {root,auth,service:s}=setup(t);const files=['identity','practice'].map(category=>s.institutions.upload(sales,{file:{name:category+'.png',type:'image/png',category,content:Buffer.from(fixtureBytes(2)).toString('base64')}}));let d=s.institutions.saveDoctor(sales,{doctor:{id:'new-shared-doctor',name:'同名医生',phone:'19900004901',hospitalId:'H-A',department:'口腔颌面外科',title:'主治医师',certificate:'LOCAL-QA-003',materials:files},submit:true});assert.equal(d.status,'待审核');assert.throws(()=>s.command(manager,{action:'review-doctor',id:d.id,version:d.version,result:'returned',reason:''}),/退回原因/);assert.throws(()=>s.command(manager,{action:'review-doctor',id:d.id,version:d.version,result:'approved'}),/书面审批依据/);d=s.command(manager,{action:'review-doctor',id:d.id,version:d.version,result:'returned',reason:'清晰度不足'});const oldHistory=structuredClone(s.institutions.salesSnapshot(sales).events.filter(e=>e.objectId===d.id));d=s.institutions.saveDoctor(sales,{doctor:d,submit:true,version:d.version});const version=d.version;d=s.command(manager,{action:'review-doctor',id:d.id,version,result:'approved',basis:'书面材料-QA'});assert.throws(()=>s.command(manager,{action:'review-doctor',id:d.id,version,result:'approved',basis:'QA'}),e=>e.status===409);assert.equal(d.salesId,sales.id);assert.equal(s.institutions.salesSnapshot(sales).ownDoctors.find(row=>row.id===d.id).salesName,'李明');
++const compare=service=>{const sale=service.institutions.salesSnapshot(sales),admin=service.snapshot(manager);const a=doctorHistory(sale.events,d.id),b=doctorHistory(admin.doctorHistory,d.id);assert.deepEqual(a.map(({id,title,actor,at,detail})=>({id,title,actor,at,detail})),b.map(({id,title,actor,at,detail})=>({id,title,actor,at,detail})));assert.equal(a.length,5);assert(oldHistory.every(e=>a.some(row=>row.id===e.id&&row.at===e.at)));assert.deepEqual(sale.ownDoctors.find(row=>row.id===d.id).materials.map(f=>f.id),admin.materials.filter(m=>m.doctorId===d.id).map(f=>f.id));assert.equal(new Set(admin.doctorHistory.map(e=>e.id)).size,admin.doctorHistory.length);return a};const first=compare(s);for(let i=0;i<3;i++)assert.deepEqual(compare(s),first);compare(new AdminService({directory:join(root,'admin'),authService:auth}));assert.throws(()=>s.institutions.file({...manager,role:'admin',hospitalIds:['H-B']},files[0].id),e=>e.status===403);assert.throws(()=>s.institutions.file({...sales,id:'other-sales'},files[0].id),e=>e.status===403);
++const current={ownerId:sales.id,doctors:[{id:d.id,owner:'stale-viewer'}],events:[]};const merged=mergeSalesDirectory(current,{hospitals:[],orderDoctors:[],ownDoctors:[{...d,salesId:null}],events:[]});assert.equal(merged.doctors[0].owner,null);
++});
++test('fixture completion is limited to untouched identified seed stubs; archived synthetic previews are real bytes, no arbitrary events for user documents',t=>{const{root,auth,service:s}=setup(t);const d=s.institutions.snapshot().doctors.find(d=>d.id==='D-2');assert.equal(d.source,'医生自主建档');assert.equal(d.phone,'19900001002');assert.equal(s.institutions.file(manager,d.materials[0].id).type,'application/pdf');const stateFile=join(root,'institution-directory/state.json');const original=JSON.parse(readFileSync(stateFile,'utf8'));original.doctors.find(d=>d.id==='D-1').name='已编辑医生姓名';original.doctors.find(d=>d.id==='D-1').phone='19900008888';writeFileSync(stateFile,JSON.stringify(original));const restarted=new AdminService({directory:join(root,'admin'),authService:auth});assert.equal(restarted.institutions.snapshot().doctors.find(d=>d.id==='D-1').name,'已编辑医生姓名');assert.equal(restarted.institutions.snapshot().doctors.find(d=>d.id==='D-1').phone,'19900008888')});
++
++test('incoming synthetic seed projection never overwrites an existing browser-edited doctor',()=>{const current={ownerId:'li',doctors:[{id:'D-1',name:'用户已修改资料',phone:'19900008888',owner:'li'}],events:[{id:'actual-user-save',target:'D-1',title:'医生档案已保存',at:'2026-11-24T10:00:00Z',actor:'实际销售',source:undefined}]};const next=mergeSalesDirectory(current,{hospitals:[],orderDoctors:[],ownDoctors:[{id:'D-1',name:'林致远',phone:'19900001001',seedOrigin:'existing-sales-synthetic-fixtures',version:1,salesId:'li'}],events:[]});assert.deepEqual(next.doctors,current.doctors);assert.deepEqual(next.events,current.events)});
+diff --git a/tests/institution-directory.test.mjs b/tests/institution-directory.test.mjs
+index a79d941..d10afe8 100644
+--- a/tests/institution-directory.test.mjs
++++ b/tests/institution-directory.test.mjs
+@@ -15,16 +15,16 @@ const sales={id:'li-ming',phone:'13800000002',name:'李明',role:'sales',status:
+ function setup(t){const root=mkdtempSync(join(tmpdir(),'cv-directory-'));t.after(()=>rmSync(root,{recursive:true,force:true}));const auth=new AuthService({directory:join(root,'auth'),mode:'local',demoMode:true});auth.seedLocal();if(!auth.accounts.some(a=>a.id===sales.id))auth.accounts.push(sales);const service=new AdminService({directory:join(root,'admin'),authService:auth});return {root,auth,service};}
+ function hospital(service){return service.command(manager,{action:'hospital-save',name:'徽州协同医学中心',region:'安徽',contact:'0551-1001001',leaderId:'ADM-L01',salesIds:[sales.id]});}
+ function addDepartment(s,h,name){return s.command(manager,{action:'department-save',id:h.id,version:h.version,name,reason:'建立医院科室目录'});}
+-function doctor(h,s){return {id:'D-DIRECTORY-01',name:'顾承远',phone:'19900001001',hospitalId:h.id,department:h.departments[0],title:'主治医师',certificate:'DOC-001',materials:[0,1].map(i=>s.institutions.upload(sales,{file:{name:i?'practice.png':'identity.png',type:'image/png',category:i?'practice':'identity',content:Buffer.from(fixtureBytes(2)).toString('base64')}})),submissionMode:'sales-assisted'};}
++function doctor(h,s){return {id:'D-DIRECTORY-01',name:'顾承远',phone:'19900003901',hospitalId:h.id,department:h.departments[0],title:'主治医师',certificate:'DOC-001',materials:[0,1].map(i=>s.institutions.upload(sales,{file:{name:i?'practice.png':'identity.png',type:'image/png',category:i?'practice':'identity',content:Buffer.from(fixtureBytes(2)).toString('base64')}})),submissionMode:'sales-assisted'};}
+ test('persistent hospital, departments, authorised sales scope, stable IDs and historical aliases survive restarts',t=>{let {root,auth,service:s}=setup(t);let h=hospital(s);h=addDepartment(s,h,'口腔颌面外科');h=addDepartment(s,h,'骨科');assert.equal(h.departmentRecords.length,2);assert.equal(s.institutions.salesSnapshot(sales).hospitals.find(r=>r.id===h.id).departmentRecords.length,2);const d=h.departmentRecords[0];h=s.command(manager,{action:'department-save',id:h.id,departmentId:d.id,version:d.version,name:'颌面外科',reason:'规范科室名称'});assert.equal(h.departmentRecords[0].id,d.id);assert.deepEqual(h.departmentRecords[0].previousNames,['口腔颌面外科']);s=new AdminService({directory:join(root,'admin'),authService:auth});assert.equal(s.institutions.salesSnapshot(sales).hospitals.find(row=>row.id===h.id).departments[0],'颌面外科');const denied={...sales,id:'other'};assert.equal(s.institutions.salesSnapshot(denied).hospitals.length,0);assert.throws(()=>s.command({...manager,role:'admin',hospitalIds:[]},{action:'department-save',id:h.id,version:h.version,name:'越权科室',reason:'x'}),e=>e.status===403);assert.throws(()=>s.command(manager,{action:'hospital-save',name:'无区域资格',region:'其他区域',leaderId:'ADM-L01',salesIds:[]}),/管理资格/);});
+ test('doctor approval gates the same hospital/department selection and unowned authorized doctors; full single-order linkage',t=>{const {service:s}=setup(t);let h=addDepartment(s,hospital(s),'口腔颌面外科');h=addDepartment(s,h,'骨科');let d=s.institutions.saveDoctor(sales,{doctor:doctor(h,s),submit:true});assert.equal(d.status,'待审核');assert(!s.institutions.salesSnapshot(sales).orderDoctors.some(row=>row.id===d.id));assert.throws(()=>s.institutions.saveDoctor(sales,{doctor:{...d,id:'D-duplicate'},submit:true}),e=>e.status===409);
+- assert.throws(()=>s.command(sales,{action:'review-doctor',id:d.id,version:d.version,result:'approved'}),e=>e.status===403);d=s.command(manager,{action:'review-doctor',id:d.id,version:d.version,result:'returned',reason:'请补充清晰的执业证明材料'});assert.equal(d.status,'审核退回');d=s.institutions.saveDoctor(sales,{doctor:d,version:d.version,submit:true});d=s.command(manager,{action:'review-doctor',id:d.id,version:d.version,result:'approved'});assert.equal(d.status,'审核通过');assert(s.institutions.salesSnapshot(sales).orderDoctors.some(row=>row.id===d.id));
++ assert.throws(()=>s.command(sales,{action:'review-doctor',id:d.id,version:d.version,result:'approved',basis:'QA-DIRECTORY-APPROVAL'}),e=>e.status===403);d=s.command(manager,{action:'review-doctor',id:d.id,version:d.version,result:'returned',reason:'请补充清晰的执业证明材料'});assert.equal(d.status,'审核退回');d=s.institutions.saveDoctor(sales,{doctor:d,version:d.version,submit:true});d=s.command(manager,{action:'review-doctor',id:d.id,version:d.version,result:'approved',basis:'QA-DIRECTORY-APPROVAL'});assert.equal(d.status,'审核通过');assert(s.institutions.salesSnapshot(sales).orderDoctors.some(row=>row.id===d.id));
+  const secondSales={...sales,id:'sales-team-2',phone:'13800000020',name:'另一销售'};s.authService.accounts.push(secondSales);s.command(manager,{action:'hospital-save',id:h.id,version:h.version,name:h.name,region:h.region,leaderId:h.leaderId,salesIds:[sales.id,secondSales.id],reason:'按医院授权销售团队'});assert(s.institutions.salesSnapshot(secondSales).orderDoctors.some(row=>row.id===d.id));
+  const order={id:'directory-order',status:'草稿',name:'颌面联合修复规划',hospitalId:h.id,doctorId:d.id,department:d.department,quantity:1,patientName:'合成资料姓名',patientSex:'男',patientIdentityRef:'isolated-patient-ref',requestedDueDate:'2027-12-20',plannedStages:['三维重建','CAD设计'],clinicalRequirements:'重建骨性结构并设计定位导板',materials:fixtureAttachments(sales.id,'order')};
+  let saved=s.shared.save(sales,{order});assert.equal(saved.businessNo,null);assert.equal(deliveryDisplay(saved),'-');assert.throws(()=>s.shared.save(sales,{order:{...saved,department:'骨科'},version:saved.version},{submit:true}),e=>e.status===403);saved=s.shared.save(sales,{order:saved,version:saved.version},{submit:true});assert.match(saved.businessNo,/^CV-\d{4}-\d{4}$/);assert.equal(deliveryDisplay(saved),'待排期');assert.equal(s.snapshot(manager).orders.find(o=>o.id===saved.id).businessNo,saved.businessNo);
+  assert.throws(()=>s.command(manager,{action:'takeover',id:saved.id,version:saved.version,reason:'越权'}),e=>e.status===403);assert.throws(()=>s.command(manager,{action:'review-order',id:saved.id,version:saved.version,result:'approved',confirmedDeliveryDate:'2027-12-20'}),e=>e.status===403);
+  const leader=localLeaderActor(s,'ADM-L01');s.command(leader,{action:'review-order',id:saved.id,version:saved.version,result:'returned',reason:'补充修复边界'});let returned=s.shared.salesSnapshot(sales).orders.find(o=>o.id===saved.id);assert.equal(returned.reason,'补充修复边界');returned=s.shared.save(sales,{order:returned,version:returned.version},{submit:true});assert.equal(returned.businessNo,saved.businessNo);s.command(leader,{action:'review-order',id:saved.id,version:returned.version,result:'approved',confirmedDeliveryDate:'2027-12-20'});const tasks=s.shared.state.tasks.filter(t=>t.orderId===saved.id);assert.equal(tasks.length,2);assert.equal(s.shared.state.projects.filter(p=>p.orderId===saved.id).length,1);for(const task of tasks){assert.throws(()=>s.command(manager,{action:'assign-task',id:task.id,version:task.version,assignee:'chen-yu',plannedDate:'2027-12-19'}),e=>e.status===403);s.command(leader,{action:'assign-task',id:task.id,version:task.version,assignee:'chen-yu',plannedDate:'2027-12-19'})}const view=s.shared.designerSnapshot({id:'chen-yu',name:'陈屿',role:'designer',status:'approved',permissions:['projects:own']});assert.equal(view.tasks.length,2);assert(view.tasks.every(t=>t.orderId===saved.id&&t.businessNo===saved.businessNo));assert.equal(deliveryDisplay(s.shared.state.orders.find(o=>o.id===saved.id)),'2027-12-20');const events=s.institutions.snapshot().events.filter(e=>e.objectId===d.id);assert(events.some(e=>e.title==='医生档案审核退回'));assert(events.some(e=>e.title==='医生档案已重新提交审核'));assert(events.some(e=>e.title==='医生档案审核通过'));});
+-test('disabled directories block new work but preserve existing order identity, deadline and responsibility',t=>{const {service:s}=setup(t);let h=addDepartment(s,hospital(s),'骨科');const d=s.institutions.saveDoctor(sales,{doctor:doctor(h,s),submit:true});s.command(manager,{action:'review-doctor',id:d.id,version:d.version,result:'approved'});const before=JSON.stringify(s.shared.state.orders);s.command(manager,{action:'department-status',id:h.departmentRecords[0].id,version:1,reason:'暂停接单'});assert(!s.institutions.salesSnapshot(sales).orderDoctors.some(row=>row.id===d.id));h=s.institutions.snapshot().hospitals.find(row=>row.id===h.id);s.command(manager,{action:'hospital-leader',id:h.id,version:h.version,leaderId:'ADM-L02',reason:'区域值班交接'});assert.equal(JSON.stringify(s.shared.state.orders),before);assert.equal(s.institutions.snapshot().events.at(-1).before.leaderId,'ADM-L01');});
++test('disabled directories block new work but preserve existing order identity, deadline and responsibility',t=>{const {service:s}=setup(t);let h=addDepartment(s,hospital(s),'骨科');const d=s.institutions.saveDoctor(sales,{doctor:doctor(h,s),submit:true});s.command(manager,{action:'review-doctor',id:d.id,version:d.version,result:'approved',basis:'QA-DIRECTORY-APPROVAL'});const before=JSON.stringify(s.shared.state.orders);s.command(manager,{action:'department-status',id:h.departmentRecords[0].id,version:1,reason:'暂停接单'});assert(!s.institutions.salesSnapshot(sales).orderDoctors.some(row=>row.id===d.id));h=s.institutions.snapshot().hospitals.find(row=>row.id===h.id);s.command(manager,{action:'hospital-leader',id:h.id,version:h.version,leaderId:'ADM-L02',reason:'区域值班交接'});assert.equal(JSON.stringify(s.shared.state.orders),before);assert.equal(s.institutions.snapshot().events.at(-1).before.leaderId,'ADM-L01');});
+ test('supervisor menus and deadline display cover all six order states without rewriting facts',()=>{for(const status of ['草稿','待审核','审核退回','处理中','已完成','已取消']){const o={id:'o',status,leaderId:'ADM-L01',confirmedDeliveryDate:'2026-12-01',requestedDueDate:'2026-12-02'};assert.equal(deliveryDisplay(o),['草稿','已取消'].includes(status)?'-':['待审核','审核退回'].includes(status)?'待排期':'2026-12-01');assert.deepEqual(orderActions(o,manager),['待审核','审核退回'].includes(status)?['change-leader']:[]);assert.equal(o.confirmedDeliveryDate,'2026-12-01')}assert.equal(deliveryDisplay({status:'处理中',requestedDueDate:'2026-12-02'}),'—');});
+ test('real archived qualification bytes and trusted invite submissions are scoped, stable, and never imply approval',t=>{
+  const {service:s}=setup(t);const h=addDepartment(s,hospital(s),'口腔颌面外科');const uploaded=s.institutions.upload(sales,{file:{name:'proof.png',type:'image/png',category:'identity',content:Buffer.from(fixtureBytes(2)).toString('base64')}});
+@@ -35,7 +35,7 @@ test('real archived qualification bytes and trusted invite submissions are scope
+  records.leads.push({id:'controlled-invite',owner:sales.id,name:'顾承远',phone:'19900001009',hospitalId:h.id,department:'口腔颌面外科',title:'主治医师',certificate:'LOCAL-002',phoneVerified:true,submissionMode:'invite',submittedBy:'顾承远',at:'2026-11-24T09:00:00Z',materials:records.files.map(({content,owner,...m})=>({...m,status:'success',storage:'invitation'}))});
+  const d=s.institutions.snapshot().doctors.find(d=>d.invitationLeadId==='controlled-invite');assert.equal(d.status,'待审核');assert.equal(d.source,'医生自主建档');assert.equal(d.submittedBy,'顾承远');assert.equal(d.invitedBy,sales.id);assert.equal(s.institutions.salesSnapshot(sales).orderDoctors.some(row=>row.id===d.id),false);
+  const count=s.institutions.snapshot().events.length;for(let i=0;i<3;i++)s.institutions.snapshot();assert.equal(s.institutions.snapshot().events.length,count);assert(s.institutions.file(manager,'invite-practice').bytes.length>0);
+- const approved=s.command(manager,{action:'review-doctor',id:d.id,version:d.version,result:'approved'});assert.equal(approved.status,'审核通过');assert(s.institutions.salesSnapshot(sales).orderDoctors.some(row=>row.id===d.id));assert.throws(()=>s.institutions.saveDoctor(sales,{doctor:{...doctor(h,s),id:'spoofed-invite',phone:'19900001008',submissionMode:'invite'},submit:true}),e=>e.status===403);assert.equal(s.institutions.snapshot().doctors.filter(x=>x.phone===d.phone).length,1);
++ const approved=s.command(manager,{action:'review-doctor',id:d.id,version:d.version,result:'approved',basis:'QA-DIRECTORY-APPROVAL'});assert.equal(approved.status,'审核通过');assert(s.institutions.salesSnapshot(sales).orderDoctors.some(row=>row.id===d.id));assert.throws(()=>s.institutions.saveDoctor(sales,{doctor:{...doctor(h,s),id:'spoofed-invite',phone:'19900001008',submissionMode:'invite'},submit:true}),e=>e.status===403);assert.equal(s.institutions.snapshot().doctors.filter(x=>x.phone===d.phone).length,1);
+ });
+ 
+ test('leader qualification requires actual enabled business permissions, never an implicit super-admin takeover',t=>{const {service:s}=setup(t);s.state.people.find(p=>p.id==='ADM-L01').permissions=['orders:review','tasks:assign'];assert.throws(()=>hospital(s),/管理资格/);assert.throws(()=>localLeaderActor(s,'ADM-L01'),/permissions/);assert.equal(s.institutions.validLeader('ADM-L01','H-A','安徽'),false);});
+diff --git a/tests/unified-business-http.test.mjs b/tests/unified-business-http.test.mjs
+index fa75ea9..6c43b6e 100644
+--- a/tests/unified-business-http.test.mjs
++++ b/tests/unified-business-http.test.mjs
+@@ -36,10 +36,10 @@ test('real HTTP sessions → sales submit → leader decision → administrator
+  const departmentResult=await management('/api/admin/command',{action:'department-save',id:masterHospital.id,version:masterHospital.version,name:'口腔颌面外科',reason:'HTTP目录联动验证'});assert.equal(departmentResult.status,200);masterHospital=departmentResult.body;
+  assert((await sale('/api/admin/business/directory')).body.hospitals.some(h=>h.id===masterHospital.id));
+  const proofFiles=[];for(const category of ['identity','practice']){const uploaded=await sale('/api/admin/business/doctor-upload',{file:{name:category+'.png',type:'image/png',category,content:Buffer.from(fixtureBytes(2)).toString('base64')}});assert.equal(uploaded.status,200);proofFiles.push(uploaded.body)}
+- const doctorResult=await sale('/api/admin/business/doctor-save',{doctor:{id:'http-new-doctor',name:'顾承远',phone:'19900001001',hospitalId:masterHospital.id,department:'口腔颌面外科',title:'主治医师',certificate:'LOCAL-HTTP-001',materials:proofFiles},submit:true});assert.equal(doctorResult.status,200);assert.equal(doctorResult.body.status,'待审核');
++ const doctorResult=await sale('/api/admin/business/doctor-save',{doctor:{id:'http-new-doctor',name:'顾承远',phone:'19900003902',hospitalId:masterHospital.id,department:'口腔颌面外科',title:'主治医师',certificate:'LOCAL-HTTP-001',materials:proofFiles},submit:true});assert.equal(doctorResult.status,200);assert.equal(doctorResult.body.status,'待审核');
+  assert(!(await sale('/api/admin/business/directory')).body.orderDoctors.some(d=>d.id==='http-new-doctor'));
+  const preview=await management('/api/admin/preview/'+proofFiles[0].id);assert.equal(preview.status,200);assert(preview.body.byteLength>0);assert.equal((await anonymous('/api/admin/preview/'+proofFiles[0].id)).status,401);
+- assert.equal((await management('/api/admin/command',{action:'review-doctor',id:'http-new-doctor',version:1,result:'approved'})).status,200);assert((await sale('/api/admin/business/directory')).body.orderDoctors.some(d=>d.id==='http-new-doctor'));
++ assert.equal((await management('/api/admin/command',{action:'review-doctor',id:'http-new-doctor',version:1,result:'approved',basis:'QA-HTTP-DOCTOR'})).status,200);assert((await sale('/api/admin/business/directory')).body.orderDoctors.some(d=>d.id==='http-new-doctor'));
+  const order={id:'http-order',name:'联合修复业务',hospitalId:'http-hospital',doctorId:'http-doctor',department:'骨科',quantity:1,patientName:'沈嘉宁',patientSex:'女',patientIdentityRef:'encrypted-test-reference',service:'数字模型',clinicalRequirements:'术前结构评估',due:'2027-12-20',plannedStages:['三维重建','CAD设计','有限元分析','3D打印'],materials:[{id:'private-file',name:'影像.nii',category:'imaging',status:'success',storage:'browser'}]};
+  const saved=await sale('/api/admin/business/save',{order});assert.equal(saved.status,200);assert.equal(saved.body.businessNo,null);
+  const submissions=await Promise.all(Array.from({length:5},()=>sale('/api/admin/business/submit',{order:saved.body,version:saved.body.version})));

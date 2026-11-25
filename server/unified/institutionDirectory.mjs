@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { mkdirSync, existsSync, readFileSync, writeFileSync, renameSync, openSync, closeSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
+import fixtureDetails from './doctor-fixture-details.json' with {type:'json'};
+import {fixtureBytes} from '../../src/sales/orderFixtures.mjs';
 export class DirectoryFailure extends Error {
     constructor(message, status = 400) { super(message); this.status = status; }
 }
@@ -16,7 +18,21 @@ export class InstitutionDirectory {
         h.region ||= '';
         h.contact ||= '';
     } for (const d of this.state.doctors)
-        d.version ||= 1; }); }
+        d.version ||= 1;
+        this.completeFixtureStubs(); }); }
+    completeFixtureStubs(){
+      for(const entry of fixtureDetails.rows){
+        const row=this.state.doctors.find(d=>d.id===entry.doctor.id),fixture=entry.doctor;
+        if(!row||row.version!==1||row.name!==fixture.name||row.hospitalId!==fixture.hospitalId||row.phone||this.state.events.some(e=>e.objectId===row.id))continue;
+        const salesId=row.salesId;if(!salesId)continue;
+        const replace=value=>JSON.parse(JSON.stringify(value).replaceAll('__fixture_sales__',salesId));
+        const original=replace(fixture);row.seedOrigin='existing-sales-synthetic-fixtures';
+        for(const key of ['phone','title','certificate','source','submissionMode','submittedBy','createdBy','invitedBy','updatedAt'])if(original[key]!==undefined)row[key]=original[key];
+        row.materials=original.materials.map(file=>({...file,uploadedByName:file.uploadedByName||this.seed().people.find(p=>p.id===salesId)?.name,storage:'directory'}));
+        for(const file of row.materials)this.state.files.push({...file,owner:salesId,content:Buffer.from(fixtureBytes(1)).toString('base64')});
+        for(const event of replace(entry.events))this.state.events.push({...event,objectId:row.id,reason:event.detail,noteSource:event.reviewNoteSource,source:'existing-sales-synthetic-fixtures'});
+      }
+    }
     reload() { if (this.directory && existsSync(join(this.directory, 'state.json'))) {
         const value = JSON.parse(readFileSync(join(this.directory, 'state.json'), 'utf8'));
         if (value.source !== 'isolated-institution-directory' || value.schema !== 1)
@@ -61,10 +77,10 @@ export class InstitutionDirectory {
     current(row, version) { if (row.version !== version)
         throw new DirectoryFailure('资料已更新，请刷新后重试。', 409); }
     event(actor, title, objectId, before, after, reason = '') { this.state.events.push({ id: randomUUID(), title, objectId, actorId: actor.id, actor: actor.name, at: new Date(this.now()).toISOString(), category: '机构与人员', result: '成功', reason, before: clone(before), after: clone(after), source: 'isolated-institution-directory' }); }
-    snapshot() { this.reload(); this.syncInvitations(); const seed = this.seed(), hospitals = this.state.hospitals.map(h => ({ ...clone(h), departments: h.departmentRecords.filter(d => d.status === '已启用').map(d => d.name), managementEditable: true })); return { ...seed, hospitals, doctors: clone(this.state.doctors), salesScopes: clone(this.state.salesScopes), events: clone(this.state.events) }; }
+    snapshot() { this.reload(); this.syncInvitations(); const seed = this.seed(), hospitals = this.state.hospitals.map(h => ({ ...clone(h), departments: h.departmentRecords.filter(d => d.status === '已启用').map(d => d.name), managementEditable: true })); return { ...seed, hospitals, doctors: clone(this.state.doctors).map(d=>({...d,salesName:seed.people.find(p=>p.id===d.salesId)?.name})), salesScopes: clone(this.state.salesScopes), events: clone(this.state.events) }; }
     validLeader(id, hospitalId, region) { const p = this.seed().people.find(p => p.id === id && p.role === '业务组长' && p.status === '已启用' && ['orders:read', 'orders:review', 'tasks:assign'].every(permission => p.permissions?.includes(permission))); return !!(p && (p.scope?.includes(hospitalId) || p.regions?.includes(region) || this.state.hospitals.some(h => h.id === hospitalId && h.leaderId === id))); }
     canSelectDoctor(actor, doctor, hospital, department) { return !!doctor && !!hospital && this.sales(actor).includes(hospital.id) && hospital.status === '已启用' && doctor.status === '审核通过' && doctor.hospitalId === hospital.id && doctor.department === department && hospital.departmentRecords.some(d => d.name === department && d.status === '已启用') && (doctor.salesId === actor.id || doctor.businessAccess === 'hospital' || doctor.allowedSalesIds?.includes(actor.id)); }
-    salesSnapshot(actor) { this.reload(); const ids = this.sales(actor), hospitals = this.snapshot().hospitals.filter(h => ids.includes(h.id)), doctors = this.state.doctors.filter(d => ids.includes(d.hospitalId)); return { hospitals, orderDoctors: doctors.filter(d => this.canSelectDoctor(actor, d, this.state.hospitals.find(h => h.id === d.hospitalId), d.department)).map(d => ({ id: d.id, name: d.name, hospitalId: d.hospitalId, department: d.department, departmentId: d.departmentId, status: d.status, orderSelectable: true })), ownDoctors: clone(doctors.filter(d => d.salesId === actor.id || d.createdBy === actor.id || d.invitedBy === actor.id)), events: clone(this.state.events.filter(e => doctors.some(d => d.id === e.objectId && (d.salesId === actor.id || d.createdBy === actor.id || d.invitedBy === actor.id)))) }; }
+    salesSnapshot(actor) { this.reload(); const ids = this.sales(actor), hospitals = this.snapshot().hospitals.filter(h => ids.includes(h.id)), doctors = this.state.doctors.filter(d => ids.includes(d.hospitalId)); return { hospitals, orderDoctors: doctors.filter(d => this.canSelectDoctor(actor, d, this.state.hospitals.find(h => h.id === d.hospitalId), d.department)).map(d => ({ id: d.id, name: d.name, hospitalId: d.hospitalId, department: d.department, departmentId: d.departmentId, status: d.status, orderSelectable: true })), ownDoctors: clone(doctors.filter(d => d.salesId === actor.id || d.createdBy === actor.id || d.invitedBy === actor.id)).map(d=>({...d,salesName:this.seed().people.find(p=>p.id===d.salesId)?.name})), events: clone(this.state.events.filter(e => doctors.some(d => d.id === e.objectId && (d.salesId === actor.id || d.createdBy === actor.id || d.invitedBy === actor.id)))) }; }
     command(actor, { action, id, version, ...input }) {
         if (typeof action !== 'string')
             throw new DirectoryFailure('请选择有效操作。');
@@ -170,6 +186,7 @@ export class InstitutionDirectory {
                         throw new DirectoryFailure('审核结果无效。');
                     reason = input.result === 'returned' ? text(input.reason, '退回原因', 1000) : String(input.reason || '').trim();
                     d.status = input.result === 'approved' ? '审核通过' : '审核退回';
+                    if (input.result === 'approved' && !input.basis?.trim())throw new DirectoryFailure('请填写书面审批依据。');
                     if (input.result === 'approved')
                         d.salesId = d.createdBy || d.invitedBy || d.salesId;
                     d.reason = input.result === 'returned' ? reason : '';
@@ -220,6 +237,7 @@ export class InstitutionDirectory {
                 const before = existing ? clone(existing) : null, d = { ...existing, id: existing?.id || 'D-LEAD-' + lead.id, name: lead.name, phone: lead.phone, hospitalId: h.id, departmentId: dep.id, department: dep.name, title: lead.title, certificate: lead.certificate, materials: clone(materials), status: '待审核', salesId: null, createdBy: lead.owner, invitedBy: lead.owner, source: lead.submissionMode === 'sales-assisted' ? '销售建档' : '医生自主建档', submissionMode: lead.submissionMode, submittedBy: lead.submittedBy, phoneVerified: true, invitationLeadId: lead.id, invitationSubmittedAt: lead.at, updatedAt: lead.at, version: (existing?.version || 0) + 1, reason: '' };
                 this.state.doctors = this.state.doctors.filter(row => row.id !== d.id);
                 this.state.doctors.push(d);
+                if(!existing){this.event({id:lead.submissionMode==='sales-assisted'?lead.owner:'invite-'+lead.id,name:lead.submittedBy||lead.name},'医生档案已创建',d.id,null,d);this.state.events.at(-1).at=lead.at;}
                 this.event({ id: lead.submissionMode === 'sales-assisted' ? lead.owner : 'invite-' + lead.id, name: lead.submittedBy || lead.name }, existing?.status === '审核退回' ? '医生档案已重新提交审核' : '医生档案已提交审核', d.id, before, d);
                 this.state.events.at(-1).at = lead.at;
             }
@@ -276,6 +294,7 @@ export class InstitutionDirectory {
             const d = { id: input.id, name: text(input.name, '医生姓名', 60), phone: input.phone, hospitalId: h.id, departmentId: dep.id, department: dep.name, title: String(input.title || ''), certificate: String(input.certificate || ''), materials, status: submit ? '待审核' : '草稿', salesId: null, createdBy: old?.createdBy || actor.id, source: lead?.submissionMode === 'invite' || old?.source === '医生自主建档' ? '医生自主建档' : '销售建档', submissionMode: lead?.submissionMode || old?.submissionMode || 'sales-assisted', invitedBy: lead ? actor.id : old?.invitedBy || null, submittedBy: lead?.submittedBy || old?.submittedBy || actor.name, version: (old?.version || 0) + 1, createdAt: old?.createdAt || new Date(this.now()).toISOString(), updatedAt: new Date(this.now()).toISOString(), reason: '' };
             this.state.doctors = this.state.doctors.filter(row => row.id !== d.id);
             this.state.doctors.push(d);
+            if(!old)this.event(actor,'医生档案已创建',d.id,null,d);
             this.event(actor, submit ? (old?.status === '审核退回' ? '医生档案已重新提交审核' : '医生档案已提交审核') : '医生档案草稿已保存', d.id, old || null, d);
             return d;
         });

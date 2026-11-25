@@ -1,0 +1,103 @@
+{
+  "baseline": "a1a8e1b567685baea586e1c70b72807bca4054ea",
+  "dataDirectory": "isolated institution-preview-20261124 only",
+  "doctor": {
+    "id": "D-7fa2ee21-dbb9-4da7-b7b7-0988b1747cf3",
+    "name": "沈知衡",
+    "hospitalId": "H-79c3c14b-2347-4484-a339-e7d618f959d2",
+    "departmentId": "DEP-04d9436f-a0ef-4b3e-aad3-377e56c493f0",
+    "department": "口腔颌面外科",
+    "title": "主治医师",
+    "certificate": "LOCAL-DOCTOR-20261125-003",
+    "status": "审核通过",
+    "salesId": "4wX73gX6C0PZ63nF9tMh-gs24LTG8OhkMA2t_b8vsn8",
+    "createdBy": "4wX73gX6C0PZ63nF9tMh-gs24LTG8OhkMA2t_b8vsn8",
+    "source": "销售建档",
+    "version": 4,
+    "updatedAt": "2026-11-25T02:54:52.299Z"
+  },
+  "files": [
+    {
+      "id": "b19cf001-ce6b-4911-86bd-94b8afbcb9a4",
+      "name": "identity.png",
+      "category": "identity",
+      "uploadedBy": "4wX73gX6C0PZ63nF9tMh-gs24LTG8OhkMA2t_b8vsn8",
+      "uploadedByName": "李明",
+      "uploadedAt": "2026-11-25T02:51:52.011Z"
+    },
+    {
+      "id": "f779f024-3412-41b5-bd36-ef50bcf0696e",
+      "name": "practice.png",
+      "category": "practice",
+      "uploadedBy": "4wX73gX6C0PZ63nF9tMh-gs24LTG8OhkMA2t_b8vsn8",
+      "uploadedByName": "李明",
+      "uploadedAt": "2026-11-25T02:51:52.017Z"
+    }
+  ],
+  "events": [
+    {
+      "id": "be373244-5fa4-4248-b9a5-a5241ca92ac3",
+      "title": "医生档案已创建",
+      "objectId": "D-7fa2ee21-dbb9-4da7-b7b7-0988b1747cf3",
+      "actorId": "4wX73gX6C0PZ63nF9tMh-gs24LTG8OhkMA2t_b8vsn8",
+      "actor": "李明",
+      "at": "2026-11-25T02:51:52.026Z",
+      "reason": "",
+      "noteSource": null
+    },
+    {
+      "id": "22858f0f-d360-43f1-be44-7d231dcdecd6",
+      "title": "医生档案已提交审核",
+      "objectId": "D-7fa2ee21-dbb9-4da7-b7b7-0988b1747cf3",
+      "actorId": "4wX73gX6C0PZ63nF9tMh-gs24LTG8OhkMA2t_b8vsn8",
+      "actor": "李明",
+      "at": "2026-11-25T02:51:52.026Z",
+      "reason": "",
+      "noteSource": null
+    },
+    {
+      "id": "325c91a0-9451-4cf7-876b-f62420d8ff87",
+      "title": "医生档案审核退回",
+      "objectId": "D-7fa2ee21-dbb9-4da7-b7b7-0988b1747cf3",
+      "actorId": "super-admin",
+      "actor": "周景明",
+      "at": "2026-11-25T02:53:11.992Z",
+      "reason": "请补充清晰的执业证明照片。",
+      "noteSource": "reviewer"
+    },
+    {
+      "id": "b1381083-398f-4a88-8852-964d0a42b046",
+      "title": "医生档案已重新提交审核",
+      "objectId": "D-7fa2ee21-dbb9-4da7-b7b7-0988b1747cf3",
+      "actorId": "4wX73gX6C0PZ63nF9tMh-gs24LTG8OhkMA2t_b8vsn8",
+      "actor": "李明",
+      "at": "2026-11-25T02:54:29.011Z",
+      "reason": "",
+      "noteSource": null
+    },
+    {
+      "id": "9bedc60a-f334-4895-b9b1-4d3175dbfd6b",
+      "title": "医生档案审核通过",
+      "objectId": "D-7fa2ee21-dbb9-4da7-b7b7-0988b1747cf3",
+      "actorId": "super-admin",
+      "actor": "周景明",
+      "at": "2026-11-25T02:54:52.299Z",
+      "reason": "",
+      "noteSource": "system-default"
+    }
+  ],
+  "orders": [
+    {
+      "id": "SO-28e6f919",
+      "businessNo": "CV-2026-0022",
+      "doctorId": "D-7fa2ee21-dbb9-4da7-b7b7-0988b1747cf3",
+      "hospitalId": "H-79c3c14b-2347-4484-a339-e7d618f959d2",
+      "department": "口腔颌面外科",
+      "name": "颌骨缺损范围重建复核",
+      "status": "待审核",
+      "version": 2,
+      "created": "2026-11-25T03:00:25.218Z",
+      "updated": "2026-11-25T03:00:59.616Z"
+    }
+  ]
+}

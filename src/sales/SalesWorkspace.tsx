@@ -2,7 +2,9 @@ import {useViewportPagination} from '../tables/useViewportPagination';
 import {orderNumber,matchesBusinessKeyword} from './orderNumber.mjs';
 import {archiveDoctorFiles} from '../business/doctorDirectoryFiles';
 import {DoctorCredentials} from './DoctorCredentials';
-import {doctorSource,doctorEvent} from './doctorRecordRules.mjs';
+import {doctorEvent} from './doctorRecordRules.mjs';
+import {doctorFields as doctorFieldConfig,doctorSales,doctorSource,doctorUpdated} from '../doctors/doctorDisplay.mjs';
+import {DoctorTimeline} from '../doctors/DoctorDetails';
 import {business as businessRequest} from './business/client';
 import {OrderEntryDialog} from './business/OrderEntryDialog';
 import {OrderImport} from './business/OrderImport';
@@ -115,11 +117,13 @@ function Grid({
   fields,
   paginate = true,
   savedPage,
+  fixedPageSize,
   onPage,
   orderMode = false,
   highlight,
 }: {
   savedPage?: number;
+  fixedPageSize?: number;
   orderMode?: boolean;
   highlight?: string;
   onPage?: (page: number) => void;
@@ -133,8 +137,11 @@ function Grid({
   }[];
 }) {
   const rowIdentity = rows.map(r => String(r.id)).join("|");
-  const paging=useViewportPagination(rows.length,rowIdentity,{enabled:paginate,page:savedPage,onChange:onPage});
-  const {page,pageSize,setPage}=paging;
+  const paging=useViewportPagination(rows.length,rowIdentity,{enabled:paginate&&!fixedPageSize,page:savedPage,onChange:onPage});
+  const [embeddedPage,setEmbeddedPage]=useState(1);
+  const pageSize=fixedPageSize||paging.pageSize;
+  const page=fixedPageSize?Math.min(savedPage??embeddedPage,Math.max(1,Math.ceil(rows.length/pageSize))):paging.page;
+  const setPage=fixedPageSize?(value:number)=>{setEmbeddedPage(value);onPage?.(value)}:paging.setPage;
   const width = (key: string) =>
     ({
       id: 150,
@@ -149,7 +156,7 @@ function Grid({
       due: 130,
     })[key] || 120;
   return (
-    <div className="sales-table-scroll viewport-table" ref={paging.ref}>
+    <div className={`sales-table-scroll${fixedPageSize?" sales-embedded-table":" viewport-table"}`} ref={paging.ref} data-page-size={pageSize} data-total={rows.length}>
       <Table
         tableContentWidth={
           "max(100%, " +
@@ -188,7 +195,7 @@ function Grid({
         }))}
         empty={<Empty description={orderMode ? undefined : "暂无符合条件的记录"} />}
       />
-      {paging.showPagination && (
+      {(fixedPageSize?paginate&&rows.length>pageSize:paging.showPagination) && (
         <div className="project-pagination" data-viewport-pagination>
           <Pagination
             current={page}
@@ -500,9 +507,14 @@ export default function SalesWorkspace() {
     from,
     to,
   ]);
+  const doctorOrderOrigin=useRef<string|null>(null);
+  const doctorSubmitFlight=useRef(false);
+  const [doctorSubmitting,setDoctorSubmitting]=useState(false);
   const editOrigin=useRef<string|null>(null);
   const go = (r: string) => {
     if((r.startsWith("doctor-new/")||r.startsWith("order-new/"))&&route==="todos")editOrigin.current=route;
+    if(r.startsWith("order/")&&route.startsWith("doctor/"))doctorOrderOrigin.current=route;
+    else if(!r.startsWith("order/")&&!r.startsWith("doctor/"))doctorOrderOrigin.current=null;
     location.hash = "sales/" + r;
   };
   const openStat = (category: string) => {
@@ -664,82 +676,18 @@ export default function SalesWorkspace() {
   ];
   const doctorPhone = (phone: string, _owner: unknown) =>
     phone ? phone.replace(/(\d{3})\d{4}(\d{4})/, "$1****$2") : "未提供";
-  const doctorFields = [
-    { key: "name", label: "医生" },
-    {
-      key: "hospitalId",
-      label: "所属医院",
-      render: (r: Row) => h(String(r.hospitalId)),
-    },
-    { key: "department", label: "科室" },
-    { key: "title", label: "职称" },
-    {
-      key: "recent",
-      label: "最近更新时间",
-      render: (r: Row) => {
-        const at = r.updatedAt || data.events.find((e) => e.target === r.id)?.at;
-        return at ? formatDynamicTime(String(at)) : "暂无记录";
-      },
-    },
-    {
-      key: "phone",
-      label: "联系电话",
-      render: (r: Row) => doctorPhone(String(r.phone || ""), r.owner),
-    },
-    {
-      key: "status",
-      label: "资质审核状态",
-      render: (r: Row) => <Status value={String(r.status)} />,
-    },
-    {
-      key: "owner",
-      label: "负责销售",
-      render: (r: Row) =>
-        r.status === "审核通过" && r.owner === account.id
-          ? "已关联 · " + account.name
-          : r.status === "审核通过" && r.owner
-            ? "已有其他销售"
-            : "待关联",
-    },
-    {
-      key: "actions",
-      label: "操作",
-      render: (r: Row) => (
-        <div className="sales-order-row-actions"><Button
-          className="sales-order-link"
-          theme="primary"
-          variant="text"
-          onClick={() => go("doctor/" + r.id)}
-        >
-          查看详情
-        </Button>{r.status==="草稿"&&(r.createdBy===account.id||account.permissions.includes("doctor.draft.delete"))&&<Button variant="text" theme="danger" className="sales-order-link" onClick={()=>setDeleteDoctorId(String(r.id))}>删除</Button>}</div>
-      ),
-    },
-  ].sort(
-    (a, b) =>
-      [
-        "name",
-        "phone",
-        "hospitalId",
-        "department",
-        "title",
-        "status",
-        "owner",
-        "recent",
-        "actions",
-      ].indexOf(a.key) -
-      [
-        "name",
-        "phone",
-        "hospitalId",
-        "department",
-        "title",
-        "status",
-        "owner",
-        "recent",
-        "actions",
-      ].indexOf(b.key),
-  );
+  const doctorValue=(r:Row,key:string):React.ReactNode=>{
+    if(key==='hospitalId')return h(String(r.hospitalId));
+    if(key==='phone')return doctorPhone(String(r.phone||''),r.owner);
+    if(key==='status')return <Status value={String(r.status)}/>;
+    if(key==='source')return doctorSource(r as unknown as Doctor);
+    if(key==='sales')return doctorSales(r as unknown as Doctor,[{id:account.id,name:account.name}]);
+    if(key==='updated'){const at=doctorUpdated(r as unknown as Doctor,data.events);return at?formatDynamicTime(at):'—'}
+    return String(r[key]||'—');
+  };
+  const doctorFields = [...doctorFieldConfig.map(([key,label])=>({key,label,render:(r:Row)=>doctorValue(r,key)})),{
+    key:'actions',label:'操作',render:(r:Row)=><div className="sales-order-row-actions"><Button className="sales-order-link" theme="primary" variant="text" onClick={()=>go('doctor/'+r.id)}>查看详情</Button>{r.status==='草稿'&&(r.createdBy===account.id||account.permissions.includes('doctor.draft.delete'))&&<Button variant="text" theme="danger" className="sales-order-link" onClick={()=>setDeleteDoctorId(String(r.id))}>删除</Button>}</div>
+  }];
   const matching = orders.filter(
     (o) =>
       (!keyword || (orderNumber(o) !== "-" && orderNumber(o).toLowerCase().includes(keyword.toLowerCase()))) &&
@@ -1179,13 +1127,13 @@ export default function SalesWorkspace() {
           </dl>
           <Tabs defaultValue="doctors">
             <Tabs.TabPanel value="doctors" label="科室与医生">
-              <Grid
+              <Grid fixedPageSize={6}
                 rows={data.doctors.filter((d) => d.hospitalId === detail)}
                 fields={doctorFields}
               />
             </Tabs.TabPanel>
             <Tabs.TabPanel value="orders" label="关联订单">
-              <Grid
+              <Grid fixedPageSize={6}
                 rows={orders.filter((o) => o.hospitalId === detail)}
                 fields={orderFields}
               />
@@ -1253,9 +1201,8 @@ export default function SalesWorkspace() {
                         (f) => f.category === "practice" || !f.category,
                       )
                     }
-                    onClick={() =>
-                      commit({ type: "doctor-submit", target: d.id })
-                    }
+                    loading={doctorSubmitting}
+                    onClick={async()=>{if(doctorSubmitFlight.current)return;doctorSubmitFlight.current=true;setDoctorSubmitting(true);try{const materials=await archiveDoctorFiles(data.ownerId,d.materials);await unifiedRequest('doctor-save',{doctor:{...d,materials},submit:true,version:d.version});const directory=await unifiedRequest<SalesDirectory>('directory');setData(current=>mergeSalesDirectory(current,directory));void MessagePlugin.success('已提交审核')}catch(error){void MessagePlugin.error((error as Error).message)}finally{doctorSubmitFlight.current=false;setDoctorSubmitting(false)}}}
                   >
                     {d.status === "审核退回" ? "重新提交审核" : "提交审核"}
                   </Button>
@@ -1266,39 +1213,7 @@ export default function SalesWorkspace() {
             </>,
           )}
 
-              <dl className="project-info-grid">
-                {[
-                  ["医生", d.name],
-                  ["资质审核状态", <Status value={d.status}/>],
-                  ["所属医院", h(d.hospitalId)],
-                  ["所属科室", d.department],
-                  ["职称", d.title],
-                  ["联系电话", doctorPhone(d.phone || "", d.owner)],
-                  ["执业证书编号", d.certificate || "未提供"],
-                  [
-                    "负责销售",
-                    d.owner === account.id
-                      ? account.name
-                      : d.owner
-                        ? "其他销售"
-                        : "待关联",
-                  ],
-                  ["建档来源", doctorSource(d)],
-                  [
-                    "最近更新时间",
-                    data.events.find((e) => e.target === d.id)?.at
-                      ? formatAuditTime(
-                          data.events.find((e) => e.target === d.id)!.at,
-                        )
-                      : "暂无记录",
-                  ],
-                ].map(([label, value]) => (
-                  <div key={String(label)}>
-                    <dt>{label}</dt>
-                    <dd>{value}</dd>
-                  </div>
-                ))}
-              </dl>
+          <dl className="project-info-grid">{doctorFieldConfig.map(([key,label])=><div key={key}><dt>{label}</dt><dd>{doctorValue(d as unknown as Row,key)}</dd></div>)}</dl>
         </Card>
         <Card bordered={false} className="project-info-card sales-doctor-detail-card sales-doctor-materials">
           <div className="section-heading"><h2>资质材料</h2></div>
@@ -1306,11 +1221,11 @@ export default function SalesWorkspace() {
         </Card>
         <Card bordered={false} className="project-info-card sales-doctor-detail-card">
           <div className="section-heading"><h2>关联订单</h2></div>
-          <Grid orderMode rows={orders.filter(o=>o.doctorId===d.id)} fields={orderFields.map(field=>field.key==="actions" ? {...field,render:(row:Row)=><Button className="sales-order-link" theme="primary" variant="text" onClick={()=>go("order/"+row.id)}>查看详情</Button>} : field)}/>
+          <Grid orderMode fixedPageSize={6} savedPage={listPages["doctor-orders:"+d.id]||1} onPage={page=>rememberPage("doctor-orders:"+d.id,page)} rows={orders.filter(o=>o.doctorId===d.id)} fields={orderFields.map(field=>field.key==="actions" ? {...field,render:(row:Row)=><Button className="sales-order-link" theme="primary" variant="text" onClick={()=>go("order/"+row.id)}>查看详情</Button>} : field)}/>
         </Card>
         <Card bordered={false} className="project-info-card sales-doctor-detail-card">
           <div className="section-heading"><h2>操作记录</h2></div>
-          {data.events.some(e=>e.target===d.id) ? <ul className="timeline sales-log">{logs(d.id)}</ul> : <Empty/>}
+          <DoctorTimeline events={data.events} doctorId={d.id}/>
         </Card>
       </>
     ) : (
@@ -1438,7 +1353,8 @@ export default function SalesWorkspace() {
         order={o}
         data={data}
         ownerName={account.name}
-        onBack={() => go("orders")}
+        backLabel={doctorOrderOrigin.current?"返回医生档案":"返回订单管理"}
+        onBack={() => go(doctorOrderOrigin.current||"orders")}
         onEdit={() => go("order-new/" + o.id)}
         status={<Status value={o.status} />}
       />

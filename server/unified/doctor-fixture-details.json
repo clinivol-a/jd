@@ -1,0 +1,381 @@
+{
+  "source": "existing-sales-synthetic-fixtures",
+  "baseline": "a1a8e1b",
+  "rows": [
+    {
+      "doctor": {
+        "id": "D-1",
+        "name": "林致远",
+        "hospitalId": "H-A",
+        "department": "口腔颌面外科",
+        "phone": "19900001001",
+        "title": "主治医师",
+        "certificate": "DEMO-QUAL-1",
+        "status": "审核通过",
+        "owner": "__fixture_sales__",
+        "materials": [
+          {
+            "id": "doctor-fixture:D-1:identity",
+            "name": "合成材料-身份资料.pdf",
+            "type": "application/pdf",
+            "size": 695,
+            "category": "identity",
+            "status": "success",
+            "storage": "demo-fixture",
+            "uploadedAt": "2026-11-09T08:00:00+08:00",
+            "uploadedBy": "__fixture_sales__",
+            "storageOwner": "__fixture_sales__"
+          },
+          {
+            "id": "doctor-fixture:D-1:practice",
+            "name": "合成材料-执业资料.pdf",
+            "type": "application/pdf",
+            "size": 695,
+            "category": "practice",
+            "status": "success",
+            "storage": "demo-fixture",
+            "uploadedAt": "2026-11-09T08:00:00+08:00",
+            "uploadedBy": "__fixture_sales__",
+            "storageOwner": "__fixture_sales__"
+          }
+        ],
+        "reason": "",
+        "source": "销售建档",
+        "createdBy": "__fixture_sales__",
+        "updatedAt": "2026-11-10T10:00:00+08:00"
+      },
+      "events": [
+        {
+          "id": "doctor-fixture:D-1:review",
+          "target": "D-1",
+          "at": "2026-11-10T10:00:00+08:00",
+          "actor": "管理员",
+          "title": "医生档案审核通过",
+          "detail": "审核通过",
+          "doctorEvent": "approved",
+          "reviewNoteSource": "system-default",
+          "read": true
+        },
+        {
+          "id": "doctor-fixture:D-1:submit",
+          "target": "D-1",
+          "at": "2026-11-09T09:00:00+08:00",
+          "actor": "李明",
+          "title": "医生档案已提交审核",
+          "detail": "",
+          "read": true
+        },
+        {
+          "id": "doctor-fixture:D-1:created",
+          "target": "D-1",
+          "at": "2026-11-08T08:00:00+08:00",
+          "actor": "李明",
+          "title": "医生档案已创建",
+          "detail": "",
+          "read": true
+        }
+      ]
+    },
+    {
+      "doctor": {
+        "id": "D-2",
+        "name": "周明哲",
+        "hospitalId": "H-B",
+        "department": "康复医学科",
+        "phone": "19900001002",
+        "title": "副主任医师",
+        "certificate": "DEMO-QUAL-2",
+        "status": "审核通过",
+        "owner": "__fixture_sales__",
+        "materials": [
+          {
+            "id": "doctor-fixture:D-2:identity",
+            "name": "合成材料-身份资料.pdf",
+            "type": "application/pdf",
+            "size": 695,
+            "category": "identity",
+            "status": "success",
+            "storage": "demo-fixture",
+            "uploadedAt": "2026-11-09T08:00:00+08:00",
+            "uploadedBy": "D-2",
+            "uploadedByName": "周明哲",
+            "storageOwner": "__fixture_sales__"
+          },
+          {
+            "id": "doctor-fixture:D-2:practice",
+            "name": "合成材料-执业资料.pdf",
+            "type": "application/pdf",
+            "size": 695,
+            "category": "practice",
+            "status": "success",
+            "storage": "demo-fixture",
+            "uploadedAt": "2026-11-09T08:00:00+08:00",
+            "uploadedBy": "D-2",
+            "uploadedByName": "周明哲",
+            "storageOwner": "__fixture_sales__"
+          }
+        ],
+        "reason": "",
+        "source": "医生自主建档",
+        "invitedBy": "__fixture_sales__",
+        "submissionMode": "invite",
+        "submittedBy": "周明哲",
+        "createdBy": "__fixture_sales__",
+        "updatedAt": "2026-11-10T10:00:00+08:00"
+      },
+      "events": [
+        {
+          "id": "doctor-fixture:D-2:review",
+          "target": "D-2",
+          "at": "2026-11-10T10:00:00+08:00",
+          "actor": "管理员",
+          "title": "医生档案审核通过",
+          "detail": "审核通过",
+          "doctorEvent": "approved",
+          "reviewNoteSource": "system-default",
+          "read": true
+        },
+        {
+          "id": "doctor-fixture:D-2:submit",
+          "target": "D-2",
+          "at": "2026-11-09T09:00:00+08:00",
+          "actor": "周明哲",
+          "title": "医生档案已提交审核",
+          "detail": "",
+          "read": true
+        },
+        {
+          "id": "doctor-fixture:D-2:created",
+          "target": "D-2",
+          "at": "2026-11-08T08:00:00+08:00",
+          "actor": "周明哲",
+          "title": "医生档案已创建",
+          "detail": "",
+          "read": true
+        }
+      ]
+    },
+    {
+      "doctor": {
+        "id": "D26-9",
+        "name": "周景宁",
+        "phone": "19900002009",
+        "hospitalId": "H-C",
+        "department": "口腔科",
+        "title": "主治医师",
+        "certificate": "SYN-V26-9",
+        "status": "审核通过",
+        "owner": "__fixture_sales__",
+        "createdBy": "__fixture_sales__",
+        "materials": [
+          {
+            "id": "doctor-fixture:D26-9:identity",
+            "name": "合成材料-身份资料.pdf",
+            "type": "application/pdf",
+            "size": 695,
+            "category": "identity",
+            "status": "success",
+            "storage": "demo-fixture",
+            "uploadedAt": "2026-11-09T08:00:00+08:00",
+            "uploadedBy": "__fixture_sales__",
+            "storageOwner": "__fixture_sales__"
+          },
+          {
+            "id": "doctor-fixture:D26-9:practice",
+            "name": "合成材料-执业资料.pdf",
+            "type": "application/pdf",
+            "size": 695,
+            "category": "practice",
+            "status": "success",
+            "storage": "demo-fixture",
+            "uploadedAt": "2026-11-09T08:00:00+08:00",
+            "uploadedBy": "__fixture_sales__",
+            "storageOwner": "__fixture_sales__"
+          }
+        ],
+        "reason": "",
+        "source": "销售建档",
+        "updatedAt": "2026-11-11T08:00:00+08:00"
+      },
+      "events": [
+        {
+          "id": "doctor-fixture:D26-9:review",
+          "target": "D26-9",
+          "at": "2026-11-10T10:00:00+08:00",
+          "actor": "管理员",
+          "title": "医生档案审核通过",
+          "detail": "审核通过",
+          "doctorEvent": "approved",
+          "reviewNoteSource": "system-default",
+          "read": true
+        },
+        {
+          "id": "doctor-fixture:D26-9:submit",
+          "target": "D26-9",
+          "at": "2026-11-09T09:00:00+08:00",
+          "actor": "李明",
+          "title": "医生档案已提交审核",
+          "detail": "",
+          "read": true
+        },
+        {
+          "id": "doctor-fixture:D26-9:created",
+          "target": "D26-9",
+          "at": "2026-11-08T08:00:00+08:00",
+          "actor": "李明",
+          "title": "医生档案已创建",
+          "detail": "",
+          "read": true
+        }
+      ]
+    },
+    {
+      "doctor": {
+        "id": "D26-5",
+        "name": "许承安",
+        "phone": "19900002005",
+        "hospitalId": "H-B",
+        "department": "康复医学科",
+        "title": "主治医师",
+        "certificate": "SYN-V26-5",
+        "status": "审核通过",
+        "owner": "__fixture_sales__",
+        "createdBy": "__fixture_sales__",
+        "materials": [
+          {
+            "id": "doctor-fixture:D26-5:identity",
+            "name": "合成材料-身份资料.pdf",
+            "type": "application/pdf",
+            "size": 695,
+            "category": "identity",
+            "status": "success",
+            "storage": "demo-fixture",
+            "uploadedAt": "2026-11-09T08:00:00+08:00",
+            "uploadedBy": "__fixture_sales__",
+            "storageOwner": "__fixture_sales__"
+          },
+          {
+            "id": "doctor-fixture:D26-5:practice",
+            "name": "合成材料-执业资料.pdf",
+            "type": "application/pdf",
+            "size": 695,
+            "category": "practice",
+            "status": "success",
+            "storage": "demo-fixture",
+            "uploadedAt": "2026-11-09T08:00:00+08:00",
+            "uploadedBy": "__fixture_sales__",
+            "storageOwner": "__fixture_sales__"
+          }
+        ],
+        "reason": "",
+        "source": "销售建档",
+        "updatedAt": "2026-11-11T08:00:00+08:00"
+      },
+      "events": [
+        {
+          "id": "doctor-fixture:D26-5:review",
+          "target": "D26-5",
+          "at": "2026-11-10T10:00:00+08:00",
+          "actor": "管理员",
+          "title": "医生档案审核通过",
+          "detail": "审核通过",
+          "doctorEvent": "approved",
+          "reviewNoteSource": "system-default",
+          "read": true
+        },
+        {
+          "id": "doctor-fixture:D26-5:submit",
+          "target": "D26-5",
+          "at": "2026-11-09T09:00:00+08:00",
+          "actor": "李明",
+          "title": "医生档案已提交审核",
+          "detail": "",
+          "read": true
+        },
+        {
+          "id": "doctor-fixture:D26-5:created",
+          "target": "D26-5",
+          "at": "2026-11-08T08:00:00+08:00",
+          "actor": "李明",
+          "title": "医生档案已创建",
+          "detail": "",
+          "read": true
+        }
+      ]
+    },
+    {
+      "doctor": {
+        "id": "D26-1",
+        "name": "顾明哲",
+        "phone": "19900002001",
+        "hospitalId": "H-A",
+        "department": "口腔颌面外科",
+        "title": "主治医师",
+        "certificate": "SYN-V26-1",
+        "status": "审核通过",
+        "owner": "__fixture_sales__",
+        "createdBy": "__fixture_sales__",
+        "materials": [
+          {
+            "id": "doctor-fixture:D26-1:identity",
+            "name": "合成材料-身份资料.pdf",
+            "type": "application/pdf",
+            "size": 695,
+            "category": "identity",
+            "status": "success",
+            "storage": "demo-fixture",
+            "uploadedAt": "2026-11-09T08:00:00+08:00",
+            "uploadedBy": "__fixture_sales__",
+            "storageOwner": "__fixture_sales__"
+          },
+          {
+            "id": "doctor-fixture:D26-1:practice",
+            "name": "合成材料-执业资料.pdf",
+            "type": "application/pdf",
+            "size": 695,
+            "category": "practice",
+            "status": "success",
+            "storage": "demo-fixture",
+            "uploadedAt": "2026-11-09T08:00:00+08:00",
+            "uploadedBy": "__fixture_sales__",
+            "storageOwner": "__fixture_sales__"
+          }
+        ],
+        "reason": "",
+        "source": "销售建档",
+        "updatedAt": "2026-11-11T08:00:00+08:00"
+      },
+      "events": [
+        {
+          "id": "doctor-fixture:D26-1:review",
+          "target": "D26-1",
+          "at": "2026-11-10T10:00:00+08:00",
+          "actor": "管理员",
+          "title": "医生档案审核通过",
+          "detail": "审核通过",
+          "doctorEvent": "approved",
+          "reviewNoteSource": "system-default",
+          "read": true
+        },
+        {
+          "id": "doctor-fixture:D26-1:submit",
+          "target": "D26-1",
+          "at": "2026-11-09T09:00:00+08:00",
+          "actor": "李明",
+          "title": "医生档案已提交审核",
+          "detail": "",
+          "read": true
+        },
+        {
+          "id": "doctor-fixture:D26-1:created",
+          "target": "D26-1",
+          "at": "2026-11-08T08:00:00+08:00",
+          "actor": "李明",
+          "title": "医生档案已创建",
+          "detail": "",
+          "read": true
+        }
+      ]
+    }
+  ]
+}

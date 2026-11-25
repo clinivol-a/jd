@@ -520,6 +520,7 @@ export function OrderDetail({
   data,
   ownerName,
   onBack,
+  backLabel = "返回订单管理",
   onEdit,
   status,
 }: {
@@ -527,6 +528,7 @@ export function OrderDetail({
   data: SalesData;
   ownerName: string;
   onBack: () => void;
+  backLabel?: string;
   onEdit: () => void;
   status: ReactNode;
 }) {
@@ -577,7 +579,7 @@ export function OrderDetail({
   );
   return (
     <div className="project-page project-detail-page sales-order-page">
-      <PageBack label="返回订单管理" onBack={onBack}/>
+      <PageBack label={backLabel} onBack={onBack}/>
       <Card bordered={false} className="project-info-card">
         <div className="project-page-heading">
           <h2>订单概览</h2>
