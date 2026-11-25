@@ -28,6 +28,8 @@
 .admin-json { white-space:pre-wrap; overflow-wrap:anywhere; font:inherit; padding:12px; border-radius:var(--td-radius-default); background:var(--td-bg-color-secondarycontainer); }
 @media(max-width:1000px) { .admin-app .admin-home-grid { grid-template-columns:1fr; } }
 .admin-app .project-list-card > .t-card__body > .t-tabs { margin:16px 24px 0; }
+/* Clip opaque table surfaces to the existing official Card radius, including bottom corners. */
+.admin-app .admin-review-card { overflow:hidden; }
 .admin-app .admin-filters > label { flex:0 0 auto; }
 .admin-app .admin-filters > label .t-input__wrap { width:180px; }
 .admin-app .admin-filters > label .t-select__wrap { width:160px; }
