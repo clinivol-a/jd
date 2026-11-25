@@ -742,7 +742,7 @@ function Reviews({ tasks, events, onDetail }: { tasks: Task[]; events: FlowEvent
   const columns: PrimaryTableCol<(typeof records)[number]>[] = [
     {colKey:'projectNumber',title:'项目编号',width:150,fixed:'left',ellipsis:true},
     {colKey:'taskName',title:'手术项目名称',width:220,fixed:'left',ellipsis:true,cell:({row})=>row.task.title},
-    {colKey:'hospital',title:'医院',width:210,ellipsis:true},
+    {colKey:'hospital',title:'医院',width:210,fixed:'left',ellipsis:true},
     {colKey:'patientName',title:'患者',width:110,ellipsis:true},
     { colKey: 'taskType', title: '设计阶段', width: 130, cell: ({ row }) => <StageTypeIcon stage={row.task.taskType}/> },
     { colKey: 'status', title: '审核状态', width: 125, cell: ({ row }) => <Tag theme={row.status.includes('退回')?'danger':row.status.includes('通过')?'success':'warning'} variant="light">{row.status}</Tag> },

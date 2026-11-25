@@ -41,6 +41,7 @@ export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=re
     res.end(JSON.stringify(result));return
    }
    if(req.method==='GET'&&action==='organizations')result=service.organizations()
+   else if(req.method==='GET'&&action==='roles')result=service.applicationRoles()
    else if(req.method==='GET'&&action==='registration/amendment')result=service.registrationAmendment(d)
    else if(req.method==='GET'&&action==='registration/context')result=service.registrationContext(d)
    else if(req.method==='GET'&&action==='demo-scan/registration')result=service.demoRegistration(d)

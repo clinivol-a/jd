@@ -175,20 +175,14 @@ function Grid({
         data={
           paginate ? rows.slice((page - 1) * pageSize, page * pageSize) : rows
         }
-        columns={fields.map((c) => ({
+        columns={fields.map((c,index) => ({
           colKey: c.key,
           title: c.label,
           width: c.width ?? width(c.key),
           align: "left" as const,
           className: c.key === "actions" ? "business-action-cell" : undefined,
           ellipsis: c.key !== "actions",
-          fixed:
-            c.key === "actions"
-              ? "right"
-              : (orderMode && ["id", "hospitalId", "name"].includes(c.key)) ||
-                  (c.key === "id" && fields[0]?.key === "id")
-                ? "left"
-                : undefined,
+          fixed: index===fields.length-1 ? "right" : index<3 ? "left" : undefined,
           cell: c.render
             ? ({ row }: { row: Row }) => c.render!(row)
             : undefined,

@@ -1,3 +1,4 @@
+import {anhuiCities,coversRegion} from './institutionRules.mjs';
 import { useState } from 'react';
 import { Dialog, Form, Input, Select } from 'tdesign-react';
 import { adminRequest } from './model';
@@ -8,15 +9,14 @@ export function HospitalForm({ initial, data, onClose, onSaved }: {
     onClose: () => void;
     onSaved: () => Promise<void>;
 }) {
-    const [value, setValue] = useState({ name: initial?.name || '', region: initial?.region || '', contact: initial?.contact || '', leaderId: data.people.some(p => p.id === initial?.leaderId && p.role === '业务组长' && p.status === '已启用' && ['orders:read', 'orders:review', 'tasks:assign'].every(permission => p.permissions.includes(permission))) ? initial!.leaderId : '', salesIds: Object.entries(data.salesAssignments || {}).filter(([, ids]) => initial && ids.includes(initial.id)).map(([id]) => id), reason: '' });
+    const [value, setValue] = useState({ name: initial?.name || '', region: initial?.region || '', contact: initial?.contact || '', leaderId: data.people.some(p => p.id === initial?.leaderId && p.role === '业务组长' && p.status === '已启用' && ['orders:read', 'orders:review', 'tasks:assign'].every(permission => p.permissions.includes(permission))) ? initial!.leaderId : '', salesIds: Object.entries(data.salesAssignments || {}).filter(([, ids]) => initial && ids.includes(initial.id)).map(([id]) => id) });
     const [errors, setErrors] = useState<Record<string, string>>({}), [busy, setBusy] = useState(false);
     const update = (key: keyof typeof value, next: unknown) => { setValue(v => ({ ...v, [key]: next })); setErrors(e => ({ ...e, [key]: '' })); };
-    const leaders = data.people.filter(p => p.role === '业务组长' && p.status === '已启用' && ['orders:read', 'orders:review', 'tasks:assign'].every(permission => p.permissions.includes(permission)) && (p.regions?.includes(value.region) || initial && (p.scope.includes(initial.id) || p.id === initial.leaderId)));
+    const leaders = data.people.filter(p => p.role === '业务组长' && p.status === '已启用' && ['orders:read', 'orders:review', 'tasks:assign'].every(permission => p.permissions.includes(permission)) && (coversRegion(p.regions,value.region) || initial && (p.scope.includes(initial.id) || p.id === initial.leaderId)));
     const save = async () => { if (busy)
         return; const e: Record<string, string> = {}; for (const key of ['name', 'region', 'leaderId'] as const)
         if (!value[key].trim())
-            e[key] = '请填写' + ({ name: '医院名称', region: '所属区域', leaderId: '负责组长' })[key]; if (initial && !value.reason.trim())
-        e.reason = '请填写修改原因'; setErrors(e); if (Object.keys(e).length)
+            e[key] = '请填写' + ({ name: '医院名称', region: '区域', leaderId: '负责组长' })[key]; setErrors(e); if (Object.keys(e).length)
         return; setBusy(true); try {
         await adminRequest('command', { action: 'hospital-save', id: initial?.id, version: initial?.version, ...value });
         await onSaved();
@@ -31,11 +31,10 @@ export function HospitalForm({ initial, data, onClose, onSaved }: {
     return <Dialog visible header={initial ? '编辑医院' : '新建医院'} confirmBtn={{ content: '保存', loading: busy }} cancelBtn="取消" onConfirm={() => void save()} onClose={() => { if (!busy)
         onClose(); }} destroyOnClose><Form labelAlign="top" onSubmit={() => void save()}>
   <Form.FormItem label="医院名称" requiredMark status={errors.name ? 'error' : undefined} tips={errors.name}><><Input value={value.name} onChange={v => update('name', v)} placeholder="填写医院名称"/></></Form.FormItem>
-  <Form.FormItem label="所属区域" requiredMark status={errors.region ? 'error' : undefined} tips={errors.region}><><Input value={value.region} onChange={v => { update('region', v); update('leaderId', ''); }} placeholder="填写所属区域"/></></Form.FormItem>
-  <Form.FormItem label="联系信息"><><Input value={value.contact} onChange={v => update('contact', v)} placeholder="填写联系信息"/></></Form.FormItem>
+  <Form.FormItem label="区域" requiredMark status={errors.region ? 'error' : undefined} tips={errors.region}><><Select value={value.region||undefined} options={[...anhuiCities,...(value.region&&!anhuiCities.includes(value.region)?[value.region]:[])].map(label=>({label,value:label}))} onChange={v => { update('region', String(v)); update('leaderId', ''); }} placeholder="选择区域"/></></Form.FormItem>
+  <Form.FormItem label="联系电话"><><Input value={value.contact} onChange={v => update('contact', v)} placeholder="填写联系电话"/></></Form.FormItem>
   <Form.FormItem label="负责组长" requiredMark status={errors.leaderId ? 'error' : undefined} tips={errors.leaderId}><><Select value={value.leaderId} filterable options={leaders.map(p => ({ value: p.id, label: p.name }))} onChange={v => update('leaderId', String(v))} placeholder="选择具备区域或医院资格的组长"/></></Form.FormItem>
   <Form.FormItem label="授权销售"><><Select value={value.salesIds} multiple filterable options={data.people.filter(p => p.role === '销售' && p.status === '已启用' && Object.prototype.hasOwnProperty.call(data.salesAssignments || {}, p.id)).map(p => ({ value: p.id, label: p.name }))} onChange={v => update('salesIds', v)} placeholder="选择可服务该医院的销售"/></></Form.FormItem>
-  {initial && <Form.FormItem label="修改原因" requiredMark status={errors.reason ? 'error' : undefined} tips={errors.reason}><><Input value={value.reason} onChange={v => update('reason', v)}/></></Form.FormItem>}
   {errors.submit && <p className="admin-error" role="alert">{errors.submit}</p>}
  </Form></Dialog>;
 }
@@ -45,21 +44,19 @@ export function DepartmentForm({ hospital, initial, onClose, onSaved }: {
     onClose: () => void;
     onSaved: () => Promise<void>;
 }) {
-    const [name, setName] = useState(initial?.name || ''), [reason, setReason] = useState(''), [errors, setErrors] = useState<Record<string, string>>({}), [busy, setBusy] = useState(false);
+    const [name, setName] = useState(initial?.name || ''), [errors, setErrors] = useState<Record<string, string>>({}), [busy, setBusy] = useState(false);
     const save = async () => {
         if (busy)
             return;
         const next: Record<string, string> = {};
         if (!name.trim())
             next.name = '请填写科室名称。';
-        if (!reason.trim())
-            next.reason = '请填写操作原因。';
         setErrors(next);
         if (Object.keys(next).length)
             return;
         setBusy(true);
         try {
-            await adminRequest('command', { action: 'department-save', id: hospital.id, departmentId: initial?.id, version: initial?.version || hospital.version, name, reason });
+            await adminRequest('command', { action: 'department-save', id: hospital.id, departmentId: initial?.id, version: initial?.version || hospital.version, name });
             await onSaved();
             onClose();
         }
@@ -75,7 +72,6 @@ export function DepartmentForm({ hospital, initial, onClose, onSaved }: {
   <Form labelAlign="top" onSubmit={() => void save()}>
    <Form.FormItem label="所属医院"><><Input value={hospital.name} readonly/></></Form.FormItem>
    <Form.FormItem label="科室名称" requiredMark status={errors.name ? 'error' : undefined} tips={errors.name}><><Input value={name} onChange={v => { setName(v); setErrors(e => ({ ...e, name: '' })); }} placeholder="填写科室名称"/></></Form.FormItem>
-   <Form.FormItem label="操作原因" requiredMark status={errors.reason ? 'error' : undefined} tips={errors.reason}><><Input value={reason} onChange={v => { setReason(v); setErrors(e => ({ ...e, reason: '' })); }}/></></Form.FormItem>
    {errors.submit && <p className="admin-error" role="alert">{errors.submit}</p>}
   </Form>
  </Dialog>;

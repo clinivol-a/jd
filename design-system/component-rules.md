@@ -97,7 +97,7 @@ AI十项开放正常颜色的参数确认入口，替代上文统一禁用要求
 本文件负责组件；[AGENTS.md](../AGENTS.md)负责总纪律，[tokens.md](tokens.md)负责数值，[icons.md](icons.md)负责图标，[ui-ux-consistency.md](ui-ux-consistency.md)负责页面组合，[field-dictionary.md](../docs/product/field-dictionary.md)负责业务字段。相同业务复用组件和DOM，不另造角色专用基础体系。
 
 - **Button**：Primary用于当前主操作，同一区域通常只有一个；Secondary/default、Outline与Text用于次操作、轻操作，Danger仅用于危险语义。保留TDesign实际theme/variant API，不把设计称谓当成不存在的属性。Hover不改变Padding、字重或起始位置；普通文字按钮不扩大为整行色块。业务返回复用PageBack，尺寸、来源上下文及待核实项见一致性文档第3章。登录返回、步骤上一步与专业撤销不混用。
-- **Table**：正文与表头沿用14/22 Regular，长文本单行省略并可Tooltip查看。操作表头和每行操作左对齐，查看详情用品牌链接色，删除用Error/Danger；行分割线覆盖有效宽度。上文冻结项目三列是项目表作用域，不强加给订单、医生或其他表；各类表保留已确认行高和列配置。字段统一引用字典。
+- **Table**：正文与表头沿用14/22 Regular，长文本单行省略并可Tooltip查看。操作表头和每行操作左对齐，查看详情用品牌链接色，删除用Error/Danger；行分割线覆盖有效宽度。宽表统一固定前三列及最后一列，中间列滚动；各类表保留已确认字段顺序和行高。字段统一引用字典。
 - **Form**：使用TDesign必填标记及对应FormItem下方status/tips，不以Placeholder代替Label；同组字段节奏一致、组间更大，提示Icon与Label同行。相同业务不同入口共享字段、Upload与校验组件。受控字段应保持单一值来源，避免Form内部状态反向覆盖受控值；不得用无关组件重挂载掩盖循环更新。
 - **Upload**：按图片/文件选择TDesign模式及既定上传Icon，提供实际上传中、成功、失败重试、删除与预览。上传成功必须依据接口/当前有效适配器结果；邀请入口继续执行Token和手机号凭证校验，不因UI复用取消服务端验证。
 - **Empty**：使用TDesign Empty，单组仅一条有效空状态说明；保留该页面已确认min-height与留白，不塞假行、不为无数据令Card骤缩。医生资质材料无文件的既定例外是“暂无附件”文字，不套大Empty。

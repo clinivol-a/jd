@@ -1,0 +1,37 @@
+{
+  "before": [
+    248,
+    403,
+    603,
+    803,
+    963,
+    1063,
+    1163,
+    1308,
+    1418,
+    1528,
+    1688,
+    1848,
+    1562
+  ],
+  "after": [
+    248,
+    403,
+    603,
+    382,
+    542,
+    642,
+    742,
+    887,
+    997,
+    1107,
+    1267,
+    1427,
+    1562
+  ],
+  "scrollLeft": 421,
+  "firstThreeAndLastUnchanged": true,
+  "hospitalTextX": 272,
+  "hospitalHeaderTextX": 272,
+  "hospitalTextColor": "rgba(0, 0, 0, 0.9)"
+}

@@ -625,15 +625,15 @@ export function OrderDetail({
           tableLayout="fixed"
           empty="暂无已上传附件"
           columns={[
-            { colKey: "name", title: "文件名", ellipsis: true, width: 220, cell: ({row}) => <Button className="sales-order-link sales-order-file-name" variant="text" theme="primary" onClick={()=> { if(isImaging(row)||row.type==="application/pdf" || row.type.startsWith("image/")) void showFile(row); else void MessagePlugin.info("此类型仅可在获授权的专业影像视窗查看。"); }}>{row.name}</Button> },
+            { colKey: "name", fixed: "left", title: "文件名", ellipsis: true, width: 220, cell: ({row}) => <Button className="sales-order-link sales-order-file-name" variant="text" theme="primary" onClick={()=> { if(isImaging(row)||row.type==="application/pdf" || row.type.startsWith("image/")) void showFile(row); else void MessagePlugin.info("此类型仅可在获授权的专业影像视窗查看。"); }}>{row.name}</Button> },
             {
-              colKey: "category",
+              colKey: "category", fixed: "left",
               title: "类别",
               width: 110,
               cell: ({ row }) => (isImaging(row) ? "医学影像" : "其他附件"),
             },
             {
-              colKey: "type",
+              colKey: "type", fixed: "left",
               title: "格式",
               width: 85,
               cell: ({ row }) => row.name.split(".").at(-1)?.toUpperCase(),
@@ -668,7 +668,7 @@ export function OrderDetail({
                 row.status === "success" ? "已上传" : "旧记录待核验",
             },
             {
-              colKey: "actions",
+              colKey: "actions", fixed: "right",
               title: "操作",
               width: 160,
               cell: ({ row }) => (
