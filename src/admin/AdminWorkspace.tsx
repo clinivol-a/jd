@@ -104,7 +104,7 @@ export default function AdminWorkspace(){
   {selectFilter('医院',hospitalId,value=>{setHospitalId(value);if(!data?.hospitals.some(h=>(!value||h.id===value)&&h.departments.includes(department)))setDepartment('')},data?.hospitals.map(h=>({label:h.name,value:h.id}))||[])}
   {selectFilter('科室',department,setDepartment,[...new Set(data?.hospitals.filter(h=>!hospitalId||h.id===hospitalId).flatMap(h=>h.departments)||[])].map(label=>({label,value:label})))}
   {selectFilter('设计阶段',stageFilter,setStageFilter,STAGES.map((label,i)=>({label,value:String(i)})))}
-  {selectFilter('订单状态',status,setStatus,['草稿','待审核','审核退回','处理中','已完成','已取消'].map(label=>({label,value:label})))}
+  {selectFilter('订单状态',status,setStatus,['待审核','审核退回','处理中','已完成','已取消'].map(label=>({label,value:label})))}
   {selectFilter('负责组长',leaderId,setLeaderId,[...leaders(),{label:account.name,value:account.id}].filter((p,i,a)=>a.findIndex(x=>x.value===p.value)===i))}
   <Button variant="outline" onClick={resetOrderFilters}>重置筛选</Button>
  </div>;

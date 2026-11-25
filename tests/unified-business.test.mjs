@@ -15,6 +15,12 @@ const directory={hospitals:[{id:'H-A',name:'江淮协同医院',departments:['�
 function setup(t){const path=mkdtempSync(join(tmpdir(),'cv-unified-'));t.after(()=>rmSync(path,{recursive:true,force:true}));const service=new UnifiedBusinessService({directory:path,directoryProvider:()=>directory,now:()=>now});return{service,path}}
 function draft(id='order-a'){return{id,name:'颌面修复规划',hospitalId:'H-A',doctorId:'doctor-a',department:'骨科',caseId:'case-a',quantity:1,patientName:'沈嘉宁',patientSex:'女',patientIdentityRef:'protected-patient-reference',service:'三维重建及数字模型',requirements:'术前结构评估',clinicalRequirements:'术前结构评估',requestedDueDate:'2026-12-10',plannedStages:['三维重建','CAD设计','有限元分析','3D打印'],materials:[{id:'protected-file-reference',name:'影像.nii',category:'imaging',storage:'browser',status:'success'}]}}
 function approve(service,o){service.manage(admin,{action:'review-order',id:o.id,version:o.version,result:'approved',confirmedDeliveryDate:'2026-12-10'});return service.salesSnapshot(seller).orders.find(r=>r.id===o.id)}
+test('draft is visible only to its sales owner; every management role sees it only after actual submission',t=>{
+ const{service:s}=setup(t);let o=s.save(seller,{order:draft('private-draft')});
+ assert(s.salesSnapshot(seller).orders.some(row=>row.id===o.id));assert(!s.salesSnapshot({...seller,id:'sales-b'}).orders.some(row=>row.id===o.id));
+ for(const role of ['super_admin','admin','leader']){const actor={...admin,role};assert.equal(s.adminSnapshot(actor).orders.length,0);assert.throws(()=>s.order(actor,o.id),e=>e.status===404)}
+ o=s.save(seller,{order:o,version:o.version},{submit:true});assert.equal(o.status,'待审核');assert.equal(s.adminSnapshot(admin).orders[0].id,o.id);assert.equal(s.adminSnapshot(admin).orders[0].businessNo,o.businessNo);
+});
 
 test('draft save, first submit, retries, return/resubmit, acceptance and four assigned tasks use one record',t=>{
  const{service,path}=setup(t);
