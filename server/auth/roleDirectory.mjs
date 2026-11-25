@@ -14,9 +14,9 @@ export class RoleDirectory{
  selected(id){const r=this.options().find(r=>r.id===id);if(!r)throw new RoleFailure('请选择有效的申请岗位。');return r}
  save(actor,{id,name,status,version}){
   if(actor?.role!=='super_admin'||actor.status!=='approved'||!actor.permissions?.includes('people:manage'))throw new RoleFailure('无岗位配置权限。',403);
-  this.reload();const r=this.state.items.find(r=>r.id===id);if(!r)throw new RoleFailure('岗位不存在。',404);if(r.version!==version)throw new RoleFailure('岗位已更新，请刷新。',409);
+  this.reload();let r=id?this.state.items.find(r=>r.id===id):null;if(id&&!r)throw new RoleFailure('岗位不存在。',404);if(r&&r.version!==version)throw new RoleFailure('岗位已更新，请刷新。',409);
   if(typeof name!=='string'||!name.trim()||name.trim().length>30)throw new RoleFailure('请填写30字以内的岗位名称。');if(!['已启用','已停用'].includes(status))throw new RoleFailure('请选择有效的当前状态。');
   if(this.state.items.some(x=>x.id!==id&&x.name===name.trim()))throw new RoleFailure('岗位名称已存在。',409);
-  const before=clone(r);r.name=name.trim();r.status=status;r.version++;this.state.events.push({id:randomUUID(),objectId:r.id,title:'申请岗位配置已更新',category:'岗位配置',actorId:actor.id,actor:actor.name,actorRole:actor.role,at:new Date(this.now()).toISOString(),before,after:clone(r),reason:'',result:'成功',source:'isolated-roles'});this.persist();return clone(r);
+  const before=r?clone(r):null;if(!r){r={id:'ROLE-'+randomUUID(),name:name.trim(),status,version:1};this.state.items.push(r)}else{r.name=name.trim();r.status=status;r.version++}this.state.events.push({id:randomUUID(),objectId:r.id,title:before?'申请岗位配置已更新':'申请岗位已创建',category:'岗位配置',actorId:actor.id,actor:actor.name,actorRole:actor.role,at:new Date(this.now()).toISOString(),before,after:clone(r),reason:'',result:'成功',source:'isolated-roles'});this.persist();return clone(r);
  }
 }

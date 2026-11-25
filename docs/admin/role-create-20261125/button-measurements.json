@@ -1,0 +1,16 @@
+{
+  "roleButton": {
+    "h": 32,
+    "w": 88,
+    "x": 2104,
+    "y": 104
+  },
+  "hospitalButton": {
+    "h": 32,
+    "w": 88,
+    "x": 2104,
+    "y": 104
+  },
+  "emptyValue": "-",
+  "codePoint": 45
+}

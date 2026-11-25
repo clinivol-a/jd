@@ -370,7 +370,9 @@ CliniVol A方案当前采用“一单一主项目、多专业任务”的业务�
 | 医院/区域/联系电话/当前负责组长 | Hospital.name / region / contact / leaderId；组长以稳定人员ID关联，安徽省级授权覆盖省内各市，旧区域不猜测改写 |
 | 关联医生 | 按hospitalId关联并统计数量，不按医生姓名匹配 |
 | 组织类型/当前状态 | Organization.kind / status，组织目录行操作仅编辑 |
-| 申请岗位 | RoleDirectory.items的稳定id/name/status/version；注册和重新提交仅接受启用项；Account.requestedRole保留稳定键 |
+| 申请岗位 | RoleDirectory.items的稳定id/name/status/version（新增由服务端生成ROLE-稳定ID）；注册和重新提交仅接受启用项；Account.requestedRole保留稳定键 |
 | 岗位配置审计 | 操作人、时间、before/after持久化；普通销售无维护权限；岗位名称不等于授权权限 |
 
 医院详情基本资料字段顺序：医院、区域、联系电话、当前负责组长、关联医生数量、当前状态。医院详情不再展示订单与操作记录Card，底层历史及关联数据保留。医院、科室及组织编辑取消原因输入，不取消审计、版本控制和停用确认。
+
+岗位目录支持新增及编辑，名称唯一，启停控制是否可申请；新增岗位可以提交待审核申请，但开通工作台仍须具有已配置的权限及工作区映射，本轮不自动扩权。管理员字段空值统一显示半角`-`，保留有效的0值。
