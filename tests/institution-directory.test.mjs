@@ -39,3 +39,14 @@ test('real archived qualification bytes and trusted invite submissions are scope
 });
 
 test('leader qualification requires actual enabled business permissions, never an implicit super-admin takeover',t=>{const {service:s}=setup(t);s.state.people.find(p=>p.id==='ADM-L01').permissions=['orders:review','tasks:assign'];assert.throws(()=>hospital(s),/管理资格/);assert.throws(()=>localLeaderActor(s,'ADM-L01'),/permissions/);assert.equal(s.institutions.validLeader('ADM-L01','H-A','安徽'),false);});
+
+test('review correction shares doctor source with sales, preserves returns, and disable/restore enforce institution validity',t=>{
+ const {service:s}=setup(t);const h=addDepartment(s,hospital(s),'口腔颌面外科');let d=s.institutions.saveDoctor(sales,{doctor:doctor(h,s),submit:true});
+ d=s.command(manager,{action:'review-doctor',id:d.id,version:d.version,result:'returned',reason:'请补充执业证书清晰照片。'});assert.equal(s.institutions.salesSnapshot(sales).ownDoctors.find(x=>x.id===d.id).reason,'请补充执业证书清晰照片。');
+ const oldVersion=d.version;d=s.command(manager,{action:'reopen-doctor-review',id:d.id,version:d.version,reason:'误选档案，重新核验。'});assert.equal(d.status,'待审核');assert.throws(()=>s.command(manager,{action:'reopen-doctor-review',id:d.id,version:oldVersion,reason:'旧版本'}),e=>e.status===409);
+ d=s.command(manager,{action:'review-doctor',id:d.id,version:d.version,result:'approved',basis:'QA-REVIEW-20261125'});assert(s.institutions.salesSnapshot(sales).orderDoctors.some(x=>x.id===d.id));
+ const count=s.shared.state.orders.length;d=s.command(manager,{action:'doctor-status',id:d.id,version:d.version,reason:'暂停业务使用'});assert(!s.institutions.salesSnapshot(sales).orderDoctors.some(x=>x.id===d.id));assert.equal(s.shared.state.orders.length,count);
+ d=s.command(manager,{action:'doctor-status',id:d.id,version:d.version,reason:'有效性核验通过'});assert(s.institutions.salesSnapshot(sales).orderDoctors.some(x=>x.id===d.id));d=s.command(manager,{action:'doctor-status',id:d.id,version:d.version,reason:'待复核'});
+ s.command(manager,{action:'department-status',id:h.departmentRecords[0].id,version:h.departmentRecords[0].version,reason:'科室停用'});assert.throws(()=>s.command(manager,{action:'doctor-status',id:d.id,version:d.version,reason:'不能绕过科室状态'}),e=>e.status===409);
+ const events=s.institutions.snapshot().events.filter(e=>e.objectId===d.id);assert(events.some(e=>e.title==='医生档案审核退回'));assert(events.some(e=>e.title==='医生档案审核退回已撤销'));assert(events.some(e=>e.title==='医生档案已恢复'));assert.equal(new Set(events.map(e=>e.id)).size,events.length);
+});

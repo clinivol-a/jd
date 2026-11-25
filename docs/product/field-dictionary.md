@@ -244,13 +244,13 @@ Doctor.id→Order.doctorId是关联订单唯一依据；详情内嵌表固定6�
 | `Order.materials[].id / uploadedBy / uploadedByName / uploadedAt / status` | 两端读取同一附件身份和元数据；上传人按实际身份映射，不能用当前查看账号冒充；缺失不补造。预览另行校验能力与权限 |
 | `Task.upstreamId / assignee / plannedDate / version` | 上游依赖、具备阶段能力负责人、计划日期与版本；分配不等于解锁或开始 |
 | `Person.permissions / scope / stages` | 管理授权、医院范围、专业能力分别管理；岗位名称不代替权限与专业审核资格 |
-| `Approval.basis / approverId / executorId / hospitalIds` | 书面审批依据、批准人、实际执行人、生效范围；明确本地认证申请或隔离业务登记来源 |
+| `Approval.basis / approverId / executorId / hospitalIds` | 书面审核依据、审核人、实际执行人、生效范围；明确本地认证申请或隔离业务登记来源 |
 | `Asset.orderId / projectId / taskId / id / version / revision` | 业务追溯与成果版本；revision是管理关系并发版本，不生成新成果版本 |
 | `AuditEvent.before / after / reason / basis / source` | 不可变变更快照、实际原因及依据、隔离业务或本地认证来源；查询不产生假操作 |
 
 `super_admin`仅由明确本地幂等初始化创建，不允许普通注册申请或测试控制台提权。原陈屿与李明账号不重置。`requestedDueDate`与`confirmedDeliveryDate`继续原语义；无受理排期不造确认交期，专业任务开始不决定订单交期。
 
-审核中心是医生档案、账号注册、权限申请的唯一业务审批入口，待处理只是同ID聚合视角。机构与人员维护基础资料及合法启停，待审核档案通过同Doctor ID跳转审核中心。权限管理维护当前授权/范围/申请状态/变更历史，不重复审批列表；专业成果监管归数据资产且保持只读。
+审核中心是医生档案、账号注册、权限申请的统一业务审核入口，仅账号注册审核、医生档案审核、权限申请审核三个Tab；首页可做同ID聚合。机构与人员维护基础资料及合法启停，待审核档案通过同Doctor ID跳转审核中心。权限管理维护当前授权/范围/申请状态/变更历史，不重复审核列表；专业成果监管归数据资产且保持只读。
 
 新增ADM资料均属隔离合成业务；不作为销售/工程师已有记录或正式临床审计。新提交订单已接入隔离本地跨角色统一服务；生产业务服务、专业成果审核写入及销售分享管理员接口仍待接入，详见管理端交付文档。
 
@@ -334,3 +334,26 @@ CliniVol A方案当前采用“一单一主项目、多专业任务”的业务�
 预计交付时间展示（仅销售/管理员本轮确认）：草稿与已取消“-”；待审核与审核退回“待排期”；处理中和已完成取confirmedDeliveryDate。requestedDueDate是提出的期望日期，不能替代组长确认的日期。确认日期缺失保留规范空值并报数据问题，不编造日期。
 
 统一Order.businessNo及Order→Project→Task身份不变。超级管理员只监督，当前负责组长受理并创建唯一项目和实际申请任务；正式组长账号和工作台尚待接入，本地适配不生成额外认证账号。
+
+## 审核中心、组织目录与账号申请（2026-11-25）
+
+| 字段 / 实体 | 定义与约束 |
+|---|---|
+| Organization.id / name / kind | 稳定 ID、管理员维护的当前名、内部组织/外部机构；不依赖名称与医院猜测关联 |
+| Organization.status / allowRegistration / version | 启停、是否允许新注册、并发版本；注册下拉过滤且提交重新校验 |
+| Organization.hospitalId | 组织同时是医院时的显式稳定关联，可为空；组织不等于医院 |
+| OrganizationRequest.id / device / status / organizationId | 待核实新增组织申请；设备只用于服务端隔离，不给管理员暴露设备凭据；审核后才关联或创建正式组织 |
+| Account.organizationId / organizationNameSnapshot | 真实组织 ID 与提交时历史名；department 仅兼容旧记录，不作为组织身份 |
+| Account.reviewVersion / status / requestedRole | 审核与重新提交的当前版本；pending/approved/rejected/disabled；申请岗位不等于已授予岗位 |
+| Account.reviewNote / reviewBasis / reviewedBy / reviewedAt | 真实审核意见、依据、审核人和时间；当前本人候选会话和授权审核人才能读退回意见，不放入通用公开账号投影 |
+| Account.firstAppliedAt / appliedAt | 首次申请与当前轮提交时间；重新提交保留同一账号 ID、手机号，审计保留旧轮次 |
+| Approval.id / applicantId / subjectId | 同一权限申请及实际申请人与被申请人身份；不得按姓名关联或创建另一份审核副本 |
+| Approval.type / status | 当前展示账号注册（旧账号开通适配）和历史订单访问；旧待审批/审批通过/审批退回适配为待审核/审核通过/审核退回；不全局改原数据 |
+| Doctor.status / version | 草稿仅建档人员可见；审核中心包含已提交待审核、审核通过、审核退回、已停用。纠错/停用/恢复调用同一目录服务并校验当前版本 |
+| AuditEvent.source / before / after / reason | 保留真实发生的审核、纠正、重新提交、启停事件及前后版本；合成样例显式标识 isolated-review-fixture，不作正式审计 |
+
+账号表格：申请事项｜申请人｜所属组织｜申请岗位｜审核状态｜申请时间｜操作。权限表格：申请人｜被申请人｜所属组织｜申请岗位｜审核状态｜申请时间｜操作。Drawer只读前六项，退回追加实际审核意见。当前权限演示类型仅历史订单访问，旧其他类型不删除、但不参与当前演示列表与聚合统计。
+
+医生正常历史包含创建、提交、通过或退回；停用必须有已通过基础。撤销退回新增独立纠正事件并恢复待审核；账号管理员重新审核及本人修改后重新提交也是两条独立路径，均不直接授予登录或业务权限。旧历史原始意见、操作人、事件ID和时间不覆盖；只有可靠审计源或明确隔离合成样例可补全事件。
+
+当前实现是隔离本地 JSON 服务和合成身份，不是正式机构主数据、法定实名认证或生产权限服务。OrganizationDirectory 与 AuthService 共用持久目录，重启保留；生产需接入事务数据库、正式组织权限及认证服务。旧账号缺组织ID的记录保留历史名，不进行猜测迁移。任何具有多个合法状态的核心模块均应提供覆盖完整状态的隔离示例，不能改变用户真实资料来凑样例。

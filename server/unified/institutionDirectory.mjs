@@ -171,7 +171,7 @@ export class InstitutionDirectory {
                 this.event(actor, action === 'hospital-leader' ? '医院负责组长变更' : action === 'hospital-status' ? '医院状态已更新' : action === 'department-status' ? '科室状态已更新' : '科室资料已更新', h.id, before, h, reason);
                 return h;
             }
-            if (action === 'doctor-review' || action === 'doctor-status') {
+            if (['doctor-review','doctor-status','doctor-review-reopen'].includes(action)) {
                 const d = this.state.doctors.find(d => d.id === id);
                 if (!d)
                     throw new DirectoryFailure('医生档案不存在。', 404);
@@ -179,7 +179,8 @@ export class InstitutionDirectory {
                 this.current(d, version);
                 const before = clone(d);
                 let reason = '';
-                if (action === 'doctor-review') {
+                if(action==='doctor-review-reopen'){if(d.status!=='审核退回')throw new DirectoryFailure('档案已更新，请刷新。',409);reason=text(input.reason,'纠正原因');d.status='待审核';}
+                else if (action === 'doctor-review') {
                     if (d.status !== '待审核')
                         throw new DirectoryFailure('档案不在待审核状态。', 409);
                     if (!['approved', 'returned'].includes(input.result))
@@ -197,6 +198,7 @@ export class InstitutionDirectory {
                     if (!['审核通过', '已停用'].includes(d.status))
                         throw new DirectoryFailure('只能停用或恢复正式档案。', 409);
                     reason = text(input.reason, '操作原因');
+                    if(d.status==='已停用'){const h=this.state.hospitals.find(h=>h.id===d.hospitalId);if(d.qualificationStatus==='invalid'||d.qualificationExpiresAt&&Date.parse(d.qualificationExpiresAt)<this.now()||!h||h.status!=='已启用'||!h.departmentRecords.some(dep=>dep.status==='已启用'&&(d.departmentId?dep.id===d.departmentId:dep.name===d.department)))throw new DirectoryFailure('资质或机构关系需要重新核验，不能直接恢复。',409)}
                     d.status = d.status === '已停用' ? '审核通过' : '已停用';
                 }
                 d.version++;
@@ -206,7 +208,7 @@ export class InstitutionDirectory {
                     d.reviewedById = actor.id;
                     d.reviewedBy = actor.name;
                 }
-                this.event(actor, action === 'doctor-review' ? (d.status === '审核通过' ? '医生档案审核通过' : '医生档案审核退回') : (d.status === '已停用' ? '医生档案已停用' : '医生档案已恢复'), d.id, before, d, reason);
+                this.event(actor, action==='doctor-review-reopen'?'医生档案审核退回已撤销':action === 'doctor-review' ? (d.status === '审核通过' ? '医生档案审核通过' : '医生档案审核退回') : (d.status === '已停用' ? '医生档案已停用' : '医生档案已恢复'), d.id, before, d, reason);
                 if (action === 'doctor-review') {
                     const event = this.state.events.at(-1);
                     event.noteSource = d.reviewNoteSource;

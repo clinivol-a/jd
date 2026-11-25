@@ -1,0 +1,63 @@
+ design-system/component-rules.md                   |  10 +-
+ design-system/ui-ux-consistency.md                 |  20 +-
+ docs/product/field-dictionary.md                   |  27 ++-
+ .../20261125-review-organizations/README.md        | 129 ++++++++++++
+ .../account-approved-final.png                     | Bin 0 -> 75833 bytes
+ .../account-pending-final.png                      | Bin 0 -> 75715 bytes
+ .../account-resubmitted-pending.png                | Bin 0 -> 73906 bytes
+ .../account-returned-dark-1920.png                 | Bin 0 -> 48451 bytes
+ .../account-returned-final-1366.png                | Bin 0 -> 22133 bytes
+ .../account-returned-final-1440.png                | Bin 0 -> 40412 bytes
+ .../actual-local-events.json                       | 220 +++++++++++++++++++++
+ .../admin-resubmitted-same-account.png             | Bin 0 -> 62142 bytes
+ .../applicant-approved-sales-workspace.png         | Bin 0 -> 74536 bytes
+ .../designer-regression.png                        | Bin 0 -> 126388 bytes
+ .../doctor-approved-final.png                      | Bin 0 -> 70743 bytes
+ .../doctor-body-scrolled-fixed-footer.png          | Bin 0 -> 63379 bytes
+ .../doctor-disabled.png                            | Bin 0 -> 94945 bytes
+ .../doctor-pending-1366.png                        | Bin 0 -> 45778 bytes
+ .../doctor-pending.png                             | Bin 0 -> 61846 bytes
+ .../doctor-restored.png                            | Bin 0 -> 97926 bytes
+ .../doctor-returned-final.png                      | Bin 0 -> 45850 bytes
+ .../login-actual-return-reason.png                 | Bin 0 -> 78448 bytes
+ .../organization-created.png                       | Bin 0 -> 44614 bytes
+ .../organization-related-actual-account.png        | Bin 0 -> 35693 bytes
+ .../organization-renamed-account-projection.png    | Bin 0 -> 70486 bytes
+ .../organization-request-pending.png               | Bin 0 -> 39004 bytes
+ .../organization-request-submitted.png             | Bin 0 -> 65959 bytes
+ .../permission-approved.png                        | Bin 0 -> 50342 bytes
+ .../permission-effective-scope.png                 | Bin 0 -> 100912 bytes
+ .../permission-pending-final.png                   | Bin 0 -> 41719 bytes
+ .../permission-returned.png                        | Bin 0 -> 55983 bytes
+ .../registration-live-organization-options.png     | Bin 0 -> 90825 bytes
+ .../sales-materials-no-certificate.png             | Bin 0 -> 80892 bytes
+ .../three-review-tabs-final.png                    | Bin 0 -> 88315 bytes
+ server/admin/reviewExamples.mjs                    |  33 ++++
+ server/admin/service.mjs                           |  25 ++-
+ server/auth/http.mjs                               |   2 +
+ server/auth/organizationDirectory.mjs              |  37 ++++
+ server/auth/registrationRevision.mjs               |  16 ++
+ server/auth/registrationSupport.mjs                |  14 +-
+ server/auth/service.mjs                            |  10 +-
+ server/unified/institutionDirectory.mjs            |   8 +-
+ src/admin/AdminWorkspace.tsx                       |  62 +++---
+ src/admin/OrganizationPanel.tsx                    |  22 +++
+ src/admin/admin.css                                |   5 +
+ src/admin/approvalDisplay.d.mts                    |   8 +
+ src/admin/approvalDisplay.mjs                      |   7 +
+ src/admin/model.ts                                 |  10 +-
+ src/admin/reviewRules.mjs                          |   3 +-
+ src/auth/AuthPages.tsx                             |  18 +-
+ src/auth/OrganizationSelect.tsx                    |   4 +-
+ src/auth/client.ts                                 |   2 +-
+ src/auth/passwordPolicy.ts                         |   2 +-
+ src/doctors/DoctorDetails.tsx                      |   4 +-
+ src/sales/DoctorCredentials.tsx                    |   2 +-
+ tests/admin-review-20261124.test.mjs               |   5 +-
+ tests/admin-service.test.mjs                       |   4 +-
+ tests/auth-targeted.test.mjs                       |   4 +-
+ tests/doctor-review-consistency.test.mjs           |   2 +-
+ tests/institution-directory.test.mjs               |  11 ++
+ tests/institution-scope.test.mjs                   |   4 +-
+ tests/review-organization-20261125.test.mjs        |  46 +++++
+ 62 files changed, 691 insertions(+), 85 deletions(-)

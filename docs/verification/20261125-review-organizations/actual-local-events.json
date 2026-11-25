@@ -1,0 +1,220 @@
+{
+  "environment": "isolated-local-only",
+  "baseline": "8e7ace214b4eee718c6a85ba5ba6da5ee8e28ad9",
+  "account": {
+    "id": "review-account-1",
+    "name": "许安宁",
+    "organizationId": "ORG-344cbbdc-3758-4a14-9f5a-650022c732ea",
+    "organizationNameSnapshot": "江淮医工协作研究院",
+    "requestedRole": "sales",
+    "role": "sales",
+    "status": "approved",
+    "reviewVersion": 4
+  },
+  "maskedPhone": "199****4101",
+  "samePhoneAccountCount": 1,
+  "currentOrganization": "江淮医工协作中心",
+  "accountEvents": [
+    {
+      "id": "REVIEW-AUTH-1-submitted",
+      "type": "registration",
+      "source": "isolated-review-fixture",
+      "at": "2026-11-18T08:01:00+08:00"
+    },
+    {
+      "id": "SBku11smJh55OUkxRiaQiPL7vWVk7Uu8W_fhIyT2nYU",
+      "type": "registration-reviewed",
+      "reviewerId": "super-admin",
+      "reason": "请补充所属组织与销售岗位的关联资料。",
+      "basis": "",
+      "result": "returned",
+      "organizationId": "demo-clinivol",
+      "organizationNameSnapshot": "科立沃",
+      "at": "2026-11-25T14:39:00.121000+08:00"
+    },
+    {
+      "id": "aWJZY-efj4po8Y1dt0nqGBgOg-RoNuZ9OBhaJHP21LQ",
+      "type": "login",
+      "at": "2026-11-25T14:48:06.583000+08:00"
+    },
+    {
+      "id": "TDyA44lqK-is27w89rghB-8ArbXyfdBVYfo_jSM0ksQ",
+      "type": "registration-resubmitted",
+      "at": "2026-11-25T14:49:06.961000+08:00"
+    },
+    {
+      "id": "hSUQeIRjaeVA0LQp96EL6FfZ0-oZPqx6ZLtnZ-Tmdwo",
+      "type": "registration-reviewed",
+      "reviewerId": "super-admin",
+      "reason": "",
+      "basis": "LOCAL-ACCOUNT-RECHECK-20261125",
+      "result": "approved",
+      "organizationId": "ORG-344cbbdc-3758-4a14-9f5a-650022c732ea",
+      "organizationNameSnapshot": "江淮医工协作研究院",
+      "at": "2026-11-25T14:49:48.962000+08:00"
+    },
+    {
+      "id": "dxKZfKg7OqNzekQMQrEBN6rg5MRJF-nv3xsUgFFCLOE",
+      "type": "login",
+      "at": "2026-11-25T14:50:02.737000+08:00"
+    }
+  ],
+  "doctorCorrectionEvents": [
+    {
+      "id": "ADM-SEED-D02",
+      "objectId": "ADM-D02",
+      "title": "医生档案审核退回",
+      "actor": "合成审核账号",
+      "at": "2026-11-17T10:00:00+08:00",
+      "reason": null,
+      "source": "isolated-admin"
+    },
+    {
+      "id": "ADM-SEED-ADM-D02-created",
+      "objectId": "ADM-D02",
+      "title": "医生档案已创建",
+      "actor": "林致远",
+      "at": "2026-11-17T07:30:00+08:00",
+      "reason": "",
+      "source": "isolated-review-fixture"
+    },
+    {
+      "id": "ADM-SEED-ADM-D02-submitted",
+      "objectId": "ADM-D02",
+      "title": "医生档案已提交审核",
+      "actor": "林致远",
+      "at": "2026-11-17T08:00:00+08:00",
+      "reason": "",
+      "source": "isolated-review-fixture"
+    },
+    {
+      "id": "ADM-SEED-D04-created",
+      "objectId": "ADM-D04",
+      "title": "医生档案已创建",
+      "actor": "李明",
+      "at": "2026-11-18T08:00:00+08:00",
+      "reason": "",
+      "source": "isolated-review-fixture"
+    },
+    {
+      "id": "ADM-SEED-D04-submitted",
+      "objectId": "ADM-D04",
+      "title": "医生档案已提交审核",
+      "actor": "李明",
+      "at": "2026-11-18T08:10:00+08:00",
+      "reason": "",
+      "source": "isolated-review-fixture"
+    },
+    {
+      "id": "ADM-SEED-D04-approved",
+      "objectId": "ADM-D04",
+      "title": "医生档案审核通过",
+      "actor": "周景明",
+      "at": "2026-11-18T09:00:00+08:00",
+      "reason": "",
+      "source": "isolated-review-fixture"
+    },
+    {
+      "id": "ADM-SEED-D04-disabled",
+      "objectId": "ADM-D04",
+      "title": "医生档案已停用",
+      "actor": "周景明",
+      "at": "2026-11-18T10:00:00+08:00",
+      "reason": "业务资格复核期间暂停使用。",
+      "source": "isolated-review-fixture"
+    },
+    {
+      "id": "c3d5d125-fcfd-4c49-a955-bf84f8ef2596",
+      "objectId": "ADM-D02",
+      "title": "医生档案审核退回已撤销",
+      "actor": "周景明",
+      "at": "2026-11-25T06:43:01.389Z",
+      "reason": "复核发现原退回操作对象选择错误，恢复待审核后重新核验。",
+      "source": "isolated-admin"
+    },
+    {
+      "id": "ce9df806-8436-419a-882c-56b05764a079",
+      "objectId": "ADM-D02",
+      "title": "医生档案审核通过",
+      "actor": "周景明",
+      "at": "2026-11-25T06:43:36.633Z",
+      "reason": "审核通过",
+      "source": "isolated-admin"
+    },
+    {
+      "id": "757c6bc6-ffd9-42ac-a524-d5e445fe05e2",
+      "objectId": "ADM-D04",
+      "title": "医生档案已恢复",
+      "actor": "周景明",
+      "at": "2026-11-25T06:44:36.919Z",
+      "reason": "已核对本地合成档案的资质和医院科室关系，恢复使用。",
+      "source": "isolated-admin"
+    },
+    {
+      "id": "27b541a5-af7c-41a0-8bd6-ca039a8a6c92",
+      "objectId": "ADM-D04",
+      "title": "医生档案已停用",
+      "actor": "周景明",
+      "at": "2026-11-25T06:44:52.811Z",
+      "reason": "本地停用场景验收，保留全部历史业务关联。",
+      "source": "isolated-admin"
+    }
+  ],
+  "permission": {
+    "id": "REVIEW-HISTORY-3",
+    "subjectId": "ADM-M01",
+    "status": "审批通过",
+    "version": 3,
+    "reviewNote": "",
+    "basis": "LOCAL-HISTORY-RECHECK-20261125",
+    "hospitalIds": [
+      "ADM-H02"
+    ]
+  },
+  "effectiveScope": [
+    "ADM-H01",
+    "ADM-H02"
+  ],
+  "organizationEvents": [
+    {
+      "id": "17b1227e-ad9c-43e7-83a1-75088e21dbc6",
+      "title": "组织已创建",
+      "objectId": "ORG-344cbbdc-3758-4a14-9f5a-650022c732ea",
+      "actor": "周景明",
+      "at": "2026-11-25T06:47:17.890Z",
+      "reason": ""
+    },
+    {
+      "id": "db0a2294-a671-44c1-b529-5747e0880a7d",
+      "title": "组织已停用",
+      "objectId": "ORG-344cbbdc-3758-4a14-9f5a-650022c732ea",
+      "actor": "周景明",
+      "at": "2026-11-25T06:47:40.927Z",
+      "reason": "本地验证停用后不可作为新增注册选项。"
+    },
+    {
+      "id": "d5445360-67ab-4f57-9d31-5bf95bfe4211",
+      "title": "组织已启用",
+      "objectId": "ORG-344cbbdc-3758-4a14-9f5a-650022c732ea",
+      "actor": "周景明",
+      "at": "2026-11-25T06:47:55.824Z",
+      "reason": "目录有效性核对完成，恢复可选以验证注册联动。"
+    },
+    {
+      "id": "4160fb6a-7302-43a1-8eb9-183421318a23",
+      "title": "组织资料已更新",
+      "objectId": "ORG-344cbbdc-3758-4a14-9f5a-650022c732ea",
+      "actor": "周景明",
+      "at": "2026-11-25T06:59:41.432Z",
+      "reason": "本地核对组织更名后当前账号投影更新、原提交快照保留。"
+    },
+    {
+      "id": "56913677-8b6d-4a36-a27f-c38b66b2dcda",
+      "title": "新增组织申请审核通过",
+      "objectId": "15dded07-bade-40d9-b081-7e1d81a5c862",
+      "actor": "周景明",
+      "at": "2026-11-25T07:01:03.341Z",
+      "reason": "已核对本地组织申请资料，建立独立外部机构记录。"
+    }
+  ]
+}

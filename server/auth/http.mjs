@@ -41,6 +41,7 @@ export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=re
     res.end(JSON.stringify(result));return
    }
    if(req.method==='GET'&&action==='organizations')result=service.organizations()
+   else if(req.method==='GET'&&action==='registration/amendment')result=service.registrationAmendment(d)
    else if(req.method==='GET'&&action==='registration/context')result=service.registrationContext(d)
    else if(req.method==='GET'&&action==='demo-scan/registration')result=service.demoRegistration(d)
    else if(req.method==='GET'&&action==='session')result=service.session(d)
@@ -57,6 +58,7 @@ export function createAuthServer(service,{origin='http://127.0.0.1:5210',dist=re
      case 'otp/send':result=await service.sendCode(d,body);break
      case 'otp/verify':result=service.verifyCode(d,body);break
      case 'register':result=service.register(d,body);break
+     case 'registration/resubmit':result=service.resubmitRegistration(d,body);break
      case 'password/reset':result=service.resetPassword(d,body);break
      case 'password/set':result=service.setAccountPassword(d,body);break
      case 'profile':result=service.profile(d,body);break

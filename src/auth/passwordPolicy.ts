@@ -11,7 +11,7 @@ export function basicFieldErrors(name:string,role:string,organizationId:string){
  const errors:Record<string,string>={}
  if(!name.trim())errors.name='请输入真实姓名'
  if(!role)errors.role='请选择申请岗位'
- if(!organizationId)errors.org='请选择所属单位'
+ if(!organizationId)errors.org='请选择所属组织'
  return errors
 }
 export function validatePasswordPair(password:string,confirm:string){const first=Object.values(passwordFieldErrors(password,confirm))[0];if(first)throw new Error(first)}
