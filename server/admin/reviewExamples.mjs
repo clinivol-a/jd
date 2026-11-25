@@ -4,7 +4,15 @@ import {existsSync,writeFileSync} from 'node:fs';
 // Explicitly synthetic records; never infer or rewrite histories for user-created IDs.
 export function completeReviewExamples(state,auth){
  const base='2026-11-18';
- for(const d of state.doctors.filter(d=>/^ADM-D0[1-3]$/.test(d.id)&&d.version===1)){
+ // Only known isolated seed identities may receive their missing seed-origin events.
+ // Version increases during review must not suppress these original creation/submission rows.
+ const seedDoctors={'ADM-D01':['周明哲','ADM-H01','李明'],'ADM-D02':['林致远','ADM-H02','林致远'],'ADM-D03':['张予安','ADM-H03','张予安']};
+ for(const e of state.doctorHistory){
+  if(state.source==='isolated-admin'&&['ADM-SEED-D02','ADM-SEED-D03'].includes(e.id)&&e.objectId===e.id.replace('ADM-SEED-','ADM-')&&e.source==='isolated-admin'&&e.actor==='合成审核账号'){
+   e.originalActor??=e.actor;e.actor='管理员';e.actorRole='管理员';e.seedCorrection='review-demo-identity-20261125';
+  }
+ }
+ for(const d of state.doctors.filter(d=>state.source==='isolated-admin'&&seedDoctors[d.id]?.every((v,i)=>v===[d.name,d.hospitalId,d.submittedBy][i]))){
   const day=d.id==='ADM-D01'?'18':'17',entries=[['created','医生档案已创建','07:30'],['submitted','医生档案已提交审核','08:00']];
   for(const [key,title,time] of entries){const id=`ADM-SEED-${d.id}-${key}`;if(!state.doctorHistory.some(e=>e.id===id))state.doctorHistory.push({id,objectId:d.id,title,actor:d.submittedBy,actorId:d.submittedBy==='李明'?'li-ming':d.id,at:`2026-11-${day}T${time}:00+08:00`,reason:'',source:'isolated-review-fixture'})}
  }

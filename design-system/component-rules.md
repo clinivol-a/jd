@@ -8,7 +8,7 @@
 | Dropdown/Popover | 保留TDesign机制、完整14/22文案、不裁切；radius-medium8px、shadow-2；不继承Tooltip专用白底覆盖。 |
 | Dialog | radius-large12px与shadow-3，标题Medium；保持原关闭/确认/取消及真实权限，不新增假成功。 |
 | Table | 全部正文表头14/22 Regular，单行、省略+Tooltip；固定项目编号/医院/名称三列和右操作列，中间横向滚动。各角色首页摘要表最多7条，真实不足不补造；完整列表按实测高度动态分页；医生详情关联订单固定6条是内嵌表格例外，6条以下无分页，不补空白行，返回保留Doctor ID及页码。 |
-| Drawer | 审核中心直接使用 TDesign 固定 Header、滚动 Body、固定 Footer；统一顶部 Padding、首字段起点及 Footer 边界。医生三个 Section 使用 --td-comp-margin-xxxl（32px）。待审核左退回、右通过；退回必填原因、通过保留依据校验。医生退回撤销及账号/权限重新审核须原因和版本，先回待审核；医生审核通过可停用、有效性核对后恢复；账号/权限通过不重复审核。失败保留输入，Loading 防重复，无权限不操作。 |
+| Drawer | 审核中心直接使用 TDesign 固定 Header、滚动 Body、固定 Footer；统一顶部 Padding、首字段起点及 Footer 边界。医生三个 Section 使用 --td-comp-margin-xxxl（32px）。待审核左退回、右通过；退回必填原因、通过保留依据校验。医生/权限撤销审核退回须原因和版本，先回待审核；账号退回仅由申请人补正重提，管理员无重新审核入口。医生审核通过可停用、有效性核对后恢复；账号/权限通过不重复审核。失败保留输入，Loading 防重复，无权限不操作。 |
 | Card | 白色或主题表面；首页大卡片/平台通用Card使用tdesign-react 1.18.4官方默认6px（.t-card → --td-radius-medium，官方值6px），不强制8px；无额外常驻描边阴影；设计阶段卡片是既有浅边框例外；宽内容1140起四列、760起两列、否则单列。 |
 | GlobalHeader | 固定56px和既有Logo区域，保持现有头像与任务Tabs；四公共操作Icon用主要文字色，Hover灰，无新增分割线/投影。 |
 | Sidebar | 原宽度224/64；选中品牌底白字，默认图标主要文字色，Hover灰；底部收起入口保留。 |

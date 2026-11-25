@@ -37,8 +37,8 @@ export function initialAdminState() {
   {id:'ADM-Q04',type:'医生销售归属变更',applicant:'李明',subjectId:'ADM-D02',subjectName:'林致远',newSalesId:'li-ming',permissions:[],hospitalIds:['ADM-H02'],basis:'ADM-DEMO-WRITTEN-004',status:'待审批',at:'2026-11-17T08:30:00+08:00',version:1}
  ];
  return {schema:1,source:'isolated-admin',hospitals,people,doctors,orders,tasks,assets,approvals,shares:[],events:[],doctorHistory:[
-  {id:'ADM-SEED-D02',objectId:'ADM-D02',title:'医生档案审核退回',actor:'合成审核账号',at:'2026-11-17T10:00:00+08:00',note:'请补充清晰的执业证明材料。',noteSource:'reviewer',source:'isolated-admin'},
-  {id:'ADM-SEED-D03',objectId:'ADM-D03',title:'医生档案审核通过',actor:'合成审核账号',at:'2026-11-17T09:00:00+08:00',note:'审核通过',noteSource:'system-default',source:'isolated-admin'}
+  {id:'ADM-SEED-D02',objectId:'ADM-D02',title:'医生档案审核退回',actor:'管理员',actorRole:'管理员',at:'2026-11-17T10:00:00+08:00',note:'请补充清晰的执业证明材料。',noteSource:'reviewer',source:'isolated-admin'},
+  {id:'ADM-SEED-D03',objectId:'ADM-D03',title:'医生档案审核通过',actor:'管理员',actorRole:'管理员',at:'2026-11-17T09:00:00+08:00',note:'审核通过',noteSource:'system-default',source:'isolated-admin'}
  ],materials:[
   {id:'ADM-F01',doctorId:'ADM-D01',name:'身份证明.png',category:'身份证明',submittedBy:'李明',at:'2026-11-18T08:00:00+08:00'},
   {id:'ADM-F02',doctorId:'ADM-D01',name:'执业证明.png',category:'执业证明材料',submittedBy:'李明',at:'2026-11-18T08:00:00+08:00'},

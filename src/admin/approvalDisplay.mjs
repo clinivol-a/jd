@@ -4,4 +4,4 @@ export const applicationName=a=>isAccountApplication(a)?'账号注册':a.type;
 export const applicationRole=a=>({sales:'销售',designer:'三维重建设计师',doctor:'医生'})[a.requestedRole]||a.requestedRole||'—';
 export const currentReviewApplication=a=>isAccountApplication(a)?a.source==='local-auth':a.type==='历史订单访问';
 export const accountReviewFields=a=>[['申请事项','账号注册'],['申请人',a.applicant],['所属组织',a.organization],['申请岗位',applicationRole(a)],['审核状态',reviewState(a.status)],['申请时间',a.at]];
-export const permissionReviewFields=a=>[['申请人',a.applicant],['被申请人',a.subjectName],['所属组织',a.organization],['申请岗位',applicationRole(a)],['审核状态',reviewState(a.status)],['申请时间',a.at]];
+export const permissionReviewFields=a=>[['申请事项','历史订单访问'],['申请人',a.applicant],['被申请人',a.subjectName],['所属组织',a.organization],['申请岗位',applicationRole(a)],['审核状态',reviewState(a.status)],['申请时间',a.at]];

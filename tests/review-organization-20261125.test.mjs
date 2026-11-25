@@ -19,10 +19,11 @@ test('real account return → protected applicant feedback → verified amendmen
  const before=auth.accounts.find(a=>a.id===id);admin.command(manager,{action:'review-account',id:'AUTH-'+id,version:before.reviewVersion,result:'approved',basis:'LOCAL-REGISTRATION-20261125'});assert.equal(auth.continueStatus(d).user.id,id);assert.equal(auth.session(d).user.organizationName,'安徽医科大学');assert(auth.audit.some(e=>e.accountId===id&&e.type==='registration-reviewed'&&e.reason==='请补充岗位关联资料。'));assert(auth.audit.some(e=>e.accountId===id&&e.type==='registration-resubmitted'));
  const oldSnapshot=before.organizationNameSnapshot;const org=auth.organizationDirectory.find('org-ahmu');admin.command(manager,{action:'organization-save',id:org.id,version:org.version,name:'安徽医科大学医学中心',kind:org.kind,reason:'组织更名'});assert.equal(auth.session(d).user.organizationName,'安徽医科大学医学中心');assert.equal(before.organizationNameSnapshot,oldSnapshot);assert.equal(admin.snapshot(manager).approvals.find(a=>a.id==='AUTH-'+id).organization,'安徽医科大学医学中心');
 });
-test('account correction is versioned, retains rejection and never grants role before normal approval',t=>{
- const{auth,admin}=setup(t),a=auth.accounts.find(a=>a.id==='review-account-3');const original=a.reviewNote,version=a.reviewVersion;
- assert.throws(()=>admin.command(manager,{action:'reopen-account-review',id:'AUTH-'+a.id,version,reason:''}),/原因/);assert.throws(()=>admin.command({...manager,permissions:['orders:read']},{action:'reopen-account-review',id:'AUTH-'+a.id,version,reason:'误操作纠正'}),e=>e.status===403);
- admin.command(manager,{action:'reopen-account-review',id:'AUTH-'+a.id,version,reason:'误操作纠正'});assert.equal(a.status,'pending');assert.equal(a.role,null);assert.deepEqual(a.permissions,[]);assert.equal(a.reviewNote,original);assert.throws(()=>admin.command(manager,{action:'reopen-account-review',id:'AUTH-'+a.id,version,reason:'重复'}),e=>e.status===409);
+test('returned account cannot be reopened by an administrator; only applicant resubmission returns it to pending',t=>{
+ const{auth,admin}=setup(t),a=auth.accounts.find(a=>a.id==='review-account-3'),before=structuredClone(a),count=auth.audit.length;
+ assert.throws(()=>admin.command(manager,{action:'reopen-account-review',id:'AUTH-'+a.id,version:a.reviewVersion,reason:'管理员不应重启账号申请'}),e=>e.status===403&&e.message.includes('申请人'));
+ assert.deepEqual(a,before);assert.equal(auth.audit.length,count);assert.equal(a.status,'rejected');assert.equal(a.role,null);assert.deepEqual(a.permissions,[]);
+ assert.throws(()=>admin.command(manager,{action:'review-account',id:'AUTH-'+a.id,version:a.reviewVersion,result:'approved',basis:'不能跳过重提'}),e=>e.status===409);
 });
 test('doctor correction, disable/restore use stable history and qualification checks; draft stays outside review',t=>{
  const{admin:s}=setup(t);const d=s.state.doctors.find(d=>d.id==='ADM-D02');s.command(manager,{action:'reopen-doctor-review',id:d.id,version:d.version,reason:'误退回纠正'});assert.equal(d.status,'待审核');assert(s.snapshot(manager).doctorHistory.some(e=>e.objectId===d.id&&e.title==='医生档案审核退回'));assert(s.snapshot(manager).doctorHistory.some(e=>e.objectId===d.id&&e.title==='医生档案审核退回已撤销'));assert.throws(()=>s.command(manager,{action:'reopen-doctor-review',id:d.id,version:1,reason:'重复'}),e=>e.status===409);
@@ -34,7 +35,7 @@ test('permission review shares application identity, preserves failed opinion, r
 });
 test('review projection has exact fields and excludes legacy unrelated application types without deleting data',()=>{
  assert.equal(isAccountApplication(null),false);const a={type:'账号开通',source:'local-auth',status:'审批退回',applicant:'甲',subjectName:'甲',organization:'科立沃',requestedRole:'sales',at:'2026-11-25'};
- assert.deepEqual(accountReviewFields(a).map(r=>r[0]),['申请事项','申请人','所属组织','申请岗位','审核状态','申请时间']);assert.deepEqual(permissionReviewFields(a).map(r=>r[0]),['申请人','被申请人','所属组织','申请岗位','审核状态','申请时间']);assert.equal(reviewState(a.status),'审核退回');assert(currentReviewApplication(a));assert(!currentReviewApplication({type:'权限变更'}));assert(currentReviewApplication({type:'历史订单访问'}));
+ assert.deepEqual(accountReviewFields(a).map(r=>r[0]),['申请事项','申请人','所属组织','申请岗位','审核状态','申请时间']);assert.deepEqual(permissionReviewFields(a).map(r=>r[0]),['申请事项','申请人','被申请人','所属组织','申请岗位','审核状态','申请时间']);assert.equal(reviewState(a.status),'审核退回');assert(currentReviewApplication(a));assert(!currentReviewApplication({type:'权限变更'}));assert(currentReviewApplication({type:'历史订单访问'}));
 });
 test('isolated samples cover every review state, stay stable across restart, and retain real actor audit identity',t=>{
  const {root,auth,admin}=setup(t);assert.deepEqual(new Set(admin.snapshot(manager).doctors.map(d=>d.status)),new Set(['待审核','审核通过','审核退回','已停用']));
@@ -42,5 +43,14 @@ test('isolated samples cover every review state, stay stable across restart, and
  const event=admin.audit(manager).find(e=>e.objectId===a.id&&e.reason==='请补充岗位资料。');assert.equal(event.actorId,manager.id);
  const ids=admin.state.doctorHistory.map(e=>e.id);const next=new AdminService({directory:join(root,'admin'),authService:auth});assert.deepEqual(next.state.doctorHistory.map(e=>e.id),ids);assert.equal(new Set(ids).size,ids.length);
  const approved=next.state.approvals.find(a=>a.id==='REVIEW-HISTORY-2');assert(approved.hospitalIds.every(id=>next.state.people.find(p=>p.id===approved.subjectId).scope.includes(id)));
- admin.command(manager,{action:'reopen-account-review',id:'AUTH-'+a.id,version:a.reviewVersion,reason:'核对停用组织的审核阻断'});const org=auth.organizationDirectory.find('demo-clinivol');admin.command(manager,{action:'organization-status',id:org.id,version:org.version,reason:'核验停用组织'});assert.throws(()=>admin.command(manager,{action:'review-account',id:'AUTH-'+a.id,version:a.reviewVersion,result:'approved',basis:'不能绕过组织状态'}),/所属组织/);
+ const pending={...a,id:'pending-org-check',phone:'19900004998',status:'pending',role:null,permissions:[]};auth.accounts.push(pending);const org=auth.organizationDirectory.find('demo-clinivol');admin.command(manager,{action:'organization-status',id:org.id,version:org.version,reason:'核验停用组织'});assert.throws(()=>admin.command(manager,{action:'review-account',id:'AUTH-'+pending.id,version:pending.reviewVersion,result:'approved',basis:'不能绕过组织状态'}),/所属组织/);
+});
+
+test('processed seed doctor recovers missing origin events without altering genuine audit or duplicating records',t=>{
+ const{root,auth,admin}=setup(t);const d=admin.state.doctors.find(d=>d.id==='ADM-D01');admin.command(manager,{action:'review-doctor',id:d.id,version:d.version,result:'approved',basis:'LOCAL-DOCTOR-CHECK'});
+ admin.state.doctorHistory=admin.state.doctorHistory.filter(e=>!(e.objectId===d.id&&e.source==='isolated-review-fixture'));
+ const original=structuredClone(admin.state.doctorHistory.find(e=>e.objectId===d.id));const seeded=admin.state.doctorHistory.find(e=>e.id==='ADM-SEED-D02');seeded.actor='合成审核账号';
+ admin.state.doctorHistory.push({id:'real-audit-one',objectId:'REAL-DOC-1',title:'医生档案审核通过',actor:'实际审核人',at:'2026-11-24T10:00:00+08:00',source:'production'});admin.persist();
+ const next=new AdminService({directory:join(root,'admin'),authService:auth});const history=next.snapshot(manager).doctorHistory.filter(e=>e.objectId===d.id);assert(history.some(e=>e.title==='医生档案已创建'));assert(history.some(e=>e.title==='医生档案已提交审核'));assert.deepEqual(next.state.doctorHistory.find(e=>e.id===original.id),original);assert.equal(next.state.doctorHistory.find(e=>e.id==='ADM-SEED-D02').actor,'管理员');assert.equal(next.state.doctorHistory.find(e=>e.id==='real-audit-one').actor,'实际审核人');
+ const again=new AdminService({directory:join(root,'admin'),authService:auth});assert.deepEqual(again.state.doctorHistory,next.state.doctorHistory);assert.equal(new Set(history.map(e=>e.id)).size,history.length);
 });
