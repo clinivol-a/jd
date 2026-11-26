@@ -1,0 +1,100 @@
+[
+  {
+    "tab": "组织管理",
+    "bottom": 974.5,
+    "bottomCornerInside": false,
+    "overflow": "hidden",
+    "radius": [
+      "6px",
+      "6px",
+      "6px",
+      "6px"
+    ],
+    "title": "机构与成员",
+    "viewport": 1012
+  },
+  {
+    "tab": "医院管理",
+    "bottom": 730.5,
+    "bottomCornerInside": false,
+    "overflow": "hidden",
+    "radius": [
+      "6px",
+      "6px",
+      "6px",
+      "6px"
+    ],
+    "title": "机构与成员",
+    "viewport": 1012
+  },
+  {
+    "tab": "岗位管理",
+    "bottom": 550.5,
+    "bottomCornerInside": false,
+    "overflow": "hidden",
+    "radius": [
+      "6px",
+      "6px",
+      "6px",
+      "6px"
+    ],
+    "title": "机构与成员",
+    "viewport": 1012
+  },
+  {
+    "tab": "成员管理",
+    "bottom": 910.5,
+    "bottomCornerInside": false,
+    "overflow": "hidden",
+    "radius": [
+      "6px",
+      "6px",
+      "6px",
+      "6px"
+    ],
+    "title": "机构与成员",
+    "viewport": 1012
+  },
+  {
+    "tab": "专业成果",
+    "bottom": 974.5,
+    "bottomCornerInside": false,
+    "overflow": "hidden",
+    "radius": [
+      "6px",
+      "6px",
+      "6px",
+      "6px"
+    ],
+    "title": "数据资产",
+    "viewport": 1012
+  },
+  {
+    "tab": "成果分享管理",
+    "bottom": 556.5,
+    "bottomCornerInside": true,
+    "overflow": "hidden",
+    "radius": [
+      "6px",
+      "6px",
+      "6px",
+      "6px"
+    ],
+    "title": "数据资产",
+    "viewport": 1012
+  },
+  {
+    "tab": "审计日志",
+    "bottom": 440.5,
+    "bottomCornerInside": true,
+    "overflow": "hidden",
+    "radius": [
+      "6px",
+      "6px",
+      "6px",
+      "6px"
+    ],
+    "title": "审计日志",
+    "viewport": 1012
+  }
+]

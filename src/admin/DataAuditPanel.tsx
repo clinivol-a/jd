@@ -22,12 +22,12 @@ export function DataAuditStatus({value}:{value:string}){const progress=['进行�
 const options=(values:string[])=>[{label:'全部',value:''},...values.filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).map(label=>({label:businessLabel(label),value:label}))];
 export function DataAssetPanel({data,canExport,tab,onTab,onOrder,onOrderResults,onShare,onExport}:{data:AdminState;canExport:boolean;tab:string;onTab:(tab:string)=>void;onOrder:(id:string)=>void;onOrderResults:(id:string)=>void;onShare:(s:Share)=>void;onExport:(scope:AssetExportScope)=>void}){
  const [filters,setFilters]=useAuditFilters('admin-assets-results-v2',{orderNo:'',hospitalId:'',stage:'',completion:''});
- const [shareFilters,setShareFilters]=useAuditFilters('admin-assets-shares-v2',{query:'',hospitalId:''});
+ const [shareFilters,setShareFilters]=useAuditFilters('admin-assets-shares-v2',{orderNo:'',hospitalId:''});
  const active=tab==='shares'?'shares':'results';
  const scope:AssetExportScope={view:'orders',filters:{orderNo:filters.orderNo,hospitalId:filters.hospitalId,stage:filters.stage,completion:filters.completion}};
  const selection=assetExportSelection(data,scope),orders=orderAssetRows(data,scope.filters);
  const change=(key:keyof typeof filters,value:string)=>setFilters(previous=>({...previous,[key]:value}));
- const reset=()=>active==='shares'?setShareFilters({query:'',hospitalId:''}):setFilters(previous=>({...previous,orderNo:'',hospitalId:'',stage:'',completion:''}));
+ const reset=()=>active==='shares'?setShareFilters({orderNo:'',hospitalId:''}):setFilters(previous=>({...previous,orderNo:'',hospitalId:'',stage:'',completion:''}));
  const order=(id:string)=>data.orders.find(o=>o.id===id),hospital=(id:string)=>data.hospitals.find(h=>h.id===order(id)?.hospitalId)?.name||'-';
  const orderLink=(id:string)=><Button className="admin-business-number" theme="default" variant="text" onClick={()=>onOrder(id)}>{order(id)?.businessNo||'-'}</Button>;
  const hospitalOptions=[{label:'全部',value:''},...data.hospitals.map(h=>({label:h.name,value:h.id}))];
@@ -40,12 +40,12 @@ export function DataAssetPanel({data,canExport,tab,onTab,onOrder,onOrderResults,
   {key:'updated',label:'最近更新时间',width:155,render:r=>formatAuditTime(r.updatedAt||undefined)},
   {key:'action',label:'操作',width:110,render:r=><Button theme="primary" variant="text" onClick={()=>onOrderResults(r.id)}>查看详情</Button>}
  ];
- const shares=data.shares.filter(s=>(!shareFilters.query||[s.name,order(s.orderId)?.businessNo,s.initiatorName,hospital(s.orderId)].some(v=>String(v||'').toLowerCase().includes(shareFilters.query.trim().toLowerCase())))&&(!shareFilters.hospitalId||order(s.orderId)?.hospitalId===shareFilters.hospitalId));
+ const shares=data.shares.filter(s=>(!shareFilters.orderNo||String(order(s.orderId)?.businessNo||'').toLowerCase().includes(shareFilters.orderNo.trim().toLowerCase()))&&(!shareFilters.hospitalId||order(s.orderId)?.hospitalId===shareFilters.hospitalId));
  return <Card bordered={false} className="project-list-card admin-data-audit-card">
   <div className="project-page-heading"><h1>数据资产</h1>{active!=='shares'&&<Button theme="primary" disabled={!canExport||!selection.orders.length} onClick={()=>onExport(scope)}>导出资产信息</Button>}</div>
   <Tabs value={active} onChange={value=>{onTab(String(value));window.dispatchEvent(new Event('clinivol-admin-reset-pages'))}}><Tabs.TabPanel value="results" label="专业成果"/><Tabs.TabPanel value="shares" label="成果分享管理"/></Tabs>
   <div className="project-filters admin-filters">
-   {active==='shares'?<label><span>关键词</span><Input aria-label="资产关键词" value={shareFilters.query} clearable placeholder="搜索订单编号、成果或发起人" onChange={query=>setShareFilters(v=>({...v,query}))}/></label>:<label><span>订单编号</span><Input aria-label="成果订单编号" value={filters.orderNo} clearable placeholder="搜索订单编号" onChange={v=>change('orderNo',v)}/></label>}
+   {active==='shares'?<label><span>订单编号</span><Input aria-label="分享订单编号" value={shareFilters.orderNo} clearable placeholder="搜索订单编号" onChange={orderNo=>setShareFilters(v=>({...v,orderNo}))}/></label>:<label><span>订单编号</span><Input aria-label="成果订单编号" value={filters.orderNo} clearable placeholder="搜索订单编号" onChange={v=>change('orderNo',v)}/></label>}
    <label><span>医院</span><Select aria-label="资产医院" filterable value={active==='shares'?shareFilters.hospitalId:filters.hospitalId} options={hospitalOptions} onChange={v=>active==='shares'?setShareFilters(p=>({...p,hospitalId:String(v)})):change('hospitalId',String(v))}/></label>
    {active!=='shares'&&<><label><span>设计阶段</span><Select aria-label="资产设计阶段" value={filters.stage} options={[{label:'全部',value:''},...stages.map((label,index)=>({label:label.replace(/ /g,''),value:String(index)}))]} onChange={v=>change('stage',String(v))}/></label><label><span>成果进度</span><Select aria-label="成果进度" value={filters.completion} options={[{label:'全部',value:''},{label:'尚无阶段通过',value:'none'},{label:'部分阶段通过',value:'partial'},{label:'全部阶段通过',value:'complete'}]} onChange={v=>change('completion',String(v))}/></label></>}
    <Button variant="outline" onClick={reset}>重置筛选</Button>
