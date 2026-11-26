@@ -85,7 +85,7 @@
 
 ## 修改文件与Diff边界
 
-完整源码及规范差异：[changes.patch](changes.patch)。截图为本轮本地实际浏览器记录。
+完整源码及规范差异：[changes.patch](changes.patch)（零上下文补丁，应用时使用`git apply --unidiff-zero`；已反向check核对当前源码）。截图为本轮本地实际浏览器记录。
 
 - UI：src/admin/DataAuditPanel.tsx、AssetOrderDetails.tsx（新增）、AdminWorkspace.tsx、admin.css、model.ts、assetRules.mjs/.d.mts（新增）、dataAuditRules.mjs。
 - 服务：server/admin/service.mjs、http.mjs、shareProjection.mjs、assetExport.mjs（新增）；server/unified/service.mjs、formalResults.mjs（新增）。
