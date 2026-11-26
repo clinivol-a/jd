@@ -1,5 +1,5 @@
 import {RolePanel} from './RolePanel';
-import {anhuiCities,hospitalMatches,memberMatches} from './institutionRules.mjs';
+import {anhuiCities,hospitalMatches,memberMatches,eligibleHospitalLeaders} from './institutionRules.mjs';
 // Operate: extend the confirmed A workbench using its Header/Menu/Card/Table/PageBack.
 // Source: authenticated local admin service; isolated records never overwrite sales/engineering data.
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
@@ -102,7 +102,7 @@ export default function AdminWorkspace(){
  const button=(text:string,fn:()=>void,disabled=false)=><Button variant="text" theme="primary" disabled={disabled} onClick={fn}>{text}</Button>;
  const actionNames={'assign-leader':'指派负责组长','change-leader':'变更负责组长',accept:'审核受理',return:'审核退回'};
  const moreActions=(o:Order)=>{const options=orderActions(o,account).map(value=>({content:actionNames[value],value}));return options.length?<Dropdown trigger="click" options={options} onClick={({value})=>{
-  if(value==='assign-leader'||value==='change-leader')start({action:'reassign',id:o.id,version:o.version,title:actionNames[value],options:(data?.people||[]).filter(p=>p.role==='业务组长'&&p.status==='已启用'&&['orders:read','orders:review','tasks:assign'].every(permission=>p.permissions.includes(permission))&&p.id!==o.leaderId&&(p.scope.includes(o.hospitalId)||p.regions?.includes(data?.hospitals.find(h=>h.id===o.hospitalId)?.region||'')||data?.hospitals.some(h=>h.id===o.hospitalId&&h.leaderId===p.id))).map(p=>({value:p.id,label:p.name})),selectLabel:'负责组长'});
+  if(value==='assign-leader'||value==='change-leader')start({action:'reassign',id:o.id,version:o.version,title:actionNames[value],options:eligibleHospitalLeaders(data?.people||[],data?.hospitals.find(h=>h.id===o.hospitalId)||{id:o.hospitalId}).filter(p=>p.id!==o.leaderId).map(p=>({value:p.id,label:p.name})),selectLabel:'负责组长'});
   else start({action:'review-order',id:o.id,version:o.version,title:value==='accept'?'审核受理':'审核退回',result:value==='accept'?'approved':'returned',kind:'order',date:o.requestedDueDate});
  }}><Button variant="text" theme="default" className="admin-more-button" aria-label={`更多订单操作 ${businessNo(o.id)}`} icon={<EllipsisIcon size={20}/>}/></Dropdown>:null};
  const selectFilter=(label:string,value:string,setValue:(value:string)=>void,options:{label:string;value:string}[])=><label><span>{label}</span><Select aria-label={label+'筛选'} value={value||'__all__'} options={[{label:'全部',value:'__all__'},...options]} onChange={v=>setValue(v==='__all__'?'':String(v||''))}/></label>;

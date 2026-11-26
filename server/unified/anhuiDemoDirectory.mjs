@@ -1,3 +1,4 @@
+import {anhuiCities,coversRegion} from '../../src/admin/institutionRules.mjs';
 // Verified public hospital names for isolated design fixtures only. IDs and business links never change.
 export const hospitalFixtures={
  'H-A':{contact:'0551-62922800',contactSource:'https://www.ayfy.com/cydh.htm',old:'江淮协同医院',name:'安徽医科大学第一附属医院',region:'合肥',url:'https://www.ahmu.edu.cn/4355/list.htm'},
@@ -42,4 +43,30 @@ export function migrateAnhuiDemo(auth,adminState,institutions){
  for(const id of ['demo-clinivol','org-huainan','org-hefei-third','org-chuzhou'])if(!orgs.state.items.some(o=>o.id===id||o.id===legacyOrgAliases[id])){orgs.state.items.push({id,name:id==='demo-clinivol'?'科立沃':organizationFixtures[id].name,kind:id==='demo-clinivol'?'内部组织':'外部机构',status:'已启用',allowRegistration:true,version:1,source:'isolated-demo'});changed=true}
  if(changes.length){orgs.state.catalogMigrations||=[];orgs.state.catalogMigrations.push({id:'anhui-organizations-20261126',source:'isolated-demo',changes})}if(changed)orgs.persist();
  for(const p of adminState.people)if(companyMembers.has(p.id)&&!p.organizationId){p.organizationId='demo-clinivol';p.organization='科立沃'}
+}
+
+// User-confirmed regional responsibilities. A one-time, reversible local-demo migration.
+export function migrateLeaderRegions(auth,adminState,institutions){
+ if(auth?.mode!=='local'||!auth.demoMode||institutions.state.source!=='isolated-institution-directory')return;
+ const migrationId='leader-regions-20261126';
+ if(adminState.catalogMigrations?.some(m=>m.id===migrationId))return;
+ const mandates={'ADM-L01':['合肥'],'ADM-L02':anhuiCities.filter(city=>city!=='合肥')};
+ const changes=[];
+ institutions.transaction(()=>{
+  for(const p of adminState.people.filter(p=>mandates[p.id]&&p.role==='业务组长')){
+   const before=structuredClone(p);p.regions=[...mandates[p.id]];
+   // Both named leaders must be able to fulfil the explicitly assigned business role.
+   p.permissions=[...new Set([...p.permissions,'orders:read','orders:review','tasks:assign'])];
+   p.scope=institutions.state.hospitals.filter(h=>coversRegion(p.regions,h.region)).map(h=>h.id);p.version=(p.version||1)+1;
+   changes.push({kind:'person',id:p.id,before,after:structuredClone(p)});
+  }
+  for(const h of institutions.state.hospitals){
+   if(!hospitalFixtures[h.id])continue;
+   const p=adminState.people.find(p=>mandates[p.id]&&coversRegion(p.regions,h.region));
+   if(!p||h.leaderId===p.id)continue;
+   const before={leaderId:h.leaderId,version:h.version};h.leaderId=p.id;h.version=(h.version||1)+1;
+   changes.push({kind:'hospital',id:h.id,before,after:{leaderId:h.leaderId,version:h.version}});
+  }
+ });
+ adminState.catalogMigrations||=[];adminState.catalogMigrations.push({id:migrationId,source:'user-confirmed-isolated-demo',changes});
 }

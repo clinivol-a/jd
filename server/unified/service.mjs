@@ -1,3 +1,4 @@
+import {eligibleHospitalLeaders} from '../../src/admin/institutionRules.mjs';
 import { randomUUID } from 'node:crypto';
 import { mkdirSync, existsSync, readFileSync, writeFileSync, renameSync, openSync, closeSync, unlinkSync, fsyncSync } from 'node:fs';
 import { join } from 'node:path';
@@ -186,7 +187,7 @@ export class UnifiedBusinessService {
                     throw new BusinessFailure('无接管权限。', 403);
                 const target = action === 'takeover' ? actor.id : input.leaderId;
                 const directory=this.directoryProvider(),hospital=directory.hospitals.find(h=>h.id===o.hospitalId);
-                if (action === 'reassign' && !directory.people?.some(p => p.id === target && p.role === '业务组长' && p.status === '已启用' && (p.scope?.includes(o.hospitalId)||p.regions?.includes(hospital?.region)||hospital?.leaderId===p.id)))
+                if (action === 'reassign' && !eligibleHospitalLeaders(directory.people||[],hospital||{id:o.hospitalId}).some(p=>p.id===target))
                     throw new BusinessFailure('负责组长无效。');
                 if(o.leaderId===target)throw new BusinessFailure('负责组长未发生变化。');
                 o.leaderId = target;

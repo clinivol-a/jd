@@ -1,4 +1,4 @@
-import {coversRegion} from '../../src/admin/institutionRules.mjs';
+import {eligibleHospitalLeaders} from '../../src/admin/institutionRules.mjs';
 import { randomUUID } from 'node:crypto';
 import { mkdirSync, existsSync, readFileSync, writeFileSync, renameSync, openSync, closeSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
@@ -79,7 +79,7 @@ export class InstitutionDirectory {
         throw new DirectoryFailure('资料已更新，请刷新后重试。', 409); }
     event(actor, title, objectId, before, after, reason = '') { this.state.events.push({ id: randomUUID(), title, objectId, actorId: actor.id, actor: actor.name, actorRole: actor.role, at: new Date(this.now()).toISOString(), category: '机构与人员', result: '成功', reason, before: clone(before), after: clone(after), source: 'isolated-institution-directory' }); }
     snapshot() { this.reload(); this.syncInvitations(); const seed = this.seed(), hospitals = this.state.hospitals.map(h => ({ ...clone(h), departments: h.departmentRecords.filter(d => d.status === '已启用').map(d => d.name), managementEditable: true })); return { ...seed, hospitals, doctors: clone(this.state.doctors).map(d=>({...d,salesName:seed.people.find(p=>p.id===d.salesId)?.name})), salesScopes: clone(this.state.salesScopes), events: clone(this.state.events) }; }
-    validLeader(id, hospitalId, region) { const p = this.seed().people.find(p => p.id === id && p.role === '业务组长' && p.status === '已启用' && ['orders:read', 'orders:review', 'tasks:assign'].every(permission => p.permissions?.includes(permission))); return !!(p && (p.scope?.includes(hospitalId) || coversRegion(p.regions,region) || this.state.hospitals.some(h => h.id === hospitalId && h.leaderId === id))); }
+    validLeader(id, hospitalId, region) { return eligibleHospitalLeaders(this.seed().people,{id:hospitalId,region,leaderId:this.state.hospitals.find(h=>h.id===hospitalId)?.leaderId}).some(p=>p.id===id); }
     canSelectDoctor(actor, doctor, hospital, department) { return !!doctor && !!hospital && this.sales(actor).includes(hospital.id) && hospital.status === '已启用' && doctor.status === '审核通过' && doctor.hospitalId === hospital.id && doctor.department === department && hospital.departmentRecords.some(d => d.name === department && d.status === '已启用') && (doctor.salesId === actor.id || doctor.businessAccess === 'hospital' || doctor.allowedSalesIds?.includes(actor.id)); }
     salesSnapshot(actor) { this.reload(); const ids = this.sales(actor), hospitals = this.snapshot().hospitals.filter(h => ids.includes(h.id)), doctors = this.state.doctors.filter(d => ids.includes(d.hospitalId)); return { hospitals, orderDoctors: doctors.filter(d => this.canSelectDoctor(actor, d, this.state.hospitals.find(h => h.id === d.hospitalId), d.department)).map(d => ({ id: d.id, name: d.name, hospitalId: d.hospitalId, department: d.department, departmentId: d.departmentId, status: d.status, orderSelectable: true })), ownDoctors: clone(doctors.filter(d => d.salesId === actor.id || d.createdBy === actor.id || d.invitedBy === actor.id)).map(d=>({...d,salesName:this.seed().people.find(p=>p.id===d.salesId)?.name})), events: clone(this.state.events.filter(e => doctors.some(d => d.id === e.objectId && (d.salesId === actor.id || d.createdBy === actor.id || d.invitedBy === actor.id)))) }; }
     command(actor, { action, id, version, ...input }) {
@@ -99,7 +99,7 @@ export class InstitutionDirectory {
                     throw new DirectoryFailure('新增医院须由管理员维护。', 403);
                 const name = text(input.name, '医院名称'), region = text(input.region, '所属区域'), contact = String(input.contact || '').trim();
                 const leader = this.seed().people.find(p => p.id === input.leaderId && p.role === '业务组长' && p.status === '已启用' && ['orders:read', 'orders:review', 'tasks:assign'].every(permission => p.permissions?.includes(permission)));
-                if (!leader || !(old && this.validLeader(leader.id, old.id, region) || coversRegion(leader.regions,region)))
+                if (!leader || !eligibleHospitalLeaders([leader],{id:old?.id,region,leaderId:old?.leaderId}).length)
                     throw new DirectoryFailure('组长须具备该医院或区域的管理资格。');
                 const salesIds = input.salesIds;
                 if (!Array.isArray(salesIds) || salesIds.some(sid => !this.seed().people.some(p => p.id === sid && p.role === '销售' && p.status === '已启用')))
