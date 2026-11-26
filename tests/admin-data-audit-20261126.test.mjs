@@ -46,15 +46,15 @@ test('snapshot resolves stage-specific asset names and reviewer; audit redaction
 });
 test('filtered export is exact, deduplicated, authorized and auditable; failed exports change no history',t=>{
  const s=setup(t),assets=s.snapshot(actor).assets;assert(assets.length>=2);const ids=[assets[1].id,assets[0].id,assets[1].id];const count=s.state.events.length;
- const result=s.command(actor,{action:'export-metadata',reason:'成果归档核对',assetIds:ids});assert.deepEqual(result.data.map(a=>a.id),ids.slice(0,2));assert(result.data.every(a=>a.businessNo===(s.snapshot(actor).orders.find(o=>o.id===a.orderId)?.businessNo||null)));assert(result.data.every(a=>Object.hasOwn(a,'designStage')&&Object.hasOwn(a,'hospital')&&Object.hasOwn(a,'submittedAt')&&Object.hasOwn(a,'reviewedAt')));
+ const result=s.command(actor,{action:'export-metadata',format:'json',reason:'成果归档核对',assetIds:ids});assert.deepEqual(result.data.map(a=>a.id),ids.slice(0,2));assert(result.data.every(a=>a.businessNo===(s.snapshot(actor).orders.find(o=>o.id===a.orderId)?.businessNo||null)));assert(result.data.every(a=>Object.hasOwn(a,'designStage')&&Object.hasOwn(a,'hospital')&&Object.hasOwn(a,'submittedAt')&&Object.hasOwn(a,'reviewedAt')));
  assert.equal(s.state.events.length,count+1);assert.equal(s.state.events.at(-1).after.count,2);assert.deepEqual(s.state.events.at(-1).after.assetIds,ids.slice(0,2));
  assert(result.data.every(a=>!('patientName'in a)&&!('phone'in a)&&!('downloadUrl'in a)&&!('content'in a)));
- for(const assetIds of [['unknown'],[],[assets[0].id,42],'all'])assert.throws(()=>s.command(actor,{action:'export-metadata',reason:'归档',assetIds}));assert.equal(s.state.events.length,count+1);
+ for(const assetIds of [['unknown'],[],[assets[0].id,42],'all'])assert.throws(()=>s.command(actor,{action:'export-metadata',format:'json',reason:'归档',assetIds}));assert.equal(s.state.events.length,count+1);
  const limited={...actor,role:'admin',hospitalIds:[s.state.orders.find(o=>o.id===assets[0].orderId).hospitalId]},allowed=s.snapshot(limited).assets;
- const forbidden=assets.find(a=>!allowed.some(b=>b.id===a.id));assert(forbidden);assert.throws(()=>s.command(limited,{action:'export-metadata',reason:'范围核对',assetIds:[forbidden.id]}),e=>e.status===403);assert.equal(s.state.events.length,count+1);
+ const forbidden=assets.find(a=>!allowed.some(b=>b.id===a.id));assert(forbidden);assert.throws(()=>s.command(limited,{action:'export-metadata',format:'json',reason:'范围核对',assetIds:[forbidden.id]}),e=>e.status===403);assert.equal(s.state.events.length,count+1);
 });
 
-test('merged results and details use one complete ordered field definition',()=>{const fields=['order','name','hospital','stage','version','submitter','submitted','review','reviewer','reviewed','publish'];for(const mode of ['results','trace','professional'])assert.deepEqual(assetFieldKeys(mode),fields);});
+test('merged results and details use one complete ordered field definition',()=>{const fields=['order','surgery','hospital','stage','name','version','review','submitted'];for(const mode of ['results','trace','professional'])assert.deepEqual(assetFieldKeys(mode),fields);});
 
 test('missing review metadata is recovered only from the exact artifact and version event',t=>{
  const s=setup(t),a=s.state.assets[0];a.version='V02';a.reviewStatus='审核通过';delete a.reviewedAt;delete a.reviewerId;

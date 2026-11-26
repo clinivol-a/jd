@@ -1,0 +1,386 @@
+{
+  "counts": {
+    "orders": 22,
+    "tasks": 43,
+    "assets": 14,
+    "locked": 9,
+    "shares": 3
+  },
+  "relations": [
+    {
+      "businessNo": "CV-2026-0012",
+      "orderId": "DEMO-LINK-20261123-10",
+      "projectId": "PRJ-15cc35bf-a4bc-43d3-b743-0b938de683be",
+      "stages": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "tasks": [
+        {
+          "id": "TASK-8d0f26e5-e96d-447f-a7ac-362632991502",
+          "projectId": "PRJ-15cc35bf-a4bc-43d3-b743-0b938de683be",
+          "orderId": "DEMO-LINK-20261123-10",
+          "stage": 0,
+          "status": "审核退回",
+          "approvedModel": null,
+          "artifacts": [
+            {
+              "id": "RESULT-a8f3c986-b098-4b3b-9641-f1b204afbf11",
+              "version": "V01",
+              "orderId": "DEMO-LINK-20261123-10",
+              "projectId": "PRJ-15cc35bf-a4bc-43d3-b743-0b938de683be",
+              "taskId": "TASK-8d0f26e5-e96d-447f-a7ac-362632991502",
+              "reviewStatus": "审核退回",
+              "locked": false,
+              "reviewedAt": "2026-11-18T06:54:31.891Z"
+            }
+          ]
+        },
+        {
+          "id": "TASK-659ee26b-cc48-4b35-b497-210a606bf0cf",
+          "projectId": "PRJ-15cc35bf-a4bc-43d3-b743-0b938de683be",
+          "orderId": "DEMO-LINK-20261123-10",
+          "stage": 1,
+          "status": "未开始",
+          "approvedModel": null,
+          "artifacts": []
+        },
+        {
+          "id": "TASK-b3a7f594-62b5-42ca-a256-59f706eb88af",
+          "projectId": "PRJ-15cc35bf-a4bc-43d3-b743-0b938de683be",
+          "orderId": "DEMO-LINK-20261123-10",
+          "stage": 2,
+          "status": "未开始",
+          "approvedModel": null,
+          "artifacts": []
+        },
+        {
+          "id": "TASK-b2afff02-7071-4c82-bbed-f9a07c329353",
+          "projectId": "PRJ-15cc35bf-a4bc-43d3-b743-0b938de683be",
+          "orderId": "DEMO-LINK-20261123-10",
+          "stage": 3,
+          "status": "未开始",
+          "approvedModel": null,
+          "artifacts": []
+        }
+      ]
+    },
+    {
+      "businessNo": "CV-2026-0014",
+      "orderId": "DEMO-LINK-20261123-12",
+      "projectId": "PRJ-920630e9-2034-49ba-b3f8-a99be6d4143c",
+      "stages": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "tasks": [
+        {
+          "id": "TASK-c63421ee-c938-4f91-9009-e494224234d7",
+          "projectId": "PRJ-920630e9-2034-49ba-b3f8-a99be6d4143c",
+          "orderId": "DEMO-LINK-20261123-12",
+          "stage": 0,
+          "status": "已完成",
+          "approvedModel": {
+            "id": "RESULT-953841e1-3279-4fff-9d02-8c579f4cd6c9",
+            "version": "V01"
+          },
+          "artifacts": [
+            {
+              "id": "RESULT-953841e1-3279-4fff-9d02-8c579f4cd6c9",
+              "version": "V01",
+              "orderId": "DEMO-LINK-20261123-12",
+              "projectId": "PRJ-920630e9-2034-49ba-b3f8-a99be6d4143c",
+              "taskId": "TASK-c63421ee-c938-4f91-9009-e494224234d7",
+              "reviewStatus": "审核通过",
+              "locked": true,
+              "reviewedAt": "2026-11-20T06:54:31.891Z"
+            }
+          ]
+        },
+        {
+          "id": "TASK-73103229-fe8e-43b8-82b2-ba62a7d6a221",
+          "projectId": "PRJ-920630e9-2034-49ba-b3f8-a99be6d4143c",
+          "orderId": "DEMO-LINK-20261123-12",
+          "stage": 1,
+          "status": "已完成",
+          "approvedModel": {
+            "id": "RESULT-5249b7e9-e8ed-45f7-8ae0-0ecdc4cd5ca8",
+            "version": "V01"
+          },
+          "artifacts": [
+            {
+              "id": "RESULT-5249b7e9-e8ed-45f7-8ae0-0ecdc4cd5ca8",
+              "version": "V01",
+              "orderId": "DEMO-LINK-20261123-12",
+              "projectId": "PRJ-920630e9-2034-49ba-b3f8-a99be6d4143c",
+              "taskId": "TASK-73103229-fe8e-43b8-82b2-ba62a7d6a221",
+              "reviewStatus": "审核通过",
+              "locked": true,
+              "reviewedAt": "2026-11-20T07:02:31.891Z"
+            }
+          ]
+        },
+        {
+          "id": "TASK-880b5052-5fd7-4176-a2e0-0b78870bab14",
+          "projectId": "PRJ-920630e9-2034-49ba-b3f8-a99be6d4143c",
+          "orderId": "DEMO-LINK-20261123-12",
+          "stage": 2,
+          "status": "已完成",
+          "approvedModel": {
+            "id": "RESULT-2fb5c42e-a401-4078-9ad2-8169bb6a2816",
+            "version": "V01"
+          },
+          "artifacts": [
+            {
+              "id": "RESULT-2fb5c42e-a401-4078-9ad2-8169bb6a2816",
+              "version": "V01",
+              "orderId": "DEMO-LINK-20261123-12",
+              "projectId": "PRJ-920630e9-2034-49ba-b3f8-a99be6d4143c",
+              "taskId": "TASK-880b5052-5fd7-4176-a2e0-0b78870bab14",
+              "reviewStatus": "审核通过",
+              "locked": true,
+              "reviewedAt": "2026-11-20T07:10:31.891Z"
+            }
+          ]
+        },
+        {
+          "id": "TASK-15d91629-060a-46f6-bf26-458b267f0d3e",
+          "projectId": "PRJ-920630e9-2034-49ba-b3f8-a99be6d4143c",
+          "orderId": "DEMO-LINK-20261123-12",
+          "stage": 3,
+          "status": "已完成",
+          "approvedModel": {
+            "id": "RESULT-bbccfa97-c2a3-4978-8cb5-188dd3b95760",
+            "version": "V01"
+          },
+          "artifacts": [
+            {
+              "id": "RESULT-bbccfa97-c2a3-4978-8cb5-188dd3b95760",
+              "version": "V01",
+              "orderId": "DEMO-LINK-20261123-12",
+              "projectId": "PRJ-920630e9-2034-49ba-b3f8-a99be6d4143c",
+              "taskId": "TASK-15d91629-060a-46f6-bf26-458b267f0d3e",
+              "reviewStatus": "审核通过",
+              "locked": true,
+              "reviewedAt": "2026-11-20T07:18:31.891Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "businessNo": "CV-2026-0015",
+      "orderId": "DEMO-LINK-20261123-13",
+      "projectId": "PRJ-d930bbec-d381-4ce4-bda3-0f792126bbc6",
+      "stages": [
+        0,
+        1
+      ],
+      "tasks": [
+        {
+          "id": "TASK-65e45783-6627-4806-9eb0-f26def6e1f53",
+          "projectId": "PRJ-d930bbec-d381-4ce4-bda3-0f792126bbc6",
+          "orderId": "DEMO-LINK-20261123-13",
+          "stage": 0,
+          "status": "已完成",
+          "approvedModel": {
+            "id": "RESULT-8591e38f-e58a-4715-ae2b-abb6632224d8",
+            "version": "V01"
+          },
+          "artifacts": [
+            {
+              "id": "RESULT-8591e38f-e58a-4715-ae2b-abb6632224d8",
+              "version": "V01",
+              "orderId": "DEMO-LINK-20261123-13",
+              "projectId": "PRJ-d930bbec-d381-4ce4-bda3-0f792126bbc6",
+              "taskId": "TASK-65e45783-6627-4806-9eb0-f26def6e1f53",
+              "reviewStatus": "审核通过",
+              "locked": true,
+              "reviewedAt": "2026-11-21T06:50:31.891Z"
+            }
+          ]
+        },
+        {
+          "id": "TASK-61bccf17-d00d-45e1-b5b0-4aa7be849a07",
+          "projectId": "PRJ-d930bbec-d381-4ce4-bda3-0f792126bbc6",
+          "orderId": "DEMO-LINK-20261123-13",
+          "stage": 1,
+          "status": "已完成",
+          "approvedModel": {
+            "id": "RESULT-e5c2f0c5-a997-4ed1-8ab7-a502d0f3ef0b",
+            "version": "V01"
+          },
+          "artifacts": [
+            {
+              "id": "RESULT-e5c2f0c5-a997-4ed1-8ab7-a502d0f3ef0b",
+              "version": "V01",
+              "orderId": "DEMO-LINK-20261123-13",
+              "projectId": "PRJ-d930bbec-d381-4ce4-bda3-0f792126bbc6",
+              "taskId": "TASK-61bccf17-d00d-45e1-b5b0-4aa7be849a07",
+              "reviewStatus": "审核通过",
+              "locked": true,
+              "reviewedAt": "2026-11-21T06:58:31.891Z"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "exportAudit": [
+    {
+      "id": "ff57c2a9-5e0f-43bc-8160-cb9f04a1e911",
+      "at": "2026-11-26T06:43:38.222Z",
+      "result": "成功",
+      "after": {
+        "count": 14,
+        "orderCount": 22,
+        "assetIds": [
+          "RESULT-a816bb5c-69ba-4e6b-a26e-e87fceaff332",
+          "RESULT-868ee139-0c0a-4db2-95e0-f1ae84bd3fa8",
+          "RESULT-8664e4c9-2325-4cd4-9dc1-8bd4f6115f44",
+          "RESULT-e5c2f0c5-a997-4ed1-8ab7-a502d0f3ef0b",
+          "RESULT-8591e38f-e58a-4715-ae2b-abb6632224d8",
+          "RESULT-bbccfa97-c2a3-4978-8cb5-188dd3b95760",
+          "RESULT-2fb5c42e-a401-4078-9ad2-8169bb6a2816",
+          "RESULT-5249b7e9-e8ed-45f7-8ae0-0ecdc4cd5ca8",
+          "RESULT-953841e1-3279-4fff-9d02-8c579f4cd6c9",
+          "RESULT-559a8dc9-133c-4baa-a67f-e1b911b1dafb",
+          "RESULT-a8f3c986-b098-4b3b-9641-f1b204afbf11",
+          "RESULT-be368f83-f826-4543-98be-f0af8ea3066c",
+          "RESULT-81796eda-0303-4830-ad5d-c1e421a381c0",
+          "RESULT-418cc1a9-2767-41fe-949d-f57304c5c18c"
+        ],
+        "assetVersions": [
+          {
+            "id": "RESULT-a816bb5c-69ba-4e6b-a26e-e87fceaff332",
+            "version": "V01"
+          },
+          {
+            "id": "RESULT-868ee139-0c0a-4db2-95e0-f1ae84bd3fa8",
+            "version": "V01"
+          },
+          {
+            "id": "RESULT-8664e4c9-2325-4cd4-9dc1-8bd4f6115f44",
+            "version": "V01"
+          },
+          {
+            "id": "RESULT-e5c2f0c5-a997-4ed1-8ab7-a502d0f3ef0b",
+            "version": "V01"
+          },
+          {
+            "id": "RESULT-8591e38f-e58a-4715-ae2b-abb6632224d8",
+            "version": "V01"
+          },
+          {
+            "id": "RESULT-bbccfa97-c2a3-4978-8cb5-188dd3b95760",
+            "version": "V01"
+          },
+          {
+            "id": "RESULT-2fb5c42e-a401-4078-9ad2-8169bb6a2816",
+            "version": "V01"
+          },
+          {
+            "id": "RESULT-5249b7e9-e8ed-45f7-8ae0-0ecdc4cd5ca8",
+            "version": "V01"
+          },
+          {
+            "id": "RESULT-953841e1-3279-4fff-9d02-8c579f4cd6c9",
+            "version": "V01"
+          },
+          {
+            "id": "RESULT-559a8dc9-133c-4baa-a67f-e1b911b1dafb",
+            "version": "V01"
+          },
+          {
+            "id": "RESULT-a8f3c986-b098-4b3b-9641-f1b204afbf11",
+            "version": "V01"
+          },
+          {
+            "id": "RESULT-be368f83-f826-4543-98be-f0af8ea3066c",
+            "version": "V01"
+          },
+          {
+            "id": "RESULT-81796eda-0303-4830-ad5d-c1e421a381c0",
+            "version": "V01"
+          },
+          {
+            "id": "RESULT-418cc1a9-2767-41fe-949d-f57304c5c18c",
+            "version": "V01"
+          }
+        ],
+        "orderIds": [
+          "DEMO-LINK-20261123-05",
+          "DEMO-LINK-20261123-04",
+          "DEMO-LINK-20261123-14",
+          "DEMO-LINK-20261123-13",
+          "DEMO-LINK-20261123-12",
+          "DEMO-LINK-20261123-11",
+          "DEMO-LINK-20261123-10",
+          "DEMO-LINK-20261123-09",
+          "DEMO-LINK-20261123-08",
+          "DEMO-LINK-20261123-07",
+          "DEMO-LINK-20261123-01",
+          "DEMO-LINK-20261123-02",
+          "DEMO-LINK-20261123-03",
+          "DEMO-LINK-20261123-06",
+          "DEMO-LINK-20261123-16",
+          "DEMO-LINK-20261123-17",
+          "DEMO-LINK-20261123-18",
+          "SO-1e6b565b",
+          "SO-28e6f919",
+          "SO-5500d12e",
+          "SO-83c79ca9",
+          "SO-cf98130a"
+        ],
+        "view": "orders",
+        "filters": {
+          "orderNo": "",
+          "hospitalId": "",
+          "stage": "",
+          "completion": ""
+        },
+        "format": "xlsx"
+      },
+      "reason": "本地订单成果范围与版本锁定验收"
+    }
+  ],
+  "sales": {
+    "count": 23,
+    "matching": [
+      {
+        "id": "DEMO-LINK-20261123-10",
+        "projectId": "PRJ-15cc35bf-a4bc-43d3-b743-0b938de683be",
+        "businessNo": "CV-2026-0012"
+      }
+    ]
+  },
+  "designer": {
+    "count": 29,
+    "matching": [
+      {
+        "id": "TASK-8d0f26e5-e96d-447f-a7ac-362632991502",
+        "orderId": "DEMO-LINK-20261123-10",
+        "projectId": "PRJ-15cc35bf-a4bc-43d3-b743-0b938de683be",
+        "businessNo": "CV-2026-0012"
+      },
+      {
+        "id": "TASK-659ee26b-cc48-4b35-b497-210a606bf0cf",
+        "orderId": "DEMO-LINK-20261123-10",
+        "projectId": "PRJ-15cc35bf-a4bc-43d3-b743-0b938de683be",
+        "businessNo": "CV-2026-0012"
+      }
+    ]
+  },
+  "preserved": {
+    "orders": 23,
+    "projects": 17,
+    "tasks": 43,
+    "artifacts": 14,
+    "events": 203,
+    "onlyArtifactLockMetadataChanged": true
+  }
+}

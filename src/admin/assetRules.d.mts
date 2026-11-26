@@ -1,0 +1,13 @@
+import type {AdminState,Asset,Order} from './model';
+export type AssetFilters={orderNo?:string;hospitalId?:string;stage?:string;reviewStatus?:string;completion?:string};
+export type AssetExportScope={view:'orders'|'results';filters:AssetFilters};
+export type AssetOrderRow={id:string;order:Order;stages:number[];passed:number;updatedAt:string|null;assetCount:number};
+export const assetStages:string[];
+export function assetKey(a:Pick<Asset,'id'|'version'>):string;
+export function assetUpdatedAt(a:Asset):string|null;
+export function assetProgressText(row:AssetOrderRow):string;
+export function requestedStages(order:Order):number[];
+export function isFormalAsset(a:Asset,data:AdminState):boolean;
+export function resultAssets(data:AdminState,filters?:AssetFilters):Asset[];
+export function orderAssetRows(data:AdminState,filters?:AssetFilters):AssetOrderRow[];
+export function assetExportSelection(data:AdminState,scope?:AssetExportScope):{orders:AssetOrderRow[];assets:Asset[]};

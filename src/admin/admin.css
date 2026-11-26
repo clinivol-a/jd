@@ -102,3 +102,17 @@ html[theme-mode="dark"] .admin-app .business-nav .t-menu__item.t-is-active .t-me
 .admin-details-drawer .admin-review-sections { display:flex; flex-direction:column; gap:var(--td-comp-margin-xxxl); }
 .admin-review-sections > section > h3 { margin:0 0 var(--td-comp-margin-l); font-size:var(--cv-font-size-title-medium); font-weight:500; }
 .admin-review-sections .project-info-grid, .admin-review-sections .doctor-history { margin-top:0; margin-bottom:0; }
+
+/* Data assets reuse the existing view switch, PageBack and detail Card rhythm. */
+.admin-app .admin-asset-view-heading { display:flex; justify-content:flex-end; padding:var(--td-comp-margin-l) 24px 0; }
+.admin-app .admin-asset-order-page > .t-card { margin-bottom:20px; }
+.admin-app .admin-result-stage { min-height:0; }
+.admin-app .admin-result-stage .project-stage-title { align-items:flex-start; gap:var(--td-comp-margin-s); }
+.admin-app .admin-result-stage .project-stage-title h3 { display:flex; align-items:center; gap:var(--td-comp-margin-xs); margin:0; }
+.admin-app .admin-result-stage .project-info-grid { grid-template-columns:minmax(0,1fr); gap:var(--td-comp-margin-m); margin:var(--td-comp-margin-l) 0 0; }
+.admin-app .admin-result-stage .project-info-grid dt { margin:0 0 var(--td-comp-margin-xs); }
+.admin-app .admin-result-stage .project-info-grid dd { white-space:normal; overflow-wrap:anywhere; }
+.admin-app .admin-result-stage-action { margin-top:auto; padding-top:var(--td-comp-margin-l); text-align:right; }
+.admin-app .admin-result-stage-action .t-button { padding:0; height:22px; border:0; }
+.admin-app .admin-result-empty { padding-block:120px; }
+.admin-export-scope { margin:0 0 var(--td-comp-margin-l); color:var(--td-text-color-secondary); }

@@ -11,7 +11,7 @@ export function auditObjectName(event,state){
  return event.objectName||state.auditObjects?.find(r=>r.id===event.objectId)?.name||(event.objectId==='认证服务'?'账号服务':event.objectId==='metadata'?'资产信息':'-');
 }
 export const dataAuditTheme=value=>/退回|失败|拒绝|未通过|无访问权限/.test(value)?'danger':/待审核/.test(value)?'warning':/通过|成功|已发布/.test(value)?'success':'default';
-export const assetFieldKeys=()=>['order','name','hospital','stage','version','submitter','submitted','review','reviewer','reviewed','publish'];
+export const assetFieldKeys=()=>['order','surgery','hospital','stage','name','version','review','submitted'];
 export function assetMatches(asset,state,filters={}){
  const order=state.orders.find(o=>o.id===asset.orderId),hospital=state.hospitals.find(h=>h.id===order?.hospitalId),q=(filters.query||'').trim().toLowerCase();
  return (!q||[asset.name,order?.businessNo,order?.name,hospital?.name].some(v=>String(v||'').toLowerCase().includes(q)))&&(!filters.hospitalId||order?.hospitalId===filters.hospitalId)&&(!filters.stage||String(asset.stage)===filters.stage)&&(!filters.status||asset.reviewStatus===filters.status)&&(!filters.publishStatus||asset.publishStatus===filters.publishStatus);

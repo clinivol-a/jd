@@ -1,0 +1,922 @@
+diff --git a/AGENTS.md b/AGENTS.md
+index 3ae71f8..0e8dcf6 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -217,7 +217,7 @@ shadow-1用于基础投影及指定轻量交互，shadow-2用于Dropdown/Popover
+ 
+ ## V3.3 成果关联与统一录单（2026-11-16）
+ 
+-报告识别/PACS完成资料获取后复用标准OrderEditor四步流程，不再复制需求/上传/确认表单。成果必须由订单、项目、任务、成果ID及版本明确关联，审核与发布分别校验；已完成不等于允许分享。医保批准图与阶段分享共用该成果登记。隔离合成成果不能冒充临床计算或正式审核日志；正式OCR/PACS、短信、患者授权、医保目录及成果服务的未接入边界继续如实记录。本轮仅feature/a-v3.1-business-design本地修改，不改冻结V3.0、main或design-handoff，不部署。
++报告识别/PACS完成资料获取后复用标准OrderEditor四步流程，不再复制需求/上传/确认表单。成果必须由订单、项目、任务、成果ID及版本明确关联，审核通过、正式版本锁定与分享授权分别校验；已完成不等于允许分享。医保批准图与阶段分享共用该成果登记。隔离合成成果不能冒充临床计算或正式审核日志；正式OCR/PACS、短信、患者授权、医保目录及成果服务的未接入边界继续如实记录。本轮仅feature/a-v3.1-business-design本地修改，不改冻结V3.0、main或design-handoff，不部署。
+ 
+ ## V3.8 超级管理员增量开发（2026-11-19）
+ 
+diff --git a/design-system/component-rules.md b/design-system/component-rules.md
+index 40aa721..d247461 100644
+--- a/design-system/component-rules.md
++++ b/design-system/component-rules.md
+@@ -127,13 +127,13 @@ AI十项开放正常颜色的参数确认入口，替代上文统一禁用要求
+ 
+ ## V3.2 销售订单详情与医保（2026-11-16）
+ 
+-订单详情四张纵向Card固定为订单概览→资料附件→设计阶段→操作记录。销售阶段卡三行：编号/阶段/状态、负责人、进度及右侧轻量分享操作；同行等高，不为完成态另加第四行。分享仅在实际完成且审核通过、允许发布的对应阶段成果存在时显示；分享绑定order/result/version/stage，不以订单整体完成替代成果批准。资料及成果不提供销售源文件下载；医学影像无真实解析能力时明确反馈，不用普通图片冒充。医保Excel独立授权，复用有效销售会话，不重复发送短信；缺资料显示“资料待补充”，不以测试样本填充正式汇总。全局Token不变。
++订单详情四张纵向Card固定为订单概览→资料附件→设计阶段→操作记录。销售阶段卡三行：编号/阶段/状态、负责人、进度及右侧轻量分享操作；同行等高，不为完成态另加第四行。分享仅在实际完成且审核通过且正式版本锁定、获授权分享的对应阶段成果存在时显示；分享绑定order/result/version/stage，不以订单整体完成替代成果批准。资料及成果不提供销售源文件下载；医学影像无真实解析能力时明确反馈，不用普通图片冒充。医保Excel独立授权，复用有效销售会话，不重复发送短信；缺资料显示“资料待补充”，不以测试样本填充正式汇总。全局Token不变。
+ 
+ ## V3.3 医保与阶段成果（2026-11-16）
+ 
+ 医保主Card标题和Primary“生成Excel”同行，月份筛选在第二行，Table后为选中数量与既有分页；缺资料在选择/生成时反馈，不用开发检查Tag作为列表列。成果缩略图使用TDesign ImageViewer预览实际PNG，不开放专业源文件操作。
+ 
+-销售设计阶段沿用工程师project-stage的标题、20px内边距、6px圆角及三行业务信息；销售卡片采用自然三行内容高度，不设置182px最小高度，不为第四行预留空间；同一行等高。分享为第三行右侧中性Hover的绿色文字操作，无第四行。未完成、未审核、未发布或预览资料不可用均不显示分享入口。不得借此修改工程师卡片或全局Token。
++销售设计阶段沿用工程师project-stage的标题、20px内边距、6px圆角及三行业务信息；销售卡片采用自然三行内容高度，不设置182px最小高度，不为第四行预留空间；同一行等高。分享为第三行右侧中性Hover的绿色文字操作，无第四行。未完成、未审核、未锁定、未获分享授权或预览资料不可用均不显示分享入口。不得借此修改工程师卡片或全局Token。
+ 
+ ## V3.4 导入导航与成果分享（2026-11-16）
+ 
+@@ -151,7 +151,7 @@ AI十项开放正常颜色的参数确认入口，替代上文统一禁用要求
+ 
+ 销售阶段卡片保持自然三行；负责人和第三行之间12px，第三行22px正文行高，分享文字按钮同22px，不以32px行容器增加文字间距。卡片20px内边距、6px圆角及主题边框不变，未开始/进行中/待审核/审核退回/已完成使用同一结构。
+ 
+-只读成果访问页的验证码成功/错误反馈在同一FormItem下方互斥显示。仅隔离开发环境可以明确开启demoShareCodes，发送后接受任意非空数字；仍需有效未过期发送记录、有效分享Token、对应手机号授权及已批准发布成果。默认服务和NODE_ENV=production保持严格OTP，不影响登录、医生邀请或真实认证。该演示规则不能作为真实手机号核验能力。
++只读成果访问页的验证码成功/错误反馈在同一FormItem下方互斥显示。仅隔离开发环境可以明确开启demoShareCodes，发送后接受任意非空数字；仍需有效未过期发送记录、有效分享Token、对应手机号授权及已审核通过且锁定并获分享授权的成果。默认服务和NODE_ENV=production保持严格OTP，不影响登录、医生邀请或真实认证。该演示规则不能作为真实手机号核验能力。
+ 
+ ## V3.5 成果分享记录
+ 
+@@ -181,3 +181,7 @@ AI十项开放正常颜色的参数确认入口，替代上文统一禁用要求
+ - 所属组织 Select 使用 TDesign filterable 下拉，读取服务端有效组织 ID 目录，新增申请通过 Dialog 提交，未审核组织不进入选项；失效组织在提交端再次校验。名称快照与最新名称分别管理。
+ - 登录审核退回页显示当前申请人真实意见；修改申请资料使用既有 PhoneFields、FormItem 字段提示和 Checkbox，先验证原手机号，保留账号身份。不得通过只变更前端状态模拟审核通过。
+ - 每类正式状态须有隔离、稳定 ID、逻辑自洽的演示样例。不能为了填列表伪造真实审计。
++
++### 数据资产双视角与正式版本
++
++专业成果内默认订单视角，沿用既有项目/任务视角切换实现，保留独立成果分享管理。订单表一笔订单一行，成果表一份成果版本一行；使用AdminTable的Icon-only阶段、前三列与末列冻结、无底色表头、动态分页与120px空状态。订单成果详情复用PageBack、Card和StageLabel，实际阶段按固定顺序呈现，任务状态与成果审核状态分离；无提交成果显示“暂无成果”，不得填充虚假版本。历史版本按真实时间排序，并允许进入精确ID+版本详情。导出确认展示当前查询全部页的授权范围及条数；默认两个工作表的xlsx，理由必填，失败明确反馈。分享不改变审核或锁定，不新增发布业务。
+diff --git a/design-system/ui-ux-consistency.md b/design-system/ui-ux-consistency.md
+index e8b6955..56e19c7 100644
+--- a/design-system/ui-ux-consistency.md
++++ b/design-system/ui-ux-consistency.md
+@@ -330,14 +330,15 @@ Label独立显示；必填使用TDesign FormItem，错误在对应控件下方
+ 
+ ### 数据资产与审计日志（2026-11-26）
+ 
+-- 资产追溯与专业成果监管合为「专业成果」一个 Tab，统一展示提交来源、对应版本审核与发布状态，不保留重复列表入口，不另造业务副本。另一 Tab 为「成果分享管理」。
+-- 成果详情基本资料按合并后的表头顺序排列，再展示关联业务及两行操作记录。表格使用阶段 Icon，详情使用原有 StageLabel。订单编号使用中性文字，操作保持原有规范。
++- 资产追溯与专业成果监管合为「专业成果」一个 Tab，统一展示订单、提交来源、对应版本审核与正式锁定状态，不保留重复列表入口，不另造业务副本。另一 Tab 为「成果分享管理」。
++- 专业成果默认订单视角，一笔获授权非草稿订单一行；成果视角以成果ID与版本为行粒度。订单表头为订单编号、手术项目名称、医院、设计阶段、成果进度、最近更新时间、操作；成果表头为订单编号、手术项目名称、医院、设计阶段、成果名称、成果版本、审核状态、提交时间、操作。成果详情基本资料按成果表头顺序排列，再展示正式锁定、实际提交人/审核人、历史版本及两行审核记录。表格使用阶段 Icon，详情使用原有 StageLabel。订单编号使用中性文字，操作保持原有规范。
+ - 资产与日志筛选分别维护，不继承订单列表的日期或状态。输入筛选只显示提示词；Select 提供“全部”。筛选、重置、Tab 切换后回到有效第一页；从关联订单返回保留原筛选。复用 AdminTable 的动态分页、前三列与操作列冻结、无底色表头、120px 空状态和操作文字左对齐，不添加第二套样式。
++- 订单成果详情使用独立二级页面、PageBack及现有Card，以Order ID关联订单信息及实际申请阶段；只展示真实Task与Artifact，任务状态和成果审核状态分开。阶段详情用StageLabel，四阶段固定顺序及现有响应式布局；无成果显示“暂无成果”。订单管理只增加一个订单级“查看成果”，阶段卡不加按钮。返回保留来源筛选、分页和上下文。
+ - 审计业务对象通过稳定 ID 关联订单、任务、成果、成员、医生、医院、组织或岗位；未能可靠关联时显示“-”，不把内部 ID 当业务编号，不猜测身份。操作说明与审核依据同时存在时都保留。
+ - 审计详情以业务字段展示真实变更前后值，不直接呈现整段 JSON。响应中的前后快照过滤凭据、Token、身份证标识及文件字节，手机号脱敏；不改写持久化原始审计事件、实际操作人、意见或时间。
+-- 资产导出由当前筛选内的全部记录 ID 决定（不局限当前分页），服务端再次校验每一条授权；无记录、失效记录或越权记录不导出。用途必填，成功后记录实际导出数量及稳定 ID，不导出患者资料、专业源文件或凭据。
+-- 审核人及时间仅取同一成果 ID、版本的实际审核结果或已有正式成果记录；指定审核人不等于已完成审核，不补造审核决定，也不把“审核通过”推断为“已发布”。
++- 资产默认导出真正的xlsx，包含订单成果汇总、专业成果明细两个工作表。服务端按当前视角与筛选重新查询获授权的全部记录，不局限当前分页；订单视角导出所选订单及其全部成果，成果视角导出命中成果及其所属订单（订单进度仍按完整订单计算）。导出确认及文件注明范围，保留用途、实际条数、订单ID和成果ID/版本审计；不导出患者资料、专业源文件或凭据。JSON仅作受控高级兼容，不作为普通操作。
++- 审核人及时间仅取同一成果 ID、版本的实际审核结果或已有正式成果记录；指定审核人不等于已完成审核，不补造审核决定。移除现行成果发布概念，分享记录不得反向推导审核或锁定；历史发布字段仅保留兼容。正式成果必须为Task.approvedModel精确指向的审核通过、已锁定Artifact ID及版本；锁定版本不可覆盖或删除，修改须新版本。下游仅在上游已完成且正式版本有效时绑定精确成果引用；真实模型加载未接通时不得声称已实现。
+ - 审计日志仅保留业务类型、操作结果、操作时间筛选及重置；删除关键词控件及原持久化关键词条件。资产关键词筛选不受此规则影响。
+ - 数据资产、审计日志导航分别复用 TDesign 官方 DataIcon、FileSafetyIcon，不自绘替代图形。
+ - 管理端成果分享读取销售端持久化分享及访问事件；按获授权 Order ID、Result ID、版本及发起人关联，列表与详情采用同一顺序。旧归档订单的分享不改挂到新业务。复制、打开页面和失败验证不计成功查看，重复 Viewer 就绪回传按访问会话去重。未核实姓名显示「未确认身份」，不将手机号持有证明当作医生或患者身份确认。
+-- 未接入的专业审核、源文件预览/下载和分享撤销能力不放置装饰性或永久禁用按钮。无实际分享时使用正常空状态。隔离演示中可以对已批准的合成展示成果实际生成分享、执行受控访问，不虚构正式业务审计；本地分享适配在生产环境禁用。
++- 未接入的专业审核、源文件预览/下载和分享撤销能力不放置装饰性或永久禁用按钮。无实际分享时使用正常空状态。隔离演示中可以对已审核通过的合成展示成果实际生成分享、执行受控访问，不虚构正式业务审计；本地分享适配在生产环境禁用。
+diff --git a/docs/product/BUSINESS_DESIGN_V31.md b/docs/product/BUSINESS_DESIGN_V31.md
+index 5f4110b..c4d601c 100644
+--- a/docs/product/BUSINESS_DESIGN_V31.md
++++ b/docs/product/BUSINESS_DESIGN_V31.md
+@@ -12,7 +12,7 @@
+ - 保险汇总按completedAt自然月，使用当前可见订单投影，不使用创建日期。原订单投影未被正式订单/成果接口核验时标记缺项、禁止导出；不采信客户端声称“审核通过/图片批准”。
+ - 受控导出只接受服务端隔离验收登记的订单、授权账号、手机凭证、完整字段与批准静态图片；记录导出审计。导出一个真正OpenXML .xlsx，包含8字段、文本身份证、日期单元格和嵌入PNG。内部模板，不声称对接医保。
+ - 本地已授权李明场景具有独立医保导出演示授权；正式版本必须接真实permission及账号原始手机号服务，不从脱敏手机号推断身份。生产构建不安装V3.1测试服务。
+-- 详情新增成果Card，旧订单未有批准发布的真实资源时保留空状态。独立验收样本不加入原订单/统计/项目或其审核历史；素材为既有CAD原型截图，不是患者正式成果或真实医学计算。
++- 详情新增成果Card，旧订单未有审核通过、正式版本锁定且获分享授权的真实资源时保留空状态。独立验收样本不加入原订单/统计/项目或其审核历史；素材为既有CAD原型截图，不是患者正式成果或真实医学计算。
+ - 一个订单一个有效分享，可撤销。允许的合成医生/患者手机号由服务端样本预授权；OTP成功仍要核对订单allowlist，任意手机号不予访问。访问、拒绝、分享、撤销均有独立审计。
+ - 分享只提供批准静态展示图；本轮没有真实批准3D成果服务，未伪造3D结果或将原始STL暴露。当前查看器支持静态图平移、缩放；真实只读3D交付/旋转仍待成果服务。
+ - 销售订单详情取消下载按钮、文件名不再自动下载。图片/PDF按既有权限预览；非可预览医学附件提示进入专业视窗。现有浏览器Blob及原邀请文件接口的完整生产防下载仍未实现：浏览器能显示的内容不能保证无法保存，隐藏按钮/toolbar不是安全边界。正式附件预览需受控渲染服务，禁止源文件直连。
+@@ -32,7 +32,7 @@
+ 
+ 1. 医院OCR与二维码解析、授权影像访问、PACS/DICOM接口及网络策略。
+ 2. 身份/手机号真实短信、患者-订单/医生授权关系，正式隐私同意及审核。
+-3. 统一订单后端、历史范围权限、实际审核发布的成果登记、受控预览/只读3D派生资源。
++3. 统一订单后端、历史范围权限、实际审核通过及正式锁定的成果登记、受控预览/只读3D派生资源。
+ 4. 正式医保模板、标准项目/编码映射、导出权限授予、敏感数据导出审计及保存期限。
+ 5. 订单完成自动判定仍沿用待确认，不新增“四阶段完成即自动完成”规则。
+ 
+@@ -41,18 +41,18 @@
+ ## V3.3 后续定向修订（2026-11-16，优先于上文历史实现）
+ 
+ - 报告/PACS只负责资料获取与核对，之后传入现有OrderEditor四步表单；携带importReceipt、importSource、patientIdentityRef及实际保存的影像/照片附件。手动入口不变，不再维护第二套订单需求表单。业务界面不展示隔离适配器/验收开关，适配器仍是本地合成实现，不声称真实OCR或医院下载。
+-- resultCatalog.mjs明确登记三个既有合成订单的成果链，不从任意“已完成”状态推导审核通过或发布。订单/项目/任务/成果/版本/图片通过稳定ID关联；不改陈屿工程或生成正式审核日志。其他无成果记录仍不可分享或导出完整资料。
++- resultCatalog.mjs明确登记三个既有合成订单的成果链，不从任意“已完成”状态推导审核通过或正式锁定。订单/项目/任务/成果/版本/图片通过稳定ID关联；不改陈屿工程或生成正式审核日志。其他无成果记录仍不可分享或导出完整资料。
+ - 医保页读同一关联，证件列表脱敏，服务端核对归属/权限/月度/资料后生成带内嵌PNG的xlsx。当前手术项目名称沿用订单原文，未冒称已完成医保标准目录映射；真实医保目录及患者授权服务仍需正式接入。
+-- 分享绑定具体resultId/resultVersion/stage，分别校验审核与发布；授权手机号证明才可读取预览。新增只读WebGL预览支持旋转/平移/缩放，采用现有公开演示下颌骨STL的量化显示衍生数据及合成CAD板；每个登记成果有独立ID及对应渲染PNG，不是各患者真实计算结果，不能用于临床或制造。
++- 分享绑定具体resultId/resultVersion/stage，分别校验审核、正式锁定与分享授权；授权手机号证明才可读取预览。新增只读WebGL预览支持旋转/平移/缩放，采用现有公开演示下颌骨STL的量化显示衍生数据及合成CAD板；每个登记成果有独立ID及对应渲染PNG，不是各患者真实计算结果，不能用于临床或制造。
+ - 原始STL/CAD不由分享API返回，局域网分享网关禁止源文件路径；浏览器显示衍生几何仍可被技术手段读取，不是DRM。原工程师既有public演示STL未移动或改写；正式环境必须换用授权资源服务。
+-- 本地业务服务仍只在Vite serve下启用，普通生产构建不包含这些接口；真实短信、医院连接、成果审核/发布及权限服务尚待接入，不能据此直接生产发布。
++- 本地业务服务仍只在Vite serve下启用，普通生产构建不包含这些接口；真实短信、医院连接、成果审核写入、真实源文件加载及权限服务尚待接入，不能据此直接生产发布。
+ 
+ ## V3.5 成果分享记录（2026-11-17）
+ 
+ - 销售阶段卡片保持三行及原高度；记录入口只放在原二维码 Dialog 的复制按钮下方，使用文字操作打开 TDesign Drawer。Drawer 复用 Table、Pagination、Empty，不增加管理员页面。
+ - 分享按 `shareId/orderId/stageId/resultId/resultVersion` 分隔，发起人来自已登录销售会话，预期接收人来自本订单有权限的需求医生；二者与实际访问者分开。旧分享缺元数据时兼容读取，不追造历史 Viewer 事件。
+ - 复制链接/图片仅在 Clipboard 成功后提交独立事件，不等同微信发送。页面打开、身份验证与 Viewer 就绪分别记录；服务端以事件 ID 和访问会话 ID 去重。刷新复用当前访问会话，新导航/新标签为新的访问；相同已验证访问者有稳定 ID，可分别计算成功查看和独立访问人数。
+-- 身份验证通过并不直接计成功；服务端须已交付对应成果资源，前端 Viewer 成功就绪后用绑定该分享/访问会话的证明提交确认。无权限、验证失败、加载失败及重复回调不计成功。撤销、版本、发布与账号范围检查保留。
++- 身份验证通过并不直接计成功；服务端须已交付对应成果资源，前端 Viewer 成功就绪后用绑定该分享/访问会话的证明提交确认。无权限、验证失败、加载失败及重复回调不计成功。撤销、版本、审核锁定与账号范围检查保留。
+ - 只有手机号授权名单时，只确认手机号持有及该成果访问授权，不把患者姓名或需求医生姓名套给访问者。销售记录显示脱敏手机号及“获授权人员”；有真实可信身份目录映射后才显示姓名、医生/患者等身份。不在记录接口返回原手机号、验证码或访问证明。
+ - 事件使用既有加密本地业务存储；后续部署适配器可沿既有私有存储持久化，但本轮没有部署、没有改动线上数据。历史审计不删除；原先仅表示验证的旧事件不能回填为确认成功查看。
+ 
+@@ -113,3 +113,11 @@
+ 数据按订单、任务、成果和版本追溯；仅授权元数据可受控导出且审计，不默认授予敏感影像或专业源文件批量下载。销售分享记录的管理员授权查询/撤销仍待接入。隔离适配器不覆盖销售/工程师存储，实际范围与测试见[管理端交付](../admin/v38/HANDOFF.md)。
+ 
+ 未决：订单最终完成与结算、具体专业审核资格、书面审批签署归档、真实医院/PACS/OCR/成果服务。不得将演示规则写成已定稿企业制度。
++
++## 管理员数据资产：订单成果与正式版本（2026-11-26）
++
++- 专业成果默认订单视角，订单/成果视角共用Order→Project→Task→Artifact ID及版本；不复制业务。订单进度按实际申请阶段的正式锁定版本去重计算。
++- 只有已选定、精确关联且有审核通过依据的正式成果可补齐锁定元数据，保留原始审核事件。服务端事务禁止覆盖或删除锁定成果；下游开始时校验上游完成与正式锁定，并保存inputArtifact精确引用。
++- 当前隔离服务尚无正式专业审核写入API，现有审核事件不因此重建；真实STL/DICOM/CAD资源自动载入仍待专业服务接入。前端资料详情及元数据绑定不能冒充临床模型加载。
++- 管理员订单详情以单个订单级入口进入二级成果页面，按真实需求展示阶段状态、成果审核、正式版本、审核人/时间及历史，不更改销售与工程师专业页面。
++- 默认xlsx导出订单成果汇总和专业成果明细，服务端重新应用授权及当前查询的全部页；保留用途与真实导出审计，无患者隐私、认证凭据或专业源文件。分享管理独立，不推导成果审核或锁定，旧发布字段仅兼容历史登记。
+diff --git a/docs/product/field-dictionary.md b/docs/product/field-dictionary.md
+index 7e4e0fe..a34dff6 100644
+--- a/docs/product/field-dictionary.md
++++ b/docs/product/field-dictionary.md
+@@ -189,11 +189,11 @@
+ 
+ 所有新订单提交必填患者姓名、性别、18位居民身份证，三种录入方式共用患者结构；草稿仍可暂存不完整资料。居民身份证检查格式、出生日期与校验位，不等于联网实名核验；其他证件类型待正式业务目录确认，不按普通非空字符串接受。移除前台医保用途/重复授权核对勾选；实际采集授权、会话与字段权限不因此免除。完整号码仅在受控表单/授权Excel中使用，订单只持久化加密资料引用。
+ 
+-完成阶段分享必须对应已批准发布的resultId/resultVersion/stage；版本变化使旧分享失效，允许撤销与访问审计。医保统计依据completedAt自然月及销售可见范围，不导出独立验收样本。真实医院/成果及身份服务尚未完成的边界继续在业务交付记录中说明，不在正式汇总页放开发文案。
++完成阶段分享必须对应已审核通过且锁定并获分享授权的resultId/resultVersion/stage；版本变化使旧分享失效，允许撤销与访问审计。医保统计依据completedAt自然月及销售可见范围，不导出独立验收样本。真实医院/成果及身份服务尚未完成的边界继续在业务交付记录中说明，不在正式汇总页放开发文案。
+ 
+ ### V3.3 成果关联与导入上下文
+ 
+-订单`id` → `projectId` → 阶段`taskId` → 成果`id`（提交/分享字段`resultId`）+`version` → `imageId`/`previewKey` → 分享`token`。`reviewStatus=approved`与`publishStatus=published`分开核验；任务状态已完成不授予发布权。医保与分享从同一个成果登记读取，不能靠名称匹配；现有隔离演示登记见server/business/resultCatalog.mjs，不修改真实审计身份。
++订单`id` → `projectId` → 阶段`taskId` → 成果`id`（提交/分享字段`resultId`）+`version` → `imageId`/`previewKey` → 分享`token`。审核通过、正式版本锁定与分享授权分别核验；任务已完成不自动生成正式成果或分享。历史`publishStatus`仅兼容既有登记，不作为现行成果状态。医保与分享从同一个成果登记读取，不能靠名称匹配；现有隔离演示登记见server/business/resultCatalog.mjs，不修改真实审计身份。
+ 
+ 报告/PACS的`importReceipt/importSource`与影像、照片附件ID在共用四步表单和保存后的Order中保留；证件原值经服务端加密，仅凭`patientIdentityRef`在订单关联。当前医保导出使用原订单手术项目名称，医保标准目录映射未确认，不伪造标准名称。
+ 
+@@ -250,7 +250,7 @@ Doctor.id→Order.doctorId是关联订单唯一依据；详情内嵌表固定6
+ 
+ `super_admin`仅由明确本地幂等初始化创建，不允许普通注册申请或测试控制台提权。原陈屿与李明账号不重置。`requestedDueDate`与`confirmedDeliveryDate`继续原语义；无受理排期不造确认交期，专业任务开始不决定订单交期。
+ 
+-审核中心是医生档案、账号注册、权限申请的统一业务审核入口，仅账号注册审核、医生档案审核、权限申请审核三个Tab；首页可做同ID聚合。机构与成员维护基础资料及合法启停，待审核档案通过同Doctor ID跳转审核中心。成员管理维护当前授权及范围，审核中心管理申请状态，审计日志保留变更历史；移除独立权限管理页面；专业成果监管归数据资产且保持只读。
++审核中心是医生档案、账号注册、权限申请的统一业务审核入口，仅账号注册审核、医生档案审核、权限申请审核三个Tab；首页可做同ID聚合。机构与成员维护基础资料及合法启停，待审核档案通过同Doctor ID跳转审核中心。成员管理维护当前授权及范围，审核中心管理申请状态，审计日志保留变更历史；移除独立权限管理页面；专业成果归数据资产且保持只读。
+ 
+ 新增ADM资料均属隔离合成业务；不作为销售/工程师已有记录或正式临床审计。新提交订单已接入隔离本地跨角色统一服务；生产业务服务、专业成果审核写入及销售分享管理员接口仍待接入，详见管理端交付文档。
+ 
+@@ -405,14 +405,19 @@ CliniVol A方案当前采用“一单一主项目、多专业任务”的业务
+ | 成果名称、成果版本、设计阶段 | 原成果名称及版本，阶段取关联 Task；泛化名称可用已有正式成果名称或实际阶段名称呈现，不更改原记录身份 |
+ | 提交人、提交时间 | 成果提交记录；时间使用统一审计时间格式 |
+ | 审核人、审核时间 | 当前成果 ID 与版本的真实审核决定；待审核不展示预定审核人作为实际审核人 |
+-| 发布状态 | 独立读取发布字段，不根据审核通过推算发布成功 |
++| 正式成果锁定 | Artifact.locked/lockedAt与Task.approvedModel的成果ID、版本、orderId、projectId、taskId精确一致；只对有原审批依据的既有正式选择补锁定元数据，不补造审核事件。锁定版本不可变，历史版本不覆盖。 |
++| 下游正式输入 | 上游任务已完成且精确正式版本审核通过并锁定；开始执行记录inputArtifact的五项稳定ID/版本引用。真实源文件加载仍需专业服务，元数据关联不等于模型已加载。 |
++| 成果进度 | 实际申请阶段中存在有效正式锁定成果的阶段数 / 申请阶段总数；同阶段多个历史版本只计一次。 |
++| 最近更新时间（资产订单视角） | 对应成果有效updatedAt、reviewedAt、submittedAt的最大值；无成果为`-`，不以订单创建时间冒充。 |
+ | 业务对象 | 稳定对象 ID 查询可读业务名称；订单类使用 businessNo，不能以患者/项目同名建立关联 |
+ | 操作结果 | 保留真实结果；成功、失败、待审核及已记录采用对应语义，不将“未通过”匹配成成功 |
+ | 操作说明、审核依据 | 两者均有值时同时展示，不相互覆盖，不重写原意见 |
+ | 变更明细 | 仅展示明确映射的业务字段和真实前后值，不展示认证秘密或完整身份证号 |
+ | 导出资产 ID 集合 | 由筛选后获授权记录构成，服务端逐条复核、去重，审计记录真实条数和关联 ID |
+ 
+-「资产追溯」「专业成果监管」合并为「专业成果」。表头：订单编号 / 成果名称 / 医院 / 设计阶段 / 成果版本 / 提交人 / 提交时间 / 审核状态 / 审核人 / 审核时间 / 发布状态 / 操作。详情基本资料沿用此顺序。
++「资产追溯」「专业成果监管」合并为「专业成果」，保留独立成果分享管理。默认订单视角，表头：订单编号 / 手术项目名称 / 医院 / 设计阶段 / 成果进度 / 最近更新时间 / 操作；一笔获授权非草稿订单一行。成果视角表头：订单编号 / 手术项目名称 / 医院 / 设计阶段 / 成果名称 / 成果版本 / 审核状态 / 提交时间 / 操作；行主键为Artifact ID+version。详情基本资料沿用成果表头顺序。审核记录只关联同一成果ID与版本，不因打开详情增加事件。
++
++订单成果详情以Order ID定位，按实际申请阶段展示Task与Artifact；保留历史版本、原审核人与时间，不生成不存在的阶段或成果。默认导出xlsx包含订单成果汇总和专业成果明细，范围为当前查询内服务端再次授权的全部记录，保留用途及导出审计，不含患者及源文件。
+ 
+ 成果分享管理表头：订单编号 / 成果名称 / 医院 / 设计阶段 / 成果版本 / 分享发起人 / 成功查看次数 / 最近查看时间 / 操作。分享以稳定 Share ID → Order ID、Result ID、Result Version 关联销售端持久化记录，且须同时符合订单授权及分享所有者。成功查看仅计验证授权后成果已加载的 viewed 事件，访问会话重复回传不重复累计；最近查看取最新成功事件。分享详情按相同字段顺序展示，再展示当前状态、访问记录和关联订单。响应不包含分享 Token、验证码、完整手机号或源文件。
+ 
+diff --git a/server/admin/assetExport.mjs b/server/admin/assetExport.mjs
+new file mode 100644
+index 0000000..8c70d89
+--- /dev/null
++++ b/server/admin/assetExport.mjs
+@@ -0,0 +1,30 @@
++import {openXmlZip} from '../business/xlsx.mjs';
++import {assetStages,assetProgressText} from '../../src/admin/assetRules.mjs';
++const esc=value=>String(value??'-').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
++const ns='http://schemas.openxmlformats.org/spreadsheetml/2006/main',rel='http://schemas.openxmlformats.org/officeDocument/2006/relationships',pkg='http://schemas.openxmlformats.org/package/2006/relationships';
++const column=index=>{let s='';for(let n=index+1;n;n=Math.floor((n-1)/26))s=String.fromCharCode(65+(n-1)%26)+s;return s};
++function dateValue(value,timeZone){
++ const epoch=Date.parse(value);if(!Number.isFinite(epoch))return null;
++ const parts=new Intl.DateTimeFormat('en-US',{timeZone,timeZoneName:'longOffset'}).formatToParts(new Date(epoch));
++ const zone=parts.find(p=>p.type==='timeZoneName').value,match=zone.match(/GMT([+-])(\d{2}):(\d{2})/),minutes=match?(match[1]==='-'?-1:1)*(Number(match[2])*60+Number(match[3])):0;
++ return epoch/86400000+25569+minutes/1440;
++}
++function worksheet({title,headers,rows,widths,dateColumns},scope,timeZone){
++ const cell=(value,row,col,style=0)=>{const ref=column(col)+row;if(style===3){const n=dateValue(value,timeZone);if(n!==null)return `<c r="${ref}" s="3"><v>${n}</v></c>`}return `<c r="${ref}" s="${style===3?0:style}" t="inlineStr"><is><t xml:space="preserve">${esc(value===null||value===undefined||value===''?'-':value)}</t></is></c>`};
++ const last=column(headers.length-1);
++ return `<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="${ns}"><dimension ref="A1:${last}${rows.length+3}"/><sheetViews><sheetView workbookViewId="0"><pane ySplit="3" topLeftCell="A4" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${widths.map((width,i)=>`<col min="${i+1}" max="${i+1}" width="${width}" customWidth="1"/>`).join('')}</cols><sheetData><row r="1" ht="30" customHeight="1">${cell(title,1,0,1)}</row><row r="2" ht="42" customHeight="1">${cell(scope,2,0,2)}</row><row r="3" ht="28" customHeight="1">${headers.map((h,i)=>cell(h,3,i,1)).join('')}</row>${rows.map((values,i)=>`<row r="${i+4}" ht="32" customHeight="1">${values.map((v,c)=>cell(v,i+4,c,dateColumns.includes(c)?3:0)).join('')}</row>`).join('')}</sheetData><autoFilter ref="A3:${last}${Math.max(3,rows.length+3)}"/><mergeCells count="2"><mergeCell ref="A1:${last}1"/><mergeCell ref="A2:${last}2"/></mergeCells></worksheet>`;
++}
++export function assetWorkbook({orders,assets},data,{scope,timeZone='Asia/Shanghai'}){
++ // Native Excel date cells use the requesting user's IANA timezone; all text is inlineStr, never formula.
++ new Intl.DateTimeFormat('en',{timeZone}).format();
++ const order=id=>data.orders.find(o=>o.id===id),hospital=o=>data.hospitals.find(h=>h.id===o?.hospitalId)?.name||'-';
++ const sheets=[{title:'订单成果汇总',headers:['订单编号','手术项目名称','医院','设计阶段','成果进度','最近更新时间'],widths:[23,34,38,42,23,24],dateColumns:[5],rows:orders.map(r=>[r.order.businessNo||'-',r.order.name,hospital(r.order),r.stages.map(s=>assetStages[s]).join('、')||'-',assetProgressText(r),r.updatedAt])},{title:'专业成果明细',headers:['订单编号','手术项目名称','医院','设计阶段','成果名称','成果版本','审核状态','审核人','审核时间','提交人','提交时间'],widths:[23,34,38,18,26,14,16,16,24,16,24],dateColumns:[8,10],rows:assets.map(a=>{const o=order(a.orderId);return [o?.businessNo||'-',o?.name||'-',hospital(o),assetStages[a.stage]||'-',a.name,a.version,a.reviewStatus,a.reviewerName||'-',a.reviewedAt,a.submittedByName||'-',a.submittedAt]})}];
++ const styles=`<styleSheet xmlns="${ns}"><numFmts count="1"><numFmt numFmtId="164" formatCode="yyyy-mm-dd hh:mm"/></numFmts><fonts count="3"><font><sz val="11"/><name val="Microsoft YaHei"/></font><font><b/><sz val="11"/><name val="Microsoft YaHei"/><color rgb="FFFFFFFF"/></font><font><sz val="10"/><name val="Microsoft YaHei"/><color rgb="FF666666"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0D7A5D"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"><alignment vertical="center"/></xf><xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"><alignment vertical="center"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
++ return openXmlZip([
++  ['[Content_Types].xml',`<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}</Types>`],
++  ['_rels/.rels',`<Relationships xmlns="${pkg}"><Relationship Id="workbook" Type="${rel}/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
++  ['xl/workbook.xml',`<workbook xmlns="${ns}" xmlns:r="${rel}"><sheets>${sheets.map((s,i)=>`<sheet name="${s.title}" sheetId="${i+1}" r:id="sheet${i+1}"/>`).join('')}</sheets></workbook>`],
++  ['xl/_rels/workbook.xml.rels',`<Relationships xmlns="${pkg}">${sheets.map((_,i)=>`<Relationship Id="sheet${i+1}" Type="${rel}/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="styles" Type="${rel}/styles" Target="styles.xml"/></Relationships>`],
++  ['xl/styles.xml',styles],...sheets.map((s,i)=>[`xl/worksheets/sheet${i+1}.xml`,worksheet(s,scope,timeZone)])
++ ]);
++}
+diff --git a/server/admin/http.mjs b/server/admin/http.mjs
+index ff70d18..97526ac 100644
+--- a/server/admin/http.mjs
++++ b/server/admin/http.mjs
+@@ -38,7 +38,7 @@ export function adminHandler(auth,admin,{origin}) {
+     const id=decodeURIComponent(url.pathname.slice('/api/admin/preview/'.length));if(admin.institutions.snapshot().doctors.some(d=>d.materials?.some(m=>m.id===id))){const file=admin.institutions.file(actor,id),rendered=await renderDoctorPreview(file.bytes,file.type,Number(url.searchParams.get('page')||1));res.setHeader('X-Preview-Pages',String(rendered.pages));res.setHeader('Content-Type','image/png');res.setHeader('X-Content-Type-Options','nosniff');res.end(rendered.bytes);return;}const file=admin.preview(actor,id);res.setHeader('Content-Type','image/svg+xml; charset=utf-8');res.setHeader('Content-Disposition','inline');res.setHeader('Content-Security-Policy',"default-src 'none'; style-src 'unsafe-inline'; sandbox");res.end(`<svg xmlns="http://www.w3.org/2000/svg" width="720" height="480" viewBox="0 0 720 480"><rect width="720" height="480" fill="white"/><g fill="#333" font-family="sans-serif"><text x="56" y="88" font-size="28">隔离合成资质资料</text><text x="56" y="150" font-size="20">${escape(file.name)}</text><text x="56" y="200" font-size="18">提交来源：${escape(file.submittedBy)}</text><text x="56" y="250" font-size="18">仅用于本地审核交互，不含真实身份证或执业证件。</text></g></svg>`);return;
+    }
+    if(req.method==='POST'&&url.pathname==='/api/admin/command'){
+-    let text='';for await(const chunk of req){text+=chunk;if(Buffer.byteLength(text)>32768)throw new AdminFailure('请求内容过大。',413)}let body;try{body=JSON.parse(text)}catch{throw new AdminFailure('请求格式不正确。')};res.end(JSON.stringify(admin.command(actor,body)));return
++    let text='';for await(const chunk of req){text+=chunk;if(Buffer.byteLength(text)>32768)throw new AdminFailure('请求内容过大。',413)}let body;try{body=JSON.parse(text)}catch{throw new AdminFailure('请求格式不正确。')};const result=admin.command(actor,body);if(result.file){res.setHeader('Content-Type',result.mime);res.setHeader('Content-Disposition','attachment; filename="'+result.filename+'"');res.setHeader('X-Content-Type-Options','nosniff');res.end(result.file);return}res.end(JSON.stringify(result));return
+    }
+    throw new AdminFailure('接口不存在。',404)
+   }catch(error){res.statusCode=error.status||500;res.end(JSON.stringify({error:error.status?error.message:'管理服务暂不可用，请重试。'}))}
+diff --git a/server/admin/service.mjs b/server/admin/service.mjs
+index a161e3e..593929b 100644
+--- a/server/admin/service.mjs
++++ b/server/admin/service.mjs
+@@ -1,3 +1,5 @@
++import {assetExportSelection} from '../../src/admin/assetRules.mjs';
++import {assetWorkbook} from './assetExport.mjs';
+ import {localShareProvider,projectAdminShares} from './shareProjection.mjs';
+ import {auditSafeValue} from '../../src/admin/dataAuditRules.mjs';
+ import {auditActorLabel} from '../../src/audit/actorLabel.mjs';
+@@ -29,7 +31,7 @@ export class AdminService {
+  snapshot(actor){this.authorize(actor,'orders:read');const s=clone(this.state),allowedHospital=id=>actor.role==='super_admin'||actor.hospitalIds?.includes(id);s.hospitals=s.hospitals.filter(h=>allowedHospital(h.id));s.orders=s.orders.filter(o=>o.status!=='草稿'&&allowedHospital(o.hospitalId));const ids=new Set(s.orders.map(o=>o.id));s.tasks=s.tasks.filter(t=>ids.has(t.orderId));s.assets=actor.permissions.includes('assets:read')?s.assets.filter(t=>ids.has(t.orderId)):[];s.shares=actor.permissions.includes('shares:manage')?s.shares.filter(t=>ids.has(t.orderId)):[];s.doctors=s.doctors.filter(d=>d.status!=='草稿'&&allowedHospital(d.hospitalId));s.materials=s.materials.filter(m=>s.doctors.some(d=>d.id===m.doctorId));s.doctorHistory=s.doctorHistory.filter(h=>s.doctors.some(d=>d.id===h.objectId));s.events=actor.permissions.includes('audit:read')?this.audit(actor):[];
+  if(actor.role!=='super_admin'){s.people=s.people.filter(p=>p.id===actor.id||p.scope.some(allowedHospital));s.approvals=s.approvals.filter(p=>p.hospitalIds.every(allowedHospital))}
+  if(actor.permissions.includes('accounts:approve')&&this.authService){for(const a of this.authService.accounts.filter(a=>a.appliedAt&&['pending','approved','rejected'].includes(a.status)))s.approvals.push({id:`AUTH-${a.id}`,type:'账号开通',subjectId:a.id,subjectName:a.name,applicant:a.name,organizationId:a.organizationId,organization:this.authService.organizationDirectory.find(a.organizationId)?.name||a.organizationNameSnapshot||a.department,requestedRole:a.requestedRole,permissions:[],hospitalIds:[],basis:a.reviewBasis||'',status:({pending:'待审批',approved:'审批通过',rejected:'审批退回'})[a.status],approver:this.authService.accounts.find(p=>p.id===a.reviewedBy)?.name,reviewedAt:a.reviewedAt?new Date(a.reviewedAt).toISOString():undefined,reviewNote:a.reviewNote,at:new Date(a.appliedAt).toISOString(),version:a.reviewVersion||1,source:'local-auth'})}
+- const shared=this.shared.adminSnapshot(actor);if(this.shared.state.catalogMode==='linked-only'){s.orders=[];s.tasks=[];s.assets=[];s.shares=[];s.events=s.events.filter(e=>!['订单审核','任务调度','成果管理'].includes(e.category))}for(const key of ['orders','tasks','hospitals','doctors','people','events','assets']){const ids=new Set(s[key].map(r=>r.id));s[key].push(...shared[key].filter(r=>!ids.has(r.id)))}
++ const shared=this.shared.adminSnapshot(actor);if(this.shared.state.catalogMode==='linked-only'){s.orders=[];s.tasks=[];s.assets=[];s.shares=[];s.events=s.events.filter(e=>!['订单审核','任务调度','成果管理'].includes(e.category))}for(const key of ['orders','tasks','hospitals','doctors','people','events','assets']){const recordKey=r=>key==='assets'?JSON.stringify([r.id,r.version]):r.id;const ids=new Set(s[key].map(recordKey));s[key].push(...shared[key].filter(r=>!ids.has(recordKey(r))))}
+  const directory=this.institutions.snapshot();s.hospitals=directory.hospitals.filter(h=>allowedHospital(h.id));const masterDoctors=directory.doctors.filter(d=>d.status!=='草稿'&&allowedHospital(d.hospitalId));s.doctors=[...s.doctors.filter(d=>!masterDoctors.some(row=>row.id===d.id)),...masterDoctors.map(d=>({...d,managementEditable:true}))];s.doctors=s.doctors.map(d=>({...d,managementEditable:d.managementEditable||this.state.doctors.some(row=>row.id===d.id)}));
+  s.salesAssignments=directory.salesScopes;s.hospitalSalesIds=directory.people.filter(p=>p.role==='销售'&&p.status==='已启用').map(p=>p.id);s.doctorHistory=[...new Map([...s.doctorHistory,...this.state.events,...directory.events].filter(e=>s.doctors.some(d=>d.id===e.objectId)).map(e=>[e.id,e])).values()].sort((a,b)=>Date.parse(b.at)-Date.parse(a.at));if(actor.permissions.includes('audit:read'))s.events.push(...directory.events.filter(e=>allowedHospital(directory.hospitals.find(h=>h.id===e.objectId)?.id||masterDoctors.find(d=>d.id===e.objectId)?.hospitalId)));
+  for(const d of masterDoctors)for(const m of d.materials||[])if(typeof m==='object')s.materials.push({...m,doctorId:d.id,category:({identity:'身份证明',practice:'执业证明材料',other:'其他附件'})[m.category]||'其他附件',submittedBy:m.uploadedByName||d.submittedBy,at:m.uploadedAt});
+@@ -40,8 +42,8 @@ export class AdminService {
+  const identities=new Map([...s.people,...s.doctors,...(actor.role==='super_admin'?this.authService?.accounts||[]:[])].map(p=>[p.id,p]));
+  const identityName=id=>{const p=identities.get(id);return p?auditActorLabel({actor:p.name,actorId:p.id,actorRole:p.role},p):undefined};
+  s.auditObjects=[...identities.values(),...s.organizations,...s.applicationRoles,...s.approvals.map(a=>({id:a.id,name:a.subjectName}))].map(({id,name})=>({id,name}));
+- s.assets=s.assets.map(a=>{const task=s.tasks.find(t=>t.id===a.taskId),stage=stages[a.stage],approved=task?.approvedModel?.id===a.id?task.approvedModel:null,decided=['审核通过','审核退回'].includes(a.reviewStatus),review=[...s.events,...this.shared.state.events].filter(e=>e.resultId===a.id&&e.resultVersion===a.version&&e.type===(a.reviewStatus==='审核通过'?'review-pass':a.reviewStatus==='审核退回'?'review-return':null)).sort((a,b)=>Date.parse(b.at)-Date.parse(a.at))[0];return {...a,name:a.name&&a.name!=='专业提交成果'?a.name:approved?.name||(stage?stage+'成果':'设计成果'),reviewedAt:decided?(a.reviewedAt||approved?.approvedAt||review?.at):undefined,reviewerName:decided?(identityName(a.reviewerId||review?.actorId)||(review?auditActorLabel(review):undefined)):undefined,submittedByName:identityName(a.submittedBy)}});
+- if(actor.permissions.includes('shares:manage')){const projected=projectAdminShares(this.shareProvider(),s);s.shares=[...new Map([...s.shares,...projected].map(r=>[r.id,r])).values()];for(const a of s.assets)if(projected.some(r=>r.resultId===a.id&&r.resultVersion===a.version&&r.status==='有效'))a.publishStatus='已发布'}
++ s.assets=s.assets.map(a=>{const task=s.tasks.find(t=>t.id===a.taskId),stage=stages[a.stage],approved=task?.approvedModel?.id===a.id&&task.approvedModel.version===a.version?task.approvedModel:null,decided=['审核通过','审核退回'].includes(a.reviewStatus),review=[...s.events,...this.shared.state.events].filter(e=>e.resultId===a.id&&e.resultVersion===a.version&&e.type===(a.reviewStatus==='审核通过'?'review-pass':a.reviewStatus==='审核退回'?'review-return':null)).sort((a,b)=>Date.parse(b.at)-Date.parse(a.at))[0];return {...a,name:a.name&&a.name!=='专业提交成果'?a.name:approved?.name||(stage?stage+'成果':'设计成果'),reviewedAt:decided?(review?.at||a.reviewedAt||approved?.approvedAt):undefined,reviewerName:decided?(identityName(a.reviewerId||review?.actorId)||(review?auditActorLabel(review):undefined)):undefined,submittedByName:identityName(a.submittedBy)}});
++ if(actor.permissions.includes('shares:manage')){const projected=projectAdminShares(this.shareProvider(),s);s.shares=[...new Map([...s.shares,...projected].map(r=>[r.id,r])).values()]}
+  s.events=[...new Map(s.events.map(e=>[e.id,{...e,before:auditSafeValue(e.before),after:auditSafeValue(e.after)}])).values()];
+  s.readiness={mode:'isolated-admin',crossRoleBusiness:true,professionalReviewWrite:false,sourceDownload:false};return presentAdminState(s,{accounts:this.authService?.accounts,currentActor:actor})}
+  command(actor,{action,id,version,...input}){if(action==='role-save')return this.authService.roleDirectory.save(actor,{id,version,...input});if(action==='reopen-account-review')throw new AdminFailure('审核退回后须由申请人修改资料并重新提交。',403);if(action.startsWith('organization-'))return this.authService.organizationDirectory.command(actor,{action,id,version,...input});if(['hospital-save','hospital-status','hospital-leader','department-save','department-status'].includes(action))return this.institutions.command(actor,{action,id,version,...input});if(['review-doctor','doctor-status','reopen-doctor-review'].includes(action)&&this.institutions.snapshot().doctors.some(d=>d.id===id))return this.institutions.command(actor,{action:action==='review-doctor'?'doctor-review':action==='reopen-doctor-review'?'doctor-review-reopen':action,id,version,...input});this.authorize(actor,actions[action]||'__unsupported__');if(action==='takeover')throw new AdminFailure('常规接管已关闭，请按权限变更负责组长。',403);if(['review-order','assign-task'].includes(action)&&actor.role!=='leader')throw new AdminFailure('订单受理和专业任务分配须由当前负责组长执行。',403);if(this.shared.has(id))return this.shared.manage(actor,{action,id,version,...input});if(action==='review-account'&&id?.startsWith('AUTH-'))return this.reviewLocalAccount(actor,{id,version,...input,action});const backup=clone(this.state);try{let row,before;
+@@ -88,11 +90,28 @@ export class AdminService {
+   row=this.find('people',id,actor);this.current(row,version);const basis=requireText(input.basis,'书面审批依据'),reason=requireText(input.reason,'撤销原因');if(!row.permissions.includes(input.permission))throw new AdminFailure('该权限当前未授予。',409);before=clone(row);row.permissions=row.permissions.filter(p=>p!==input.permission);row.version++;this.event(actor,'管理权限已撤销','权限与审批',id,before,row,reason,{basis,executorId:actor.id});break;}
+  case 'assign-reviewer':{
+   row=this.find('assets',id,actor);if((row.revision||1)!==version)throw new AdminFailure('成果记录已更新，请刷新。',409);const doctor=this.state.doctors.find(d=>d.id===input.reviewerId&&d.status==='审核通过'&&d.id===this.state.orders.find(o=>o.id===row.orderId)?.doctorId);const professional=this.state.people.find(p=>p.id===input.reviewerId&&p.permissions.includes('professional:review')&&p.reviewStages?.includes(row.stage));if(!doctor&&!professional)throw new AdminFailure('审核人须为订单关联医生，或具有本阶段审核资格与授权的人员。',403);if(row.reviewStatus==='审核通过')throw new AdminFailure('已通过的成果审核历史不能改写。',409);before=clone(row);row.reviewerId=input.reviewerId;row.revision=(row.revision||1)+1;this.event(actor,'专业审核关系已指定','专业成果',id,before,row,requireText(input.reason,'指定原因'));break;}
+- case 'export-metadata':{const reason=requireText(input.reason,'导出用途'),snapshot=this.snapshot(actor),allowed=new Map(snapshot.assets.map(a=>[a.id,a]));
+-  if(input.assetIds!==undefined&&(!Array.isArray(input.assetIds)||input.assetIds.some(id=>typeof id!=='string'||!allowed.has(id))))throw new AdminFailure('部分成果不存在或已无访问权限，请刷新后重试。',403);
+-  const selected=input.assetIds===undefined?snapshot.assets:[...new Set(input.assetIds)].map(id=>allowed.get(id));if(!selected.length)throw new AdminFailure('没有可导出的成果记录。',400);
+-  const data=selected.map(a=>{const o=snapshot.orders.find(o=>o.id===a.orderId);return {id:a.id,orderId:a.orderId,businessNo:o?.businessNo||null,projectId:a.projectId,taskId:a.taskId,name:a.name,hospital:snapshot.hospitals.find(h=>h.id===o?.hospitalId)?.name||null,version:a.version,designStage:stages[a.stage]||null,reviewStatus:a.reviewStatus,publishStatus:a.publishStatus,submittedBy:a.submittedByName||null,submittedAt:a.submittedAt||null,reviewer:a.reviewerName||null,reviewedAt:a.reviewedAt||null}});
+-  this.event(actor,'资产信息已导出','数据资产','metadata',null,{count:data.length,assetIds:selected.map(a=>a.id)},reason);this.persist();return {ok:true,source:'isolated-admin',data};}
++ case 'export-metadata':{
++  this.authorize(actor,'assets:read');
++  const reason=requireText(input.reason,'导出用途'),snapshot=this.snapshot(actor);
++  const view=input.view||'orders';if(!['orders','results'].includes(view))throw new AdminFailure('导出视角无效。',400);
++  const filterNames=['orderNo','hospitalId','stage','reviewStatus','completion'];
++  if(input.filters!==undefined&&(!input.filters||typeof input.filters!=='object'||Array.isArray(input.filters)||Object.entries(input.filters).some(([k,v])=>!filterNames.includes(k)||typeof v!=='string'||v.length>200)))throw new AdminFailure('导出筛选条件无效。',400);
++  let selection=assetExportSelection(snapshot,{view,filters:input.filters||{}});
++  if(input.assetIds!==undefined){
++   const allowed=new Map(snapshot.assets.map(a=>[a.id,a]));if(!Array.isArray(input.assetIds)||!input.assetIds.length||input.assetIds.some(id=>typeof id!=='string'||!allowed.has(id)))throw new AdminFailure('部分成果不存在或已无访问权限，请刷新后重试。',403);
++   selection.assets=[...new Set(input.assetIds)].map(id=>allowed.get(id));const ids=new Set(selection.assets.map(a=>a.orderId));selection.orders=assetExportSelection(snapshot).orders.filter(r=>ids.has(r.id));
++  }
++  if(!selection.orders.length)throw new AdminFailure('当前查询范围没有可导出的记录。',400);
++  const filter=input.filters||{},scope=[view==='results'?'成果视角':'订单视角',filter.orderNo&&'订单编号：'+filter.orderNo,filter.hospitalId&&'医院：'+(snapshot.hospitals.find(h=>h.id===filter.hospitalId)?.name||'-'),filter.stage&&'设计阶段：'+stages[Number(filter.stage)],filter.reviewStatus&&view==='results'&&'审核状态：'+filter.reviewStatus,filter.completion&&view==='orders'&&'成果进度：'+({none:'尚无阶段通过',partial:'部分阶段通过',complete:'全部阶段通过'})[filter.completion],`订单${selection.orders.length}笔，成果${selection.assets.length}份`].filter(Boolean).join('；');
++  let result;
++  if(input.format==='json')result={ok:true,data:selection.assets.map(a=>{const o=snapshot.orders.find(o=>o.id===a.orderId);return {id:a.id,orderId:a.orderId,businessNo:o?.businessNo||null,projectId:a.projectId,taskId:a.taskId,name:a.name,hospital:snapshot.hospitals.find(h=>h.id===o?.hospitalId)?.name||null,version:a.version,designStage:stages[a.stage]||null,reviewStatus:a.reviewStatus,submittedBy:a.submittedByName||null,submittedAt:a.submittedAt||null,reviewer:a.reviewerName||null,reviewedAt:a.reviewedAt||null}})};
++  else{
++   if(input.format&&input.format!=='xlsx')throw new AdminFailure('导出格式不支持。',400);
++   const timeZone=input.timeZone||'Asia/Shanghai';try{new Intl.DateTimeFormat('en',{timeZone}).format()}catch{throw new AdminFailure('导出时区无效，请检查设备时区设置。',400)}
++   try{result={ok:true,file:assetWorkbook(selection,snapshot,{scope,timeZone}),mime:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',filename:'clinivol-asset-information.xlsx'}}catch{throw new AdminFailure('Excel文件生成失败，请重试。',500)}
++  }
++  this.event(actor,'资产信息已导出','数据资产','metadata',null,{count:selection.assets.length,orderCount:selection.orders.length,assetIds:selection.assets.map(a=>a.id),assetVersions:selection.assets.map(a=>({id:a.id,version:a.version})),orderIds:selection.orders.map(r=>r.id),view,filters:input.filters||{},format:input.format||'xlsx'},reason);this.persist();return result;
++ }
+  case 'revoke-share':throw new AdminFailure('当前尚未连接销售成果分享写入服务。',503);
+  default:throw new AdminFailure('不支持此操作。',404);
+  }
+diff --git a/server/admin/shareProjection.mjs b/server/admin/shareProjection.mjs
+index e3e0e25..3a59041 100644
+--- a/server/admin/shareProjection.mjs
++++ b/server/admin/shareProjection.mjs
+@@ -11,9 +11,9 @@ export function localShareProvider(auth){
+  };
+ }
+ export function projectAdminShares(source,state){
+- const orders=new Map(state.orders.map(o=>[o.id,o])),assets=new Map(state.assets.map(a=>[a.id,a]));
++ const orders=new Map(state.orders.map(o=>[o.id,o])),assets=new Map(state.assets.map(a=>[JSON.stringify([a.id,a.version]),a]));
+  return Object.values(source?.shares||{}).flatMap(share=>{
+-  const order=orders.get(share.orderId),asset=assets.get(share.resultId),storedOrder=source.orders?.[share.orderId];
++  const order=orders.get(share.orderId),asset=assets.get(JSON.stringify([share.resultId,share.resultVersion])),storedOrder=source.orders?.[share.orderId];
+   if(!order||!asset||asset.orderId!==order.id||asset.version!==share.resultVersion||share.owner!==(order.ownerSalesId||order.salesId)||storedOrder?.owner!==share.owner)return [];
+   const id=share.id||'legacy-'+createHash('sha256').update(share.token).digest('hex').slice(0,32);
+   const eventMap=new Map();for(const e of source.shareEvents||[])if(e.shareId===id&&e.orderId===order.id&&e.resultId===asset.id&&e.resultVersion===asset.version&&!eventMap.has(e.id))eventMap.set(e.id,e);const events=[...eventMap.values()];
+diff --git a/server/business/xlsx.mjs b/server/business/xlsx.mjs
+index ad5833a..dba4fdd 100644
+--- a/server/business/xlsx.mjs
++++ b/server/business/xlsx.mjs
+@@ -6,7 +6,7 @@ const crc = b => { let c = 0xffffffff; for (const n of b) {
+     for (let j = 0; j < 8; j++)
+         c = (c >>> 1) ^ ((c & 1) ? 0xedb88320 : 0);
+ } return (c ^ 0xffffffff) >>> 0; };
+-function zip(entries) { let offset = 0; const chunks = [], central = []; for (const [name, value] of entries) {
++export function openXmlZip(entries) { let offset = 0; const chunks = [], central = []; for (const [name, value] of entries) {
+     const n = Buffer.from(name), b = Buffer.isBuffer(value) ? value : Buffer.from(value), h = Buffer.alloc(30), d = Buffer.alloc(46);
+     h.writeUInt32LE(0x04034b50);
+     h.writeUInt16LE(20, 4);
+@@ -32,7 +32,7 @@ export function insuranceXlsx(rows) {
+     const cell = (v, r, c, style = 0) => `<c r="${String.fromCharCode(65 + c)}${r}" s="${style}" t="inlineStr"><is><t xml:space="preserve">${esc(v)}</t></is></c>`;
+     const sheet = `<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="${ns}" xmlns:r="${rel}"><sheetViews><sheetView workbookViewId="0"><pane ySplit="2" topLeftCell="A3" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${[32, 16, 8, 24, 32, 24, 22, 36].map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join('')}</cols><sheetData><row r="1" ht="30" customHeight="1">${cell('科立沃医保填报汇总', 1, 0, 1)}</row><row r="2" ht="28" customHeight="1">${cols.map((v, i) => cell(v, 2, i, 1)).join('')}</row>${rows.map((o, i) => `<row r="${i + 3}" ht="130" customHeight="1">${[o.hospital, o.patientName, o.sex, o.identityNumber, o.surgery, o.businessNo || o.id].map((v, c) => cell(v, i + 3, c,c===3?3:0)).join('')}<c r="G${i + 3}" s="2"><v>${Date.parse(o.completedAt) / 86400000 + 25569 - new Date(o.completedAt).getTimezoneOffset() / 1440}</v></c></row>`).join('')}</sheetData><autoFilter ref="A2:H${rows.length + 2}"/><mergeCells count="1"><mergeCell ref="A1:H1"/></mergeCells><drawing r:id="drawing"/></worksheet>`;
+     const drawing = `<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${rel}">${rows.map((o, i) => `<xdr:oneCellAnchor><xdr:from><xdr:col>7</xdr:col><xdr:colOff>60000</xdr:colOff><xdr:row>${i + 2}</xdr:row><xdr:rowOff>60000</xdr:rowOff></xdr:from><xdr:ext cx="1428750" cy="1071562"/><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="${i + 1}" name="批准静态成果 ${i + 1}"/><xdr:cNvPicPr/></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="image${i}"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:oneCellAnchor>`).join('')}</xdr:wsDr>`;
+-    return zip([
++    return openXmlZip([
+         ['[Content_Types].xml', `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/></Types>`],
+         ['_rels/.rels', `<Relationships xmlns="${pkg}"><Relationship Id="workbook" Type="${rel}/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
+         ['xl/workbook.xml', `<workbook xmlns="${ns}" xmlns:r="${rel}"><sheets><sheet name="医保内部汇总" sheetId="1" r:id="sheet"/></sheets></workbook>`],
+diff --git a/server/unified/formalResults.mjs b/server/unified/formalResults.mjs
+new file mode 100644
+index 0000000..83cca65
+--- /dev/null
++++ b/server/unified/formalResults.mjs
+@@ -0,0 +1,30 @@
++const validTime=value=>typeof value==='string'&&Number.isFinite(Date.parse(value));
++const same=(a,b)=>a.id===b.id&&a.version===b.version;
++export function taskArtifact(state,task,ref){
++ return ref&&state.artifacts.find(a=>same(a,ref)&&a.taskId===task.id&&a.projectId===task.projectId&&a.orderId===task.orderId&&(a.stage===undefined||a.stage===task.stage));
++}
++function approvalEvidence(state,task,a){
++ const review=state.events.find(e=>e.type==='review-pass'&&e.taskId===task.id&&e.orderId===a.orderId&&e.resultId===a.id&&e.resultVersion===a.version&&validTime(e.at));
++ const at=a.reviewedAt||review?.at||task.approvedModel?.approvedAt;
++ return validTime(at)&&a.reviewStatus==='审核通过'?{at,by:a.reviewerId||review?.actorId||null}:null;
++}
++/** Freeze only an existing, exactly related official selection with approval evidence.
++ * This compatibility step does not create or rewrite any review/lock audit event. */
++export function restoreFormalLocks(state){
++ let changed=false;
++ for(const task of state.tasks){const a=taskArtifact(state,task,task.approvedModel),e=a&&approvalEvidence(state,task,a);if(!a||!e||a.locked===true)continue;
++  if(a.locked===false||a.lockedAt)continue;
++  a.locked=true;a.lockedAt=e.at;a.lockedBy=e.by;a.lockOrigin='existing-approved-selection';changed=true;
++ }return changed;
++}
++export function formalArtifact(state,task){
++ const a=task&&taskArtifact(state,task,task.approvedModel);
++ return a?.locked===true&&a.reviewStatus==='审核通过'&&validTime(a.lockedAt)?a:null;
++}
++export function guardFormalVersions(before,after){
++ for(const a of before.artifacts.filter(a=>a.locked===true)){
++  const next=after.artifacts.find(r=>same(r,a));
++  if(!next||JSON.stringify(next)!==JSON.stringify(a))throw Object.assign(Error('正式锁定成果不可覆盖或删除，请提交新版本。'),{status:409});
++ }
++}
++export const formalReference=a=>({id:a.id,version:a.version,taskId:a.taskId,projectId:a.projectId,orderId:a.orderId});
+diff --git a/server/unified/service.mjs b/server/unified/service.mjs
+index f1c9e2d..0af6726 100644
+--- a/server/unified/service.mjs
++++ b/server/unified/service.mjs
+@@ -1,3 +1,4 @@
++import {restoreFormalLocks,formalArtifact,formalReference,guardFormalVersions} from './formalResults.mjs';
+ import {eligibleHospitalLeaders} from '../../src/admin/institutionRules.mjs';
+ import { randomUUID } from 'node:crypto';
+ import { mkdirSync, existsSync, readFileSync, writeFileSync, renameSync, openSync, closeSync, unlinkSync, fsyncSync } from 'node:fs';
+@@ -16,7 +17,7 @@ const editable = ['name', 'caseId', 'doctorId', 'hospitalId', 'department', 'ser
+ /** A single local database. Role snapshots are projections, never three persisted copies. */
+ export class UnifiedBusinessService {
+     constructor({ directory, directoryProvider = () => ({ hospitals: [], doctors: [], salesScopes: {}, engineers: [] }), now = Date.now } = {}) { this.directory = directory; this.directoryProvider = directoryProvider; this.now = now; this.state = empty(); if (directory)
+-        mkdirSync(directory, { recursive: true, mode: 0o700 }); this.reload(); if(directory && upgradeKnownSharedDesignFixtures(copy(this.state.orders)))this.transaction(()=>upgradeKnownSharedDesignFixtures(this.state.orders)); }
++        mkdirSync(directory, { recursive: true, mode: 0o700 }); this.reload(); const pending=copy(this.state);if(directory&&(upgradeKnownSharedDesignFixtures(copy(this.state.orders))||restoreFormalLocks(pending)))this.transaction(()=>{upgradeKnownSharedDesignFixtures(this.state.orders);restoreFormalLocks(this.state)}); }
+     reload() { if (this.directory && existsSync(join(this.directory, 'state.json'))) {
+         const next = JSON.parse(readFileSync(join(this.directory, 'state.json'), 'utf8'));
+         if (next.schema !== 1 || next.source !== 'isolated-shared')
+@@ -35,7 +36,10 @@ export class UnifiedBusinessService {
+             }
+         }
+         this.reload();
++        const beforeWork=copy(this.state);
+         const result = work();
++        guardFormalVersions(beforeWork,this.state);
++        restoreFormalLocks(this.state);
+         this.assertRelations();
+         if (this.directory) {
+             const file = join(this.directory, `state-${randomUUID()}.tmp`);
+@@ -166,7 +170,7 @@ export class UnifiedBusinessService {
+     salesOrder(o) { const tasks = this.state.tasks.filter(t => t.orderId === o.id); return { ...copy(o), taskIds: tasks.map(t => t.id), stages: tasks.map(t => ({ name: designStages[t.stage], status: t.status, taskId: t.id, owner: this.directoryProvider().engineers.find(e => e.id === t.assignee)?.name || '', artifactId: t.approvedModel?.id })) }; }
+     salesSnapshot(actor) { this.reload(); this.sales(actor); const orders = this.state.orders.filter(o => o.ownerSalesId === actor.id && (o.hospitalId ? this.sales(actor).includes(o.hospitalId) : o.status === '草稿')), ids = new Set(orders.map(o => o.id)); return { catalogMode: this.state.catalogMode, orders: orders.map(o => this.salesOrder(o)), projects: copy(this.state.projects.filter(p => ids.has(p.orderId))), events: copy(this.state.events.filter(e => ids.has(e.orderId)).map(e => ({ ...e, target: e.orderId, detail: e.reason || '', read: false }))) }; }
+     adminSnapshot(actor) { this.reload(); if (!actor || actor.status !== 'approved' || !['super_admin', 'admin', 'leader'].includes(actor.role) || !actor.permissions?.includes('orders:read'))
+-        throw new BusinessFailure('无订单访问权限。', 403); const directory = this.directoryProvider(), orders = this.state.orders.filter(o => o.status !== '草稿' && o.businessNo && (actor.role === 'super_admin' || actor.hospitalIds?.includes(o.hospitalId))), ids = new Set(orders.map(o => o.id)); return { orders: orders.map(o => ({ ...copy(o), salesId: o.ownerSalesId, requestedStages: o.plannedStages.map(s => designStages.indexOf(s)), createdAt: o.created, patientRef: o.patientIdentityRef, version: o.version })), tasks: copy(this.state.tasks.filter(t => ids.has(t.orderId))), hospitals: copy(directory.hospitals.filter(h => actor.role === 'super_admin' || actor.hospitalIds?.includes(h.id))), doctors: copy(directory.doctors.filter(d => orders.some(o => o.doctorId === d.id))), people: copy(directory.people || []), assets: copy(this.state.artifacts.filter(a => actor.permissions.includes('assets:read') && ids.has(a.orderId)).map(a => ({ ...a, name: '专业提交成果', stage: this.state.tasks.find(t => t.id === a.taskId)?.stage ?? null, publishStatus: '未发布', sourceFileAvailable: false, revision: 1 }))), events: copy(this.state.events.filter(e => actor.permissions.includes('audit:read') && ids.has(e.orderId)).map(e => ({ ...e, objectId: e.taskId || e.orderId, category: e.taskId ? '任务调度' : '订单审核', result: '成功', reason: e.reason || '' }))) }; }
++        throw new BusinessFailure('无订单访问权限。', 403); const directory = this.directoryProvider(), orders = this.state.orders.filter(o => o.status !== '草稿' && o.businessNo && (actor.role === 'super_admin' || actor.hospitalIds?.includes(o.hospitalId))), ids = new Set(orders.map(o => o.id)); return { orders: orders.map(o => ({ ...copy(o), salesId: o.ownerSalesId, requestedStages: o.plannedStages.map(s => designStages.indexOf(s)), createdAt: o.created, patientRef: o.patientIdentityRef, version: o.version })), tasks: copy(this.state.tasks.filter(t => ids.has(t.orderId))), hospitals: copy(directory.hospitals.filter(h => actor.role === 'super_admin' || actor.hospitalIds?.includes(h.id))), doctors: copy(directory.doctors.filter(d => orders.some(o => o.doctorId === d.id))), people: copy(directory.people || []), assets: copy(this.state.artifacts.filter(a => actor.permissions.includes('assets:read') && ids.has(a.orderId)).map(a => ({ ...a, name: a.name || '专业提交成果', stage: this.state.tasks.find(t => t.id === a.taskId)?.stage ?? null, sourceFileAvailable: false, revision: 1 }))), events: copy(this.state.events.filter(e => actor.permissions.includes('audit:read') && ids.has(e.orderId)).map(e => ({ ...e, objectId: e.taskId || e.orderId, category: e.taskId ? '任务调度' : '订单审核', result: '成功', reason: e.reason || '' }))) }; }
+     manage(actor, { action, id, version, ...input }) {
+         return this.transaction(() => {
+             const isTask = action === 'assign-task', task = isTask ? this.state.tasks.find(t => t.id === id) : null, o = this.order(actor, task?.orderId || id);
+@@ -246,12 +250,13 @@ export class UnifiedBusinessService {
+             throw new BusinessFailure('当前共享业务不支持此操作。', 400);
+         });
+     }
+-    designerSnapshot(actor) { this.reload(); this.actor(actor, 'designer', 'projects:own'); const own = this.state.tasks.filter(t => t.assignee === actor.id), projectIds = new Set(own.map(t => t.projectId)), projects = this.state.projects.filter(p => projectIds.has(p.id)); const tasks = own.map(t => { const p = projects.find(p => p.id === t.projectId), o = this.state.orders.find(o => o.id === p.orderId), up = this.state.tasks.find(u => u.id === t.upstreamId); return { ...copy(t), businessNo: o.businessNo, title: o.name, patient: o.patientIdentityRef, patientName: o.patientName, orderNo: p.id, surgery: designDemand(o).text, designDemandContent: designDemand(o).content, designDemandOwnerId: o.ownerSalesId, taskType: ['三维重建', 'CAD 设计', '有限元分析', '3D 打印'][t.stage], owner: actor.name, updated: t.updatedAt, deadline: t.plannedDate, series: copy(t.workspace?.series || []), catalogDemo: t.demoScenario === 'linked-business-20261123-v1' && t.workspace?.assetId === 'shared-jaw-demonstration', source: '订单关联资料', hospital: this.directoryProvider().hospitals.find(h => h.id === o.hospitalId)?.name || '', dataOrigin: 'demo', sharedBusiness: true, projectStatus: aggregate(this.state.tasks.filter(row => row.projectId === p.id)), accessible: true, assigneeId: t.assignee, projectCreatedAt: p.createdAt, orderCreatedAt: o.created, agreedDueAt: o.confirmedDeliveryDate, upstreamTaskId: t.upstreamId, upstreamApproved: !!up?.approvedModel && up.status === '已完成', approvedModel: t.approvedModel || up?.approvedModel }; }); const ids = new Set(own.map(t => t.id)), byOrder = new Map(projects.map(p => [p.orderId, p])); return { catalogMode: this.state.catalogMode, tasks, events: copy(this.state.events.filter(e => byOrder.has(e.orderId) && (!e.taskId || ids.has(e.taskId))).map(e => ({ ...e, orderNo: byOrder.get(e.orderId).id, taskId: e.taskId || '', type: e.type, name: e.title, description: e.reason || '' }))) }; }
++    designerSnapshot(actor) { this.reload(); this.actor(actor, 'designer', 'projects:own'); const own = this.state.tasks.filter(t => t.assignee === actor.id), projectIds = new Set(own.map(t => t.projectId)), projects = this.state.projects.filter(p => projectIds.has(p.id)); const tasks = own.map(t => { const p = projects.find(p => p.id === t.projectId), o = this.state.orders.find(o => o.id === p.orderId), up = this.state.tasks.find(u => u.id === t.upstreamId); return { ...copy(t), businessNo: o.businessNo, title: o.name, patient: o.patientIdentityRef, patientName: o.patientName, orderNo: p.id, surgery: designDemand(o).text, designDemandContent: designDemand(o).content, designDemandOwnerId: o.ownerSalesId, taskType: ['三维重建', 'CAD 设计', '有限元分析', '3D 打印'][t.stage], owner: actor.name, updated: t.updatedAt, deadline: t.plannedDate, series: copy(t.workspace?.series || []), catalogDemo: t.demoScenario === 'linked-business-20261123-v1' && t.workspace?.assetId === 'shared-jaw-demonstration', source: '订单关联资料', hospital: this.directoryProvider().hospitals.find(h => h.id === o.hospitalId)?.name || '', dataOrigin: 'demo', sharedBusiness: true, projectStatus: aggregate(this.state.tasks.filter(row => row.projectId === p.id)), accessible: true, assigneeId: t.assignee, projectCreatedAt: p.createdAt, orderCreatedAt: o.created, agreedDueAt: o.confirmedDeliveryDate, upstreamTaskId: t.upstreamId, upstreamApproved: !!formalArtifact(this.state,up) && up.status === '已完成', approvedModel: formalArtifact(this.state,t)?t.approvedModel:formalArtifact(this.state,up)?up.approvedModel:undefined }; }); const ids = new Set(own.map(t => t.id)), byOrder = new Map(projects.map(p => [p.orderId, p])); return { catalogMode: this.state.catalogMode, tasks, events: copy(this.state.events.filter(e => byOrder.has(e.orderId) && (!e.taskId || ids.has(e.taskId))).map(e => ({ ...e, orderNo: byOrder.get(e.orderId).id, taskId: e.taskId || '', type: e.type, name: e.title, description: e.reason || '' }))) }; }
+     taskCommand(actor, { id, action, version, artifact }) { return this.transaction(() => { this.actor(actor, 'designer', 'projects:own'); const t = this.state.tasks.find(t => t.id === id && t.assignee === actor.id); if (!t)
+-        throw new BusinessFailure('无任务访问权限。', 403); this.version(t, version); const o = this.state.orders.find(o => o.id === t.orderId), up = this.state.tasks.find(u => u.id === t.upstreamId); if (up && (up.status !== '已完成' || !up.approvedModel))
++        throw new BusinessFailure('无任务访问权限。', 403); this.version(t, version); const o = this.state.orders.find(o => o.id === t.orderId), up = this.state.tasks.find(u => u.id === t.upstreamId); if (up && (up.status !== '已完成' || !formalArtifact(this.state,up)))
+         throw new BusinessFailure('等待上游正式成果审核通过。', 409); if (action === 'start') {
+         if (t.status !== '未开始')
+             return { ok: true };
++        if(up)t.inputArtifact=formalReference(formalArtifact(this.state,up));
+         t.status = '进行中';
+         this.event(actor, o, '专业任务已开始', 'started', { taskId: t.id });
+     }
+diff --git a/src/admin/AdminWorkspace.tsx b/src/admin/AdminWorkspace.tsx
+index 24badef..eb49ba7 100644
+--- a/src/admin/AdminWorkspace.tsx
++++ b/src/admin/AdminWorkspace.tsx
+@@ -1,5 +1,7 @@
++import {AssetOrderDetails,AssetVersionDetail} from './AssetOrderDetails';
++import type {AssetExportScope} from './assetRules.mjs';
+ import {DataAssetPanel,AuditLogPanel,DataAuditStatus} from './DataAuditPanel';
+-import {assetFieldKeys,auditObjectName,auditOrderId,auditChanges,businessLabel} from './dataAuditRules.mjs';
++import {auditObjectName,auditOrderId,auditChanges,businessLabel} from './dataAuditRules.mjs';
+ import {DataIcon,FileSafetyIcon} from '../design-system/tdesign';
+ import {RolePanel} from './RolePanel';
+ import {anhuiCities,hospitalMatches,memberMatches,eligibleHospitalLeaders} from './institutionRules.mjs';
+@@ -26,7 +28,7 @@ import type {DateRange} from '../projects/projectModel';
+ import {orderMatches,recentOrders,orderActions,historyEvents,fileFormat,fileCategory,fileSize} from './orderRules.mjs';
+ import {AdminTable,FullText} from './AdminTable';
+ import type {Column} from './AdminTable';
+-import {adminRequest,dashboardBuckets,STAGES} from './model';
++import {adminRequest,downloadAssetWorkbook,dashboardBuckets,STAGES} from './model';
+ import type {AdminState,Approval,Asset,AuditEvent,Department,Doctor,Hospital,Order,Person,Share,Task} from './model';
+ import {AdminOrderAttachmentPreview} from './OrderAttachmentPreview';
+ import type {Attachment} from '../sales/model';
+@@ -42,7 +44,7 @@ const formatAuditTime=(...args:Parameters<typeof auditTime>)=>emptyValue(auditTi
+ const formatDate=(...args:Parameters<typeof date>)=>emptyValue(date(...args));
+ const formatDateTime=(...args:Parameters<typeof dateTime>)=>emptyValue(dateTime(...args));
+ type Setting='profile'|'security'|'preferences';
+-type Command={assetIds?:string[];action:string;id:string;version?:number;title:string;kind?:'doctor'|'order'|'task'|'hospital'|'approval'|'person'|'asset';result?:string;date?:string;basis?:string;options?:{label:string;value:string}[];selectLabel?:string};
++type Command={assetIds?:string[];assetScope?:AssetExportScope;scopeSummary?:string;action:string;id:string;version?:number;title:string;kind?:'doctor'|'order'|'task'|'hospital'|'approval'|'person'|'asset';result?:string;date?:string;basis?:string;options?:{label:string;value:string}[];selectLabel?:string};
+ const stageNames=['三维重建','CAD 设计','有限元分析','3D 打印'] as const;
+ const menu=[['home','工作台',HomeIcon],['orders','订单管理',TaskIcon],['tasks','任务调度',WorkIcon],['reviews','审核中心',TaskCheckedIcon],['organizations','机构与成员',UserBusinessIcon],['assets','数据资产',DataIcon],['audit','审计日志',FileSafetyIcon]] as const;
+ function Status({value}:{value:string}){value=reviewState(value);const theme=['处理中','进行中'].includes(value)?'primary':['待审核','待审批'].includes(value)?'warning':['审核退回','审批退回','已停用'].includes(value)?'danger':['审核通过','已完成','已启用','审批通过','已发布','已授权'].includes(value)?'success':'default';return <Tag variant="light" theme={theme} className={['处理中','进行中'].includes(value)?'status-in-progress':''}>{value}</Tag>}
+@@ -75,18 +77,18 @@ export default function AdminWorkspace(){
+  useEffect(()=>{storage.setItem('admin-collapsed',collapsed?'1':'0')},[collapsed,storage]);
+  const returnContext=useRef<{route:string;query:string;status:string;hospitalId:string;leaderId:string;department:string;range:string[];tab:string;stage:string;assignee:string;scroll:number}[]>([]);
+  const moduleContexts=useRef<Record<string,{query:string;status:string;hospitalId:string;leaderId:string;department:string;range:string[];stage:string;assignee:string}>>({});
+- const go=(value:string,remember=true,reset=false)=>{if(remember&&!route.includes('/'))moduleContexts.current[route]={query,status,hospitalId,leaderId,department,range,stage:stageFilter,assignee:assigneeFilter};if(remember&&(value.startsWith('order/')||value.startsWith('hospital/')))returnContext.current.push({route,query,status,hospitalId,leaderId,department,range,tab,stage:stageFilter,assignee:assigneeFilter,scroll:document.querySelector('.platform-main')?.scrollTop||0});else if(remember)returnContext.current=[];setQuery('');setStatus('');setHospitalId('');setLeaderId('');setDepartment('');setRange(value==='orders'||value==='orders/risk'?periodRange('3m'):[]);setStageFilter('');setAssigneeFilter('');const saved=!reset?moduleContexts.current[value]:undefined;if(saved){setQuery(saved.query);setStatus(saved.status);setHospitalId(saved.hospitalId);setLeaderId(saved.leaderId);setDepartment(saved.department);setRange(saved.range);setStageFilter(saved.stage);setAssigneeFilter(saved.assignee)}location.hash=`admin/${value}`;setRoute(value)};
++ const go=(value:string,remember=true,reset=false)=>{if(remember&&!route.includes('/'))moduleContexts.current[route]={query,status,hospitalId,leaderId,department,range,stage:stageFilter,assignee:assigneeFilter};if(remember&&(value.startsWith('order/')||value.startsWith('hospital/')||value.startsWith('asset-order/')))returnContext.current.push({route,query,status,hospitalId,leaderId,department,range,tab,stage:stageFilter,assignee:assigneeFilter,scroll:document.querySelector('.platform-main')?.scrollTop||0});else if(remember)returnContext.current=[];setQuery('');setStatus('');setHospitalId('');setLeaderId('');setDepartment('');setRange(value==='orders'||value==='orders/risk'?periodRange('3m'):[]);setStageFilter('');setAssigneeFilter('');const saved=!reset?moduleContexts.current[value]:undefined;if(saved){setQuery(saved.query);setStatus(saved.status);setHospitalId(saved.hospitalId);setLeaderId(saved.leaderId);setDepartment(saved.department);setRange(saved.range);setStageFilter(saved.stage);setAssigneeFilter(saved.assignee)}location.hash=`admin/${value}`;setRoute(value)};
+  const goBack=(fallback:string)=>{const previous=returnContext.current.pop();if(!previous){go(fallback);return}go(previous.route,false);setQuery(previous.query);setStatus(previous.status);setHospitalId(previous.hospitalId);setLeaderId(previous.leaderId);setDepartment(previous.department);setRange(previous.range);setStageFilter(previous.stage);setAssigneeFilter(previous.assignee);setModuleTab(previous.route.split('/')[0],previous.tab);requestAnimationFrame(()=>{const main=document.querySelector('.platform-main');if(main)main.scrollTop=previous.scroll})};
+- const backLabel=(fallback:string)=>'返回'+(menu.find(([key])=>key===returnContext.current.at(-1)?.route.split('/')[0])?.[1]||fallback);
++ const backLabel=(fallback:string)=>{const section=returnContext.current.at(-1)?.route.split('/')[0];return '返回'+(section==='order'?'订单详情':section==='asset-order'?'订单成果详情':menu.find(([key])=>key===section)?.[1]||fallback)};
+  const theme=(value:'light'|'dark'|'system')=>{const next=value==='dark'||value==='system'&&matchMedia('(prefers-color-scheme:dark)').matches;setDark(next);document.documentElement.setAttribute('theme-mode',next?'dark':'light');document.documentElement.dataset.theme=next?'dark':'light';localStorage.setItem('clinivol-theme-preference',value)};
+  const start=(value:Command)=>{setCommand(value);setReason('');setBasis(value.basis||'');setSelection(value.options?.length===1?value.options[0].value:'');setDate(value.date||'');setCommandError('');setCommandConflict(false)};
+  const commandFlight=useRef(false);
+- const commit=async()=>{if(!command||busy||commandFlight.current)return;const invalid=command.options&&!selection?'请选择'+(command.selectLabel||'操作对象')+'。':(['assign-task'].includes(command.action)||command.action==='review-order'&&command.result==='approved')&&!/^\d{4}-\d{2}-\d{2}$/.test(date)?'请选择有效日期。':(command.action==='revoke-permission'||command.result==='approved'&&['review-doctor','review-account','approve-permission'].includes(command.action)||command.action==='request-permission')&&!basis.trim()?'请填写书面审核依据。':command.result!=='approved'&&!reason.trim()?'请填写'+(command.result==='returned'?'退回原因':command.action==='export-metadata'?'导出用途':'操作原因')+'。':'';if(invalid){setCommandError(invalid);return}commandFlight.current=true;setBusy(true);setCommandError('');try{const result=await adminRequest<{ok:boolean;data?:unknown}>('command',{action:command.action,id:command.id,version:command.version,result:command.result,reason,basis,leaderId:selection,assignee:selection,reviewerId:selection,permission:selection,plannedDate:date,confirmedDeliveryDate:date,...(command.action==='export-metadata'?{assetIds:command.assetIds}:{})});if(result.data){const url=URL.createObjectURL(new Blob([JSON.stringify(result.data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='clinivol-asset-information.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}await refresh();await auth.refresh();setCommand(null);if(!['review-doctor','review-account','approve-permission','doctor-status','reopen-doctor-review','reopen-permission-review'].includes(command.action))setInspect(null);void MessagePlugin.success('操作已完成')}catch(e){setCommandError((e as Error).message);if((e as Error & {status?:number}).status===409){setCommandConflict(true);await refresh()}}finally{commandFlight.current=false;setBusy(false)}};
++ const commit=async()=>{if(!command||busy||commandFlight.current)return;const invalid=command.options&&!selection?'请选择'+(command.selectLabel||'操作对象')+'。':(['assign-task'].includes(command.action)||command.action==='review-order'&&command.result==='approved')&&!/^\d{4}-\d{2}-\d{2}$/.test(date)?'请选择有效日期。':(command.action==='revoke-permission'||command.result==='approved'&&['review-doctor','review-account','approve-permission'].includes(command.action)||command.action==='request-permission')&&!basis.trim()?'请填写书面审核依据。':command.result!=='approved'&&!reason.trim()?'请填写'+(command.result==='returned'?'退回原因':command.action==='export-metadata'?'导出用途':'操作原因')+'。':'';if(invalid){setCommandError(invalid);return}commandFlight.current=true;setBusy(true);setCommandError('');try{if(command.action==='export-metadata'){await downloadAssetWorkbook({action:'export-metadata',id:'metadata',format:'xlsx',...command.assetScope,reason,timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone})}else{await adminRequest('command',{action:command.action,id:command.id,version:command.version,result:command.result,reason,basis,leaderId:selection,assignee:selection,reviewerId:selection,permission:selection,plannedDate:date,confirmedDeliveryDate:date})}await refresh();await auth.refresh();setCommand(null);if(!['review-doctor','review-account','approve-permission','doctor-status','reopen-doctor-review','reopen-permission-review'].includes(command.action))setInspect(null);void MessagePlugin.success('操作已完成')}catch(e){setCommandError((e as Error).message);if((e as Error & {status?:number}).status===409){setCommandConflict(true);await refresh()}}finally{commandFlight.current=false;setBusy(false)}};
+  useEffect(()=>{setInspect(null);setCommand(null);setPreview('')},[route]);
+  useEffect(()=>{if(route.startsWith('reviews/doctor/')&&data){const d=data.doctors.find(d=>d.id===route.split('/')[2]);if(d){setInspectKind('doctor');setInspect(d);setModuleTab('reviews','doctors')}}if(route.startsWith('reviews/application/')&&data){const a=data.approvals.find(a=>a.id===route.split('/')[2]);if(a){setInspectKind('approval');setInspect(a);setModuleTab('reviews',isAccountApplication(a)?'accounts':'permissions')}}},[route,data]);
+  const closeInspector=()=>{setInspect(null);if(/^reviews\/(doctor|application)\//.test(route)){history.replaceState(null,'','#admin/reviews');setRoute('reviews')}};
+  const user={...account,role:roleName(account)};
+- const section=route.split('/')[0],detail=route.split('/')[1],settings=['profile','security','preferences'].includes(section),active=section==='order'?'orders':section==='hospital'?'organizations':section;
++ const section=route.split('/')[0],detail=route.split('/')[1],settings=['profile','security','preferences'].includes(section),active=section==='order'?'orders':section==='hospital'?'organizations':section==='asset-order'?'assets':section;
+  const buckets=useMemo(()=>data?dashboardBuckets(data,new Date(),account.permissions):null,[data,account.permissions]);
+  const person=(id?:string|null)=>id===account.id?account.name:data?.people.find(p=>p.id===id)?.name||'未分配';
+  const businessNo=(id:string)=>{const o=data?.orders.find(o=>o.id===id);return o?.status==='草稿'?'-':o?.businessNo||'-'};
+@@ -169,11 +171,14 @@ export default function AdminWorkspace(){
+   </section></>;
+  }
+  else if(section==='orders')content=<Card bordered={false} className="project-list-card">{title(route.endsWith('/risk')?'交付风险订单':route.endsWith('/unassigned')?'待分配任务订单':'订单管理')}{orderFilters}<AdminTable rows={filteredOrders} columns={orderColumns}/></Card>;
++ else if(section==='asset-order'){
++  const order=data.orders.find(o=>o.id===detail);content=can('assets:read')?(order?<AssetOrderDetails data={data} order={order} onAsset={a=>show('asset',a)} onBack={()=>goBack('assets')} backLabel={backLabel('数据资产')}/>:<><PageBack label="返回数据资产" onBack={()=>go('assets')}/><Card bordered={false} className="admin-result-empty"><Empty title="暂无数据" description={null}/></Card></>):<Empty title="无此模块访问权限" description={null}/>;
++ }
+  else if(section==='order'){
+   const order=data.orders.find(o=>o.id===detail);
+   const orderTasks=data.tasks.filter(t=>t.orderId===detail).sort((a,b)=>a.stage-b.stage);
+   content=order?<><PageBack label={backLabel('订单管理')} onBack={()=>goBack('orders')}/>
+-   <Card bordered={false} className="project-info-card admin-order-overview"><div className="project-page-heading"><h2>订单概览</h2></div><Fields items={[
++   <Card bordered={false} className="project-info-card admin-order-overview"><div className="project-page-heading"><h2>订单概览</h2>{can('assets:read')&&<Button theme="primary" variant="text" onClick={()=>go(`asset-order/${order.id}`)}>查看成果</Button>}</div><Fields items={[
+     ['订单编号',businessNo(order.id)],['手术项目名称',order.name],['医院',hospital(order.hospitalId)],
+     ['科室',order.department],['医生',doctor(order.doctorId)],['患者',order.patientName],
+     ['设计阶段',<div className="project-stage-tags">{order.requestedStages.map(stage=><StageLabel key={stage} stage={stageNames[stage]}/>)}</div>],['订单状态',<Status value={order.status}/>],['负责组长',person(order.leaderId)],
+@@ -217,7 +222,7 @@ export default function AdminWorkspace(){
+    {key:'actions',label:'操作',render:r=><div className="admin-actions">{button('编辑',()=>setDepartmentEdit({hospital:h,initial:r}))}{button(r.status==='已启用'?'停用':'启用',()=>start({action:'department-status',id:r.id,version:r.version,title:r.status==='已启用'?'停用科室':'启用科室'}))}</div>}
+   ]}/></Card><Card bordered={false} className="table-card"><div className="section-heading"><h2>关联医生</h2></div><AdminTable fixedPageSize={6} rows={data.doctors.filter(d=>d.hospitalId===h.id)} columns={doctorColumns()}/></Card></>:<Empty description="医院不存在"/>;
+  }
+- else if(section==='assets')content=<DataAssetPanel data={data} canExport={can('assets:export-metadata')} tab={tab} onTab={setTab} onOrder={id=>go(`order/${id}`)} onAsset={row=>show('asset',row)} onShare={row=>show('share',row)} onExport={assetIds=>start({action:'export-metadata',id:'metadata',title:'导出资产信息',assetIds})}/>;
++ else if(section==='assets')content=<DataAssetPanel data={data} canExport={can('assets:export-metadata')} tab={tab} onTab={setTab} onOrder={id=>go(`order/${id}`)} onOrderResults={id=>go(`asset-order/${id}`)} onAsset={row=>show('asset',row)} onShare={row=>show('share',row)} onExport={(assetScope,scopeSummary)=>start({action:'export-metadata',id:'metadata',title:'导出资产信息',assetScope,scopeSummary})}/>;
+  else if(section==='audit')content=<AuditLogPanel data={data} onInspect={row=>show('audit',row)}/>;
+  else content=<Empty description="页面不存在"/>;
+  function doctorValue(d:Doctor,key:string):ReactNode{
+@@ -241,11 +246,8 @@ export default function AdminWorkspace(){
+   if(inspectKind==='person'){const p=data.people.find(p=>p.id===inspect.id);if(!p)return <Empty title="成员不存在或无查看权限" description={null}/>;const management=['orders:read','orders:review','tasks:assign','doctors:review','people:manage','accounts:approve','permissions:grant','assets:read','assets:export-metadata','audit:read','shares:manage'];return <div className="admin-review-sections"><section><h3>基本资料</h3><Fields items={[["姓名",p.name],["岗位",p.role],["所属组织",p.organization],["生效范围",p.scope.map(hospital).join('、')||(p.permissions.includes('projects:own')?'本人任务':'-')],["具体权限",p.permissions.map(permissionName).join('、')||'-'],["人员启用状态",<Tooltip content={p.managementEditable?'变更须确认操作原因':'当前账号暂不支持在此启用或停用'}><span><Switch aria-label="人员启用状态" value={p.status==='已启用'} disabled={!can('people:manage')||!p.managementEditable} onChange={()=>start({action:'person-status',id:p.id,version:p.version,title:p.status==='已启用'?'停用人员登记':'启用人员登记'})}/></span></Tooltip>]]}/></section>
+   <section><h3>管理授权</h3>{(['管理员','业务组长'].includes(p.role)?management:p.permissions).map(perm=>{const granted=p.permissions.includes(perm),pending=data.approvals.some(a=>a.subjectId===p.id&&a.status==='待审批'&&a.permissions.includes(perm));return <div className="admin-permission-row" key={perm}><span>{permissionName(perm)}</span><Tooltip content={pending?'授权申请待审核':!p.managementEditable?'当前账号权限不可在此调整':granted?'撤销此项权限':'申请此项权限'}><span><Switch aria-label={permissionName(perm)} value={granted} disabled={!p.managementEditable||!can('permissions:grant')||pending||p.status!=='已启用'} onChange={()=>start({action:granted?'revoke-permission':'request-permission',id:p.id,version:p.version,title:granted?'撤销管理权限':'申请管理授权',options:[{label:permissionName(perm),value:perm}],selectLabel:granted?'撤销权限':'申请权限'})}/></span></Tooltip></div>})}</section></div>}
+   if(inspectKind==='asset'){
+-   const a=data.assets.find(a=>a.id===inspect.id);if(!a)return <Empty title="暂无数据" description={null}/>;
+-   const o=data.orders.find(o=>o.id===a.orderId),events=data.events.filter(e=>e.objectId===a.id||e.resultId===a.id||e.objectId===a.taskId&&!e.resultId);
+-   const fields:Record<string,[string,ReactNode]>={order:['订单编号',businessNo(a.orderId)],name:['成果名称',a.name],hospital:['医院',o?hospital(o.hospitalId):'-'],stage:['设计阶段',a.stage===null?'-':<StageLabel stage={stageNames[a.stage]}/>],version:['成果版本',a.version],submitter:['提交人',a.submittedByName||'-'],submitted:['提交时间',formatAuditTime(a.submittedAt)],review:['审核状态',<Status value={a.reviewStatus}/>],reviewer:['审核人',a.reviewerName||'-'],reviewed:['审核时间',formatAuditTime(a.reviewedAt)],publish:['发布状态',<Status value={a.publishStatus}/>]};
+-   const primary=assetFieldKeys('results');
+-   return <div className="admin-review-sections"><section><h3>基本资料</h3><Fields items={primary.map(key=>fields[key])}/></section><section><h3>关联业务</h3><Fields items={[["手术项目名称",o?.name],["医生",o?doctor(o.doctorId):'-'],["患者",o?.patientName]]}/></section><section><h3>操作记录</h3><History events={events}/></section></div>;
++   const selected=inspect as Asset,a=data.assets.find(a=>a.id===selected.id&&a.version===selected.version);if(!a)return <Empty title="暂无数据" description={null}/>;
++   return <AssetVersionDetail asset={a} data={data} onAsset={a=>show('asset',a)} renderHistory={events=><History events={events}/>}/>;
+   }
+   if(inspectKind==='share'){
+    const r=data.shares.find(s=>s.id===inspect.id);if(!r)return <Empty title="暂无数据" description={null}/>;
+@@ -276,14 +278,14 @@ export default function AdminWorkspace(){
+   }
+   return false;
+  }
+- return <div className="app admin-app" style={{'--layout-sidebar-width':'224px','--layout-sidebar-collapsed-width':'64px'} as CSSProperties}><GlobalHeader showTaskTabs={false} screen={{kind:'home'}} openTabs={[]} tasks={[]} user={user} theme={dark?'dark':'light'} goHome={()=>go('home')} openWorkspace={()=>{}} closeTab={()=>{}} unreadCount={0} onThemeToggle={()=>theme(dark?'light':'dark')} onNotifications={()=>setNotices(true)} onLock={()=>void auth.lock()} onOpenSettings={go} onLogout={()=>window.dispatchEvent(new Event('clinivol-request-logout'))}/><div className="content-stage"><div className={`platform-shell${collapsed?' nav-collapsed':''}`}><aside className={`business-nav${collapsed?' is-collapsed':''}`}><Menu value={active} collapsed={collapsed} width={[224,64]}>{visibleMenu.map(([value,label,Icon],index)=><div key={value}>{!collapsed&&navGroup(value)&&navGroup(value)!==navGroup(visibleMenu[index-1]?.[0])&&<div className="admin-nav-group">{navGroup(value)}</div>}<Menu.MenuItem key={value} value={value} icon={<span className="nav-menu-icon"><Icon size={20}/></span>} onClick={()=>go(value)}>{label}</Menu.MenuItem></div>)}</Menu><Tooltip content={collapsed?'展开导航':'收起导航'} placement="right"><button className="nav-collapse" aria-label={collapsed?'展开导航':'收起导航'} onClick={()=>setCollapsed(!collapsed)}><ViewListIcon size={20}/></button></Tooltip></aside><main className="platform-main">{settings?content:<div className={`page ${section==='home'?'dashboard-page':'project-page'} admin-page${section==='order'?' project-detail-page admin-order-page':''}`}>{content}</div>}</main></div></div>
++ return <div className="app admin-app" style={{'--layout-sidebar-width':'224px','--layout-sidebar-collapsed-width':'64px'} as CSSProperties}><GlobalHeader showTaskTabs={false} screen={{kind:'home'}} openTabs={[]} tasks={[]} user={user} theme={dark?'dark':'light'} goHome={()=>go('home')} openWorkspace={()=>{}} closeTab={()=>{}} unreadCount={0} onThemeToggle={()=>theme(dark?'light':'dark')} onNotifications={()=>setNotices(true)} onLock={()=>void auth.lock()} onOpenSettings={go} onLogout={()=>window.dispatchEvent(new Event('clinivol-request-logout'))}/><div className="content-stage"><div className={`platform-shell${collapsed?' nav-collapsed':''}`}><aside className={`business-nav${collapsed?' is-collapsed':''}`}><Menu value={active} collapsed={collapsed} width={[224,64]}>{visibleMenu.map(([value,label,Icon],index)=><div key={value}>{!collapsed&&navGroup(value)&&navGroup(value)!==navGroup(visibleMenu[index-1]?.[0])&&<div className="admin-nav-group">{navGroup(value)}</div>}<Menu.MenuItem key={value} value={value} icon={<span className="nav-menu-icon"><Icon size={20}/></span>} onClick={()=>go(value)}>{label}</Menu.MenuItem></div>)}</Menu><Tooltip content={collapsed?'展开导航':'收起导航'} placement="right"><button className="nav-collapse" aria-label={collapsed?'展开导航':'收起导航'} onClick={()=>setCollapsed(!collapsed)}><ViewListIcon size={20}/></button></Tooltip></aside><main className="platform-main">{settings?content:<div className={`page ${section==='home'?'dashboard-page':'project-page'} admin-page${section==='order'?' project-detail-page admin-order-page':section==='asset-order'?' project-detail-page admin-asset-order-page':''}`}>{content}</div>}</main></div></div>
+  {hospitalEdit!==undefined&&data&&<HospitalForm initial={hospitalEdit} data={data} onClose={()=>setHospitalEdit(undefined)} onSaved={refresh}/>}
+  {departmentEdit&&<DepartmentForm {...departmentEdit} onClose={()=>setDepartmentEdit(null)} onSaved={refresh}/>}
+  <Drawer className="admin-details-drawer" closeBtn={<button type="button" className="admin-close-button" aria-label="关闭详情"><CloseIcon size={16}/></button>} visible={!!inspect} header={inspectKind==='doctor'?(doctorReviewMode?'医生档案审核':'医生档案详情'):inspectKind==='approval'?(isAccountApplication(inspect as Approval)?'账号注册审核':'历史订单访问审核'):inspectKind==='person'?'成员与权限':inspectKind==='asset'?'成果详情':inspectKind==='share'?'分享详情':inspectKind==='task'?'专业任务详情':'审计详情'} size="680px" footer={inspectorFooter()} onClose={closeInspector} destroyOnClose><div className="admin-drawer-content">{inspector()}</div></Drawer>
+  <Drawer visible={notices} header="通知中心" size="400px" footer={false} onClose={()=>setNotices(false)}><Empty title="暂无通知" description={null}/></Drawer>
+  {orderFile&&<AdminOrderAttachmentPreview orderId={orderFile.orderId} file={orderFile.file} onClose={()=>setOrderFile(null)}/>}
+  {preview&&<DoctorMaterialPreview id={preview} onClose={()=>setPreview('')}/>}
+- <Dialog visible={!!command} header={command?.title} confirmBtn={{content:command?.action==='export-metadata'?'导出':'确认',loading:busy,disabled:busy||commandConflict}} cancelBtn="取消" onConfirm={()=>void commit()} onClose={()=>{if(!busy)setCommand(null)}} destroyOnClose>{command?.kind==='order'&&data&&(()=>{const o=data.orders.find(o=>o.id===command.id);return o?<div className="admin-command-summary"><Fields items={[["订单编号",businessNo(o.id)],["手术项目名称",o.name],["医院",hospital(o.hospitalId)],["患者",o.patientName],["当前状态",<Status value={o.status}/>],["设计阶段",<div className="project-stage-tags">{o.requestedStages.map(stage=><StageLabel key={stage} stage={stageNames[stage]}/>)}</div>]]}/></div>:null})()}<Form className="admin-command-form" labelAlign="top">
++ <Dialog visible={!!command} header={command?.title} confirmBtn={{content:command?.action==='export-metadata'?'导出':'确认',loading:busy,disabled:busy||commandConflict}} cancelBtn="取消" onConfirm={()=>void commit()} onClose={()=>{if(!busy)setCommand(null)}} destroyOnClose>{command?.kind==='order'&&data&&(()=>{const o=data.orders.find(o=>o.id===command.id);return o?<div className="admin-command-summary"><Fields items={[["订单编号",businessNo(o.id)],["手术项目名称",o.name],["医院",hospital(o.hospitalId)],["患者",o.patientName],["当前状态",<Status value={o.status}/>],["设计阶段",<div className="project-stage-tags">{o.requestedStages.map(stage=><StageLabel key={stage} stage={stageNames[stage]}/>)}</div>]]}/></div>:null})()}{command?.scopeSummary&&<p className="admin-export-scope">{command.scopeSummary}</p>}<Form className="admin-command-form" labelAlign="top">
+  {command?.options&&<Form.FormItem label={command.selectLabel} requiredMark status={commandError.startsWith('请选择')?'error':undefined} tips={commandError.startsWith('请选择')?commandError:undefined}><><Select aria-label={command.selectLabel} value={selection} options={command.options} placeholder="请选择" onChange={v=>{setSelection(String(v));setCommandError('')}}/></></Form.FormItem>}
+  {(command?.action==='assign-task'||command?.action==='review-order'&&command?.result==='approved')&&<Form.FormItem label={command.action==='assign-task'?'计划时间':'预计交付时间'} requiredMark status={commandError.includes('日期')?'error':undefined} tips={commandError.includes('日期')?commandError:undefined}><><DatePicker aria-label="操作日期" value={date} onChange={v=>{setDate(String(v));setCommandError('')}}/></></Form.FormItem>}
+  {(command?.action==='request-permission'||command?.action==='revoke-permission'||command?.result==='approved'&&['review-doctor','review-account','approve-permission'].includes(command.action))&&<Form.FormItem label="书面审核依据" requiredMark status={commandError.includes('依据')?'error':undefined} tips={commandError.includes('依据')?commandError:undefined}><><Input aria-label="书面审核依据" value={basis} onChange={v=>{setBasis(v);setCommandError('')}} placeholder="审核材料或依据编号"/></></Form.FormItem>}
+diff --git a/src/admin/AssetOrderDetails.tsx b/src/admin/AssetOrderDetails.tsx
+new file mode 100644
+index 0000000..0f3d554
+--- /dev/null
++++ b/src/admin/AssetOrderDetails.tsx
+@@ -0,0 +1,56 @@
++import type {ReactNode} from 'react';
++import {Button,Card,Empty} from 'tdesign-react';
++import {PageBack} from '../PageBack';
++import {StageLabel} from '../projects/ProjectPages';
++import {formatAuditTime} from '../dateTime';
++import {AdminTable} from './AdminTable';
++import {DataAuditStatus} from './DataAuditPanel';
++import {assetKey,assetProgressText,assetUpdatedAt,isFormalAsset,orderAssetRows,requestedStages} from './assetRules.mjs';
++import {assetFieldKeys} from './dataAuditRules.mjs';
++import type {AdminState,Asset,AuditEvent,Order} from './model';
++const stageNames=['三维重建','CAD 设计','有限元分析','3D 打印'] as const;
++const at=(value:string|undefined|null)=>formatAuditTime(value)==='—'?'-':formatAuditTime(value);
++function AssetFields({items}:{items:[string,ReactNode][]}){return <dl className="project-info-grid">{items.map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value===undefined||value===null||value===''?'-':value}</dd></div>)}</dl>}
++export function assetEvents(asset:Asset,data:AdminState){return data.events.filter(e=>e.resultId===asset.id&&(e.resultVersion===asset.version||!e.resultVersion&&(e.after as {version?:string})?.version===asset.version));}
++function stageAssets(data:AdminState,orderId:string,stage:number){return data.assets.filter(a=>a.orderId===orderId&&a.stage===stage).sort((a,b)=>(Date.parse(b.submittedAt||'')||0)-(Date.parse(a.submittedAt||'')||0)||(Date.parse(assetUpdatedAt(b)||'')||0)-(Date.parse(assetUpdatedAt(a)||'')||0)||assetKey(a).localeCompare(assetKey(b)));}
++function resultDescription(a:Asset|undefined,data:AdminState){
++ if(!a)return '暂无成果';
++ if(a.reviewStatus==='审核退回')return assetEvents(a,data).find(e=>e.type==='review-return')?.reason||'审核退回';
++ if(a.reviewStatus==='待审核')return '成果已提交，等待审核';
++ return a.locked?'正式成果已锁定':a.reviewStatus;
++}
++export function AssetOrderDetails({data,order,onAsset,onBack,backLabel}:{data:AdminState;order:Order;onAsset:(a:Asset)=>void;onBack:()=>void;backLabel:string}){
++ const row=orderAssetRows(data).find(r=>r.id===order.id),stages=requestedStages(order);
++ return <><PageBack label={backLabel} onBack={onBack}/>
++  <Card bordered={false} className="project-info-card"><h2>订单信息</h2><AssetFields items={[
++   ['订单编号',order.businessNo||'-'],['手术项目名称',order.name],['医院',data.hospitals.find(h=>h.id===order.hospitalId)?.name||'-'],
++   ['患者',order.patientName||'-'],['设计阶段',<div className="project-stage-tags">{stages.map(s=><StageLabel key={s} stage={stageNames[s]}/>)}</div>],['订单状态',<DataAuditStatus value={order.status}/>],['成果进度',row?assetProgressText(row):'-']
++  ]}/></Card>
++  <Card bordered={false} className="project-stages-card"><div className="section-heading"><h2>专业成果</h2></div>{stages.length?<div className="project-stages">{stages.map((stage,index)=>{
++   const records=stageAssets(data,order.id,stage),current=records[0],formal=records.find(a=>isFormalAsset(a,data)),task=data.tasks.find(t=>t.orderId===order.id&&t.stage===stage);
++   return <section className="project-stage admin-result-stage" key={stage}><div className="project-stage-title"><h3><span>{String(index+1).padStart(2,'0')}</span><StageLabel stage={stageNames[stage]}/></h3><DataAuditStatus value={task?.status||'未开始'}/></div>
++    <AssetFields items={[
++     ['当前成果审核状态',current?<DataAuditStatus value={current.reviewStatus}/>:'-'],
++     ...(current&&(!formal||assetKey(current)!==assetKey(formal))?[["当前成果版本",current.version] as [string,ReactNode]]:[]),
++     ['正式成果版本',formal?`${formal.version} · 已锁定`:'-'],
++     ['审核人',current?.reviewerName||'-'],['审核时间',at(current?.reviewedAt)],['当前成果说明',resultDescription(current,data)]
++    ]}/>
++    {current&&<div className="admin-result-stage-action"><Button theme="primary" variant="text" onClick={()=>onAsset(current)}>查看成果</Button></div>}
++   </section>;
++  })}</div>:<div className="admin-result-empty"><Empty title="暂无数据" description={null}/></div>}</Card>
++ </>;
++}
++export function AssetVersionDetail({asset,data,onAsset,renderHistory}:{asset:Asset;data:AdminState;onAsset:(a:Asset)=>void;renderHistory:(events:AuditEvent[])=>ReactNode}){
++ const order=data.orders.find(o=>o.id===asset.orderId),versions=data.assets.filter(a=>a.orderId===asset.orderId&&a.projectId===asset.projectId&&a.taskId===asset.taskId).sort((a,b)=>(Date.parse(b.submittedAt||'')||0)-(Date.parse(a.submittedAt||'')||0)||assetKey(a).localeCompare(assetKey(b)));
++ const fields:Record<string,[string,ReactNode]>={order:['订单编号',order?.businessNo||'-'],surgery:['手术项目名称',order?.name||'-'],hospital:['医院',data.hospitals.find(h=>h.id===order?.hospitalId)?.name||'-'],stage:['设计阶段',asset.stage===null?'-':<StageLabel stage={stageNames[asset.stage]}/>],name:['成果名称',asset.name],version:['成果版本',asset.version],review:['审核状态',<DataAuditStatus value={asset.reviewStatus}/>],submitted:['提交时间',at(asset.submittedAt)]};
++ return <div className="admin-review-sections"><section><h3>基本资料</h3><AssetFields items={[...assetFieldKeys('results').map(k=>fields[k]),['正式成果锁定',asset.locked?'已锁定':'未锁定'],['提交人',asset.submittedByName||'-'],['审核人',asset.reviewerName||'-'],['审核时间',at(asset.reviewedAt)]]}/></section>
++  <section><h3>历史版本</h3><AdminTable rows={versions.map(a=>({id:assetKey(a),asset:a}))} columns={[
++   {key:'version',label:'成果版本',width:100,render:({asset:a})=>a.version},
++   {key:'review',label:'审核状态',width:110,render:({asset:a})=><DataAuditStatus value={a.reviewStatus}/>},
++   {key:'locked',label:'正式成果锁定',width:120,render:({asset:a})=>a.locked?'已锁定':'未锁定'},
++   {key:'submitted',label:'提交时间',width:155,render:({asset:a})=>at(a.submittedAt)},
++   {key:'action',label:'操作',width:100,render:({asset:a})=><Button theme="primary" variant="text" onClick={()=>onAsset(a)}>查看详情</Button>}
++  ]}/></section>
++  <section><h3>审核记录</h3>{renderHistory(assetEvents(asset,data))}</section>
++ </div>;
++}
+diff --git a/src/admin/DataAuditPanel.tsx b/src/admin/DataAuditPanel.tsx
+index 47523b6..f2550a9 100644
+--- a/src/admin/DataAuditPanel.tsx
++++ b/src/admin/DataAuditPanel.tsx
+@@ -5,8 +5,10 @@ import type {Column} from './AdminTable';
+ import type {AdminState,Asset,AuditEvent,Share} from './model';
+ import {StageTypeIcon} from '../projects/ProjectPages';
+ import {formatAuditTime as auditTime} from '../dateTime';
+-import {dataAuditTheme,assetFieldKeys,assetMatches,auditMatches,auditObjectName,businessLabel,chronologicalRecords} from './dataAuditRules.mjs';
++import {dataAuditTheme,auditMatches,auditObjectName,businessLabel,chronologicalRecords} from './dataAuditRules.mjs';
+ import {useWorkspaceStorage} from '../auth/AuthContext';
++import {assetKey,resultAssets,orderAssetRows,assetProgressText,assetExportSelection} from './assetRules.mjs';
++import type {AssetExportScope,AssetOrderRow} from './assetRules.mjs';
+ const formatAuditTime=(value:string|undefined)=>{const text=auditTime(value);return text==='—'?'-':text};
+ function useAuditFilters<T extends object>(key:string,defaults:T){
+  const storage=useWorkspaceStorage();
+@@ -16,27 +18,52 @@ function useAuditFilters<T extends object>(key:string,defaults:T){
+  return [value,setValue] as const;
+ }
+ const stages=['三维重建','CAD 设计','有限元分析','3D 打印'] as const;
+-export function DataAuditStatus({value}:{value:string}){return <Tag variant="light" theme={dataAuditTheme(value)}>{businessLabel(value||'-')}</Tag>}
++export function DataAuditStatus({value}:{value:string}){const progress=['进行中','处理中'].includes(value);return <Tag variant="light" theme={progress?'primary':value==='已完成'?'success':dataAuditTheme(value)} className={progress?'status-in-progress':undefined}>{businessLabel(value||'-')}</Tag>}
+ const options=(values:string[])=>[{label:'全部',value:''},...values.filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).map(label=>({label:businessLabel(label),value:label}))];
+-export function DataAssetPanel({data,canExport,tab,onTab,onOrder,onAsset,onShare,onExport}:{data:AdminState;canExport:boolean;tab:string;onTab:(tab:string)=>void;onOrder:(id:string)=>void;onAsset:(a:Asset)=>void;onShare:(s:Share)=>void;onExport:(ids:string[])=>void}){
+- const [filters,setFilters]=useAuditFilters('admin-assets-filters',{query:'',hospitalId:'',stage:'',status:'',publishStatus:''});
+- const {query,hospitalId,stage,status,publishStatus}=filters;
+- const update=(key:keyof typeof filters)=>(value:string)=>setFilters(previous=>({...previous,[key]:value}));
+- const setQuery=update('query'),setHospital=update('hospitalId'),setStage=update('stage'),setStatus=update('status'),setPublish=update('publishStatus');
+- const active=tab==='shares'?'shares':'results';
+-
+- const reset=()=>{setQuery('');setHospital('');setStage('');setStatus('');setPublish('');window.dispatchEvent(new Event('clinivol-admin-reset-pages'))};
++export function DataAssetPanel({data,canExport,tab,onTab,onOrder,onOrderResults,onAsset,onShare,onExport}:{data:AdminState;canExport:boolean;tab:string;onTab:(tab:string)=>void;onOrder:(id:string)=>void;onOrderResults:(id:string)=>void;onAsset:(a:Asset)=>void;onShare:(s:Share)=>void;onExport:(scope:AssetExportScope,summary:string)=>void}){
++ const [filters,setFilters]=useAuditFilters('admin-assets-results-v2',{view:'orders',orderNo:'',hospitalId:'',stage:'',reviewStatus:'',completion:''});
++ const [shareFilters,setShareFilters]=useAuditFilters('admin-assets-shares-v2',{query:'',hospitalId:''});
++ const active=tab==='shares'?'shares':'results',view=filters.view==='results'?'results':'orders';
++ const scope:AssetExportScope={view,filters:{orderNo:filters.orderNo,hospitalId:filters.hospitalId,stage:filters.stage,...(view==='orders'?{completion:filters.completion}:{reviewStatus:filters.reviewStatus})}};
++ const selection=assetExportSelection(data,scope),orders=orderAssetRows(data,scope.filters),assets=resultAssets(data,scope.filters);
++ const change=(key:keyof typeof filters,value:string)=>setFilters(previous=>({...previous,[key]:value}));
++ const reset=()=>active==='shares'?setShareFilters({query:'',hospitalId:''}):setFilters(previous=>({...previous,orderNo:'',hospitalId:'',stage:'',reviewStatus:'',completion:''}));
+  const order=(id:string)=>data.orders.find(o=>o.id===id),hospital=(id:string)=>data.hospitals.find(h=>h.id===order(id)?.hospitalId)?.name||'-';
+  const orderLink=(id:string)=><Button className="admin-business-number" theme="default" variant="text" onClick={()=>onOrder(id)}>{order(id)?.businessNo||'-'}</Button>;
+- const rows=chronologicalRecords(data.assets.filter(a=>assetMatches(a,data,{query,hospitalId,stage,status,publishStatus})));
+- const allFields:Column<Asset>[]=[{key:'order',label:'订单编号',width:155,render:r=>orderLink(r.orderId)},{key:'name',label:'成果名称',width:180,render:r=><FullText>{r.name}</FullText>},{key:'hospital',label:'医院',width:220,render:r=><FullText>{hospital(r.orderId)}</FullText>},{key:'stage',label:'设计阶段',width:110,render:r=>r.stage===null?'-':<StageTypeIcon stage={stages[r.stage]}/>},{key:'version',label:'成果版本',width:100,render:r=>r.version},{key:'review',label:'审核状态',width:110,render:r=><DataAuditStatus value={r.reviewStatus}/>},{key:'publish',label:'发布状态',width:110,render:r=><DataAuditStatus value={r.publishStatus}/>},{key:'submitter',label:'提交人',width:110,render:r=>r.submittedByName||'-'},{key:'submitted',label:'提交时间',width:155,render:r=>formatAuditTime(r.submittedAt)}];
+- allFields.push({key:'reviewer',label:'审核人',width:110,render:r=>r.reviewerName||'-'},{key:'reviewed',label:'审核时间',width:155,render:r=>formatAuditTime(r.reviewedAt)});
+- const fields=assetFieldKeys(active).map(key=>allFields.find(c=>c.key===key)!).filter(Boolean);
+- fields.push({key:'action',label:'操作',width:110,render:r=><Button theme="primary" variant="text" onClick={()=>onAsset(r)}>查看详情</Button>});
+- const shares=data.shares.filter(s=>(!query||[s.name,order(s.orderId)?.businessNo,s.initiatorName,hospital(s.orderId)].some(v=>String(v||'').toLowerCase().includes(query.trim().toLowerCase())))&&(!hospitalId||order(s.orderId)?.hospitalId===hospitalId));
+- return <Card bordered={false} className="project-list-card admin-data-audit-card"><div className="project-page-heading"><h1>数据资产</h1>{active!=='shares'&&<Button theme="primary" disabled={!canExport||!rows.length} onClick={()=>onExport(rows.map(a=>a.id))}>导出资产信息</Button>}</div><Tabs value={active} onChange={value=>{onTab(String(value));reset()}}><Tabs.TabPanel value="results" label="专业成果"/><Tabs.TabPanel value="shares" label="成果分享管理"/></Tabs>
+- <div className="project-filters admin-filters"><label><span>关键词</span><Input aria-label="资产关键词" value={query} clearable placeholder={active==='shares'?'搜索订单编号、成果或发起人':'搜索订单编号、成果或手术项目'} onChange={setQuery}/></label><label><span>医院</span><Select aria-label="资产医院" filterable value={hospitalId} options={options(data.hospitals.map(h=>h.id)).map(o=>({...o,label:o.value?data.hospitals.find(h=>h.id===o.value)!.name:'全部'}))} onChange={v=>setHospital(String(v))}/></label>{active!=='shares'&&<><label><span>设计阶段</span><Select aria-label="资产设计阶段" value={stage} options={[{label:'全部',value:''},...stages.map((label,index)=>({label:label.replace(/ /g,''),value:String(index)}))]} onChange={v=>setStage(String(v))}/></label>{active==='results'&&<><label><span>审核状态</span><Select aria-label="成果审核状态" value={status} options={options(data.assets.map(a=>a.reviewStatus))} onChange={v=>setStatus(String(v))}/></label><label><span>发布状态</span><Select aria-label="成果发布状态" value={publishStatus} options={options(data.assets.map(a=>a.publishStatus))} onChange={v=>setPublish(String(v))}/></label></>}</>}<Button variant="outline" onClick={reset}>重置筛选</Button></div>
+- {active==='shares'?<AdminTable rows={shares} columns={[{key:'order',label:'订单编号',width:155,render:r=>orderLink(r.orderId)},{key:'name',label:'成果名称',width:200,render:r=><FullText>{r.name}</FullText>},{key:'hospital',label:'医院',width:220,render:r=><FullText>{hospital(r.orderId)}</FullText>},{key:'stage',label:'设计阶段',width:100,render:r=>r.stage===undefined||r.stage===null?'-':<StageTypeIcon stage={stages[r.stage]}/>},{key:'version',label:'成果版本',width:100,render:r=>r.resultVersion||'-'},{key:'initiator',label:'分享发起人',width:110,render:r=>r.initiatorName||'-'},{key:'views',label:'成功查看次数',width:130,render:r=>r.successCount},{key:'recent',label:'最近查看时间',width:155,render:r=>formatAuditTime(r.lastViewedAt)},{key:'action',label:'操作',width:110,render:r=><Button theme="primary" variant="text" onClick={()=>onShare(r)}>查看详情</Button>}]}/>:<AdminTable rows={rows} columns={fields}/>}
++ const hospitalOptions=[{label:'全部',value:''},...data.hospitals.map(h=>({label:h.name,value:h.id}))];
++ const orderFields:Column<AssetOrderRow>[]=[
++  {key:'order',label:'订单编号',width:155,render:r=>orderLink(r.id)},
++  {key:'surgery',label:'手术项目名称',width:220,render:r=><FullText>{r.order.name}</FullText>},
++  {key:'hospital',label:'医院',width:220,render:r=><FullText>{hospital(r.id)}</FullText>},
++  {key:'stage',label:'设计阶段',width:150,render:r=><div className="project-stage-tags">{r.stages.map(s=><StageTypeIcon key={s} stage={stages[s]}/>)}</div>},
++  {key:'progress',label:'成果进度',width:180,render:assetProgressText},
++  {key:'updated',label:'最近更新时间',width:155,render:r=>formatAuditTime(r.updatedAt||undefined)},
++  {key:'action',label:'操作',width:110,render:r=><Button theme="primary" variant="text" onClick={()=>onOrderResults(r.id)}>查看详情</Button>}
++ ];
++ type ResultRow={id:string;asset:Asset};
++ const resultFields:Column<ResultRow>[]=[
++  {key:'order',label:'订单编号',width:155,render:({asset:a})=>orderLink(a.orderId)},
++  {key:'surgery',label:'手术项目名称',width:220,render:({asset:a})=><FullText>{order(a.orderId)?.name||'-'}</FullText>},
++  {key:'hospital',label:'医院',width:220,render:({asset:a})=><FullText>{hospital(a.orderId)}</FullText>},
++  {key:'stage',label:'设计阶段',width:100,render:({asset:a})=>a.stage===null?'-':<StageTypeIcon stage={stages[a.stage]}/>},
++  {key:'name',label:'成果名称',width:180,render:({asset:a})=><FullText>{a.name}</FullText>},
++  {key:'version',label:'成果版本',width:100,render:({asset:a})=>a.version},
++  {key:'review',label:'审核状态',width:110,render:({asset:a})=><DataAuditStatus value={a.reviewStatus}/>},
++  {key:'submitted',label:'提交时间',width:155,render:({asset:a})=>formatAuditTime(a.submittedAt)},
++  {key:'action',label:'操作',width:110,render:({asset:a})=><Button theme="primary" variant="text" onClick={()=>onAsset(a)}>查看详情</Button>}
++ ];
++ const shares=data.shares.filter(s=>(!shareFilters.query||[s.name,order(s.orderId)?.businessNo,s.initiatorName,hospital(s.orderId)].some(v=>String(v||'').toLowerCase().includes(shareFilters.query.trim().toLowerCase())))&&(!shareFilters.hospitalId||order(s.orderId)?.hospitalId===shareFilters.hospitalId));
++ return <Card bordered={false} className="project-list-card admin-data-audit-card">
++  <div className="project-page-heading"><h1>数据资产</h1>{active!=='shares'&&<Button theme="primary" disabled={!canExport||!selection.orders.length} onClick={()=>onExport(scope,`${view==='orders'?'订单视角':'成果视角'}当前查询全部记录：${selection.orders.length}笔订单，${selection.assets.length}份成果`)}>导出资产信息</Button>}</div>
++  <Tabs value={active} onChange={value=>{onTab(String(value));window.dispatchEvent(new Event('clinivol-admin-reset-pages'))}}><Tabs.TabPanel value="results" label="专业成果"/><Tabs.TabPanel value="shares" label="成果分享管理"/></Tabs>
++  {active!=='shares'&&<div className="admin-asset-view-heading"><div className="project-view-switch" role="group" aria-label="专业成果视角">{(['orders','results'] as const).map(v=><Button key={v} theme={view===v?'primary':'default'} variant={view===v?'base':'text'} aria-pressed={view===v} onClick={()=>change('view',v)}>{v==='orders'?'订单视角':'成果视角'}</Button>)}</div></div>}
++  <div className="project-filters admin-filters">
++   {active==='shares'?<label><span>关键词</span><Input aria-label="资产关键词" value={shareFilters.query} clearable placeholder="搜索订单编号、成果或发起人" onChange={query=>setShareFilters(v=>({...v,query}))}/></label>:<label><span>订单编号</span><Input aria-label="成果订单编号" value={filters.orderNo} clearable placeholder="搜索订单编号" onChange={v=>change('orderNo',v)}/></label>}
++   <label><span>医院</span><Select aria-label="资产医院" filterable value={active==='shares'?shareFilters.hospitalId:filters.hospitalId} options={hospitalOptions} onChange={v=>active==='shares'?setShareFilters(p=>({...p,hospitalId:String(v)})):change('hospitalId',String(v))}/></label>
++   {active!=='shares'&&<><label><span>设计阶段</span><Select aria-label="资产设计阶段" value={filters.stage} options={[{label:'全部',value:''},...stages.map((label,index)=>({label:label.replace(/ /g,''),value:String(index)}))]} onChange={v=>change('stage',String(v))}/></label>{view==='orders'?<label><span>成果进度</span><Select aria-label="成果进度" value={filters.completion} options={[{label:'全部',value:''},{label:'尚无阶段通过',value:'none'},{label:'部分阶段通过',value:'partial'},{label:'全部阶段通过',value:'complete'}]} onChange={v=>change('completion',String(v))}/></label>:<label><span>审核状态</span><Select aria-label="成果审核状态" value={filters.reviewStatus} options={options(data.assets.map(a=>a.reviewStatus))} onChange={v=>change('reviewStatus',String(v))}/></label>}</>}
++   <Button variant="outline" onClick={reset}>重置筛选</Button>
++  </div>
++  {active==='shares'?<AdminTable rows={shares} columns={[{key:'order',label:'订单编号',width:155,render:r=>orderLink(r.orderId)},{key:'name',label:'成果名称',width:200,render:r=><FullText>{r.name}</FullText>},{key:'hospital',label:'医院',width:220,render:r=><FullText>{hospital(r.orderId)}</FullText>},{key:'stage',label:'设计阶段',width:100,render:r=>r.stage===undefined||r.stage===null?'-':<StageTypeIcon stage={stages[r.stage]}/>},{key:'version',label:'成果版本',width:100,render:r=>r.resultVersion||'-'},{key:'initiator',label:'分享发起人',width:110,render:r=>r.initiatorName||'-'},{key:'views',label:'成功查看次数',width:130,render:r=>r.successCount},{key:'recent',label:'最近查看时间',width:155,render:r=>formatAuditTime(r.lastViewedAt)},{key:'action',label:'操作',width:110,render:r=><Button theme="primary" variant="text" onClick={()=>onShare(r)}>查看详情</Button>}]}/>:view==='orders'?<AdminTable rows={orders} columns={orderFields}/>:<AdminTable rows={assets.map(asset=>({id:assetKey(asset),asset}))} columns={resultFields}/>}
+  </Card>;
+ }
+ export function AuditLogPanel({data,onInspect}:{data:AdminState;onInspect:(e:AuditEvent)=>void}){
+diff --git a/src/admin/admin.css b/src/admin/admin.css
+index 5584e3b..28e17cf 100644
+--- a/src/admin/admin.css
++++ b/src/admin/admin.css
+@@ -102,3 +102,17 @@ html[theme-mode="dark"] .admin-app .business-nav .t-menu__item.t-is-active .t-me
+ .admin-details-drawer .admin-review-sections { display:flex; flex-direction:column; gap:var(--td-comp-margin-xxxl); }
+ .admin-review-sections > section > h3 { margin:0 0 var(--td-comp-margin-l); font-size:var(--cv-font-size-title-medium); font-weight:500; }
+ .admin-review-sections .project-info-grid, .admin-review-sections .doctor-history { margin-top:0; margin-bottom:0; }
++
++/* Data assets reuse the existing view switch, PageBack and detail Card rhythm. */
++.admin-app .admin-asset-view-heading { display:flex; justify-content:flex-end; padding:var(--td-comp-margin-l) 24px 0; }
++.admin-app .admin-asset-order-page > .t-card { margin-bottom:20px; }
++.admin-app .admin-result-stage { min-height:0; }
++.admin-app .admin-result-stage .project-stage-title { align-items:flex-start; gap:var(--td-comp-margin-s); }
++.admin-app .admin-result-stage .project-stage-title h3 { display:flex; align-items:center; gap:var(--td-comp-margin-xs); margin:0; }
++.admin-app .admin-result-stage .project-info-grid { grid-template-columns:minmax(0,1fr); gap:var(--td-comp-margin-m); margin:var(--td-comp-margin-l) 0 0; }
++.admin-app .admin-result-stage .project-info-grid dt { margin:0 0 var(--td-comp-margin-xs); }
++.admin-app .admin-result-stage .project-info-grid dd { white-space:normal; overflow-wrap:anywhere; }
++.admin-app .admin-result-stage-action { margin-top:auto; padding-top:var(--td-comp-margin-l); text-align:right; }
++.admin-app .admin-result-stage-action .t-button { padding:0; height:22px; border:0; }
++.admin-app .admin-result-empty { padding-block:120px; }
++.admin-export-scope { margin:0 0 var(--td-comp-margin-l); color:var(--td-text-color-secondary); }
+diff --git a/src/admin/assetRules.d.mts b/src/admin/assetRules.d.mts
+new file mode 100644
+index 0000000..a54a4ea
+--- /dev/null
++++ b/src/admin/assetRules.d.mts
+@@ -0,0 +1,13 @@
++import type {AdminState,Asset,Order} from './model';
++export type AssetFilters={orderNo?:string;hospitalId?:string;stage?:string;reviewStatus?:string;completion?:string};
++export type AssetExportScope={view:'orders'|'results';filters:AssetFilters};
++export type AssetOrderRow={id:string;order:Order;stages:number[];passed:number;updatedAt:string|null;assetCount:number};
++export const assetStages:string[];
++export function assetKey(a:Pick<Asset,'id'|'version'>):string;
++export function assetUpdatedAt(a:Asset):string|null;
++export function assetProgressText(row:AssetOrderRow):string;
++export function requestedStages(order:Order):number[];
++export function isFormalAsset(a:Asset,data:AdminState):boolean;
++export function resultAssets(data:AdminState,filters?:AssetFilters):Asset[];
++export function orderAssetRows(data:AdminState,filters?:AssetFilters):AssetOrderRow[];
++export function assetExportSelection(data:AdminState,scope?:AssetExportScope):{orders:AssetOrderRow[];assets:Asset[]};
+diff --git a/src/admin/assetRules.mjs b/src/admin/assetRules.mjs
+new file mode 100644
+index 0000000..65231ba
+--- /dev/null
++++ b/src/admin/assetRules.mjs
+@@ -0,0 +1,26 @@
++export const assetKey=a=>JSON.stringify([a.id,a.version]);
++export const assetStages=['三维重建','CAD设计','有限元分析','3D打印'];
++const timestamp=value=>{const n=Date.parse(value);return Number.isFinite(n)?n:null};
++export const assetUpdatedAt=a=>[a.updatedAt,a.reviewedAt,a.submittedAt].filter(v=>timestamp(v)!==null).sort((a,b)=>timestamp(b)-timestamp(a))[0]||null;
++export const assetProgressText=row=>`${row.passed} / ${row.stages.length} 阶段已通过`;
++export const requestedStages=order=>[...new Set(order.requestedStages||[])].filter(s=>Number.isInteger(s)&&s>=0&&s<4).sort((a,b)=>a-b);
++export function isFormalAsset(asset,data){
++ const t=data.tasks.find(t=>t.id===asset.taskId&&t.orderId===asset.orderId&&t.projectId===asset.projectId&&t.stage===asset.stage);
++ return asset.locked===true&&asset.reviewStatus==='审核通过'&&Number.isFinite(Date.parse(asset.lockedAt))&&t?.approvedModel?.id===asset.id&&t.approvedModel.version===asset.version;
++}
++export function resultAssets(data,filters={}){
++ const q=String(filters.orderNo||'').trim().toLowerCase();
++ return data.assets.filter(a=>{const o=data.orders.find(o=>o.id===a.orderId);return o&&(!q||String(o.businessNo||'').toLowerCase().includes(q))&&(!filters.hospitalId||o.hospitalId===filters.hospitalId)&&(!filters.stage||String(a.stage)===filters.stage)&&(!filters.reviewStatus||a.reviewStatus===filters.reviewStatus)}).sort((a,b)=>(timestamp(assetUpdatedAt(b))??-Infinity)-(timestamp(assetUpdatedAt(a))??-Infinity)||assetKey(a).localeCompare(assetKey(b)));
++}
++export function orderAssetRows(data,filters={}){
++ const q=String(filters.orderNo||'').trim().toLowerCase();
++ return data.orders.filter(o=>o.status!=='草稿'&&(!q||String(o.businessNo||'').toLowerCase().includes(q))&&(!filters.hospitalId||o.hospitalId===filters.hospitalId)&&(!filters.stage||requestedStages(o).includes(Number(filters.stage)))).map(order=>{
++  const stages=requestedStages(order),assets=data.assets.filter(a=>a.orderId===order.id),passed=stages.filter(s=>assets.some(a=>a.stage===s&&isFormalAsset(a,data))).length;
++  const updatedAt=assets.map(assetUpdatedAt).filter(Boolean).sort((a,b)=>timestamp(b)-timestamp(a))[0]||null;
++  return {id:order.id,order,stages,passed,updatedAt,assetCount:assets.length};
++ }).filter(r=>!filters.completion||filters.completion==='none'&&r.passed===0||filters.completion==='partial'&&r.passed>0&&r.passed<r.stages.length||filters.completion==='complete'&&r.stages.length>0&&r.passed===r.stages.length).sort((a,b)=>(timestamp(b.updatedAt)??-Infinity)-(timestamp(a.updatedAt)??-Infinity)||a.id.localeCompare(b.id));
++}
++export function assetExportSelection(data,{view='orders',filters={}}={}){
++ if(view==='results'){const assets=resultAssets(data,filters),ids=new Set(assets.map(a=>a.orderId));return {orders:orderAssetRows(data).filter(r=>ids.has(r.id)),assets}}
++ const orders=orderAssetRows(data,filters),ids=new Set(orders.map(r=>r.id));return {orders,assets:resultAssets(data).filter(a=>ids.has(a.orderId))};
++}
+diff --git a/src/admin/dataAuditRules.mjs b/src/admin/dataAuditRules.mjs
+index ed239d3..3b0abe9 100644
+--- a/src/admin/dataAuditRules.mjs
++++ b/src/admin/dataAuditRules.mjs
+@@ -11,7 +11,7 @@ export function auditObjectName(event,state){
+  return event.objectName||state.auditObjects?.find(r=>r.id===event.objectId)?.name||(event.objectId==='认证服务'?'账号服务':event.objectId==='metadata'?'资产信息':'-');
+ }
+ export const dataAuditTheme=value=>/退回|失败|拒绝|未通过|无访问权限/.test(value)?'danger':/待审核/.test(value)?'warning':/通过|成功|已发布/.test(value)?'success':'default';
+-export const assetFieldKeys=()=>['order','name','hospital','stage','version','submitter','submitted','review','reviewer','reviewed','publish'];
++export const assetFieldKeys=()=>['order','surgery','hospital','stage','name','version','review','submitted'];
+ export function assetMatches(asset,state,filters={}){
+  const order=state.orders.find(o=>o.id===asset.orderId),hospital=state.hospitals.find(h=>h.id===order?.hospitalId),q=(filters.query||'').trim().toLowerCase();
+  return (!q||[asset.name,order?.businessNo,order?.name,hospital?.name].some(v=>String(v||'').toLowerCase().includes(q)))&&(!filters.hospitalId||order?.hospitalId===filters.hospitalId)&&(!filters.stage||String(asset.stage)===filters.stage)&&(!filters.status||asset.reviewStatus===filters.status)&&(!filters.publishStatus||asset.publishStatus===filters.publishStatus);
+diff --git a/src/admin/model.ts b/src/admin/model.ts
+index 322ea1a..3624ca8 100644
+--- a/src/admin/model.ts
++++ b/src/admin/model.ts
+@@ -7,10 +7,10 @@ export type Hospital={managementEditable?:boolean;id:string;name:string;region:s
+ export type Person={organizationId?:string;id:string;name:string;role:string;organization:string;status:string;stages:number[];permissions:string[];scope:string[];regions?:string[];version:number;managementEditable?:boolean};
+ export type Doctor={salesName?:string;certificate?:string;updatedAt?:string;createdAt?:string;submissionMode?:string;managementEditable?:boolean;id:string;name:string;hospitalId:string;department:string;title:string;phone:string;status:string;source:string;submittedBy:string;salesId:string|null;invitedBy:string|null;materials:string[];version:number};
+ export type Order={id:string;businessNo?:string;projectId?:string;name:string;hospitalId:string;doctorId:string;salesId:string;leaderId:string;status:string;requestedStages:number[];createdAt:string;requestedDueDate:string;confirmedDeliveryDate:string|null;clinicalRequirements:string;patientRef:string;quantity?:number;reason?:string;patientName?:string;department?:string;clinicalContent?:ClinicalContent;designRequirements?:string;requirements?:string;materials?:Attachment[];ownerSalesId?:string;updated?:string;version:number};
+-export type Task={id:string;orderId:string;stage:number;upstreamId:string|null;status:string;assignee:string|null;plannedDate:string;version:number};
+-export type Asset={submittedAt?:string;reviewedAt?:string;reviewerName?:string;submittedByName?:string;id:string;orderId:string;projectId:string;taskId:string;stage:number|null;name:string;version:string;reviewStatus:string;publishStatus:string;type:string;source:string;sourceFileAvailable:boolean;revision:number;reviewerId?:string};
++export type Task={id:string;orderId:string;stage:number;upstreamId:string|null;status:string;assignee:string|null;plannedDate:string;version:number;projectId?:string;approvedModel?:{id:string;version:string};inputArtifact?:{id:string;version:string;taskId:string;projectId:string;orderId:string}};
++export type Asset={locked?:boolean;lockedAt?:string;lockedBy?:string;lockOrigin?:string;updatedAt?:string;submittedAt?:string;reviewedAt?:string;reviewerName?:string;submittedByName?:string;id:string;orderId:string;projectId:string;taskId:string;stage:number|null;name:string;version:string;reviewStatus:string;publishStatus?:string;type:string;source:string;sourceFileAvailable:boolean;revision:number;reviewerId?:string};
+ export type Approval={organizationId?:string;applicantId?:string;id:string;type:string;applicant:string;subjectId:string;subjectName:string;organization?:string;requestedRole?:string;requestedRoleName?:string;permissions:string[];hospitalIds:string[];basis:string;status:string;at:string;version:number;source?:string;approver?:string;reviewedAt?:string;reviewNote?:string};
+-export type AuditEvent={orderId?:string;taskId?:string;resultId?:string;objectName?:string;id:string;title:string;category:string;objectId:string;actor:string;actorId:string;at:string;result:string;reason:string;basis?:string;before?:unknown;after?:unknown;source:string;note?:string;noteSource?:string};
++export type AuditEvent={resultVersion?:string;type?:string;orderId?:string;taskId?:string;resultId?:string;objectName?:string;id:string;title:string;category:string;objectId:string;actor:string;actorId:string;at:string;result:string;reason:string;basis?:string;before?:unknown;after?:unknown;source:string;note?:string;noteSource?:string};
+ export type Material={id:string;doctorId:string;name:string;category:string;submittedBy:string;at:string};
+ export type Share={stage?:number|null;resultVersion?:string;createdAt?:string;status?:string;visits?:{id:string;name:string;role:string;at:string;outcome:string}[];id:string;orderId:string;resultId:string;name:string;initiatorName:string;successCount:number;lastViewedAt?:string};
+ export type Organization={id:string;name:string;kind:string;status:string;allowRegistration:boolean;version:number;hospitalId?:string};
+@@ -28,3 +28,11 @@ export function dashboardBuckets(state:AdminState,now=new Date(),permissions?:st
+  const today=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');
+  return {orders:state.orders.filter(o=>o.status==='待审核'),tasks:state.tasks.filter(t=>!t.assignee&&t.status==='未开始'),reviews:pendingApprovals(state,permissions),processing:state.orders.filter(o=>o.status==='处理中'),risks:state.orders.filter(o=>o.status==='处理中'&&!!o.confirmedDeliveryDate&&o.confirmedDeliveryDate<today)};
+ }
++
++export async function downloadAssetWorkbook(body:unknown){
++ const response=await fetch('/api/admin/command',{credentials:'same-origin',method:'POST',headers:{'Content-Type':'application/json','X-CliniVol-Request':'1'},body:JSON.stringify(body)});
++ if(!response.ok){let message='Excel导出失败，请重试。';try{message=(await response.json()).error||message}catch{}throw Object.assign(new Error(message),{status:response.status})}
++ if(!response.headers.get('Content-Type')?.includes('spreadsheetml.sheet'))throw new Error('导出文件格式异常，请重试。');
++ const bytes=await response.blob();if(!bytes.size)throw new Error('导出文件为空，请重试。');
++ const url=URL.createObjectURL(bytes),a=document.createElement('a');a.href=url;a.download='clinivol-asset-information.xlsx';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
++}
+diff --git a/tests/admin-asset-orders-20261126.test.mjs b/tests/admin-asset-orders-20261126.test.mjs
+new file mode 100644
+index 0000000..2f53e9d
+--- /dev/null
++++ b/tests/admin-asset-orders-20261126.test.mjs
+@@ -0,0 +1,68 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {mkdtempSync,rmSync} from 'node:fs';
++import {tmpdir} from 'node:os';
++import {join} from 'node:path';
++import {UnifiedBusinessService} from '../server/unified/service.mjs';
++import {restoreFormalLocks,formalArtifact} from '../server/unified/formalResults.mjs';
++import {AdminService} from '../server/admin/service.mjs';
++import {AuthService} from '../server/auth/service.mjs';
++import {managementPermissions} from '../server/admin/seed.mjs';
++import {assetKey,orderAssetRows,resultAssets,assetExportSelection,assetProgressText} from '../src/admin/assetRules.mjs';
++import {assetWorkbook} from '../server/admin/assetExport.mjs';
++const actor={id:'super-admin',name:'管理员',role:'super_admin',status:'approved',permissions:managementPermissions};
++function fixture(){
++ const stages=['三维重建','CAD设计','有限元分析','3D打印'];
++ const orders=[{id:'o1',businessNo:'CV-2026-0101',name:'颌面修复规划',status:'处理中',hospitalId:'h1',projectId:'p1',requestedStages:[0,1,2,3],plannedStages:stages,patientName:'不导出的患者资料',patientIdentityRef:'private-identity',ownerSalesId:'li'},{id:'o2',businessNo:'CV-2026-0102',name:'颌面修复规划',status:'待审核',hospitalId:'h2',requestedStages:[0],plannedStages:stages.slice(0,1)}];
++ const tasks=[0,1,2,3].map(stage=>({id:'t'+stage,orderId:'o1',projectId:'p1',stage,upstreamId:stage?'t'+(stage-1):null,assignee:'chen-yu',status:['已完成','待审核','进行中','未开始'][stage],version:1,review:[],...(stage===0?{approvedModel:{id:'r0',version:'V02',approvedAt:'2026-11-20T09:00:00Z',name:'三维重建成果'}}:{})}));
++ const artifacts=[{id:'r0',version:'V01',taskId:'t0',orderId:'o1',projectId:'p1',stage:0,reviewStatus:'审核退回',submittedAt:'2026-11-18T08:00:00Z',reviewedAt:'2026-11-18T09:00:00Z',name:'三维重建成果'},{id:'r0',version:'V02',taskId:'t0',orderId:'o1',projectId:'p1',stage:0,reviewStatus:'审核通过',submittedAt:'2026-11-19T08:00:00Z',reviewedAt:'2026-11-20T09:00:00Z',name:'三维重建成果'},{id:'r1',version:'V01',taskId:'t1',orderId:'o1',projectId:'p1',stage:1,reviewStatus:'待审核',submittedAt:'2026-11-21T08:00:00Z',name:'CAD设计成果'}];
++ return {schema:1,source:'isolated-shared',orders,tasks,artifacts,assets:artifacts,projects:[{id:'p1',orderId:'o1',taskIds:tasks.map(t=>t.id)}],hospitals:[{id:'h1',name:'安徽省立医院'},{id:'h2',name:'合肥市第一人民医院'}],events:[{id:'return-v1',taskId:'t0',orderId:'o1',resultId:'r0',resultVersion:'V01',type:'review-return',at:'2026-11-18T09:00:00Z',actorId:actor.id,reason:'请核对缺损边界。'},{id:'pass-v2',taskId:'t0',orderId:'o1',resultId:'r0',resultVersion:'V02',type:'review-pass',at:'2026-11-20T09:00:00Z',actorId:actor.id}],sequences:{}};
++}
++test('one order row counts each requested official locked stage once and never counts a returned/pending version',()=>{
++ const data=fixture(),events=JSON.stringify(data.events);restoreFormalLocks(data);
++ const rows=orderAssetRows(data);assert.equal(rows.length,2);assert.equal(rows[0].passed,1);assert.equal(assetProgressText(rows[0]),'1 / 4 阶段已通过');assert.equal(rows[0].updatedAt,'2026-11-21T08:00:00Z');assert.equal(rows[1].updatedAt,null);
++ assert.equal(data.artifacts[0].locked,undefined);assert.equal(data.artifacts[1].locked,true);assert.equal(data.artifacts[1].lockedAt,'2026-11-20T09:00:00Z');assert.equal(data.artifacts[2].locked,undefined);assert.equal(JSON.stringify(data.events),events);
++ assert.equal(resultAssets(data).length,3);assert.equal(new Set(resultAssets(data).map(assetKey)).size,3);
++ assert.equal(orderAssetRows(data,{completion:'partial'}).length,1);assert.equal(orderAssetRows(data,{completion:'none'}).length,1);assert.equal(orderAssetRows(data,{completion:'complete'}).length,0);
++});
++test('filters and exports operate on exact order identities and preserve complete order progress in the result view',()=>{
++ const data=fixture();restoreFormalLocks(data);
++ assert.equal(orderAssetRows(data,{orderNo:'0101',hospitalId:'h1',stage:'3'}).length,1);assert.equal(orderAssetRows(data,{orderNo:'o1'}).length,0);assert.equal(orderAssetRows(data,{orderNo:'0101',hospitalId:'h2'}).length,0);
++ const selected=assetExportSelection(data,{view:'results',filters:{orderNo:'0101',stage:'1',reviewStatus:'待审核'}});assert.equal(selected.orders.length,1);assert.equal(selected.assets.length,1);assert.equal(selected.orders[0].passed,1);assert.equal(selected.assets[0].taskId,'t1');
++ assert.equal(assetExportSelection(data,{view:'orders',filters:{stage:'3'}}).assets.length,3);assert.equal(assetExportSelection(data,{view:'orders',filters:{hospitalId:'h2'}}).assets.length,0);
++});
++test('formal compatibility locking requires an exact existing approved selection, never a pending/returned artifact or guessed version',()=>{
++ for(const alter of [d=>d.tasks[0].approvedModel.version='wrong',d=>d.artifacts[1].reviewStatus='待审核',d=>d.artifacts[1].reviewStatus='审核退回',d=>d.artifacts[1].projectId='other',d=>d.artifacts[1].locked=false,d=>d.artifacts[1].stage=3]){const d=fixture();alter(d);restoreFormalLocks(d);assert.equal(formalArtifact(d,d.tasks[0]),null)}
++});
++test('locked versions cannot be changed or deleted; new versions retain old history and downstream starts bind the exact formal reference',()=>{
++ const service=new UnifiedBusinessService();service.state=fixture();service.transaction(()=>{});const before=JSON.stringify(service.state.artifacts),events=JSON.stringify(service.state.events);
++ assert.throws(()=>service.transaction(()=>service.state.artifacts[1].reviewStatus='审核退回'),e=>e.status===409);assert.equal(JSON.stringify(service.state.artifacts),before);
++ assert.throws(()=>service.transaction(()=>service.state.artifacts.splice(1,1)),e=>e.status===409);assert.equal(JSON.stringify(service.state.events),events);
++ service.state.tasks[1].status='未开始';const designer={id:'chen-yu',name:'陈屿',role:'designer',status:'approved',permissions:['projects:own']};service.taskCommand(designer,{id:'t1',action:'start',version:1});assert.deepEqual(service.state.tasks[1].inputArtifact,{id:'r0',version:'V02',taskId:'t0',projectId:'p1',orderId:'o1'});
++ assert.equal(service.state.artifacts.length,3);assert.equal(service.state.artifacts[0].reviewStatus,'审核退回');
++ const invalid=new UnifiedBusinessService();invalid.state=fixture();invalid.state.tasks[1].status='未开始';invalid.state.artifacts[1].reviewStatus='待审核';assert.throws(()=>invalid.taskCommand(designer,{id:'t1',action:'start',version:1}),/上游/);
++});
++function zipParts(bytes){let offset=0;const parts=new Map();while(bytes.readUInt32LE(offset)===0x04034b50){const size=bytes.readUInt32LE(offset+18),nameLength=bytes.readUInt16LE(offset+26),extraLength=bytes.readUInt16LE(offset+28),start=offset+30,name=bytes.subarray(start,start+nameLength).toString(),dataStart=start+nameLength+extraLength;parts.set(name,bytes.subarray(dataStart,dataStart+size).toString());offset=dataStart+size}return parts}
++test('real XLSX contains two named sheets, exact rows, native dates and no patient data, formulas or publication column',()=>{
++ const data=fixture();restoreFormalLocks(data);data.orders[0].name='=HYPERLINK("https://invalid")';const selection=assetExportSelection(data);const bytes=assetWorkbook(selection,data,{scope:'订单视角；两笔订单',timeZone:'Asia/Shanghai'}),parts=zipParts(bytes);
++ assert.equal(bytes.subarray(0,2).toString(),'PK');assert(parts.get('xl/workbook.xml').includes('订单成果汇总'));assert(parts.get('xl/workbook.xml').includes('专业成果明细'));
++ assert.equal((parts.get('xl/worksheets/sheet1.xml').match(/<row /g)||[]).length,5);assert.equal((parts.get('xl/worksheets/sheet2.xml').match(/<row /g)||[]).length,6);
++ const text=[...parts.values()].join('');for(const forbidden of ['不导出的患者资料','private-identity','发布状态','<f>','downloadUrl','token'])assert(!text.includes(forbidden));assert(text.includes('=HYPERLINK'));assert(text.includes('yyyy-mm-dd hh:mm'));assert(text.includes('1 / 4 阶段已通过'));assert(text.includes('state="frozen"'));
++});
++function setup(t){const dir=mkdtempSync(join(tmpdir(),'cv-asset-orders-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));const auth=new AuthService({directory:join(dir,'auth'),mode:'local',demoMode:true});auth.seedLocal();return new AdminService({directory:join(dir,'admin'),authService:auth,shareProvider:()=>null});}
++test('Excel is the default export; purpose, scope and permissions are server-checked and failed exports leave no audit event',t=>{
++ const service=setup(t),before=service.state.events.length;
++ for(const input of [{reason:''},{reason:'归档',filters:{patient:'private'}},{reason:'归档',filters:{hospitalId:'missing'}},{reason:'归档',timeZone:'not-a-zone'}])assert.throws(()=>service.command(actor,{action:'export-metadata',...input}));
++ assert.equal(service.state.events.length,before);
++ const filters={hospitalId:service.snapshot(actor).orders[0].hospitalId},result=service.command(actor,{action:'export-metadata',reason:'按医院核对成果',filters});assert(Buffer.isBuffer(result.file));assert(result.mime.includes('spreadsheetml.sheet'));assert.equal(result.filename,'clinivol-asset-information.xlsx');
++ const audit=service.state.events.at(-1);assert.equal(audit.after.format,'xlsx');assert.deepEqual(audit.after.filters,filters);assert(audit.after.orderCount>0);assert.equal(service.state.events.length,before+1);
++ assert.throws(()=>service.command({...actor,permissions:['orders:read','assets:read']},{action:'export-metadata',reason:'越权导出'}),e=>e.status===403);
++});
++test('snapshot preserves versions with the same artifact ID and sharing never controls a formal lock',t=>{
++ const service=setup(t),raw=fixture();raw.artifacts[0].name='缺损边界重建V01';restoreFormalLocks(raw);service.shared.state=raw;service.shared.reload=()=>raw;const snapshot=service.snapshot(actor);assert.equal(snapshot.assets.filter(a=>a.id==='r0').length,2);assert.equal(snapshot.assets.find(a=>a.id==='r0'&&a.version==='V02').locked,true);assert.equal(snapshot.readiness.professionalReviewWrite,false);assert.equal(snapshot.assets.find(a=>a.id==='r0'&&a.version==='V01').name,'缺损边界重建V01');
++});
++
++test('legacy artifacts without a duplicated stage field resolve the exact task stage and retain official lock after service restart',t=>{
++ const dir=mkdtempSync(join(tmpdir(),'cv-formal-restart-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));const service=new UnifiedBusinessService({directory:dir});service.transaction(()=>{service.state=fixture();for(const a of service.state.artifacts)delete a.stage});
++ assert.equal(formalArtifact(service.state,service.state.tasks[0])?.version,'V02');const restored=new UnifiedBusinessService({directory:dir});assert.equal(formalArtifact(restored.state,restored.state.tasks[0])?.version,'V02');assert.equal(restored.state.artifacts.length,3);assert.equal(restored.state.events.length,2);
++});
+diff --git a/tests/admin-data-audit-20261126.test.mjs b/tests/admin-data-audit-20261126.test.mjs
+index e6d09b5..b6725a9 100644
+--- a/tests/admin-data-audit-20261126.test.mjs
++++ b/tests/admin-data-audit-20261126.test.mjs
+@@ -46,15 +46,15 @@ test('snapshot resolves stage-specific asset names and reviewer; audit redaction
+ });
+ test('filtered export is exact, deduplicated, authorized and auditable; failed exports change no history',t=>{
+  const s=setup(t),assets=s.snapshot(actor).assets;assert(assets.length>=2);const ids=[assets[1].id,assets[0].id,assets[1].id];const count=s.state.events.length;
+- const result=s.command(actor,{action:'export-metadata',reason:'成果归档核对',assetIds:ids});assert.deepEqual(result.data.map(a=>a.id),ids.slice(0,2));assert(result.data.every(a=>a.businessNo===(s.snapshot(actor).orders.find(o=>o.id===a.orderId)?.businessNo||null)));assert(result.data.every(a=>Object.hasOwn(a,'designStage')&&Object.hasOwn(a,'hospital')&&Object.hasOwn(a,'submittedAt')&&Object.hasOwn(a,'reviewedAt')));
++ const result=s.command(actor,{action:'export-metadata',format:'json',reason:'成果归档核对',assetIds:ids});assert.deepEqual(result.data.map(a=>a.id),ids.slice(0,2));assert(result.data.every(a=>a.businessNo===(s.snapshot(actor).orders.find(o=>o.id===a.orderId)?.businessNo||null)));assert(result.data.every(a=>Object.hasOwn(a,'designStage')&&Object.hasOwn(a,'hospital')&&Object.hasOwn(a,'submittedAt')&&Object.hasOwn(a,'reviewedAt')));
+  assert.equal(s.state.events.length,count+1);assert.equal(s.state.events.at(-1).after.count,2);assert.deepEqual(s.state.events.at(-1).after.assetIds,ids.slice(0,2));
+  assert(result.data.every(a=>!('patientName'in a)&&!('phone'in a)&&!('downloadUrl'in a)&&!('content'in a)));
+- for(const assetIds of [['unknown'],[],[assets[0].id,42],'all'])assert.throws(()=>s.command(actor,{action:'export-metadata',reason:'归档',assetIds}));assert.equal(s.state.events.length,count+1);
++ for(const assetIds of [['unknown'],[],[assets[0].id,42],'all'])assert.throws(()=>s.command(actor,{action:'export-metadata',format:'json',reason:'归档',assetIds}));assert.equal(s.state.events.length,count+1);
+  const limited={...actor,role:'admin',hospitalIds:[s.state.orders.find(o=>o.id===assets[0].orderId).hospitalId]},allowed=s.snapshot(limited).assets;
+- const forbidden=assets.find(a=>!allowed.some(b=>b.id===a.id));assert(forbidden);assert.throws(()=>s.command(limited,{action:'export-metadata',reason:'范围核对',assetIds:[forbidden.id]}),e=>e.status===403);assert.equal(s.state.events.length,count+1);
++ const forbidden=assets.find(a=>!allowed.some(b=>b.id===a.id));assert(forbidden);assert.throws(()=>s.command(limited,{action:'export-metadata',format:'json',reason:'范围核对',assetIds:[forbidden.id]}),e=>e.status===403);assert.equal(s.state.events.length,count+1);
+ });
+ 
+-test('merged results and details use one complete ordered field definition',()=>{const fields=['order','name','hospital','stage','version','submitter','submitted','review','reviewer','reviewed','publish'];for(const mode of ['results','trace','professional'])assert.deepEqual(assetFieldKeys(mode),fields);});
++test('merged results and details use one complete ordered field definition',()=>{const fields=['order','surgery','hospital','stage','name','version','review','submitted'];for(const mode of ['results','trace','professional'])assert.deepEqual(assetFieldKeys(mode),fields);});
+ 
+ test('missing review metadata is recovered only from the exact artifact and version event',t=>{
+  const s=setup(t),a=s.state.assets[0];a.version='V02';a.reviewStatus='审核通过';delete a.reviewedAt;delete a.reviewerId;
+diff --git a/tests/admin-service.test.mjs b/tests/admin-service.test.mjs
+index 616657d..5a6aa65 100644
+--- a/tests/admin-service.test.mjs
++++ b/tests/admin-service.test.mjs
+@@ -29,7 +29,7 @@ test('hospital leader change preserves existing order responsibility and audit b
+ test('assignment enforces order owner, stage qualification and due date; waiting dependency stays blocked',t=>{const{service:s}=setup(t);const task=s.state.tasks.find(t=>t.orderId==='ADM-O007'&&!t.assignee);assert.throws(()=>s.command(leader(s,'ADM-O007'),{action:'assign-task',id:task.id,version:1,assignee:'ADM-E02',plannedDate:task.plannedDate}));s.command(leader(s,'ADM-O007'),{action:'assign-task',id:task.id,version:1,assignee:'chen-yu',plannedDate:task.plannedDate});assert.equal(s.state.tasks.find(t=>t.id===task.id).assignee,'chen-yu');assert.equal(s.state.tasks.find(t=>t.id===task.id).status,'未开始');assert.throws(()=>s.command(leader(s,'ADM-O007'),{action:'assign-task',id:task.id,version:1,assignee:'chen-yu',plannedDate:task.plannedDate}),e=>e.status===409)});
+ test('doctor review uses mandatory return reason / written approval and system default note; readonly preview',t=>{const{service:s}=setup(t);assert.throws(()=>s.command(actor,{action:'review-doctor',id:'ADM-D01',version:1,result:'returned',reason:''}));assert.throws(()=>s.command(actor,{action:'review-doctor',id:'ADM-D01',version:1,result:'approved'}));s.command(actor,{action:'review-doctor',id:'ADM-D01',version:1,result:'approved',basis:'合成审批依据001'});const h=s.state.doctorHistory.at(-1);assert.equal(h.title,'医生档案审核通过');assert.equal(h.note,'审核通过');assert.equal(h.noteSource,'system-default');assert(s.state.doctorHistory.some(h=>h.objectId==='ADM-D02'&&h.note.includes('清晰')));assert.equal(s.preview(actor,'ADM-F01').doctorId,'ADM-D01');assert.throws(()=>s.preview({...actor,role:'sales'},'ADM-F01'),e=>e.status===403)});
+ test('permission approval preserves basis, scope, approver, executor and no automatic professional authority',t=>{const{service:s}=setup(t);s.command(actor,{action:'approve-permission',id:'ADM-Q01',version:1,result:'approved'});assert(s.state.people.find(p=>p.id==='ADM-M01').permissions.includes('doctors:review'));assert.equal(s.state.approvals[0].approverId,actor.id);assert.equal(s.state.events.at(-1).basis,'ADM-DEMO-WRITTEN-001');const q=s.state.approvals[1];assert.throws(()=>s.command(actor,{action:'review-account',id:q.id,version:q.version,result:'approved'}));assert(!s.state.people.some(p=>p.id===q.subjectId));s.command(actor,{action:'review-account',id:q.id,version:q.version,result:'approved',basis:'written-002'});assert(s.state.people.some(p=>p.id===q.subjectId));assert(!s.state.people.some(p=>p.permissions.includes('professional:review')))});
+-test('persistent actual actions and filtered metadata export; no fabricated share revoke',t=>{const{service:s,directory,auth}=setup(t);s.state.people.push({...structuredClone(s.state.people.find(p=>p.id==='ADM-L01')),id:'TEST-HEFEI-LEADER'});s.command(actor,{action:'reassign',id:'ADM-O001',version:1,leaderId:'TEST-HEFEI-LEADER',reason:'负责组长轮值交接'});const before=s.state.events.length;assert.equal(s.snapshot(actor).events.filter(e=>e.source!=='local-auth').length,before);assert.equal(s.snapshot(actor).events.filter(e=>e.source!=='local-auth').length,before);const result=s.command(actor,{action:'export-metadata',id:'metadata',reason:'本地设计审查'});assert(result.data.length);assert(result.data.every(a=>!('patientRef'in a)&&!('downloadUrl'in a)));assert.throws(()=>s.command(actor,{action:'revoke-share',id:'x'}),e=>e.status===503);const restored=new AdminService({directory:join(directory,'admin'),authService:auth});assert.equal(restored.state.events.length,before+1);assert.equal(restored.state.orders[0].leaderId,'TEST-HEFEI-LEADER');assert.equal(restored.state.shares.length,0)});
++test('persistent actual actions and filtered metadata export; no fabricated share revoke',t=>{const{service:s,directory,auth}=setup(t);s.state.people.push({...structuredClone(s.state.people.find(p=>p.id==='ADM-L01')),id:'TEST-HEFEI-LEADER'});s.command(actor,{action:'reassign',id:'ADM-O001',version:1,leaderId:'TEST-HEFEI-LEADER',reason:'负责组长轮值交接'});const before=s.state.events.length;assert.equal(s.snapshot(actor).events.filter(e=>e.source!=='local-auth').length,before);assert.equal(s.snapshot(actor).events.filter(e=>e.source!=='local-auth').length,before);const result=s.command(actor,{action:'export-metadata',format:'json',id:'metadata',reason:'本地设计审查'});assert(result.data.length);assert(result.data.every(a=>!('patientRef'in a)&&!('downloadUrl'in a)));assert.throws(()=>s.command(actor,{action:'revoke-share',id:'x'}),e=>e.status===503);const restored=new AdminService({directory:join(directory,'admin'),authService:auth});assert.equal(restored.state.events.length,before+1);assert.equal(restored.state.orders[0].leaderId,'TEST-HEFEI-LEADER');assert.equal(restored.state.shares.length,0)});
+ test('new sales receipt uses current hospital leader, no duplicate order, no premature tasks',t=>{const{service:s}=setup(t);assert.equal(s.institutions.snapshot().hospitals.find(h=>h.id==='ADM-H03').leaderId,'ADM-L02');const sales={id:'li-ming',name:'李明',role:'sales',status:'approved',permissions:['sales:landing'],hospitalIds:['ADM-H03']};const input={id:'ADM-NEW001',hospitalId:'ADM-H03',doctorId:'ADM-D03',name:'术前模型',clinicalRequirements:'结构评估',requestedStages:[0,1],requestedDueDate:'2026-11-30'};const o=s.receiveOrder(sales,input);assert.equal(o.leaderId,'ADM-L02');assert.equal(o.status,'待审核');assert.equal(o.confirmedDeliveryDate,null);assert.equal(s.state.tasks.filter(t=>t.orderId===o.id).length,0);assert.throws(()=>s.receiveOrder(sales,input),e=>e.status===409);assert.throws(()=>s.receiveOrder({...sales,hospitalIds:[]},{...input,id:'ADM-NEW002'}),e=>e.status===403)});
+ test('actual local auth pending account approval requires evidence and grants only requested sales role',t=>{const{service:s,auth}=setup(t);const original=structuredClone(auth.accounts[0]);auth.accounts.push({...original,id:'pending-sales',phone:'13800000009',name:'本地合成申请人',role:null,requestedRole:'sales',status:'pending',permissions:[],appliedAt:Date.parse('2026-11-18T00:00:00Z')});auth.persist();const snapshot=s.snapshot(actor);assert(snapshot.approvals.some(a=>a.id==='AUTH-pending-sales'&&a.source==='local-auth'));assert.throws(()=>s.command(actor,{action:'review-account',id:'AUTH-pending-sales',version:1,result:'approved'}));assert.equal(auth.accounts.at(-1).role,null);s.command(actor,{action:'review-account',id:'AUTH-pending-sales',version:1,result:'approved',basis:'LOCAL-WRITTEN-001'});assert.equal(auth.accounts.at(-1).role,'sales');assert.deepEqual(auth.accounts.at(-1).permissions,['sales:landing']);assert.equal(auth.accounts.at(-1).reviewedBy,actor.id);assert.deepEqual(auth.accounts[0],original);assert.equal(s.state.events.at(-1).source,'local-auth')});
+-test('professional review authority is never implied; metadata export is separately scoped',t=>{const{service:s}=setup(t);assert.throws(()=>s.command(actor,{action:'professional-review',id:s.state.assets[0].id,result:'approved'}),e=>e.status===403);const limited={...actor,role:'admin',hospitalIds:['ADM-H01']};const allowed=new Set(s.state.orders.filter(o=>o.hospitalId==='ADM-H01').map(o=>o.id));const r=s.command(limited,{action:'export-metadata',id:'metadata',reason:'范围验证'});assert(r.data.length);assert(r.data.every(a=>allowed.has(a.orderId)));assert.throws(()=>s.command({...limited,permissions:['orders:read','assets:read']},{action:'export-metadata',reason:'无权'}),e=>e.status===403)});
++test('professional review authority is never implied; metadata export is separately scoped',t=>{const{service:s}=setup(t);assert.throws(()=>s.command(actor,{action:'professional-review',id:s.state.assets[0].id,result:'approved'}),e=>e.status===403);const limited={...actor,role:'admin',hospitalIds:['ADM-H01']};const allowed=new Set(s.state.orders.filter(o=>o.hospitalId==='ADM-H01').map(o=>o.id));const r=s.command(limited,{action:'export-metadata',format:'json',id:'metadata',reason:'范围验证'});assert(r.data.length);assert(r.data.every(a=>allowed.has(a.orderId)));assert.throws(()=>s.command({...limited,permissions:['orders:read','assets:read']},{action:'export-metadata',format:'json',reason:'无权'}),e=>e.status===403)});
+diff --git a/tests/unified-business-http.test.mjs b/tests/unified-business-http.test.mjs
+index 6c43b6e..9d824c8 100644
+--- a/tests/unified-business-http.test.mjs
++++ b/tests/unified-business-http.test.mjs
+@@ -32,7 +32,7 @@ test('real HTTP sessions → sales submit → leader decision → administrator
+  const chenCreds=JSON.parse(readFileSync(join(dir,'auth','test-credentials.json'),'utf8'));
+  assert.equal((await design('/api/auth/login/password',{phone:engineer.phone,password:chenCreds[engineer.phone],accepted:true})).status,200);
+  const leadClient=client('leader');assert.equal((await leadClient('/api/auth/login/password',{phone:lead.phone,password:testPassword,accepted:true})).status,200);
+- const hospitalResult=await management('/api/admin/command',{action:'hospital-save',name:'机构目录HTTP验收',region:'安徽',leaderId:'ADM-L01',salesIds:[sales.id]});assert.equal(hospitalResult.status,200);let masterHospital=hospitalResult.body;
++ const hospitalResult=await management('/api/admin/command',{action:'hospital-save',name:'机构目录HTTP验收',region:'合肥市',contact:'0551-62608888',leaderId:'ADM-L01',salesIds:[sales.id]});assert.equal(hospitalResult.status,200);let masterHospital=hospitalResult.body;
+  const departmentResult=await management('/api/admin/command',{action:'department-save',id:masterHospital.id,version:masterHospital.version,name:'口腔颌面外科',reason:'HTTP目录联动验证'});assert.equal(departmentResult.status,200);masterHospital=departmentResult.body;
+  assert((await sale('/api/admin/business/directory')).body.hospitals.some(h=>h.id===masterHospital.id));
+  const proofFiles=[];for(const category of ['identity','practice']){const uploaded=await sale('/api/admin/business/doctor-upload',{file:{name:category+'.png',type:'image/png',category,content:Buffer.from(fixtureBytes(2)).toString('base64')}});assert.equal(uploaded.status,200);proofFiles.push(uploaded.body)}

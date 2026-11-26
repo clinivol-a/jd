@@ -11,9 +11,9 @@ export function localShareProvider(auth){
  };
 }
 export function projectAdminShares(source,state){
- const orders=new Map(state.orders.map(o=>[o.id,o])),assets=new Map(state.assets.map(a=>[a.id,a]));
+ const orders=new Map(state.orders.map(o=>[o.id,o])),assets=new Map(state.assets.map(a=>[JSON.stringify([a.id,a.version]),a]));
  return Object.values(source?.shares||{}).flatMap(share=>{
-  const order=orders.get(share.orderId),asset=assets.get(share.resultId),storedOrder=source.orders?.[share.orderId];
+  const order=orders.get(share.orderId),asset=assets.get(JSON.stringify([share.resultId,share.resultVersion])),storedOrder=source.orders?.[share.orderId];
   if(!order||!asset||asset.orderId!==order.id||asset.version!==share.resultVersion||share.owner!==(order.ownerSalesId||order.salesId)||storedOrder?.owner!==share.owner)return [];
   const id=share.id||'legacy-'+createHash('sha256').update(share.token).digest('hex').slice(0,32);
   const eventMap=new Map();for(const e of source.shareEvents||[])if(e.shareId===id&&e.orderId===order.id&&e.resultId===asset.id&&e.resultVersion===asset.version&&!eventMap.has(e.id))eventMap.set(e.id,e);const events=[...eventMap.values()];

@@ -32,7 +32,7 @@ test('real HTTP sessions → sales submit → leader decision → administrator 
  const chenCreds=JSON.parse(readFileSync(join(dir,'auth','test-credentials.json'),'utf8'));
  assert.equal((await design('/api/auth/login/password',{phone:engineer.phone,password:chenCreds[engineer.phone],accepted:true})).status,200);
  const leadClient=client('leader');assert.equal((await leadClient('/api/auth/login/password',{phone:lead.phone,password:testPassword,accepted:true})).status,200);
- const hospitalResult=await management('/api/admin/command',{action:'hospital-save',name:'机构目录HTTP验收',region:'安徽',leaderId:'ADM-L01',salesIds:[sales.id]});assert.equal(hospitalResult.status,200);let masterHospital=hospitalResult.body;
+ const hospitalResult=await management('/api/admin/command',{action:'hospital-save',name:'机构目录HTTP验收',region:'合肥市',contact:'0551-62608888',leaderId:'ADM-L01',salesIds:[sales.id]});assert.equal(hospitalResult.status,200);let masterHospital=hospitalResult.body;
  const departmentResult=await management('/api/admin/command',{action:'department-save',id:masterHospital.id,version:masterHospital.version,name:'口腔颌面外科',reason:'HTTP目录联动验证'});assert.equal(departmentResult.status,200);masterHospital=departmentResult.body;
  assert((await sale('/api/admin/business/directory')).body.hospitals.some(h=>h.id===masterHospital.id));
  const proofFiles=[];for(const category of ['identity','practice']){const uploaded=await sale('/api/admin/business/doctor-upload',{file:{name:category+'.png',type:'image/png',category,content:Buffer.from(fixtureBytes(2)).toString('base64')}});assert.equal(uploaded.status,200);proofFiles.push(uploaded.body)}
