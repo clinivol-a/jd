@@ -1,0 +1,426 @@
+{
+  "hospitals": [
+    {
+      "id": "H-A",
+      "name": "安徽医科大学第一附属医院",
+      "region": "合肥",
+      "contact": "0551-62922800"
+    },
+    {
+      "id": "H-B",
+      "name": "安徽医科大学第二附属医院",
+      "region": "合肥",
+      "contact": "0551-63869630"
+    },
+    {
+      "id": "H-C",
+      "name": "中国科学技术大学附属第一医院（安徽省立医院）",
+      "region": "合肥",
+      "contact": "0551-62283114"
+    },
+    {
+      "id": "ADM-H01",
+      "name": "合肥市第一人民医院",
+      "region": "合肥",
+      "contact": "0551-62181616"
+    },
+    {
+      "id": "ADM-H02",
+      "name": "合肥市第二人民医院",
+      "region": "合肥",
+      "contact": "0551-62203666"
+    },
+    {
+      "id": "ADM-H03",
+      "name": "蚌埠医科大学第一附属医院",
+      "region": "蚌埠",
+      "contact": "0552-3086120"
+    },
+    {
+      "id": "H-79c3c14b-2347-4484-a339-e7d618f959d2",
+      "name": "六安市人民医院",
+      "region": "六安",
+      "contact": "0564-3950120"
+    }
+  ],
+  "organizations": 16,
+  "salesOrders": 23,
+  "designerTasks": 29,
+  "designerProjects": 17,
+  "linkedChecks": [
+    {
+      "taskId": "TASK-f757aff0-4bd4-4b10-8294-9e47ffcf0065",
+      "projectId": "PRJ-20cfddf0-7b75-4fa9-8356-e0c5049ff8f6",
+      "orderId": "SO-83c79ca9",
+      "businessNo": "CV-2026-0001",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-eb90be46-2d77-470e-b151-ee0ca49878ba",
+      "projectId": "PRJ-20cfddf0-7b75-4fa9-8356-e0c5049ff8f6",
+      "orderId": "SO-83c79ca9",
+      "businessNo": "CV-2026-0001",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-52cbd0f8-5142-4ea0-b7c1-2d615a8355a0",
+      "projectId": "PRJ-7085b10d-b93c-4c70-b2f6-e2a293057179",
+      "orderId": "SO-5500d12e",
+      "businessNo": "CV-2026-0002",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-ab9b8f97-a524-4c23-ba24-21031cc29d77",
+      "projectId": "PRJ-7085b10d-b93c-4c70-b2f6-e2a293057179",
+      "orderId": "SO-5500d12e",
+      "businessNo": "CV-2026-0002",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-8afde856-31bd-4573-b925-8f3eb06c19b0",
+      "projectId": "PRJ-1a998b9c-8648-4cb3-b3d3-a2802120d0dc",
+      "orderId": "DEMO-LINK-20261123-01",
+      "businessNo": "CV-2026-0003",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-a2d84b95-e243-4c03-86a9-984269e6c215",
+      "projectId": "PRJ-1a998b9c-8648-4cb3-b3d3-a2802120d0dc",
+      "orderId": "DEMO-LINK-20261123-01",
+      "businessNo": "CV-2026-0003",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-fd755777-bc7f-4d3a-a69c-9e81aa4beb34",
+      "projectId": "PRJ-81daa5f1-dc54-4a9a-92df-b98f94f4bbcd",
+      "orderId": "DEMO-LINK-20261123-02",
+      "businessNo": "CV-2026-0004",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-fe245d21-fc00-4bad-925b-03cf88c8a00a",
+      "projectId": "PRJ-81daa5f1-dc54-4a9a-92df-b98f94f4bbcd",
+      "orderId": "DEMO-LINK-20261123-02",
+      "businessNo": "CV-2026-0004",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-2f3a3a01-6ddc-4278-95c9-503c8f84a112",
+      "projectId": "PRJ-d3659d65-0203-4a34-b6a7-2cd647d93b57",
+      "orderId": "DEMO-LINK-20261123-03",
+      "businessNo": "CV-2026-0005",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-64aa79f2-7d46-4f68-a562-d63c198f9699",
+      "projectId": "PRJ-b3808478-7a27-476d-81a3-c832e195ccee",
+      "orderId": "DEMO-LINK-20261123-04",
+      "businessNo": "CV-2026-0006",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-e76b3e58-2f90-44dc-b59b-6bae0ecf1553",
+      "projectId": "PRJ-b3808478-7a27-476d-81a3-c832e195ccee",
+      "orderId": "DEMO-LINK-20261123-04",
+      "businessNo": "CV-2026-0006",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-fdca6afa-886d-457c-a3ef-32ba0a6931fa",
+      "projectId": "PRJ-619da2fc-95d0-4e9a-9c7e-9fd0afdd1f0d",
+      "orderId": "DEMO-LINK-20261123-05",
+      "businessNo": "CV-2026-0007",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-aea761a0-d574-4254-af48-3db62fe33973",
+      "projectId": "PRJ-619da2fc-95d0-4e9a-9c7e-9fd0afdd1f0d",
+      "orderId": "DEMO-LINK-20261123-05",
+      "businessNo": "CV-2026-0007",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-5fd6fc92-21d8-48a1-8959-279e6b1c2a86",
+      "projectId": "PRJ-a72b4648-50c1-4627-9ec5-492eec58a449",
+      "orderId": "DEMO-LINK-20261123-06",
+      "businessNo": "CV-2026-0008",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-cf544e32-f6f8-4036-87b0-c5090725c2f2",
+      "projectId": "PRJ-842c9232-2a7a-4449-ad8b-7b5248f95069",
+      "orderId": "DEMO-LINK-20261123-07",
+      "businessNo": "CV-2026-0009",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-e0cdda65-689f-438e-8456-b98f313471e5",
+      "projectId": "PRJ-842c9232-2a7a-4449-ad8b-7b5248f95069",
+      "orderId": "DEMO-LINK-20261123-07",
+      "businessNo": "CV-2026-0009",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-7a1b9a0c-396c-4feb-a80b-a84a1d8c714d",
+      "projectId": "PRJ-fba2a232-94b1-443b-be31-1d78b0144fe8",
+      "orderId": "DEMO-LINK-20261123-08",
+      "businessNo": "CV-2026-0010",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-4d1ea14d-10e2-4564-baab-f8f9e0c33c83",
+      "projectId": "PRJ-fba2a232-94b1-443b-be31-1d78b0144fe8",
+      "orderId": "DEMO-LINK-20261123-08",
+      "businessNo": "CV-2026-0010",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-8cbae053-e5be-4350-8d83-694a749ba962",
+      "projectId": "PRJ-fca7f2be-f1a1-4de8-a4e3-469f30480d7f",
+      "orderId": "DEMO-LINK-20261123-09",
+      "businessNo": "CV-2026-0011",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-8d0f26e5-e96d-447f-a7ac-362632991502",
+      "projectId": "PRJ-15cc35bf-a4bc-43d3-b743-0b938de683be",
+      "orderId": "DEMO-LINK-20261123-10",
+      "businessNo": "CV-2026-0012",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-659ee26b-cc48-4b35-b497-210a606bf0cf",
+      "projectId": "PRJ-15cc35bf-a4bc-43d3-b743-0b938de683be",
+      "orderId": "DEMO-LINK-20261123-10",
+      "businessNo": "CV-2026-0012",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-eb6a47f3-4b29-46b4-aff4-b53040507361",
+      "projectId": "PRJ-a61c5dab-29bf-4f0f-8a9b-6bf16089f1ba",
+      "orderId": "DEMO-LINK-20261123-11",
+      "businessNo": "CV-2026-0013",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-c63421ee-c938-4f91-9009-e494224234d7",
+      "projectId": "PRJ-920630e9-2034-49ba-b3f8-a99be6d4143c",
+      "orderId": "DEMO-LINK-20261123-12",
+      "businessNo": "CV-2026-0014",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-73103229-fe8e-43b8-82b2-ba62a7d6a221",
+      "projectId": "PRJ-920630e9-2034-49ba-b3f8-a99be6d4143c",
+      "orderId": "DEMO-LINK-20261123-12",
+      "businessNo": "CV-2026-0014",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-65e45783-6627-4806-9eb0-f26def6e1f53",
+      "projectId": "PRJ-d930bbec-d381-4ce4-bda3-0f792126bbc6",
+      "orderId": "DEMO-LINK-20261123-13",
+      "businessNo": "CV-2026-0015",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-61bccf17-d00d-45e1-b5b0-4aa7be849a07",
+      "projectId": "PRJ-d930bbec-d381-4ce4-bda3-0f792126bbc6",
+      "orderId": "DEMO-LINK-20261123-13",
+      "businessNo": "CV-2026-0015",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-cb155a57-96b8-4e49-bf8b-7b88014f9c76",
+      "projectId": "PRJ-f5179ab3-f10b-4041-8ba6-cbbcbb8fd561",
+      "orderId": "DEMO-LINK-20261123-14",
+      "businessNo": "CV-2026-0016",
+      "hospitalId": "H-A",
+      "hospital": "安徽医科大学第一附属医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-c86b90ef-e4d9-4b52-96a0-4df60710bedf",
+      "projectId": "PRJ-bea592fc-191e-4eff-b437-a1ff38c8c535",
+      "orderId": "SO-1e6b565b",
+      "businessNo": "CV-2026-0020",
+      "hospitalId": "H-79c3c14b-2347-4484-a339-e7d618f959d2",
+      "hospital": "六安市人民医院",
+      "linked": true
+    },
+    {
+      "taskId": "TASK-04cc9d77-aca9-41fb-b65c-9c7415b50d55",
+      "projectId": "PRJ-bea592fc-191e-4eff-b437-a1ff38c8c535",
+      "orderId": "SO-1e6b565b",
+      "businessNo": "CV-2026-0020",
+      "hospitalId": "H-79c3c14b-2347-4484-a339-e7d618f959d2",
+      "hospital": "六安市人民医院",
+      "linked": true
+    }
+  ],
+  "migration": [
+    {
+      "id": "anhui-hospitals-20261126",
+      "source": "isolated-demo",
+      "changes": [
+        {
+          "id": "H-A",
+          "before": {
+            "name": "江淮协同医院",
+            "region": "安徽",
+            "contact": ""
+          },
+          "after": {
+            "name": "安徽医科大学第一附属医院",
+            "region": "合肥",
+            "contact": "0551-62922800"
+          },
+          "nameSource": "https://www.ahmu.edu.cn/4355/list.htm",
+          "contactSource": "https://www.ayfy.com/cydh.htm"
+        },
+        {
+          "id": "H-B",
+          "before": {
+            "name": "皖中康复医院",
+            "region": "安徽",
+            "contact": ""
+          },
+          "after": {
+            "name": "安徽医科大学第二附属医院",
+            "region": "合肥",
+            "contact": "0551-63869630"
+          },
+          "nameSource": "https://www.ahmu.edu.cn/4355/list.htm",
+          "contactSource": "https://www.nhc.gov.cn/fys/c100077/202201/eaaa3bbfbf4c44a18c96c34cd54c529f/files/1732845365025_98472.pdf"
+        },
+        {
+          "id": "H-C",
+          "before": {
+            "name": "新安数字医学中心",
+            "region": "安徽",
+            "contact": ""
+          },
+          "after": {
+            "name": "中国科学技术大学附属第一医院（安徽省立医院）",
+            "region": "合肥",
+            "contact": "0551-62283114"
+          },
+          "nameSource": "https://www.ahslyy.com.cn/",
+          "contactSource": "https://csp.ncmi.cn/UsersInfo/UserUnit/UserUnitDetailWeb?uid=00540"
+        },
+        {
+          "id": "ADM-H01",
+          "before": {
+            "name": "江淮协同医院",
+            "region": "安徽",
+            "contact": "0551-****1001"
+          },
+          "after": {
+            "name": "合肥市第一人民医院",
+            "region": "合肥",
+            "contact": "0551-62181616"
+          },
+          "nameSource": "https://www.hfyy.cn/",
+          "contactSource": "https://www.hfyy.cn/col204/list"
+        },
+        {
+          "id": "ADM-H02",
+          "before": {
+            "name": "皖中康复医院",
+            "region": "安徽",
+            "contact": "0551-****1002"
+          },
+          "after": {
+            "name": "合肥市第二人民医院",
+            "region": "合肥",
+            "contact": "0551-62203666"
+          },
+          "nameSource": "https://www.ahmu.edu.cn/fzsfsyy/list.htm",
+          "contactSource": "https://s.dayi.org.cn/mip/s/hospital/1058.html"
+        },
+        {
+          "id": "ADM-H03",
+          "before": {
+            "name": "滨湖数字医学中心",
+            "region": "安徽",
+            "contact": "0551-****1003"
+          },
+          "after": {
+            "name": "蚌埠医科大学第一附属医院",
+            "region": "蚌埠",
+            "contact": "0552-3086120"
+          },
+          "nameSource": "https://www.byyfy.net/col1/index",
+          "contactSource": "https://www.byyfy.net/col6/index"
+        },
+        {
+          "id": "H-79c3c14b-2347-4484-a339-e7d618f959d2",
+          "before": {
+            "name": "徽州协同医学中心",
+            "region": "安徽",
+            "contact": "0551-1001001"
+          },
+          "after": {
+            "name": "六安市人民医院",
+            "region": "六安",
+            "contact": "0564-3950120"
+          },
+          "nameSource": "https://www.luan.gov.cn/mslyfw/ylws/yljg/ddyljg/10185375.html",
+          "contactSource": "https://s.dayi.org.cn/mip/s/hospital/2291.html"
+        }
+      ]
+    }
+  ]
+}

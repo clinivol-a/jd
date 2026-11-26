@@ -4,3 +4,9 @@ export function hospitalMatches(hospital,{name='',region='',status=''}={}){
  return hospital.name.toLowerCase().includes(name.trim().toLowerCase())&&(!region||String(hospital.region||'').replace(/市$/,'')===region)&&(!status||hospital.status===status);
 }
 export const fixedColumn=(index,count)=>index===count-1?'right':index<3?'left':undefined;
+export function memberMatches(member,{name='',role='',organizationId='',status=''}={}){
+ return member.name.toLowerCase().includes(name.trim().toLowerCase())&&(!role||member.role===role)&&(!organizationId||member.organizationId===organizationId)&&(!status||member.status===status);
+}
+export function roleMatches(role,{name='',status=''}={}){
+ return role.name.toLowerCase().includes(name.trim().toLowerCase())&&(!status||role.status===status);
+}

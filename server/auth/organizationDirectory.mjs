@@ -1,3 +1,4 @@
+import {initialOrganizations} from '../unified/anhuiDemoDirectory.mjs';
 import {randomUUID} from 'node:crypto';
 import {existsSync,mkdirSync,readFileSync,renameSync,writeFileSync} from 'node:fs';
 import {join} from 'node:path';
@@ -6,7 +7,7 @@ export class OrganizationFailure extends Error{constructor(message,status=400){s
 const copy=v=>structuredClone(v);
 const text=(v,label)=>{if(typeof v!=='string'||!v.trim()||v.length>1000)throw new OrganizationFailure(`请填写${label}。`);return v.trim()};
 // Stable IDs preserve the former registration choices. Values become administrator-owned records.
-const initial=()=>({schema:1,source:'isolated-organizations',items:[['demo-clinivol','科立沃','内部组织'],['org-ahmu','安徽医科大学','外部机构'],['demo-hospital-01','安徽医科大学第一附属医院','外部机构'],['demo-hospital-02','安徽省立医院','外部机构'],['demo-hospital-03','中国科学技术大学附属第一医院','外部机构'],['demo-hospital-04','合肥市第一人民医院','外部机构']].map(([id,name,kind])=>({id,name,kind,status:'已启用',allowRegistration:true,version:1,source:'isolated-demo'})),requests:[],events:[]});
+const initial=()=>({schema:1,source:'isolated-organizations',items:initialOrganizations(),requests:[],events:[]});
 export class OrganizationDirectory{
  constructor({directory,now=Date.now}={}){this.file=directory?join(directory,'organizations.json'):null;this.now=now;this.state=initial();if(directory)mkdirSync(directory,{recursive:true,mode:0o700});this.reload();if(directory&&!this.state.legacyRequestsImported){const old=join(directory,'organization-requests.json');if(existsSync(old))for(const r of JSON.parse(readFileSync(old,'utf8')))if(!this.state.requests.some(x=>x.id===r.id))this.state.requests.push({...r,version:r.version||1});this.state.legacyRequestsImported=true;this.persist()}if(this.file&&!existsSync(this.file))this.persist()}
  reload(){if(this.file&&existsSync(this.file))this.state=JSON.parse(readFileSync(this.file,'utf8'))}
@@ -16,7 +17,7 @@ export class OrganizationDirectory{
  find(id){return this.all().items.find(o=>o.id===id)}
  selected(id){const o=this.options().find(o=>o.id===id);if(!o)throw new OrganizationFailure('请选择有效的所属组织。');return o}
  event(actor,title,id,before,after,reason=''){this.state.events.push({id:randomUUID(),objectId:id,actorId:actor.id,actor:actor.name,actorRole:actor.role,at:new Date(this.now()).toISOString(),title,category:'所属组织',before:copy(before),after:copy(after),reason,source:'isolated-organizations',result:'成功'})}
- syncHospitals(hospitals){this.reload();let changed=false;for(const h of hospitals){const id='hospital:'+h.id;if(!this.state.items.some(o=>o.id===id||o.hospitalId===h.id)){this.state.items.push({id,name:h.name,kind:'外部机构',hospitalId:h.id,status:h.status,allowRegistration:h.status==='已启用',version:1,source:'isolated-hospital-link'});changed=true}}if(changed)this.persist()}
+ syncHospitals(hospitals){this.reload();let changed=false;for(const h of hospitals){const id='hospital:'+h.id;if(!this.state.items.some(o=>o.id===id||o.hospitalId===h.id)){this.state.items.push({id,name:h.name,kind:'外部机构',hospitalId:h.id,status:h.status,allowRegistration:h.status==='已启用',version:1,source:'isolated-hospital-link'});changed=true}else{const o=this.state.items.find(o=>o.id===id||o.hospitalId===h.id);if(o?.source==='isolated-hospital-link'&&o.name!==h.name){o.name=h.name;o.version++;changed=true}}}if(changed)this.persist()}
  request(device,{name}){this.reload();name=text(name,'组织正式名称');if(name.length>100)throw new OrganizationFailure('组织名称不得超过100字。');if(this.state.requests.filter(r=>r.device===device.id&&r.at>this.now()-3600000).length>=5)throw new OrganizationFailure('申请过于频繁，请稍后重试。',429);if(this.state.requests.some(r=>r.device===device.id&&r.name===name&&r.status==='pending'))throw new OrganizationFailure('该组织已有待审核申请。',409);const r={id:randomUUID(),name,device:device.id,status:'pending',version:1,at:this.now(),source:'isolated-organizations'};this.state.requests.push(r);this.persist();return {id:r.id,name:r.name,status:r.status}}
  command(actor,{action,id,version,...input}){
   if(actor?.role!=='super_admin'||actor.status!=='approved'||!actor.permissions?.includes('people:manage'))throw new OrganizationFailure('无组织目录维护权限。',403);
