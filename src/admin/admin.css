@@ -117,3 +117,5 @@ html[theme-mode="dark"] .admin-app .business-nav .t-menu__item.t-is-active .t-me
 
 .admin-app .admin-result-viewer-card .business-model-viewer {width:100%;height:clamp(360px,65vh,800px);overflow:hidden;}
 .admin-app .admin-result-viewer-card .business-model-viewer canvas {display:block;}
+
+.admin-details-drawer .admin-share-records .t-table__empty{padding:120px 0}

@@ -71,3 +71,11 @@ html:has(.business-public),html:has(.business-public) body,html:has(.business-pu
 .share-record-meta dt{color:var(--td-text-color-secondary);margin-bottom:var(--td-comp-margin-xs)}
 .share-record-meta dd{margin:0;overflow-wrap:anywhere;color:var(--td-text-color-primary)}
 @media(max-width:560px){.stage-share-record-entry{align-items:flex-start;flex-wrap:wrap}.share-record-meta{grid-template-columns:1fr}}
+
+/* Result sharing Drawer: scoped field groups and the confirmed 120px empty-state inset. */
+.share-records > section > h3{margin:0 0 var(--td-comp-margin-l);font-size:var(--cv-font-size-title-medium);font-weight:500}
+.share-record-basic{flex-shrink:0;margin-bottom:var(--td-comp-margin-xxxl)}
+.share-record-basic .share-record-meta{margin-bottom:0}
+.share-record-visits{display:flex;flex-direction:column;flex:1;min-height:0}
+.share-record-visits > h3{flex-shrink:0}
+.share-records-drawer .share-record-table .t-table__empty{padding:120px 0}

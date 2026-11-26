@@ -1,0 +1,24 @@
+✔ share event HTTP routes enforce methods, account scope, proof and Viewer delivery (21.312583ms)
+✔ 16 stable isolated records, 12 successes, 2 viewers, newest success and real events preserved (1.623ms)
+✔ production cannot seed; foreign owners rejected (0.146292ms)
+✔ sales display accepts only reliably named doctor/patient; failures collapse without changing audit (0.1975ms)
+✔ new shares record actual initiator, order doctor and stable result/task identities without invented views (2.792375ms)
+✔ successful copies record link/image exactly once by event ID (0.589125ms)
+✔ page open retries and reload session do not inflate views; reading Drawer is side effect free (0.42575ms)
+✔ failed verification records unknown identity, dedupes a repeated attempt and never counts as viewer (0.732541ms)
+✔ correct OTP alone is not access authorization, denied verified phones remain non-viewers (0.618083ms)
+✔ OTP and resource fetches alone do not count; only proof-bound Viewer-ready counts once (0.636459ms)
+✔ same person in a new visit can view twice; refresh/retry stays once and identities are stable (0.558833ms)
+✔ known authorized identity uses trusted mapping, never a user-supplied name (0.308708ms)
+✔ reconstruction and CAD shares isolate events and reject cross-stage proof or visit reuse (0.372208ms)
+✔ owner/scope permissions are checked for records and copy; revoked/version-changed shares stay blocked (5.599125ms)
+✔ events survive service reconstruction and pagination keeps distinct records (1.338792ms)
+✔ legacy records and pre-existing audit are preserved without fabricating confirmed Viewer events (0.179416ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 369.121416
