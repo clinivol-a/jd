@@ -1,0 +1,167 @@
+{
+  "checks": [
+    {
+      "path": "/",
+      "status": 200,
+      "ms": 1475,
+      "bytes": 1848
+    },
+    {
+      "path": "/api/admin/state",
+      "status": 403,
+      "ms": 1570,
+      "bytes": 51
+    },
+    {
+      "path": "/api/auth/dev/state",
+      "status": 404,
+      "ms": 626,
+      "bytes": 30
+    },
+    {
+      "path": "/demo-access?demo=REDACTED",
+      "status": 302,
+      "ms": 331,
+      "bytes": 0
+    },
+    {
+      "path": "/api/auth/session",
+      "status": 200,
+      "ms": 794,
+      "bytes": 163
+    },
+    {
+      "path": "/api/auth/otp/send",
+      "status": 200,
+      "ms": 545,
+      "bytes": 34
+    },
+    {
+      "path": "/api/auth/otp/verify",
+      "status": 400,
+      "ms": 755,
+      "bytes": 51
+    },
+    {
+      "path": "/api/auth/otp/verify",
+      "status": 200,
+      "ms": 752,
+      "bytes": 55
+    },
+    {
+      "path": "/api/auth/login/sms",
+      "status": 200,
+      "ms": 576,
+      "bytes": 1029
+    },
+    {
+      "path": "/api/admin/business/designer",
+      "status": 200,
+      "ms": 1151,
+      "bytes": 411510
+    },
+    {
+      "path": "/assets/cad/HumanSkull_Jaw.stl",
+      "status": 200,
+      "ms": 2922,
+      "bytes": 10238484
+    },
+    {
+      "path": "/api/auth/login/password",
+      "status": 200,
+      "ms": 844,
+      "bytes": 1955
+    },
+    {
+      "path": "/api/admin/business/sales",
+      "status": 200,
+      "ms": 873,
+      "bytes": 480921
+    },
+    {
+      "path": "/api/admin/business/directory",
+      "status": 200,
+      "ms": 432,
+      "bytes": 37998
+    },
+    {
+      "path": "/api/business-v31/capabilities",
+      "status": 200,
+      "ms": 542,
+      "bytes": 63
+    },
+    {
+      "path": "/api/business-v31/projection",
+      "status": 200,
+      "ms": 1437,
+      "bytes": 11
+    },
+    {
+      "path": "/api/business-v31/export-list?month=2026-11",
+      "status": 200,
+      "ms": 2449,
+      "bytes": 2175
+    },
+    {
+      "path": "/assets/cad/HumanSkull_Jaw.stl",
+      "status": 403,
+      "ms": 921,
+      "bytes": 39
+    },
+    {
+      "path": "/api/sales-demo/invite",
+      "status": 200,
+      "ms": 712,
+      "bytes": 181
+    },
+    {
+      "path": "/api/auth/login/password",
+      "status": 200,
+      "ms": 685,
+      "bytes": 2378
+    },
+    {
+      "path": "/api/admin/state",
+      "status": 200,
+      "ms": 941,
+      "bytes": 614622
+    },
+    {
+      "path": "/api/admin/result-preview?resultId=RESULT-8664e4c9-2325-4cd4-9dc1-8bd4f6115f44&resultVersion=V01",
+      "status": 200,
+      "ms": 2582,
+      "bytes": 3093443
+    },
+    {
+      "path": "/api/auth/switch",
+      "status": 200,
+      "ms": 919,
+      "bytes": 2507
+    },
+    {
+      "path": "/api/admin/business/sales",
+      "status": 200,
+      "ms": 1422,
+      "bytes": 480921
+    },
+    {
+      "path": "/api/auth/switch",
+      "status": 200,
+      "ms": 1423,
+      "bytes": 2262
+    },
+    {
+      "path": "/api/admin/business/designer",
+      "status": 200,
+      "ms": 805,
+      "bytes": 411510
+    }
+  ],
+  "counts": {
+    "salesOrders": 23,
+    "designerTasks": 29,
+    "adminOrders": 22,
+    "hospitals": 7,
+    "shares": 4
+  }
+}

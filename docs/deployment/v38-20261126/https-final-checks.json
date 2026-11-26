@@ -1,0 +1,90 @@
+{
+  "checks": [
+    {
+      "path": "/demo-access?demo=REDACTED",
+      "status": 302,
+      "ms": 1228,
+      "bytes": 0
+    },
+    {
+      "path": "/api/auth/session",
+      "status": 200,
+      "ms": 1238,
+      "bytes": 163
+    },
+    {
+      "path": "/api/auth/login/password",
+      "status": 200,
+      "ms": 600,
+      "bytes": 1519
+    },
+    {
+      "path": "/api/admin/business/directory",
+      "status": 200,
+      "ms": 410,
+      "bytes": 42132
+    },
+    {
+      "path": "/api/sales-demo/leads",
+      "status": 200,
+      "ms": 420,
+      "bytes": 862
+    },
+    {
+      "path": "/api/auth/login/password",
+      "status": 200,
+      "ms": 754,
+      "bytes": 1942
+    },
+    {
+      "path": "/api/admin/state",
+      "status": 200,
+      "ms": 1033,
+      "bytes": 636687
+    },
+    {
+      "path": "/api/auth/login/password",
+      "status": 200,
+      "ms": 591,
+      "bytes": 2071
+    },
+    {
+      "path": "/api/auth/scan/create",
+      "status": 200,
+      "ms": 961,
+      "bytes": 285
+    },
+    {
+      "path": "/api/auth/session",
+      "status": 200,
+      "ms": 649,
+      "bytes": 163
+    },
+    {
+      "path": "/api/auth/scan/inspect",
+      "status": 200,
+      "ms": 555,
+      "bytes": 127
+    },
+    {
+      "path": "/api/auth/scan/confirm",
+      "status": 200,
+      "ms": 566,
+      "bytes": 22
+    },
+    {
+      "path": "/api/auth/scan/status?id=REDACTED",
+      "status": 200,
+      "ms": 427,
+      "bytes": 48
+    }
+  ],
+  "orderId": "REPORT-QA-20261126-C",
+  "businessNo": "CV-2026-0023",
+  "doctorId": "D-LEAD-fa3d5661-7c04-44bc-be6d-95a43da9c6c5",
+  "invitationLeadId": "fa3d5661-7c04-44bc-be6d-95a43da9c6c5",
+  "doctorStatus": "待审核",
+  "scanStatus": "confirmed",
+  "visibleToSales": true,
+  "visibleToAdmin": true
+}
