@@ -73,7 +73,7 @@ html:has(.business-public),html:has(.business-public) body,html:has(.business-pu
 @media(max-width:560px){.stage-share-record-entry{align-items:flex-start;flex-wrap:wrap}.share-record-meta{grid-template-columns:1fr}}
 
 /* Result sharing Drawer: scoped field groups and the confirmed 120px empty-state inset. */
-.share-records > section > h3{margin:0 0 var(--td-comp-margin-l);font-size:var(--cv-font-size-title-medium);font-weight:500}
+.share-records > section > h3{color:var(--td-text-color-primary);margin:0 0 var(--td-comp-margin-l);font-size:var(--cv-font-size-title-medium);font-weight:500}
 .share-record-basic{flex-shrink:0;margin-bottom:var(--td-comp-margin-xxxl)}
 .share-record-basic .share-record-meta{margin-bottom:0}
 .share-record-visits{display:flex;flex-direction:column;flex:1;min-height:0}
