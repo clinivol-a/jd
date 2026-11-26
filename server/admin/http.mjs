@@ -1,3 +1,4 @@
+import {adminResultPreview} from './resultPreview.mjs';
 import {renderDoctorPreview} from '../doctor-preview.mjs';
 import {AdminFailure} from './service.mjs';
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -29,6 +30,7 @@ export function adminHandler(auth,admin,{origin}) {
     res.end(JSON.stringify(result));return;
    }
    if(req.method==='GET'&&url.pathname==='/api/admin/state'){res.end(JSON.stringify(admin.snapshot(actor)));return}
+   if(req.method==='GET'&&url.pathname==='/api/admin/result-preview'){res.end(JSON.stringify(adminResultPreview(admin,actor,url.searchParams.get('resultId'),url.searchParams.get('resultVersion'))));return}
    if(req.method==='GET'&&url.pathname==='/api/admin/order-attachment'){
     const result=admin.orderAttachment(actor,url.searchParams.get('orderId'),url.searchParams.get('fileId'));
     res.setHeader('Content-Type',result.type);res.setHeader('Content-Disposition','inline');res.setHeader('X-Content-Type-Options','nosniff');

@@ -20,7 +20,7 @@ function useAuditFilters<T extends object>(key:string,defaults:T){
 const stages=['三维重建','CAD 设计','有限元分析','3D 打印'] as const;
 export function DataAuditStatus({value}:{value:string}){const progress=['进行中','处理中'].includes(value);return <Tag variant="light" theme={progress?'primary':value==='已完成'?'success':dataAuditTheme(value)} className={progress?'status-in-progress':undefined}>{businessLabel(value||'-')}</Tag>}
 const options=(values:string[])=>[{label:'全部',value:''},...values.filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).map(label=>({label:businessLabel(label),value:label}))];
-export function DataAssetPanel({data,canExport,tab,onTab,onOrder,onOrderResults,onAsset,onShare,onExport}:{data:AdminState;canExport:boolean;tab:string;onTab:(tab:string)=>void;onOrder:(id:string)=>void;onOrderResults:(id:string)=>void;onAsset:(a:Asset)=>void;onShare:(s:Share)=>void;onExport:(scope:AssetExportScope,summary:string)=>void}){
+export function DataAssetPanel({data,canExport,tab,onTab,onOrder,onOrderResults,onShare,onExport}:{data:AdminState;canExport:boolean;tab:string;onTab:(tab:string)=>void;onOrder:(id:string)=>void;onOrderResults:(id:string)=>void;onShare:(s:Share)=>void;onExport:(scope:AssetExportScope)=>void}){
  const [filters,setFilters]=useAuditFilters('admin-assets-results-v2',{view:'orders',orderNo:'',hospitalId:'',stage:'',reviewStatus:'',completion:''});
  const [shareFilters,setShareFilters]=useAuditFilters('admin-assets-shares-v2',{query:'',hospitalId:''});
  const active=tab==='shares'?'shares':'results',view=filters.view==='results'?'results':'orders';
@@ -50,13 +50,14 @@ export function DataAssetPanel({data,canExport,tab,onTab,onOrder,onOrderResults,
   {key:'version',label:'成果版本',width:100,render:({asset:a})=>a.version},
   {key:'review',label:'审核状态',width:110,render:({asset:a})=><DataAuditStatus value={a.reviewStatus}/>},
   {key:'submitted',label:'提交时间',width:155,render:({asset:a})=>formatAuditTime(a.submittedAt)},
-  {key:'action',label:'操作',width:110,render:({asset:a})=><Button theme="primary" variant="text" onClick={()=>onAsset(a)}>查看详情</Button>}
+  {key:'action',label:'操作',width:110,render:({asset:a})=><Button theme="primary" variant="text" onClick={()=>onOrderResults(a.orderId)}>查看详情</Button>}
  ];
  const shares=data.shares.filter(s=>(!shareFilters.query||[s.name,order(s.orderId)?.businessNo,s.initiatorName,hospital(s.orderId)].some(v=>String(v||'').toLowerCase().includes(shareFilters.query.trim().toLowerCase())))&&(!shareFilters.hospitalId||order(s.orderId)?.hospitalId===shareFilters.hospitalId));
  return <Card bordered={false} className="project-list-card admin-data-audit-card">
-  <div className="project-page-heading"><h1>数据资产</h1>{active!=='shares'&&<Button theme="primary" disabled={!canExport||!selection.orders.length} onClick={()=>onExport(scope,`${view==='orders'?'订单视角':'成果视角'}当前查询全部记录：${selection.orders.length}笔订单，${selection.assets.length}份成果`)}>导出资产信息</Button>}</div>
-  <Tabs value={active} onChange={value=>{onTab(String(value));window.dispatchEvent(new Event('clinivol-admin-reset-pages'))}}><Tabs.TabPanel value="results" label="专业成果"/><Tabs.TabPanel value="shares" label="成果分享管理"/></Tabs>
+  <div className="project-page-heading"><h1>数据资产</h1>{active!=='shares'&&<Button theme="primary" disabled={!canExport||!selection.orders.length} onClick={()=>onExport(scope)}>导出资产信息</Button>}</div>
+  <div className="admin-asset-tabs-heading"><Tabs value={active} onChange={value=>{onTab(String(value));window.dispatchEvent(new Event('clinivol-admin-reset-pages'))}}><Tabs.TabPanel value="results" label="专业成果"/><Tabs.TabPanel value="shares" label="成果分享管理"/></Tabs>
   {active!=='shares'&&<div className="admin-asset-view-heading"><div className="project-view-switch" role="group" aria-label="专业成果视角">{(['orders','results'] as const).map(v=><Button key={v} theme={view===v?'primary':'default'} variant={view===v?'base':'text'} aria-pressed={view===v} onClick={()=>change('view',v)}>{v==='orders'?'订单视角':'成果视角'}</Button>)}</div></div>}
+  </div>
   <div className="project-filters admin-filters">
    {active==='shares'?<label><span>关键词</span><Input aria-label="资产关键词" value={shareFilters.query} clearable placeholder="搜索订单编号、成果或发起人" onChange={query=>setShareFilters(v=>({...v,query}))}/></label>:<label><span>订单编号</span><Input aria-label="成果订单编号" value={filters.orderNo} clearable placeholder="搜索订单编号" onChange={v=>change('orderNo',v)}/></label>}
    <label><span>医院</span><Select aria-label="资产医院" filterable value={active==='shares'?shareFilters.hospitalId:filters.hospitalId} options={hospitalOptions} onChange={v=>active==='shares'?setShareFilters(p=>({...p,hospitalId:String(v)})):change('hospitalId',String(v))}/></label>

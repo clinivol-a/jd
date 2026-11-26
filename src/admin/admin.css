@@ -104,7 +104,6 @@ html[theme-mode="dark"] .admin-app .business-nav .t-menu__item.t-is-active .t-me
 .admin-review-sections .project-info-grid, .admin-review-sections .doctor-history { margin-top:0; margin-bottom:0; }
 
 /* Data assets reuse the existing view switch, PageBack and detail Card rhythm. */
-.admin-app .admin-asset-view-heading { display:flex; justify-content:flex-end; padding:var(--td-comp-margin-l) 24px 0; }
 .admin-app .admin-asset-order-page > .t-card { margin-bottom:20px; }
 .admin-app .admin-result-stage { min-height:0; }
 .admin-app .admin-result-stage .project-stage-title { align-items:flex-start; gap:var(--td-comp-margin-s); }
@@ -115,4 +114,9 @@ html[theme-mode="dark"] .admin-app .business-nav .t-menu__item.t-is-active .t-me
 .admin-app .admin-result-stage-action { margin-top:auto; padding-top:var(--td-comp-margin-l); text-align:right; }
 .admin-app .admin-result-stage-action .t-button { padding:0; height:22px; border:0; }
 .admin-app .admin-result-empty { padding-block:120px; }
-.admin-export-scope { margin:0 0 var(--td-comp-margin-l); color:var(--td-text-color-secondary); }
+
+.admin-app .admin-asset-tabs-heading {display:flex;align-items:center;justify-content:space-between;gap:var(--td-comp-margin-l);padding-right:24px;flex-wrap:wrap;}
+.admin-app .admin-asset-tabs-heading > .t-tabs {flex:1;min-width:240px;}
+.admin-app .admin-asset-tabs-heading .project-view-switch {flex-shrink:0;}
+.admin-app .admin-result-viewer-card .business-model-viewer {width:100%;height:clamp(360px,65vh,800px);overflow:hidden;}
+.admin-app .admin-result-viewer-card .business-model-viewer canvas {display:block;}

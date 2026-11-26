@@ -1,0 +1,19 @@
+✔ one order row counts each requested official locked stage once and never counts a returned/pending version (0.723125ms)
+✔ filters and exports operate on exact order identities and preserve complete order progress in the result view (0.179667ms)
+✔ formal compatibility locking requires an exact existing approved selection, never a pending/returned artifact or guessed version (0.144958ms)
+✔ locked versions cannot be changed or deleted; new versions retain old history and downstream starts bind the exact formal reference (1.660375ms)
+✔ real XLSX contains two named sheets, exact rows, native dates and no patient data, formulas or publication column (11.44475ms)
+✔ Excel is the default export; purpose, scope and permissions are server-checked and failed exports leave no audit event (109.970875ms)
+✔ snapshot preserves versions with the same artifact ID and sharing never controls a formal lock (99.763333ms)
+✔ legacy artifacts without a duplicated stage field resolve the exact task stage and retain official lock after service restart (6.148917ms)
+✔ preview uses exact order/project/task/result/version and distinct reconstruction/CAD resources without creating share/approval events (0.481959ms)
+✔ unauthorized accounts and wrong versions never receive a display resource (0.191625ms)
+✔ broken relationship, missing resource and unbound clinical artifacts fail instead of returning a fallback model (0.131ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 284.126083

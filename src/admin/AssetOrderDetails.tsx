@@ -26,9 +26,9 @@ export function AssetOrderDetails({data,order,onAsset,onBack,backLabel}:{data:Ad
    ['订单编号',order.businessNo||'-'],['手术项目名称',order.name],['医院',data.hospitals.find(h=>h.id===order.hospitalId)?.name||'-'],
    ['患者',order.patientName||'-'],['设计阶段',<div className="project-stage-tags">{stages.map(s=><StageLabel key={s} stage={stageNames[s]}/>)}</div>],['订单状态',<DataAuditStatus value={order.status}/>],['成果进度',row?assetProgressText(row):'-']
   ]}/></Card>
-  <Card bordered={false} className="project-stages-card"><div className="section-heading"><h2>专业成果</h2></div>{stages.length?<div className="project-stages">{stages.map((stage,index)=>{
+  <Card bordered={false} className="project-stages-card"><div className="section-heading"><h2>专业成果</h2></div>{stages.length?<div className="project-stages">{stages.map(stage=>{
    const records=stageAssets(data,order.id,stage),current=records[0],formal=records.find(a=>isFormalAsset(a,data)),task=data.tasks.find(t=>t.orderId===order.id&&t.stage===stage);
-   return <section className="project-stage admin-result-stage" key={stage}><div className="project-stage-title"><h3><span>{String(index+1).padStart(2,'0')}</span><StageLabel stage={stageNames[stage]}/></h3><DataAuditStatus value={task?.status||'未开始'}/></div>
+   return <section className="project-stage admin-result-stage" key={stage}><div className="project-stage-title"><h3><StageLabel stage={stageNames[stage]}/></h3><DataAuditStatus value={task?.status||'未开始'}/></div>
     <AssetFields items={[
      ['当前成果审核状态',current?<DataAuditStatus value={current.reviewStatus}/>:'-'],
      ...(current&&(!formal||assetKey(current)!==assetKey(formal))?[["当前成果版本",current.version] as [string,ReactNode]]:[]),
