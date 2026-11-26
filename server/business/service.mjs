@@ -1,3 +1,4 @@
+import {linkedShareOrder} from './linkedShares.mjs';
 import {linkedInsuranceRows} from './linkedInsurance.mjs';
 import { ShareRecords } from './shareRecords.mjs';
 import { approvedDemoChain } from './resultCatalog.mjs';
@@ -191,8 +192,10 @@ export class BusinessService {
         for (const row of rows || []) {
             if (row.ownerSalesId !== user.id)
                 continue;
+            const linked=linkedShareOrder(this,user,row.id);
             const chain = approvedDemoChain(user, row);
-            if (chain) {
+            if(linked){this.state.orders[row.id]=linked;}
+            else if (chain) {
                 const old = this.state.orders[row.id];
                 this.state.orders[row.id] = { id: row.id, businessNo:row.businessNo||row.id, owner: user.id, status: row.status, completedAt: row.completedAt, hospital: row.hospital, patientName: row.patientName, expectedRecipient:row.expectedRecipient?.id&&row.expectedRecipient.id===row.doctorId?{id:row.expectedRecipient.id,name:String(row.expectedRecipient.name||'')}:null, projectId: chain.projectId, sex: chain.sex, identityRecord: old?.identityRecord || this.seal({ identityNumber: chain.identityNumber }), surgery: row.name, standardMapped: false, allowedPhones: ['13900000001'], published: true, imageApproved: true, artifacts: chain.artifacts, dataOrigin: 'isolated-business-fixture' };
             }

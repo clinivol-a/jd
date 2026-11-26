@@ -1,5 +1,6 @@
 import {localBusinessDirectory} from '../unified/directory.mjs';
 import {readFileSync} from 'node:fs';
+import {resolve,join} from 'node:path';
 import {linkedResultImage} from './linkedPreview.mjs';
 import {seedLocalShareRecords} from './shareRecordsDemo.mjs';
 import {previewModel} from './previewModel.mjs';
@@ -44,7 +45,7 @@ export function businessDesignPlugin({ authOrigin = 'http://127.0.0.1:5211', get
                 }
                 catch { }
                 const resultImages=new Map();for(const [id,spec] of Object.entries(resultScenarios))for(let i=1;i<=spec.stages.length;i++){try{resultImages.set(`${id}-${i}`,await readFile(new URL(`./fixtures/results/${id}-${i}.png`,import.meta.url)))}catch{}}
-                const sharedCatalog=process.env.CV_ADMIN_LOCAL==='1'?()=>{try{const state=JSON.parse(readFileSync(new URL('../../.local/unified-business/state.json',import.meta.url),'utf8'));const admin=JSON.parse(readFileSync(new URL('../../.local/admin/state.json',import.meta.url),'utf8'));return {...state,hospitals:localBusinessDirectory({mode:'local',demoMode:true,accounts:[]},admin).hospitals}}catch(e){if(e.code==='ENOENT')return null;throw e}}:undefined;
+                const sharedCatalog=process.env.CV_ADMIN_LOCAL==='1'?()=>{try{const state=JSON.parse(readFileSync(process.env.CV_ADMIN_DATA_DIRECTORY?join(resolve(process.env.CV_ADMIN_DATA_DIRECTORY),'unified-business/state.json'):new URL('../../.local/unified-business/state.json',import.meta.url),'utf8'));const admin=JSON.parse(readFileSync(process.env.CV_ADMIN_DATA_DIRECTORY?join(resolve(process.env.CV_ADMIN_DATA_DIRECTORY),'admin/state.json'):new URL('../../.local/admin/state.json',import.meta.url),'utf8'));const directory=process.env.CV_ADMIN_DATA_DIRECTORY?JSON.parse(readFileSync(join(resolve(process.env.CV_ADMIN_DATA_DIRECTORY),'institution-directory/state.json'),'utf8')):localBusinessDirectory({mode:'local',demoMode:true,accounts:[]},admin);return {...state,hospitals:directory.hospitals,doctors:directory.doctors}}catch(e){if(e.code==='ENOENT')return null;throw e}}:undefined;
                 service = new BusinessService({ key,state,sharedCatalog,linkedResultImage,demoShareCodes:true,resultModel:previewModel,resultImage:key=>resultImages.get(key), image: await readFile(new URL('./fixtures/approved-static-preview.png', import.meta.url)), persist: async (value) => { await writeFile(new URL('records.enc', dir), service.seal(value), { mode: 0o600 }); } });
             }
             vite.middlewares.use(async (req, res, next) => {
@@ -135,7 +136,7 @@ export function businessDesignPlugin({ authOrigin = 'http://127.0.0.1:5211', get
                     if (a === 'share') {
                         const origin = await ensureLAN() || 'http://' + req.headers.host;
                         const shared=await service.share(user, body, origin);
-                        if(localLi){await seedLocalShareRecords(service,user,shared.token);shared.stats=service.shareRecords.summary(service.state.shares[shared.token]);}
+                        if(localLi&&service.state.orders[body.orderId]?.dataOrigin!=='isolated-linked-share'){await seedLocalShareRecords(service,user,shared.token);shared.stats=service.shareRecords.summary(service.state.shares[shared.token]);}
                         return send(200, shared);
                     }
                     if (a === 'revoke')

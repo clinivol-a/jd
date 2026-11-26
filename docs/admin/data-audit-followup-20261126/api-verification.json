@@ -1,0 +1,49 @@
+{
+  "shares": [
+    {
+      "id": "26ff2fc5-8eca-491d-b5e4-2e833c89cc0b",
+      "orderNo": "CV-2026-0015",
+      "resultId": "RESULT-8591e38f-e58a-4715-ae2b-abb6632224d8",
+      "stage": 0,
+      "version": "V01",
+      "initiator": "李明",
+      "count": 0,
+      "visits": []
+    },
+    {
+      "id": "e5a83dd0-29c3-40a9-ad98-b429b8903110",
+      "orderNo": "CV-2026-0014",
+      "resultId": "RESULT-5249b7e9-e8ed-45f7-8ae0-0ecdc4cd5ca8",
+      "stage": 1,
+      "version": "V01",
+      "initiator": "李明",
+      "count": 0,
+      "visits": []
+    },
+    {
+      "id": "38a55029-91d3-4013-be70-c9e932c55a96",
+      "orderNo": "CV-2026-0014",
+      "resultId": "RESULT-953841e1-3279-4fff-9d02-8c579f4cd6c9",
+      "stage": 0,
+      "version": "V01",
+      "initiator": "李明",
+      "count": 1,
+      "visits": [
+        {
+          "id": "38a55029-91d3-4013-be70-c9e932c55a96:viewed:5ae8d889-24bd-4a8f-ad02-1cbd1835afbf",
+          "name": "未确认身份",
+          "role": "未确认",
+          "at": "2026-11-26T05:40:54.215Z",
+          "outcome": "查看成功"
+        }
+      ]
+    }
+  ],
+  "image": {
+    "bytes": 311442,
+    "status": 200
+  },
+  "repeatViewerCount": 1,
+  "refreshStable": true,
+  "archivedShareExcluded": true
+}

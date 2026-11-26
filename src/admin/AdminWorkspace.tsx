@@ -1,5 +1,6 @@
 import {DataAssetPanel,AuditLogPanel,DataAuditStatus} from './DataAuditPanel';
 import {assetFieldKeys,auditObjectName,auditOrderId,auditChanges,businessLabel} from './dataAuditRules.mjs';
+import {DataIcon,FileSafetyIcon} from '../design-system/tdesign';
 import {RolePanel} from './RolePanel';
 import {anhuiCities,hospitalMatches,memberMatches,eligibleHospitalLeaders} from './institutionRules.mjs';
 // Operate: extend the confirmed A workbench using its Header/Menu/Card/Table/PageBack.
@@ -43,7 +44,7 @@ const formatDateTime=(...args:Parameters<typeof dateTime>)=>emptyValue(dateTime(
 type Setting='profile'|'security'|'preferences';
 type Command={assetIds?:string[];action:string;id:string;version?:number;title:string;kind?:'doctor'|'order'|'task'|'hospital'|'approval'|'person'|'asset';result?:string;date?:string;basis?:string;options?:{label:string;value:string}[];selectLabel?:string};
 const stageNames=['三维重建','CAD 设计','有限元分析','3D 打印'] as const;
-const menu=[['home','工作台',HomeIcon],['orders','订单管理',TaskIcon],['tasks','任务调度',WorkIcon],['reviews','审核中心',TaskCheckedIcon],['organizations','机构与成员',UserBusinessIcon],['assets','数据资产',FileIcon],['audit','审计日志',ListDemandIcon]] as const;
+const menu=[['home','工作台',HomeIcon],['orders','订单管理',TaskIcon],['tasks','任务调度',WorkIcon],['reviews','审核中心',TaskCheckedIcon],['organizations','机构与成员',UserBusinessIcon],['assets','数据资产',DataIcon],['audit','审计日志',FileSafetyIcon]] as const;
 function Status({value}:{value:string}){value=reviewState(value);const theme=['处理中','进行中'].includes(value)?'primary':['待审核','待审批'].includes(value)?'warning':['审核退回','审批退回','已停用'].includes(value)?'danger':['审核通过','已完成','已启用','审批通过','已发布','已授权'].includes(value)?'success':'default';return <Tag variant="light" theme={theme} className={['处理中','进行中'].includes(value)?'status-in-progress':''}>{value}</Tag>}
 function Fields({items}:{items:[string,ReactNode][]}){return <dl className="project-info-grid">{items.map(([label,value])=><div key={label} className={label==='设计需求'?'admin-field-demand':undefined}><dt>{label}</dt><dd>{value===null||value===undefined||value===''?'-':value}</dd></div>)}</dl>}
 function History({events,tasks=[]}:{events:AuditEvent[];tasks?:Task[]}){return events.length?<ol className="timeline">{historyEvents(events).map(e=>{const stage=tasks.find(t=>t.id===e.objectId)?.stage;return <li className="timeline-item" key={e.id}><i/><div><strong>{e.title.replaceAll('审批','审核')}{stage!==undefined&&<span className="flow-source">{STAGES[stage]}</span>}</strong><p><span className="timeline-meta">{formatAuditTime(e.at)} · {e.actor}</span>{(e.noteSource!=='system-default'&&e.reason||e.note&&e.noteSource!=='system-default')&&<span className="timeline-note">{e.reason||e.note}</span>}{e.basis&&<span className="timeline-note">依据：{e.basis}</span>}</p></div></li>})}</ol>:<Empty title="暂无操作记录" description={null}/>}
@@ -52,7 +53,7 @@ export default function AdminWorkspace(){
  const [route,setRoute]=useState(location.hash.replace(/^#(?:admin\/?)?/,'')||'home');
  const [moduleTabs,setModuleTabs]=useState<Record<string,string>>({});
  const currentModule=route.split('/')[0];
- const tab=moduleTabs[currentModule]||({reviews:'accounts',organizations:'hospitals',assets:'trace'} as Record<string,string>)[currentModule]||'';
+ const tab=moduleTabs[currentModule]||({reviews:'accounts',organizations:'hospitals',assets:'results'} as Record<string,string>)[currentModule]||'';
  const setModuleTab=(module:string,value:string)=>setModuleTabs(previous=>({...previous,[module]:value}));
  const setTab=(value:string)=>setModuleTab(currentModule,value);
  const [data,setData]=useState<AdminState|null>(null),[error,setError]=useState(''),[loading,setLoading]=useState(true);
@@ -243,12 +244,12 @@ export default function AdminWorkspace(){
    const a=data.assets.find(a=>a.id===inspect.id);if(!a)return <Empty title="暂无数据" description={null}/>;
    const o=data.orders.find(o=>o.id===a.orderId),events=data.events.filter(e=>e.objectId===a.id||e.resultId===a.id||e.objectId===a.taskId&&!e.resultId);
    const fields:Record<string,[string,ReactNode]>={order:['订单编号',businessNo(a.orderId)],name:['成果名称',a.name],hospital:['医院',o?hospital(o.hospitalId):'-'],stage:['设计阶段',a.stage===null?'-':<StageLabel stage={stageNames[a.stage]}/>],version:['成果版本',a.version],submitter:['提交人',a.submittedByName||'-'],submitted:['提交时间',formatAuditTime(a.submittedAt)],review:['审核状态',<Status value={a.reviewStatus}/>],reviewer:['审核人',a.reviewerName||'-'],reviewed:['审核时间',formatAuditTime(a.reviewedAt)],publish:['发布状态',<Status value={a.publishStatus}/>]};
-   const primary=assetFieldKeys(tab),secondary=(tab==='professional'?['submitter','submitted']:['review','reviewer','reviewed','publish']);
-   return <div className="admin-review-sections"><section><h3>基本资料</h3><Fields items={primary.map(key=>fields[key])}/></section><section><h3>{tab==='professional'?'提交信息':'审核与发布'}</h3><Fields items={secondary.map(key=>fields[key])}/></section><section><h3>关联业务</h3><Fields items={[["手术项目名称",o?.name],["医生",o?doctor(o.doctorId):'-'],["患者",o?.patientName]]}/></section><section><h3>操作记录</h3><History events={events}/></section></div>;
+   const primary=assetFieldKeys('results');
+   return <div className="admin-review-sections"><section><h3>基本资料</h3><Fields items={primary.map(key=>fields[key])}/></section><section><h3>关联业务</h3><Fields items={[["手术项目名称",o?.name],["医生",o?doctor(o.doctorId):'-'],["患者",o?.patientName]]}/></section><section><h3>操作记录</h3><History events={events}/></section></div>;
   }
   if(inspectKind==='share'){
    const r=data.shares.find(s=>s.id===inspect.id);if(!r)return <Empty title="暂无数据" description={null}/>;
-   return <div className="admin-review-sections"><section><h3>基本资料</h3><Fields items={[["成果名称",r.name],["订单编号",businessNo(r.orderId)],["分享发起人",r.initiatorName||'-'],["成功查看次数",r.successCount],["最近查看时间",formatAuditTime(r.lastViewedAt)]]}/></section></div>;
+   return <div className="admin-review-sections"><section><h3>基本资料</h3><Fields items={[["订单编号",businessNo(r.orderId)],["成果名称",r.name],["医院",hospital(data.orders.find(o=>o.id===r.orderId)?.hospitalId||'')],["设计阶段",r.stage===undefined||r.stage===null?'-':<StageLabel stage={stageNames[r.stage]}/>],["成果版本",r.resultVersion||'-'],["分享发起人",r.initiatorName||'-'],["成功查看次数",r.successCount],["最近查看时间",formatAuditTime(r.lastViewedAt)],["当前状态",r.status||'-']]}/></section><section><h3>访问记录</h3><AdminTable rows={r.visits||[]} columns={[{key:'name',label:'访问者',width:140,render:v=><FullText>{v.name}</FullText>},{key:'role',label:'访问身份',width:100,render:v=>v.role},{key:'at',label:'访问时间',width:155,render:v=>formatAuditTime(v.at)},{key:'result',label:'访问结果',width:130,render:v=><DataAuditStatus value={v.outcome}/>}]}/></section></div>;
   }
   const e=inspect as AuditEvent,changes=auditChanges(e,data);return <div className="admin-review-sections"><section><h3>基本资料</h3><Fields items={[["事件",businessLabel(e.title)],["业务类型",businessLabel(e.category)],["业务对象",auditObjectName(e,data)],["操作人",e.actor],["操作时间",formatAuditTime(e.at)],["操作结果",<DataAuditStatus value={e.result}/>],["操作说明",e.reason],["审核依据",e.basis]]}/></section>{changes.length>0&&<section><h3>变更明细</h3><AdminTable paginate={false} rows={changes} columns={[{key:'label',label:'字段',width:120,render:r=>r.label},{key:'before',label:'变更前',width:210,render:r=><FullText>{r.before}</FullText>},{key:'after',label:'变更后',width:210,render:r=><FullText>{r.after}</FullText>}]}/></section>}</div>;
 

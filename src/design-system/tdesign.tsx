@@ -60,3 +60,6 @@ export const FileAddFilledIcon = adaptIcon(Catalog.FileAddFilledIcon)
 export const UserBusinessIcon = adaptIcon(Catalog.UserBusinessIcon)
 
 export const ViewListIcon = adaptIcon(Catalog.ViewListIcon)
+
+export const DataIcon = adaptIcon(Catalog.DataIcon)
+export const FileSafetyIcon = adaptIcon(Catalog.FileSafetyIcon)

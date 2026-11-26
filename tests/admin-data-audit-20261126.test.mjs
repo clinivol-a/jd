@@ -54,7 +54,7 @@ test('filtered export is exact, deduplicated, authorized and auditable; failed e
  const forbidden=assets.find(a=>!allowed.some(b=>b.id===a.id));assert(forbidden);assert.throws(()=>s.command(limited,{action:'export-metadata',reason:'范围核对',assetIds:[forbidden.id]}),e=>e.status===403);assert.equal(s.state.events.length,count+1);
 });
 
-test('trace and professional lists have distinct business fields; details reuse the same order',()=>{assert.deepEqual(assetFieldKeys('trace'),['order','name','hospital','stage','version','submitter','submitted']);assert.deepEqual(assetFieldKeys('professional'),['order','name','hospital','stage','version','review','reviewer','reviewed','publish']);});
+test('merged results and details use one complete ordered field definition',()=>{const fields=['order','name','hospital','stage','version','submitter','submitted','review','reviewer','reviewed','publish'];for(const mode of ['results','trace','professional'])assert.deepEqual(assetFieldKeys(mode),fields);});
 
 test('missing review metadata is recovered only from the exact artifact and version event',t=>{
  const s=setup(t),a=s.state.assets[0];a.version='V02';a.reviewStatus='审核通过';delete a.reviewedAt;delete a.reviewerId;
