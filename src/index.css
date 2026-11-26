@@ -191,7 +191,8 @@ button.global-tab { justify-content: center; gap: 7px; }
 .app-table tbody tr td { transition: background-color 120ms ease; }
 .app-table tbody tr:hover td { background: var(--td-bg-color-container-hover); }
 .disabled-action-wrap { display: inline-flex; }
-.app-table td:first-child { position: relative; overflow: visible; }
+/* Fixed columns retain TDesign sticky positioning; only ordinary first cells anchor task relations. */
+.app-table td:first-child:not(.t-table__cell--fixed-left):not(.t-table__cell--fixed-right) { position: relative; overflow: visible; }
 .task-relation { width: 12px; height: 100%; position: absolute; z-index: 2; top: 50%; right: 5px; border-left: 1px solid var(--td-text-color-disabled); pointer-events: none; }
 .task-relation::before, .task-relation::after { content: ""; width: 9px; position: absolute; left: 0; border-top: 1px solid var(--td-text-color-disabled); }
 .task-relation::before { top: 0; }
