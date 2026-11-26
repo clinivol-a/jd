@@ -115,8 +115,5 @@ html[theme-mode="dark"] .admin-app .business-nav .t-menu__item.t-is-active .t-me
 .admin-app .admin-result-stage-action .t-button { padding:0; height:22px; border:0; }
 .admin-app .admin-result-empty { padding-block:120px; }
 
-.admin-app .admin-asset-tabs-heading {display:flex;align-items:center;justify-content:space-between;gap:var(--td-comp-margin-l);padding-right:24px;flex-wrap:wrap;}
-.admin-app .admin-asset-tabs-heading > .t-tabs {flex:1;min-width:240px;}
-.admin-app .admin-asset-tabs-heading .project-view-switch {flex-shrink:0;}
 .admin-app .admin-result-viewer-card .business-model-viewer {width:100%;height:clamp(360px,65vh,800px);overflow:hidden;}
 .admin-app .admin-result-viewer-card .business-model-viewer canvas {display:block;}

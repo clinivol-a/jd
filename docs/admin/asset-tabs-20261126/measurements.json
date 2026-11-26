@@ -1,0 +1,15 @@
+{
+  "assets": {
+    "height": 48,
+    "left": 24,
+    "margin": "16px 24px 0px",
+    "top": 72,
+    "viewSwitch": false
+  },
+  "institutions": {
+    "height": 48,
+    "left": 24,
+    "margin": "16px 24px 0px",
+    "top": 72
+  }
+}
