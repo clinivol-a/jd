@@ -1,0 +1,46 @@
+{
+  "top": {
+    "body": {
+      "height": 891,
+      "scrollHeight": 1101,
+      "scrollTop": 0
+    },
+    "footer": {
+      "bottom": 1012,
+      "top": 947
+    },
+    "sections": [
+      {
+        "labelLineHeight": "22px",
+        "textGap": 13,
+        "title": "基本资料"
+      },
+      {
+        "labelLineHeight": "22px",
+        "textGap": 13,
+        "title": "岗位与角色"
+      },
+      {
+        "labelLineHeight": "22px",
+        "textGap": 13,
+        "title": "管理范围"
+      },
+      {
+        "labelLineHeight": "22px",
+        "textGap": 13.1875,
+        "title": "功能权限"
+      }
+    ]
+  },
+  "scrolled": {
+    "body": {
+      "height": 891,
+      "scrollHeight": 1101,
+      "scrollTop": 209.5
+    },
+    "footer": {
+      "bottom": 1012,
+      "top": 947
+    }
+  }
+}
