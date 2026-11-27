@@ -2,9 +2,9 @@ import {accessRoles,hasManagementPermission} from '../auth/memberAccess.mjs';
 
 // A single management role never substitutes for a professional position or qualification.
 export const memberPermissionCatalog=[
- {id:'orders:read',name:'订单管理'},
- {id:'orders:review',name:'订单审核'},
- {id:'tasks:assign',name:'任务分配'},
+ {id:'orders:read',name:'订单管理',description:'查看授权范围内的订单列表、订单详情和任务进度，不包含订单审核或任务分配。'},
+ {id:'orders:review',name:'订单审核',description:'由当前负责组长审核受理或退回待审核订单。'},
+ {id:'tasks:assign',name:'任务分配',description:'由当前负责组长为已受理订单中尚未开始的专业任务分配或调整负责人、计划时间。'},
  {id:'accounts:approve',name:'账号注册审核'},
  {id:'doctors:review',name:'医生档案审核'},
  {id:'permissions:grant',name:'权限申请审核'},

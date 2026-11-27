@@ -8,7 +8,7 @@
 .admin-app .admin-data-table { width:100%; min-width:0; }
 .admin-app .admin-data-table .t-table__content { overflow-x:auto; }
 .admin-app .admin-data-table .table-pagination { padding:16px 24px; }
-.admin-app .admin-ellipsis { display:block; max-width:100%; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; }
+.admin-tooltip-trigger { display:inline-flex; vertical-align:middle; }
 .admin-drawer-content > h3 { margin:24px 0 16px; font-size:var(--cv-font-size-title-medium); font-weight:500; }
 .admin-drawer-content .project-info-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
 .admin-drawer-content .admin-material-group { display:flex; flex-direction:column; gap:8px; margin-bottom:20px; }

@@ -15,6 +15,9 @@
 | 三维重建工具栏 | 单排58px；AI/视图/图像/分割，分类浅品牌选中，上下文持续工具品牌实底；一次性命令不保持激活。移除文件/插件入口。 |
 | CAD工具栏 | 原单排58px纯Icon+Tooltip和下拉分组，现有命令/浮动参数/模型选择/历史不变。 |
 
+
+管理员表格省略提示统一由 TDesign Table 的 ellipsis 管理，仅实际溢出时显示；FullText 不再嵌套第二层 Tooltip。短文本完整显示时不重复弹提示，操作列不套省略提示。表格 Tooltip 挂载 body，避免滚动容器裁切，保留 TDesign 对锚点、冻结列、滚动和窗口边界的定位机制。成员侧栏开关使用紧贴控件的 inline-flex 锚点、向左提示，右侧操作按钮采用 top-right 定位；不通过全局 translate 或固定坐标修正个别提示。
+
 ## 交互状态
 
 Default沿用默认表面与主要文字；Hover使用对应中性灰Token；Selected/持续Active使用品牌语义；禁用保持准确的Disabled，不执行命令；Focus使用brand-color-focus可见反馈。禁止全局重写所有:hover。列表Hover覆盖完整有效行宽，独立按钮只反馈自身。

@@ -1,0 +1,109 @@
+{
+  "shortCheck": {
+    "visibleTips": 0
+  },
+  "tableCases": [
+    {
+      "label": "组织管理",
+      "overflow": false
+    },
+    {
+      "label": "医院管理",
+      "target": {
+        "action": false,
+        "index": 18,
+        "scroll": 308,
+        "text": "中国科学技术大学附属第一医院（安徽省立医院）",
+        "width": 234
+      },
+      "tips": [
+        {
+          "placement": "top-start",
+          "rect": {
+            "bottom": 449.5,
+            "height": 46,
+            "left": 272,
+            "right": 596,
+            "top": 403.5,
+            "width": 324,
+            "x": 272,
+            "y": 403.5
+          },
+          "tableAncestor": false,
+          "text": "中国科学技术大学附属第一医院（安徽省立医院）"
+        }
+      ]
+    },
+    {
+      "label": "岗位管理",
+      "overflow": false
+    },
+    {
+      "label": "订单管理",
+      "overflow": false
+    },
+    {
+      "label": "审核中心",
+      "overflow": false
+    },
+    {
+      "label": "数据资产",
+      "overflow": false
+    },
+    {
+      "label": "审计日志",
+      "target": {
+        "action": false,
+        "index": 21,
+        "scroll": 182,
+        "text": "历史订单访问审核退回已撤销",
+        "width": 170
+      },
+      "tips": [
+        {
+          "placement": "top-start",
+          "rect": {
+            "bottom": 393.5,
+            "height": 46,
+            "left": 272,
+            "right": 470,
+            "top": 347.5,
+            "width": 198,
+            "x": 272,
+            "y": 347.5
+          },
+          "tableAncestor": false,
+          "text": "历史订单访问审核退回已撤销"
+        }
+      ]
+    }
+  ],
+  "memberScroll": [
+    {
+      "scrollers": [
+        {
+          "left": 0,
+          "scroll": 1280,
+          "width": 1237
+        }
+      ],
+      "visibleTips": [
+        {
+          "inBody": false,
+          "placement": "top",
+          "rect": {
+            "bottom": 329.5,
+            "height": 90,
+            "left": 708,
+            "right": 1188,
+            "top": 239.5,
+            "width": 480,
+            "x": 708,
+            "y": 239.5
+          },
+          "text": "合肥、安徽医科大学第一附属医院、安徽医科大学第二附属医院、中国科学技术大学附属第一医院（安徽省立医院）、合肥市第一人民医院、合肥市第二人民医院"
+        }
+      ]
+    }
+  ]
+}
