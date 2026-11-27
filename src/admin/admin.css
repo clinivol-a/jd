@@ -102,6 +102,9 @@ html[theme-mode="dark"] .admin-app .business-nav .t-menu__item.t-is-active .t-me
 .admin-details-drawer .admin-review-sections { display:flex; flex-direction:column; gap:var(--td-comp-margin-xxxl); }
 .admin-review-sections > section > h3 { margin:0 0 var(--td-comp-margin-l); font-size:var(--cv-font-size-title-medium); font-weight:500; }
 .admin-review-sections .project-info-grid, .admin-review-sections .doctor-history { margin-top:0; margin-bottom:0; }
+.admin-details-drawer .admin-member-sections { gap:var(--td-comp-margin-xxxl); }
+.admin-member-sections > section > h3 { margin-bottom:var(--td-comp-margin-m); }
+.admin-member-sections > section > h3 + .admin-permission-row { padding-top:0; }
 
 /* Data assets reuse the existing view switch, PageBack and detail Card rhythm. */
 .admin-app .admin-asset-order-page > .t-card { margin-bottom:20px; }

@@ -1,0 +1,27 @@
+{
+  "groupGap": "32px",
+  "hospitalNamesVisible": false,
+  "removedField": true,
+  "sections": [
+    {
+      "after": 12,
+      "before": null,
+      "title": "基本资料"
+    },
+    {
+      "after": 12,
+      "before": 32,
+      "title": "岗位与角色"
+    },
+    {
+      "after": 12,
+      "before": 32,
+      "title": "管理范围"
+    },
+    {
+      "after": 12,
+      "before": 32,
+      "title": "功能权限"
+    }
+  ]
+}
