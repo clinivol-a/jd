@@ -108,6 +108,7 @@ html[theme-mode="dark"] .admin-app .business-nav .t-menu__item.t-is-active .t-me
 .admin-member-sections .t-form__label--top { min-height:0; height:auto; line-height:var(--td-line-height-body-medium); padding:0 0 var(--td-comp-margin-s); }
 .admin-member-footer { display:flex; align-items:center; justify-content:flex-end; gap:var(--td-comp-margin-m); }
 .admin-member-footer > .admin-error { flex:1; text-align:left; }
+.admin-member-policy-notice { margin-bottom:var(--td-comp-margin-m); }
 
 /* Data assets reuse the existing view switch, PageBack and detail Card rhythm. */
 .admin-app .admin-asset-order-page > .t-card { margin-bottom:20px; }

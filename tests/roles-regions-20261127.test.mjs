@@ -10,6 +10,7 @@ import {managementActor} from '../server/admin/memberAccess.mjs';
 import {seedSuperAdmin} from '../server/admin/seedAccount.mjs';
 import {isBusinessLeader} from '../src/auth/memberAccess.mjs';
 import {managementPermissions} from '../server/admin/seed.mjs';
+import {rolePermissions} from '../src/admin/memberPolicy.mjs';
 import {anhuiCities,eligibleHospitalLeaders} from '../src/admin/institutionRules.mjs';
 const actor={id:'super-admin',name:'管理员',role:'super_admin',status:'approved',permissions:managementPermissions};
 function setup(t){const root=mkdtempSync(join(tmpdir(),'cv-roles-regions-'));t.after(()=>rmSync(root,{recursive:true,force:true}));const auth=new AuthService({directory:join(root,'auth'),mode:'local',demoMode:true});auth.seedLocal();const admin=new AdminService({directory:join(root,'admin'),authService:auth});return {root,auth,admin}}
@@ -52,29 +53,29 @@ test('clearing regions removes eligibility; invalid, unauthorized and stale chan
 });
 test('an engineer can receive and lose a management role without losing the same account or professional permissions',t=>{
  const {admin,auth,root}=setup(t),engineer=auth.accounts.find(a=>a.id==='chen-yu'),old=structuredClone(engineer),p=admin.snapshot(actor).people.find(p=>p.id===engineer.id);
- const c={action:'member-access-save',id:p.id,version:p.version,accountVersion:p.accountVersion,positionId:'designer',accessRoles:['leader']};
+ const c={action:'member-access-save',id:p.id,version:p.version,accountVersion:p.accountVersion,positionId:'designer',accessRoles:['leader'],regions:['芜湖'],regionConfigurationVersion:admin.snapshot(actor).regionConfiguration.version,managementPermissions:rolePermissions('leader')};
  assert.throws(()=>admin.command(engineer,c),e=>e.status===403);admin.command(actor,c);
  assert.equal(engineer.id,old.id);assert.equal(engineer.phone,old.phone);assert.equal(engineer.passwordHash,old.passwordHash);assert.equal(engineer.role,'designer');assert.deepEqual(engineer.accessRoles,['leader']);assert(old.permissions.every(permission=>engineer.permissions.includes(permission)));
  let s=admin.snapshot(actor),member=s.people.find(p=>p.id===engineer.id);assert.equal(member.role,'工程设计师');assert.equal(member.accessRoleName,'业务组长');assert.equal(auth.publicAccount(engineer).managementRole,'leader');
  const regions=command(admin);regions.assignments.find(a=>a.region==='芜湖').leaderIds=[engineer.id];admin.command(actor,regions);
  const managed=managementActor(admin,engineer);assert.equal(managed.role,'leader');
  const hospital=admin.command(actor,{action:'hospital-save',name:'专业组长配置核验医院',region:'芜湖',leaderId:engineer.id,salesIds:[]});assert(managementActor(admin,engineer).hospitalIds.includes(hospital.id));
- member=admin.snapshot(actor).people.find(p=>p.id===engineer.id);admin.command(actor,{...c,version:member.version,accountVersion:member.accountVersion,accessRoles:[]});
+ member=admin.snapshot(actor).people.find(p=>p.id===engineer.id);admin.command(actor,{...c,version:member.version,accountVersion:member.accountVersion,accessRoles:[],regions:[],regionConfigurationVersion:admin.snapshot(actor).regionConfiguration.version,managementPermissions:[]});
  assert.deepEqual(engineer.permissions,old.permissions);assert.equal(auth.publicAccount(engineer).managementRole,undefined);assert.equal(admin.snapshot(actor).people.find(p=>p.id===engineer.id).accessRoleName,'普通员工');assert.equal(eligibleHospitalLeaders(admin.institutions.snapshot().people,{region:'芜湖'}).some(p=>p.id===engineer.id),false);
  const reloaded=new AuthService({directory:join(root,'auth'),mode:'local',demoMode:true});assert.deepEqual(reloaded.accounts.find(a=>a.id===engineer.id).accessRoles,[]);
 });
 test('administrator role cannot be self-applied, cannot be granted by sales and the last administrator is protected',t=>{
  const {admin,auth}=setup(t);seedSuperAdmin(auth,{enabled:true,password:'LocalExample2026'});const administrator=auth.accounts.find(a=>a.id==='super-admin');
  const p=admin.snapshot(administrator).people.find(p=>p.id==='super-admin');assert.equal(p.role,'无专业岗位');assert.equal(p.accessRoleName,'管理员');
- assert.throws(()=>admin.command(administrator,{action:'member-access-save',id:p.id,version:p.version,accountVersion:p.accountVersion,positionId:'sales',accessRoles:[]}),/最后一个/);
+ assert.throws(()=>admin.command(administrator,{action:'member-access-save',id:p.id,version:p.version,accountVersion:p.accountVersion,positionId:'sales',accessRoles:[],managementPermissions:[]}),/最后一个/);
  assert.deepEqual(auth.applicationRoles().items.map(r=>r.id),['designer','sales','doctor']);
- const engineer=admin.snapshot(administrator).people.find(p=>p.id==='chen-yu');admin.command(administrator,{action:'member-access-save',id:engineer.id,version:engineer.version,accountVersion:engineer.accountVersion,positionId:'designer',accessRoles:['administrator']});
+ const engineer=admin.snapshot(administrator).people.find(p=>p.id==='chen-yu');admin.command(administrator,{action:'member-access-save',id:engineer.id,version:engineer.version,accountVersion:engineer.accountVersion,positionId:'designer',accessRoles:['administrator'],managementPermissions});
  const a=auth.accounts.find(a=>a.id===engineer.id);assert.equal(a.role,'designer');assert.equal(auth.publicAccount(a).managementRole,'super_admin');assert(admin.snapshot(a).people.length>0);
  assert.throws(()=>admin.command({...administrator,permissions:['orders:read','people:manage']},{action:'member-access-save',id:engineer.id,version:engineer.version,accountVersion:engineer.accountVersion,positionId:'sales',accessRoles:['administrator']}),e=>e.status===403);
 });
 
-test('saving an unchanged legacy management role never broadens its existing granular permissions',t=>{
+test('incomplete legacy save is rejected without broadening existing granular permissions',t=>{
  const {admin}=setup(t),p=admin.snapshot(actor).people.find(p=>p.id==='ADM-M01'),before=[...p.permissions];
- admin.command(actor,{action:'member-access-save',id:p.id,version:p.version,positionId:null,accessRoles:['administrator']});
+ assert.throws(()=>admin.command(actor,{action:'member-access-save',id:p.id,version:p.version,positionId:null,accessRoles:['administrator']}),/完整/);
  assert.deepEqual(admin.state.people.find(row=>row.id===p.id).permissions,before);
 });

@@ -17,6 +17,7 @@ export function saveLeaderRegions(service,actor,{version,assignments,leaderVersi
   const p=leaders.find(p=>p.id===id),unchanged=p?.regions?.includes(a.region);
   if(!p||!unchanged&&(p.status!=='已启用'||!['orders:read','orders:review','tasks:assign'].every(v=>p.permissions.includes(v))))fail('请选择已启用且具备订单审核与任务分配资格的组长。');
  }
+ for(const p of leaders)if(p.rolePolicyVersion===1&&!assignments.some(a=>a.leaderIds.includes(p.id)))fail('业务组长须保留至少一个负责区域，请在成员管理中调整角色。');
  const before=structuredClone(service.state);
  try{
   for(const p of leaders){const regions=assignments.filter(a=>a.leaderIds.includes(p.id)).map(a=>a.region);if(JSON.stringify(regions)===JSON.stringify(p.regions||[]))continue;const old=structuredClone(p);p.regions=regions;p.version++;service.event(actor,'组长负责区域已更新','机构与成员',p.id,old,p,'');}

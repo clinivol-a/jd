@@ -7,9 +7,10 @@ import {AuthService} from '../server/auth/service.mjs';
 import {AdminService} from '../server/admin/service.mjs';
 import {seedSuperAdmin} from '../server/admin/seedAccount.mjs';
 import {managementActor} from '../server/admin/memberAccess.mjs';
+import {rolePermissions,memberRole} from '../src/admin/memberPolicy.mjs';
 import {eligibleHospitalLeaders} from '../src/admin/institutionRules.mjs';
 function setup(t){const root=mkdtempSync(join(tmpdir(),'cv-member-layers-')),outbox=[];t.after(()=>rmSync(root,{recursive:true,force:true}));const auth=new AuthService({directory:join(root,'auth'),mode:'local',demoMode:true,riskEnforced:false,smsProvider:async(phone,code,purpose)=>outbox.push({phone,code,purpose})});auth.seedLocal();seedSuperAdmin(auth,{enabled:true});const admin=new AdminService({directory:join(root,'admin'),authService:auth}),actor=auth.accounts.find(a=>a.id==='super-admin');return {auth,admin,actor,outbox,root}}
-const draft=(admin,actor,id,patch={})=>{const s=admin.snapshot(actor),p=s.people.find(p=>p.id===id);return {action:'member-access-save',id,version:p.version,accountVersion:p.accountVersion,positionId:p.positionId||'none',accessRoles:p.accessRoles,regions:p.regions||[],regionConfigurationVersion:s.regionConfiguration.version,...patch}};
+const draft=(admin,actor,id,patch={})=>{const s=admin.snapshot(actor),p=s.people.find(p=>p.id===id);return {action:'member-access-save',id,version:p.version,accountVersion:p.accountVersion,positionId:p.positionId||'none',accessRoles:p.accessRoles,regions:p.regions||[],regionConfigurationVersion:s.regionConfiguration.version,...patch,managementPermissions:rolePermissions(patch.accessRoles?.[0]||(!patch.accessRoles?memberRole(p):'employee'))}};
 test('no-professional-position registration remains pending and approved identity has no automatic workbench access',async t=>{
  const {auth,admin,actor,outbox}=setup(t),d=auth.device('new-internal-member'),phone='13800008888';
  assert.deepEqual(auth.applicationRoles().items.map(r=>r.id),['designer','sales','doctor']);assert(auth.applicationRoles().registrationOptions.some(r=>r.id==='none'&&r.name==='无专业岗位'));

@@ -1,0 +1,35 @@
+import {accessRoles} from '../auth/memberAccess.mjs';
+
+// A single management role never substitutes for a professional position or qualification.
+export const memberPermissionCatalog=[
+ {id:'orders:read',name:'订单查看与监督'},
+ {id:'orders:review',name:'订单审核'},
+ {id:'tasks:assign',name:'任务分配'},
+ {id:'doctors:review',name:'医生资质审核'},
+ {id:'people:manage',name:'医院与人员管理'},
+ {id:'accounts:approve',name:'账号审核'},
+ {id:'permissions:grant',name:'权限授权与审核'},
+ {id:'assets:read',name:'资产查询'},
+ {id:'assets:export-metadata',name:'受控元数据导出'},
+ {id:'audit:read',name:'审计查询'},
+ {id:'shares:manage',name:'成果分享管理'}
+];
+export const managementPermissionIds=memberPermissionCatalog.map(p=>p.id);
+export const leaderPermissionIds=['orders:read','orders:review','tasks:assign','assets:read','shares:manage'];
+export const leaderDefaultPermissions=['orders:read','orders:review','tasks:assign','assets:read'];
+export function memberRole(person){const roles=accessRoles(person);return roles.includes('administrator')?'administrator':roles.includes('leader')?'leader':'employee'}
+export function rolePermissions(role,current){
+ if(role==='administrator')return [...managementPermissionIds];
+ if(role==='employee')return [];
+ const selected=[...new Set(['orders:read',...(current===undefined?leaderDefaultPermissions:current).filter(p=>leaderPermissionIds.includes(p))])];
+ if(selected.includes('shares:manage')&&!selected.includes('assets:read'))selected.push('assets:read');
+ return selected;
+}
+export function memberPolicyIssues(person){
+ const role=memberRole(person),actual=(person.permissions||[]).filter(p=>managementPermissionIds.includes(p)),expected=rolePermissions(role,actual),issues=[];
+ if(accessRoles(person).length>1)issues.push('现有记录包含多个管理角色');
+ if(actual.length!==expected.length||actual.some(p=>!expected.includes(p)))issues.push('现有管理权限与角色规则不一致');
+ if(role==='leader'&&!person.regions?.length)issues.push('尚未配置负责区域');
+ if(role==='leader'&&actual.includes('shares:manage')&&!actual.includes('assets:read'))issues.push('成果分享管理缺少资产查询权限');
+ return issues;
+}

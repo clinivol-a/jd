@@ -1,0 +1,338 @@
+{
+  "employee": {
+    "role": [
+      {
+        "disabled": false,
+        "value": "工程设计师"
+      },
+      {
+        "disabled": false,
+        "value": "普通员工"
+      },
+      {
+        "disabled": true,
+        "value": "-"
+      }
+    ],
+    "switches": [
+      {
+        "checked": false,
+        "disabled": true,
+        "name": "订单查看与监督"
+      },
+      {
+        "checked": false,
+        "disabled": true,
+        "name": "订单审核"
+      },
+      {
+        "checked": false,
+        "disabled": true,
+        "name": "任务分配"
+      },
+      {
+        "checked": false,
+        "disabled": true,
+        "name": "医生资质审核"
+      },
+      {
+        "checked": false,
+        "disabled": true,
+        "name": "医院与人员管理"
+      },
+      {
+        "checked": false,
+        "disabled": true,
+        "name": "账号审核"
+      },
+      {
+        "checked": false,
+        "disabled": true,
+        "name": "权限授权与审核"
+      },
+      {
+        "checked": false,
+        "disabled": true,
+        "name": "资产查询"
+      },
+      {
+        "checked": false,
+        "disabled": true,
+        "name": "受控元数据导出"
+      },
+      {
+        "checked": false,
+        "disabled": true,
+        "name": "审计查询"
+      },
+      {
+        "checked": false,
+        "disabled": true,
+        "name": "成果分享管理"
+      }
+    ]
+  },
+  "leader": {
+    "footer": {
+      "bottom": 996,
+      "height": 32,
+      "left": 847,
+      "right": 1495,
+      "top": 964,
+      "width": 648,
+      "x": 847,
+      "y": 964
+    },
+    "headingGaps": [
+      {
+        "gap": 12,
+        "name": "基本资料"
+      },
+      {
+        "gap": 12,
+        "name": "岗位与角色"
+      },
+      {
+        "gap": 12,
+        "name": "管理范围"
+      },
+      {
+        "gap": 12,
+        "name": "功能权限"
+      }
+    ],
+    "role": [
+      {
+        "disabled": false,
+        "value": "无专业岗位"
+      },
+      {
+        "disabled": false,
+        "value": "业务组长"
+      },
+      {
+        "disabled": false,
+        "value": ""
+      }
+    ],
+    "switches": [
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "订单查看与监督"
+      },
+      {
+        "checked": true,
+        "disabled": false,
+        "name": "订单审核"
+      },
+      {
+        "checked": true,
+        "disabled": false,
+        "name": "任务分配"
+      },
+      {
+        "checked": false,
+        "disabled": true,
+        "name": "医生资质审核"
+      },
+      {
+        "checked": false,
+        "disabled": true,
+        "name": "医院与人员管理"
+      },
+      {
+        "checked": false,
+        "disabled": true,
+        "name": "账号审核"
+      },
+      {
+        "checked": false,
+        "disabled": true,
+        "name": "权限授权与审核"
+      },
+      {
+        "checked": false,
+        "disabled": false,
+        "name": "资产查询"
+      },
+      {
+        "checked": false,
+        "disabled": true,
+        "name": "受控元数据导出"
+      },
+      {
+        "checked": false,
+        "disabled": true,
+        "name": "审计查询"
+      },
+      {
+        "checked": false,
+        "disabled": false,
+        "name": "成果分享管理"
+      }
+    ]
+  },
+  "administrator": {
+    "switches": [
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "订单查看与监督"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "订单审核"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "任务分配"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "医生资质审核"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "医院与人员管理"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "账号审核"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "权限授权与审核"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "资产查询"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "受控元数据导出"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "审计查询"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "成果分享管理"
+      }
+    ],
+    "theme": "dark"
+  },
+  "administratorDraft": {
+    "role": [
+      {
+        "disabled": false,
+        "readonly": true,
+        "value": "无专业岗位"
+      },
+      {
+        "disabled": false,
+        "readonly": true,
+        "value": "管理员"
+      },
+      {
+        "disabled": false,
+        "readonly": true,
+        "value": "全部区域"
+      }
+    ],
+    "switches": [
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "订单查看与监督"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "订单审核"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "任务分配"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "医生资质审核"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "医院与人员管理"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "账号审核"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "权限授权与审核"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "资产查询"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "受控元数据导出"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "审计查询"
+      },
+      {
+        "checked": true,
+        "disabled": true,
+        "name": "成果分享管理"
+      }
+    ]
+  },
+  "footerAfter": {
+    "bottom": 996,
+    "height": 32,
+    "left": 847,
+    "right": 1495,
+    "top": 964,
+    "width": 648,
+    "x": 847,
+    "y": 964
+  },
+  "dependencyOn": [
+    {
+      "checked": true,
+      "name": "资产查询"
+    },
+    {
+      "checked": true,
+      "name": "成果分享管理"
+    }
+  ],
+  "checks": {
+    "rapidReopenRestoresSavedRole": true,
+    "unchangedLeaderSaveSucceeded": true,
+    "noPositionEmployeeBlocked": true,
+    "cancelledAdminGrant": true
+  }
+}
