@@ -1,0 +1,988 @@
+{
+  "records": [
+    {
+      "row": "赵启明",
+      "switches": [
+        {
+          "background": "rgb(13, 122, 93)",
+          "checked": true,
+          "disabled": false,
+          "label": "人员启用状态",
+          "shadow": "rgba(0, 0, 0, 0.05) 0px 1px 10px 0px, rgba(0, 0, 0, 0.08) 0px 4px 5px 0px, rgba(0, 0, 0, 0.12) 0px 2px 4px -1px"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "订单查看与监督",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(13, 122, 93)",
+          "checked": true,
+          "disabled": false,
+          "label": "订单审核",
+          "shadow": "rgba(0, 0, 0, 0.05) 0px 1px 10px 0px, rgba(0, 0, 0, 0.08) 0px 4px 5px 0px, rgba(0, 0, 0, 0.12) 0px 2px 4px -1px"
+        },
+        {
+          "background": "rgb(13, 122, 93)",
+          "checked": true,
+          "disabled": false,
+          "label": "任务分配",
+          "shadow": "rgba(0, 0, 0, 0.05) 0px 1px 10px 0px, rgba(0, 0, 0, 0.08) 0px 4px 5px 0px, rgba(0, 0, 0, 0.12) 0px 2px 4px -1px"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "医生资质审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "医院与人员管理",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "账号审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "权限授权与审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": false,
+          "label": "资产查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "受控元数据导出",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "审计查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": false,
+          "label": "成果分享管理",
+          "shadow": "none"
+        }
+      ]
+    },
+    {
+      "row": "许文清无专业岗位业务组长科立沃蚌埠、淮南、淮北、芜湖、安庆、滁州、阜阳",
+      "switches": [
+        {
+          "background": "rgb(13, 122, 93)",
+          "checked": true,
+          "disabled": false,
+          "label": "人员启用状态",
+          "shadow": "rgba(0, 0, 0, 0.05) 0px 1px 10px 0px, rgba(0, 0, 0, 0.08) 0px 4px 5px 0px, rgba(0, 0, 0, 0.12) 0px 2px 4px -1px"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "订单查看与监督",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(13, 122, 93)",
+          "checked": true,
+          "disabled": false,
+          "label": "订单审核",
+          "shadow": "rgba(0, 0, 0, 0.05) 0px 1px 10px 0px, rgba(0, 0, 0, 0.08) 0px 4px 5px 0px, rgba(0, 0, 0, 0.12) 0px 2px 4px -1px"
+        },
+        {
+          "background": "rgb(13, 122, 93)",
+          "checked": true,
+          "disabled": false,
+          "label": "任务分配",
+          "shadow": "rgba(0, 0, 0, 0.05) 0px 1px 10px 0px, rgba(0, 0, 0, 0.08) 0px 4px 5px 0px, rgba(0, 0, 0, 0.12) 0px 2px 4px -1px"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "医生资质审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "医院与人员管理",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "账号审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "权限授权与审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": false,
+          "label": "资产查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "受控元数据导出",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "审计查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": false,
+          "label": "成果分享管理",
+          "shadow": "none"
+        }
+      ]
+    },
+    {
+      "row": "陈屿工程设计师普通员工科立沃本人任务本人专业任务、三维重建、CAD设计",
+      "switches": [
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "人员启用状态",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "订单查看与监督",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "订单审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "任务分配",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "医生资质审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "医院与人员管理",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "账号审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "权限授权与审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "资产查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "受控元数据导出",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "审计查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "成果分享管理",
+          "shadow": "none"
+        }
+      ]
+    },
+    {
+      "row": "沈言工程设计师普通员工科立沃本人任务本人专业任务已启用编辑",
+      "switches": [
+        {
+          "background": "rgb(13, 122, 93)",
+          "checked": true,
+          "disabled": false,
+          "label": "人员启用状态",
+          "shadow": "rgba(0, 0, 0, 0.05) 0px 1px 10px 0px, rgba(0, 0, 0, 0.08) 0px 4px 5px 0px, rgba(0, 0, 0, 0.12) 0px 2px 4px -1px"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "订单查看与监督",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "订单审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "任务分配",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "医生资质审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "医院与人员管理",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "账号审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "权限授权与审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "资产查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "受控元数据导出",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "审计查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "成果分享管理",
+          "shadow": "none"
+        }
+      ]
+    },
+    {
+      "row": "李明销售普通员工科立沃合肥市第一人民医院、合肥市第二人民医院销售工作台",
+      "switches": [
+        {
+          "background": "rgb(13, 122, 93)",
+          "checked": true,
+          "disabled": false,
+          "label": "人员启用状态",
+          "shadow": "rgba(0, 0, 0, 0.05) 0px 1px 10px 0px, rgba(0, 0, 0, 0.08) 0px 4px 5px 0px, rgba(0, 0, 0, 0.12) 0px 2px 4px -1px"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "订单查看与监督",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "订单审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "任务分配",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "医生资质审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "医院与人员管理",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "账号审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "权限授权与审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "资产查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "受控元数据导出",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "审计查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "成果分享管理",
+          "shadow": "none"
+        }
+      ]
+    },
+    {
+      "row": "顾清和无专业岗位管理员科立沃合肥市第一人民医院、合肥市第二人民医院医生",
+      "switches": [
+        {
+          "background": "rgb(13, 122, 93)",
+          "checked": true,
+          "disabled": false,
+          "label": "人员启用状态",
+          "shadow": "rgba(0, 0, 0, 0.05) 0px 1px 10px 0px, rgba(0, 0, 0, 0.08) 0px 4px 5px 0px, rgba(0, 0, 0, 0.12) 0px 2px 4px -1px"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "订单查看与监督",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "订单审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "任务分配",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "医生资质审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "医院与人员管理",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "账号审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "权限授权与审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "资产查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "受控元数据导出",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "审计查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "成果分享管理",
+          "shadow": "none"
+        }
+      ]
+    },
+    {
+      "row": "李明销售普通员工科立沃安徽医科大学第一附属医院、安徽医科大学第二附属医",
+      "switches": [
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "人员启用状态",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "订单查看与监督",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "订单审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "任务分配",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "医生资质审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "医院与人员管理",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "账号审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "权限授权与审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "资产查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "受控元数据导出",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "审计查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "成果分享管理",
+          "shadow": "none"
+        }
+      ]
+    },
+    {
+      "row": "周景明无专业岗位管理员科立沃-订单查看与监督、订单审核、任务分配、医生",
+      "switches": [
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "人员启用状态",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "订单查看与监督",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "订单审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "任务分配",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "医生资质审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "医院与人员管理",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "账号审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "权限授权与审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "资产查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "受控元数据导出",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "审计查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "成果分享管理",
+          "shadow": "none"
+        }
+      ]
+    },
+    {
+      "row": "许安宁销售普通员工淮南市第一人民医院安徽医科大学第一附属医院、安徽医科",
+      "switches": [
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "人员启用状态",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "订单查看与监督",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "订单审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "任务分配",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "医生资质审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "医院与人员管理",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "账号审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "权限授权与审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "资产查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "受控元数据导出",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "审计查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "成果分享管理",
+          "shadow": "none"
+        }
+      ]
+    },
+    {
+      "row": "沈言销售普通员工科立沃安徽医科大学第一附属医院、安徽医科大学第二附属医",
+      "switches": [
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "人员启用状态",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "订单查看与监督",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "订单审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "任务分配",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "医生资质审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "医院与人员管理",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "账号审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "权限授权与审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "资产查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "受控元数据导出",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "审计查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "成果分享管理",
+          "shadow": "none"
+        }
+      ]
+    },
+    {
+      "row": "张杰销售普通员工科立沃安徽医科大学第一附属医院、安徽医科大学第二附属医",
+      "switches": [
+        {
+          "background": "rgb(155, 217, 196)",
+          "checked": true,
+          "disabled": true,
+          "label": "人员启用状态",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "订单查看与监督",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "订单审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "任务分配",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "医生资质审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "医院与人员管理",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "账号审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "权限授权与审核",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "资产查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "受控元数据导出",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "审计查询",
+          "shadow": "none"
+        },
+        {
+          "background": "rgb(238, 238, 238)",
+          "checked": false,
+          "disabled": true,
+          "label": "成果分享管理",
+          "shadow": "none"
+        }
+      ]
+    }
+  ],
+  "hover": {
+    "background": "rgb(238, 238, 238)",
+    "checked": false,
+    "hover": true
+  }
+}

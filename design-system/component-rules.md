@@ -188,4 +188,4 @@ AI十项开放正常颜色的参数确认入口，替代上文统一禁用要求
 
 ## Switch 统一外观（2026-11-27）
 
-A方案所有TDesign Switch共用`src/design-system/components.css`：浅色模式可操作关闭态底色引用`--td-bg-color-component`（当前#E7E7E7），Hover引用`--td-bg-color-component-hover`（当前#DCDCDC），统一减轻原关闭态的视觉重量。不修改Token数值。开启、开启Hover、禁用开启、禁用关闭、loading及Dark继续由当前TDesign主题定义；禁用关闭仍为#EEEEEE，保留不可操作光标及无手柄阴影，可操作关闭态保留正常手柄阴影。不能通过修改disabled或权限数据来统一外观，不将Checkbox及专业视口的其他控制误改为Switch。
+A方案所有TDesign Switch共用`src/design-system/components.css`：浅色模式所有关闭态（可操作、禁用及Hover）统一引用`--td-bg-color-component-disabled`（当前#EEEEEE），关闭态手柄统一不带阴影，避免同一权限清单出现深浅两种灰底。可操作与禁用仍通过实际disabled语义、光标、键盘行为及既有Tooltip区分。开启、开启Hover、禁用开启、loading及Dark继续由当前TDesign主题定义，不修改Token数值。不能通过修改disabled或权限数据来统一外观，不将Checkbox及专业视口的其他控制误改为Switch。此规则替代同日先前对可操作关闭态使用#E7E7E7的规则。
