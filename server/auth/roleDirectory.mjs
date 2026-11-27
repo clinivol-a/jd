@@ -1,3 +1,4 @@
+import {hasManagementPermission} from '../../src/auth/memberAccess.mjs';
 import {NO_POSITION} from '../../src/auth/memberAccess.mjs';
 import {randomUUID} from 'node:crypto';
 import {existsSync,mkdirSync,readFileSync,renameSync,writeFileSync} from 'node:fs';
@@ -24,7 +25,7 @@ export class RoleDirectory{
  options(){return this.all().items.filter(r=>r.status==='已启用')}
  selected(id){const r=this.find(id);if(!r||r.status!=='已启用')throw new RoleFailure('请选择有效的申请岗位。');return r}
  save(actor,{id,name,status,version}){
-  if(actor?.role!=='super_admin'||actor.status!=='approved'||!actor.permissions?.includes('people:manage'))throw new RoleFailure('无岗位配置权限。',403);
+  if(actor?.role!=='super_admin'||actor.status!=='approved'||!hasManagementPermission(actor,'roles:manage'))throw new RoleFailure('无岗位配置权限。',403);
   this.reload();let r=id?this.state.items.find(r=>r.id===id):null;if(id&&!r)throw new RoleFailure('岗位不存在。',404);if(r&&r.version!==version)throw new RoleFailure('岗位已更新，请刷新。',409);
   if(typeof name!=='string'||!name.trim()||name.trim().length>30)throw new RoleFailure('请填写30字以内的岗位名称。');if(!['已启用','已停用'].includes(status))throw new RoleFailure('请选择有效的当前状态。');
   if(this.state.items.some(x=>x.id!==id&&x.name===name.trim()))throw new RoleFailure('岗位名称已存在。',409);

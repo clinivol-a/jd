@@ -1,3 +1,4 @@
+import {hasManagementPermission} from '../../src/auth/memberAccess.mjs';
 import {initialOrganizations} from '../unified/anhuiDemoDirectory.mjs';
 import {randomUUID} from 'node:crypto';
 import {existsSync,mkdirSync,readFileSync,renameSync,writeFileSync} from 'node:fs';
@@ -20,7 +21,7 @@ export class OrganizationDirectory{
  syncHospitals(hospitals){this.reload();let changed=false;for(const h of hospitals){const id='hospital:'+h.id;if(!this.state.items.some(o=>o.id===id||o.hospitalId===h.id)){this.state.items.push({id,name:h.name,kind:'外部机构',hospitalId:h.id,status:h.status,allowRegistration:h.status==='已启用',version:1,source:'isolated-hospital-link'});changed=true}else{const o=this.state.items.find(o=>o.id===id||o.hospitalId===h.id);if(o?.source==='isolated-hospital-link'&&o.name!==h.name){o.name=h.name;o.version++;changed=true}}}if(changed)this.persist()}
  request(device,{name}){this.reload();name=text(name,'组织正式名称');if(name.length>100)throw new OrganizationFailure('组织名称不得超过100字。');if(this.state.requests.filter(r=>r.device===device.id&&r.at>this.now()-3600000).length>=5)throw new OrganizationFailure('申请过于频繁，请稍后重试。',429);if(this.state.requests.some(r=>r.device===device.id&&r.name===name&&r.status==='pending'))throw new OrganizationFailure('该组织已有待审核申请。',409);const r={id:randomUUID(),name,device:device.id,status:'pending',version:1,at:this.now(),source:'isolated-organizations'};this.state.requests.push(r);this.persist();return {id:r.id,name:r.name,status:r.status}}
  command(actor,{action,id,version,...input}){
-  if(actor?.role!=='super_admin'||actor.status!=='approved'||!actor.permissions?.includes('people:manage'))throw new OrganizationFailure('无组织目录维护权限。',403);
+  if(actor?.role!=='super_admin'||actor.status!=='approved'||!hasManagementPermission(actor,'organizations:manage'))throw new OrganizationFailure('无组织目录维护权限。',403);
   this.reload();const backup=copy(this.state);try{
    let o=this.state.items.find(o=>o.id===id);if(action==='organization-request-review'){
     const r=this.state.requests.find(r=>r.id===id);if(!r)throw new OrganizationFailure('组织申请不存在。',404);if(r.version!==version||r.status!=='pending')throw new OrganizationFailure('申请已更新，请刷新。',409);

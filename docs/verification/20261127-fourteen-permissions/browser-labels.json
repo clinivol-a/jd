@@ -1,0 +1,77 @@
+[
+  {
+    "disabled": false,
+    "name": "人员启用状态",
+    "on": true
+  },
+  {
+    "disabled": true,
+    "name": "订单管理",
+    "on": true
+  },
+  {
+    "disabled": false,
+    "name": "订单审核",
+    "on": true
+  },
+  {
+    "disabled": false,
+    "name": "任务分配",
+    "on": true
+  },
+  {
+    "disabled": true,
+    "name": "账号注册审核",
+    "on": false
+  },
+  {
+    "disabled": true,
+    "name": "医生档案审核",
+    "on": false
+  },
+  {
+    "disabled": true,
+    "name": "权限申请审核",
+    "on": false
+  },
+  {
+    "disabled": true,
+    "name": "组织管理",
+    "on": false
+  },
+  {
+    "disabled": true,
+    "name": "医院管理",
+    "on": false
+  },
+  {
+    "disabled": true,
+    "name": "岗位管理",
+    "on": false
+  },
+  {
+    "disabled": true,
+    "name": "成员管理",
+    "on": false
+  },
+  {
+    "disabled": false,
+    "name": "专业成果查看",
+    "on": false
+  },
+  {
+    "disabled": false,
+    "name": "成果分享管理",
+    "on": false
+  },
+  {
+    "disabled": true,
+    "name": "导出资产信息",
+    "on": false
+  },
+  {
+    "disabled": true,
+    "name": "审计日志",
+    "on": false
+  }
+]

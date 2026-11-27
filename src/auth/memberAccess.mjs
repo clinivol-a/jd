@@ -12,3 +12,11 @@ export function positionId(person){
  return ({designer:'designer','工程师':'designer','工程设计师':'designer','三维重建设计师':'designer','医学工程师':'designer',sales:'sales','销售':'sales',doctor:'doctor','医生':'doctor'})[person?.roleKey||person?.role]||null;
 }
 export const roleText=p=>accessRoles(p).map(id=>memberRoles.find(r=>r.id===id).name).join('、')||'普通员工';
+
+// The old complete administrator grant covered all institution tabs. Preserve only that
+// known full grant; a standalone member-management grant never grants the other tabs.
+const legacyFullManagement=['orders:read','orders:review','tasks:assign','doctors:review','people:manage','accounts:approve','permissions:grant','assets:read','assets:export-metadata','audit:read','shares:manage'];
+export function hasManagementPermission(person,permission){
+ if(person?.permissions?.includes(permission))return true;
+ return ['organizations:manage','hospitals:manage','roles:manage'].includes(permission)&&isAdministrator(person)&&legacyFullManagement.every(id=>person.permissions?.includes(id));
+}

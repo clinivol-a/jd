@@ -71,7 +71,7 @@ test('administrator role cannot be self-applied, cannot be granted by sales and 
  assert.deepEqual(auth.applicationRoles().items.map(r=>r.id),['designer','sales','doctor']);
  const engineer=admin.snapshot(administrator).people.find(p=>p.id==='chen-yu');admin.command(administrator,{action:'member-access-save',id:engineer.id,version:engineer.version,accountVersion:engineer.accountVersion,positionId:'designer',accessRoles:['administrator'],managementPermissions});
  const a=auth.accounts.find(a=>a.id===engineer.id);assert.equal(a.role,'designer');assert.equal(auth.publicAccount(a).managementRole,'super_admin');assert(admin.snapshot(a).people.length>0);
- assert.throws(()=>admin.command({...administrator,permissions:['orders:read','people:manage']},{action:'member-access-save',id:engineer.id,version:engineer.version,accountVersion:engineer.accountVersion,positionId:'sales',accessRoles:['administrator']}),e=>e.status===403);
+ assert.throws(()=>admin.command({...administrator,permissions:['orders:read','permissions:grant']},{action:'member-access-save',id:engineer.id,version:engineer.version,accountVersion:engineer.accountVersion,positionId:'sales',accessRoles:['administrator']}),e=>e.status===403);
 });
 
 test('incomplete legacy save is rejected without broadening existing granular permissions',t=>{

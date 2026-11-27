@@ -1,3 +1,4 @@
+import {hasManagementPermission} from '../src/auth/memberAccess.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtempSync,rmSync,readFileSync} from 'node:fs';
@@ -10,8 +11,8 @@ import {managementActor} from '../server/admin/memberAccess.mjs';
 import {memberRole,rolePermissions,memberPolicyIssues,managementPermissionIds as all,leaderPermissionIds} from '../src/admin/memberPolicy.mjs';
 function setup(t){const root=mkdtempSync(join(tmpdir(),'cv-single-role-'));t.after(()=>rmSync(root,{recursive:true,force:true}));const auth=new AuthService({directory:join(root,'auth'),mode:'local',demoMode:true,riskEnforced:false});auth.seedLocal();seedSuperAdmin(auth,{enabled:true});const admin=new AdminService({directory:join(root,'admin'),authService:auth}),actor=auth.accounts.find(a=>a.id==='super-admin');return {auth,admin,actor,root}}
 function draft(admin,actor,id,patch={}){const s=admin.snapshot(actor),p=s.people.find(p=>p.id===id),role=memberRole(p);return {action:'member-access-save',id,version:p.version,accountVersion:p.accountVersion,positionId:p.positionId||'none',accessRoles:role==='employee'?[]:[role],regions:role==='leader'?p.regions||[]:[],managementPermissions:rolePermissions(role,p.permissions),regionConfigurationVersion:s.regionConfiguration.version,...patch}}
-test('one shared catalog gives all three roles the same eleven management rows, without professional rights',()=>{
- assert.equal(all.length,11);assert.equal(new Set(all).size,11);assert.deepEqual(rolePermissions('employee',['cad','orders:read']),[]);assert.deepEqual(rolePermissions('administrator'),all);
+test('one shared catalog gives all three roles the same fourteen management rows, without professional rights',()=>{
+ assert.equal(all.length,14);assert.equal(new Set(all).size,14);assert.deepEqual(rolePermissions('employee',['cad','orders:read']),[]);assert.deepEqual(rolePermissions('administrator'),all);
  assert(rolePermissions('leader',[]).includes('orders:read'));assert(rolePermissions('leader',['shares:manage']).includes('assets:read'));assert(rolePermissions('leader',['people:manage','cad']).every(p=>leaderPermissionIds.includes(p)));
  const legacy={role:'管理员',permissions:['orders:read']},before=structuredClone(legacy);assert(memberPolicyIssues(legacy).length);assert.deepEqual(legacy,before);
  assert(memberPolicyIssues({accessRoles:['leader','administrator'],permissions:all,regions:['合肥']}).length);
@@ -83,4 +84,22 @@ test('HTTP persisted member configuration changes actual sessions and enforces r
  const snapshot=await request('member','/api/admin/state');assert.equal(snapshot.status,200);assert(snapshot.body.hospitals.length>0);assert(snapshot.body.hospitals.every(h=>h.region==='合肥'));assert.equal((await request('member','/api/admin/command',c)).status,403);assert.equal((await request('admin','/api/admin/command',c)).status,409);
  for(const path of ['/api/admin/business/sales','/api/admin/business/designer'])assert.equal((await request('member',path)).status,403);
  const reloaded=new AuthService({directory:join(root,'auth'),mode:'local',demoMode:true});assert.equal(reloaded.accounts.find(a=>a.id===account.id).rolePolicyVersion,1);
+});
+
+test('institution permissions authorize only their own writes; review permission cannot edit members',t=>{
+ const {admin,actor}=setup(t),withPermissions=(...permissions)=>({...actor,permissions:['orders:read',...permissions]});
+ const org={action:'organization-save',name:'测试组织权限边界',kind:'内部组织'};
+ const role={action:'role-save',name:'测试岗位权限边界',status:'已启用'};
+ const hospital={action:'hospital-save',name:'测试医院权限边界',region:'合肥',contact:'0551-62608888',leaderId:'ADM-L01',salesIds:[]};
+ for(const [id,command] of [['organizations:manage',org],['roles:manage',role],['hospitals:manage',hospital]]){
+  for(const other of ['organizations:manage','roles:manage','hospitals:manage','people:manage','permissions:grant'].filter(p=>p!==id))assert.throws(()=>admin.command(withPermissions(other),command),e=>e.status===403);
+  assert(admin.command(withPermissions(id),command).id);
+ }
+ const id='chen-yu',input=draft(admin,actor,id,{positionId:'designer',accessRoles:[],regions:[],managementPermissions:[],confirmRoleNormalization:true});
+ assert.throws(()=>admin.command(withPermissions('permissions:grant'),input),e=>e.status===403);
+ assert(admin.command(withPermissions('people:manage'),input).ok);
+});
+test('only the previous complete administrator grant retains legacy institution access',()=>{
+ const newer=['organizations:manage','hospitals:manage','roles:manage'],legacy=all.filter(id=>!newer.includes(id));
+ for(const id of newer){assert(hasManagementPermission({role:'super_admin',permissions:legacy},id));assert(!hasManagementPermission({role:'super_admin',permissions:['people:manage']},id));assert(!hasManagementPermission({role:'leader',permissions:legacy},id));}
 });

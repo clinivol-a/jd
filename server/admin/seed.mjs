@@ -1,6 +1,7 @@
+import {managementPermissionIds} from '../../src/admin/memberPolicy.mjs';
 // Isolated synthetic management records. Never a migration of sales or engineering storage.
 export const stages = ['三维重建','CAD设计','有限元分析','3D打印'];
-export const managementPermissions = ['orders:read','orders:review','tasks:assign','doctors:review','people:manage','accounts:approve','permissions:grant','assets:read','assets:export-metadata','audit:read','shares:manage'];
+export const managementPermissions = managementPermissionIds;
 export function initialAdminState() {
  const hospitals = [
   {id:'ADM-H01',name:'江淮协同医院',region:'安徽',contact:'0551-****1001',departments:['口腔颌面外科','骨科'],leaderId:'ADM-L01',status:'已启用',version:1},

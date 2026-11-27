@@ -1,3 +1,4 @@
+import {hasManagementPermission} from '../auth/memberAccess.mjs';
 // Read-only administrator projections: do not mutate orders, identities or audit history.
 export function orderMatches(order, filters, localDay) {
  const created=localDay(order.createdAt);
@@ -15,7 +16,7 @@ export function recentOrders(orders, range, localDay) {
 }
 export function orderActions(order, account) {
  const actions=[];
- if(account.permissions.includes('people:manage')&&['super_admin','admin'].includes(account.role)&&['待审核','审核退回'].includes(order.status))actions.push(order.leaderId?'change-leader':'assign-leader');
+ if(hasManagementPermission(account,'hospitals:manage')&&['super_admin','admin'].includes(account.role)&&['待审核','审核退回'].includes(order.status))actions.push(order.leaderId?'change-leader':'assign-leader');
  if(account.role==='leader'&&account.permissions.includes('orders:review')&&order.leaderId===account.id&&order.status==='待审核')actions.push('accept','return');
  return actions;
 }

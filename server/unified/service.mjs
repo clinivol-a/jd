@@ -1,3 +1,4 @@
+import {hasManagementPermission} from '../../src/auth/memberAccess.mjs';
 import {restoreFormalLocks,formalArtifact,formalReference,guardFormalVersions} from './formalResults.mjs';
 import {eligibleHospitalLeaders} from '../../src/admin/institutionRules.mjs';
 import { randomUUID } from 'node:crypto';
@@ -174,7 +175,7 @@ export class UnifiedBusinessService {
     manage(actor, { action, id, version, ...input }) {
         return this.transaction(() => {
             const isTask = action === 'assign-task', task = isTask ? this.state.tasks.find(t => t.id === id) : null, o = this.order(actor, task?.orderId || id);
-            if (!actor.permissions?.includes(action==='reassign'?'people:manage':isTask ? 'tasks:assign' : 'orders:review'))
+            if (!hasManagementPermission(actor,action==='reassign'?'hospitals:manage':isTask ? 'tasks:assign' : 'orders:review'))
                 throw new BusinessFailure('无管理权限。', 403);
             if(action==='takeover')throw new BusinessFailure('常规接管已关闭，请按权限变更负责组长。',403);
             if(['review-order','assign-task'].includes(action)&&actor.role!=='leader')throw new BusinessFailure('订单受理和专业任务分配须由当前负责组长执行。',403);

@@ -19,7 +19,7 @@ export function managementActor(service,account,action){
 
 export function saveMemberAccess(service,actor,{id,version,accountVersion,positionId:nextPosition,accessRoles:roles,regions,regionConfigurationVersion,managementPermissions:requestedPermissions,confirmRoleNormalization=false}){
  service.authorize(actor,'people:manage');
- if(!isAdministrator(actor)||!actor.permissions.includes('permissions:grant'))fail('成员岗位与角色须由具备授权权限的管理员维护。',403);
+ if(!isAdministrator(actor))fail('成员岗位与角色须由具备授权权限的管理员维护。',403);
  const auth=service.authService,p=service.state.people.find(p=>p.id===id),a=auth.accounts.find(a=>a.id===id);
  if(!p&&!a)fail('成员不存在。',404);
  if(p&&p.version!==version||a&&(a.authorizationVersion||1)!==accountVersion)fail('成员资料已更新，请刷新后重试。',409);
@@ -50,7 +50,7 @@ export function saveMemberAccess(service,actor,{id,version,accountVersion,positi
  }
  if(a&&selected&&!['designer','sales'].includes(selected.id))fail('该岗位工作台尚未接入，不能变更现有登录账号的岗位。',409);
  if(isAdministrator(a||p)&&!roles.includes('administrator')){
-  const others=auth.accounts.filter(x=>x.id!==id&&x.status==='approved'&&isAdministrator(x)&&x.permissions.includes('permissions:grant'));
+  const others=auth.accounts.filter(x=>x.id!==id&&x.status==='approved'&&isAdministrator(x)&&x.permissions.includes('people:manage'));
   if(!others.length)fail('不能撤销最后一个有效管理员的角色。',409);
  }
  const beforeState=structuredClone(service.state),beforeAccounts=structuredClone(auth.accounts);

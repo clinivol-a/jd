@@ -1,3 +1,4 @@
+import {hasManagementPermission} from '../../src/auth/memberAccess.mjs';
 import {isBusinessLeader,positionId} from '../../src/auth/memberAccess.mjs';
 import {eligibleHospitalLeaders} from '../../src/admin/institutionRules.mjs';
 import { randomUUID } from 'node:crypto';
@@ -70,7 +71,7 @@ export class InstitutionDirectory {
             unlinkSync(join(this.directory, 'write.lock'));
         }
     } }
-    management(actor, permission = 'people:manage') { if (!actor || actor.status !== 'approved' || !['super_admin', 'admin'].includes(actor.role) || !actor.permissions?.includes(permission))
+    management(actor, permission = 'hospitals:manage') { if (!actor || actor.status !== 'approved' || !['super_admin', 'admin'].includes(actor.role) || !hasManagementPermission(actor,permission))
         throw new DirectoryFailure('无此机构管理权限。', 403); }
     scope(actor, id) { if (actor.role !== 'super_admin' && !actor.hospitalIds?.includes(id))
         throw new DirectoryFailure('无此医院管理权限。', 403); }
@@ -86,7 +87,7 @@ export class InstitutionDirectory {
     command(actor, { action, id, version, ...input }) {
         if (typeof action !== 'string')
             throw new DirectoryFailure('请选择有效操作。');
-        this.management(actor, action.startsWith('doctor-') ? 'doctors:review' : 'people:manage');
+        this.management(actor, action.startsWith('doctor-') ? 'doctors:review' : 'hospitals:manage');
         return this.transaction(() => {
             if (action === 'hospital-save') {
                 const old = id ? this.state.hospitals.find(h => h.id === id) : null;

@@ -1,18 +1,21 @@
-import {accessRoles} from '../auth/memberAccess.mjs';
+import {accessRoles,hasManagementPermission} from '../auth/memberAccess.mjs';
 
 // A single management role never substitutes for a professional position or qualification.
 export const memberPermissionCatalog=[
  {id:'orders:read',name:'订单管理'},
  {id:'orders:review',name:'订单审核'},
  {id:'tasks:assign',name:'任务分配'},
- {id:'doctors:review',name:'医生档案审核'},
- {id:'people:manage',name:'机构与成员'},
  {id:'accounts:approve',name:'账号注册审核'},
- {id:'permissions:grant',name:'成员授权与权限申请审核'},
+ {id:'doctors:review',name:'医生档案审核'},
+ {id:'permissions:grant',name:'权限申请审核'},
+ {id:'organizations:manage',name:'组织管理'},
+ {id:'hospitals:manage',name:'医院管理'},
+ {id:'roles:manage',name:'岗位管理'},
+ {id:'people:manage',name:'成员管理'},
  {id:'assets:read',name:'专业成果查看'},
+ {id:'shares:manage',name:'成果分享管理'},
  {id:'assets:export-metadata',name:'导出资产信息'},
- {id:'audit:read',name:'审计日志'},
- {id:'shares:manage',name:'成果分享管理'}
+ {id:'audit:read',name:'审计日志'}
 ];
 export const managementPermissionNames=Object.fromEntries(memberPermissionCatalog.map(p=>[p.id,p.name]));
 export const managementPermissionIds=memberPermissionCatalog.map(p=>p.id);
@@ -27,7 +30,7 @@ export function rolePermissions(role,current){
  return selected;
 }
 export function memberPolicyIssues(person){
- const role=memberRole(person),actual=(person.permissions||[]).filter(p=>managementPermissionIds.includes(p)),expected=rolePermissions(role,actual),issues=[];
+ const role=memberRole(person),actual=managementPermissionIds.filter(id=>hasManagementPermission(person,id)),expected=rolePermissions(role,actual),issues=[];
  if(accessRoles(person).length>1)issues.push('现有记录包含多个管理角色');
  if(actual.length!==expected.length||actual.some(p=>!expected.includes(p)))issues.push('现有管理权限与角色规则不一致');
  if(role==='leader'&&!person.regions?.length)issues.push('尚未配置负责区域');
