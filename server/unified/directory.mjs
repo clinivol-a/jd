@@ -1,3 +1,4 @@
+import {accessRoles,isBusinessLeader,positionId} from '../../src/auth/memberAccess.mjs';
 /** Explicit local-fixture IDs. No patient, doctor, project or account is joined by name. */
 export function localBusinessDirectory(auth, adminState) {
     const sales = auth?.mode === 'local' && auth.demoMode ? auth.accounts.filter(a => a.role === 'sales' && a.status === 'approved') : [];
@@ -9,11 +10,14 @@ export function localBusinessDirectory(auth, adminState) {
     const doctorSpecs = [['D-1', '林致远', 0], ['D-2', '周明哲', 1], ['D26-1', '顾明哲', 0], ['D26-5', '许承安', 1], ['D26-9', '周景宁', 2]];
     const fixtureSales=sales.find(a=>a.phone==='13800000002');
     const doctors = fixtureSales ? doctorSpecs.map(([id, name, index]) => ({ id, name, hospitalId: hospitals[index].id, department: hospitals[index].departments[0], salesId: fixtureSales.id, status: '审核通过',businessAccess:'hospital' })) : [];
-    const people = [...adminState.people.filter(p => p.role === '业务组长' || p.role === '工程师'), ...sales.map(a => ({ id: a.id, name: a.name, role: '销售', status: '已启用', stages: [], permissions: a.permissions, scope: hospitals.map(h => h.id), version: 1 }))];
+    const live=auth?.mode==='local'&&auth.demoMode?auth.accounts.filter(a=>a.status==='approved'):[];
+    const members=new Map(adminState.people.map(p=>[p.id,{...p}]));
+    for(const a of live){const old=members.get(a.id)||{};members.set(a.id,{...old,id:a.id,name:a.name,role:a.role,status:'已启用',stages:old.stages||[],permissions:a.permissions,scope:old.scope||a.hospitalIds||[],version:old.version||1,...(a.positionId!==undefined?{positionId:a.positionId}:{}),...(a.accessRoles!==undefined?{accessRoles:a.accessRoles}:{}),...(sales.some(s=>s.id===a.id)&&!old.scope?{scope:hospitals.map(h=>h.id)}:{})})}
+    const people=[...members.values()].map(p=>({...p,positionId:positionId(p),accessRoles:accessRoles(p),role:({designer:'工程师',sales:'销售',doctor:'医生'})[positionId(p)]||p.role}));
     // Original isolated fixture numbers, registered explicitly. Never infer a real order from a name.
     const legacyOrders = sales.flatMap(a => {
         const ids = [...Array.from({ length: 8 }, (_, i) => ({ id: `SO-2026-${String(i + 1).padStart(4, '0')}`, prefix: 'SO', index: i })), ...['SO-V23', 'SO-V28-1', 'SO-V28-2', 'SO-V28-3'].flatMap(prefix => Array.from({ length: 7 }, (_, i) => ({ id: `${prefix}-${String(i + 1).padStart(2, '0')}`, prefix, index: i })))];
         return ids.map(({ id, prefix, index }) => ({ id, businessNo: id, ownerSalesId: a.id, doctorId: index % 2 ? 'D-2' : 'D-1', hospitalId: index % 2 ? 'H-B' : 'H-A', demoScenario: prefix }));
     });
-    return { hospitals:[...hospitals,...adminState.hospitals.filter(h=>!hospitals.some(row=>row.id===h.id)).map(h=>({...h,region:h.region||'安徽'}))], doctors, people, legacyOrders, engineers: people.filter(p => p.role === '工程师'), salesScopes: Object.fromEntries(sales.map(a => [a.id, fixtureSales?.id===a.id?hospitals.map(h => h.id):[...(a.hospitalIds||[])]])), reservedBusinessNumbers: [...adminState.orders.map(o => o.businessNo || o.id), ...legacyOrders.map(o => o.businessNo)] };
+    return { hospitals:[...hospitals,...adminState.hospitals.filter(h=>!hospitals.some(row=>row.id===h.id)).map(h=>({...h,region:h.region||'安徽'}))], doctors, people, legacyOrders, engineers: people.filter(p => positionId(p)==='designer'), salesScopes: Object.fromEntries(sales.map(a => [a.id, fixtureSales?.id===a.id?hospitals.map(h => h.id):[...(a.hospitalIds||[])]])), reservedBusinessNumbers: [...adminState.orders.map(o => o.businessNo || o.id), ...legacyOrders.map(o => o.businessNo)] };
 }

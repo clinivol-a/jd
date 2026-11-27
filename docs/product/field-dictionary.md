@@ -424,3 +424,21 @@ CliniVol A方案当前采用“一单一主项目、多专业任务”的业务�
 审计日志表头：事件 / 业务类型 / 业务对象 / 操作人 / 操作时间 / 操作结果 / 操作说明 / 操作。
 
 审计日志筛选：业务类型 / 操作结果 / 操作时间 / 重置筛选。无关键词筛选，旧本地关键词条件不再参与查询。
+
+
+## 2026-11-27｜岗位、管理角色与区域授权
+
+本节覆盖旧成员表将管理职责混入岗位的描述，不改历史事件身份。
+
+| 字段 | 语义与约束 |
+|---|---|
+| Account / Person.positionId | 关联申请岗位目录稳定ID；当前designer=工程设计师、sales=销售、doctor=医生；缺少可信职业岗位可为null，前台“-” |
+| Account / Person.accessRoles | 独立管理角色键leader、administrator；空数组前台“普通员工”；支持同一职业账号附加管理职责 |
+| positionPermissions | 角色授权前的岗位基础权限；撤销管理角色时保留职业工作能力 |
+| authorizationVersion / Person.version | 成员授权和编辑的并发校验版本，过期写入拒绝 |
+| PublicAccount.managementRole | 服务端派生管理入口权限；不改变原职业工作台role；不能接受客户端自报角色 |
+| regionConfiguration.assignments | region及leaderIds的稳定关联，按安徽16市配置 |
+| regionConfiguration.version | 区域配置并发版本；另校验每位组长当前版本、状态与真实权限 |
+| RoleDirectory.aliases / retiredItems / migrationHistory | 旧工程岗位归并映射与原记录备份；不删除历史账号、申请或审计 |
+
+成员表：姓名｜岗位｜角色｜所属组织｜生效范围｜具体权限｜当前状态｜操作。新增管理角色不自动改变医院或历史订单负责组长。赵启明、许文清的职业岗位尚待确认；不得因角色为业务组长而填成销售。注册及补正读取同一岗位目录，只申请职业岗位。管理员须通过受控初始化或已有管理员对核准内部成员授权获得，不从普通注册申请直接开通。

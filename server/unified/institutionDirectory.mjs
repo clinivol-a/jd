@@ -1,3 +1,4 @@
+import {isBusinessLeader,positionId} from '../../src/auth/memberAccess.mjs';
 import {eligibleHospitalLeaders} from '../../src/admin/institutionRules.mjs';
 import { randomUUID } from 'node:crypto';
 import { mkdirSync, existsSync, readFileSync, writeFileSync, renameSync, openSync, closeSync, unlinkSync } from 'node:fs';
@@ -98,18 +99,18 @@ export class InstitutionDirectory {
                 else if (actor.role !== 'super_admin')
                     throw new DirectoryFailure('新增医院须由管理员维护。', 403);
                 const name = text(input.name, '医院名称'), region = text(input.region, '所属区域'), contact = String(input.contact || '').trim();
-                const leader = this.seed().people.find(p => p.id === input.leaderId && p.role === '业务组长' && p.status === '已启用' && ['orders:read', 'orders:review', 'tasks:assign'].every(permission => p.permissions?.includes(permission)));
+                const leader = this.seed().people.find(p => p.id === input.leaderId && isBusinessLeader(p) && p.status === '已启用' && ['orders:read', 'orders:review', 'tasks:assign'].every(permission => p.permissions?.includes(permission)));
                 if (!leader || !eligibleHospitalLeaders([leader],{id:old?.id,region,leaderId:old?.leaderId}).length)
                     throw new DirectoryFailure('组长须具备该医院或区域的管理资格。');
                 const salesIds = input.salesIds;
-                if (!Array.isArray(salesIds) || salesIds.some(sid => !this.seed().people.some(p => p.id === sid && p.role === '销售' && p.status === '已启用')))
+                if (!Array.isArray(salesIds) || salesIds.some(sid => !this.seed().people.some(p => p.id === sid && positionId(p)==='sales' && p.status === '已启用')))
                     throw new DirectoryFailure('请选择有效的授权销售。');
                 const h = { ...(old || { id: `H-${randomUUID()}`, status: '已启用', departmentRecords: [], departments: [] }), name, region, contact, leaderId: leader.id, version: (old?.version || 0) + 1 };
                 const previousSalesIds = Object.entries(this.state.salesScopes).filter(([, ids]) => ids.includes(h.id)).map(([sid]) => sid);
                 const before = old ? { ...clone(old), salesIds: previousSalesIds } : null;
                 this.state.hospitals = this.state.hospitals.filter(r => r.id !== h.id);
                 this.state.hospitals.push(h);
-                for (const p of this.seed().people.filter(p => p.role === '销售')) {
+                for (const p of this.seed().people.filter(p => positionId(p)==='sales')) {
                     const scope = this.state.salesScopes[p.id] || [];
                     this.state.salesScopes[p.id] = salesIds.includes(p.id) ? [...new Set([...scope, h.id])] : scope.filter(hid => hid !== h.id);
                 }

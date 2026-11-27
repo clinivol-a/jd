@@ -1,6 +1,7 @@
 import {adminResultPreview} from './resultPreview.mjs';
 import {renderDoctorPreview} from '../doctor-preview.mjs';
 import {AdminFailure} from './service.mjs';
+import {managementActor} from './memberAccess.mjs';
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function adminHandler(auth,admin,{origin}) {
  return async(req,res)=>{
@@ -11,7 +12,7 @@ export function adminHandler(auth,admin,{origin}) {
    if(req.method!=='GET'&&(req.headers.origin!==origin||req.headers['x-clinivol-request']!=='1'))throw new AdminFailure('安全校验失败。',403);
    const token=(req.headers.cookie||'').split(';').map(v=>v.trim()).find(v=>v.startsWith('cv_auth_device='))?.slice(15);
    if(!token)throw new AdminFailure('请先登录。',401);
-   const actor=auth.require(auth.device(token));const url=new URL(req.url,origin);
+   let actor=auth.require(auth.device(token));const url=new URL(req.url,origin);
    if(url.pathname.startsWith('/api/admin/business/')){
     const action=url.pathname.slice('/api/admin/business/'.length);let body={};
     if(req.method==='POST'){let raw='';for await(const chunk of req){raw+=chunk;if(Buffer.byteLength(raw)>(action==='doctor-upload'?29:2)*1024*1024)throw new AdminFailure('请求内容过大。',413)}try{body=JSON.parse(raw)}catch{throw new AdminFailure('请求格式不正确。')}}
@@ -29,6 +30,7 @@ export function adminHandler(auth,admin,{origin}) {
     else throw new AdminFailure('接口不存在。',404);
     res.end(JSON.stringify(result));return;
    }
+   actor=managementActor(admin,actor);
    if(req.method==='GET'&&url.pathname==='/api/admin/state'){res.end(JSON.stringify(admin.snapshot(actor)));return}
    if(req.method==='GET'&&url.pathname==='/api/admin/result-preview'){res.end(JSON.stringify(adminResultPreview(admin,actor,url.searchParams.get('resultId'),url.searchParams.get('resultVersion'))));return}
    if(req.method==='GET'&&url.pathname==='/api/admin/order-attachment'){

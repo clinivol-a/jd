@@ -1,3 +1,4 @@
+import {isBusinessLeader} from '../auth/memberAccess.mjs';
 import {useState} from 'react';
 import {Dialog,Form,Select} from 'tdesign-react';
 import {adminRequest} from './model';
@@ -6,7 +7,7 @@ import type {AdminState} from './model';
 export function LeaderRegionForm({data,onSaved,onClose}:{data:AdminState;onSaved:()=>Promise<void>;onClose:()=>void}){
  const [assignments,setAssignments]=useState(()=>data.regionConfiguration.assignments.map(a=>({...a,leaderIds:[...a.leaderIds]})));
  const [busy,setBusy]=useState(false),[error,setError]=useState('');
- const leaders=data.people.filter(p=>p.role==='业务组长');
+ const leaders=data.people.filter(p=>isBusinessLeader(p));
  const save=async()=>{
   if(busy)return;
   setBusy(true);setError('');

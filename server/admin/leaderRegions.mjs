@@ -1,7 +1,8 @@
+import {isBusinessLeader} from '../../src/auth/memberAccess.mjs';
 import {anhuiCities} from '../../src/admin/institutionRules.mjs';
 
 export function regionConfiguration(state) {
- return {version:state.regionConfigurationVersion||1,assignments:anhuiCities.map(region=>({region,leaderIds:state.people.filter(p=>p.role==='业务组长'&&p.regions?.includes(region)).map(p=>p.id)}))};
+ return {version:state.regionConfigurationVersion||1,assignments:anhuiCities.map(region=>({region,leaderIds:state.people.filter(p=>isBusinessLeader(p)&&p.regions?.includes(region)).map(p=>p.id)}))};
 }
 
 export function saveLeaderRegions(service,actor,{version,assignments,leaderVersions}) {
@@ -9,7 +10,7 @@ export function saveLeaderRegions(service,actor,{version,assignments,leaderVersi
  const fail=(message,status=400)=>{const e=new Error(message);e.status=status;throw e};
  if(actor.role!=='super_admin')fail('区域组长配置须由管理员维护。',403);
  if(version!==(service.state.regionConfigurationVersion||1))fail('区域组长配置已更新，请刷新后重试。',409);
- const leaders=service.state.people.filter(p=>p.role==='业务组长');
+ const leaders=service.state.people.filter(p=>isBusinessLeader(p));
  if(!leaderVersions||leaders.some(p=>leaderVersions[p.id]!==p.version))fail('组长资料已更新，请刷新后重试。',409);
  if(!Array.isArray(assignments)||assignments.length!==anhuiCities.length||new Set(assignments.map(a=>a.region)).size!==anhuiCities.length||assignments.some(a=>!anhuiCities.includes(a.region)||!Array.isArray(a.leaderIds)||new Set(a.leaderIds).size!==a.leaderIds.length))fail('请提供完整且不重复的区域组长配置。');
  for(const a of assignments)for(const id of a.leaderIds){

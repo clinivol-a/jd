@@ -1,3 +1,4 @@
+import {positionId,accessRoles,roleText} from '../../src/auth/memberAccess.mjs';
 // Administrator read model only. Persisted identities, opinions and audit facts stay intact.
 import {auditActorLabel} from '../../src/audit/actorLabel.mjs';
 const adminRoles=new Set(['admin','super_admin','管理员','超级管理员']);
@@ -14,8 +15,7 @@ const demoReasons=new Map([
 const isolated=source=>typeof source==='string'&&/^(isolated-|local-auth$)/.test(source);
 
 export function presentAdminState(state,{accounts=[],currentActor}={}){
- const designerName=state.applicationRoles?.find(r=>r.id==='designer')?.name||'工程设计师';
- const memberRole=p=>['designer','工程师','三维重建设计师','医学工程师'].includes(p.role)?designerName:state.applicationRoles?.find(r=>r.id===p.role)?.name||p.role;
+ const memberPosition=p=>{const id=positionId(p);return id?state.applicationRoles?.find(r=>r.id===id)?.name||'-':'-'};
  const identities=new Map([...state.people,...accounts,...(currentActor?[currentActor]:[])].map(p=>[p.id,p]));
  const actorLabel=e=>auditActorLabel(e,identities.get(e.actorId));
  const event=e=>{
@@ -31,7 +31,7 @@ export function presentAdminState(state,{accounts=[],currentActor}={}){
  };
  return {...state,
   events:state.events.map(event),doctorHistory:state.doctorHistory.map(event),
-  people:state.people.map(p=>({...p,roleKey:p.role,role:adminRoles.has(p.role)?'管理员':memberRole(p)})),
+  people:state.people.map(p=>({...p,roleKey:p.role,positionId:positionId(p),accessRoles:accessRoles(p),accessRoleName:roleText(p),role:memberPosition(p)})),
   organizationRequests:state.organizationRequests?.map(r=>({...r,reason:isolated(r.source)&&demoReasons.has(r.reason)?demoReasons.get(r.reason):r.reason})),
   approvals:state.approvals.map(a=>({...a,approver:a.approver?actorLabel({actor:a.approver,actorId:a.approverId,actorRole:a.approverRole}):a.approver,...(isolated(a.source)&&/^LOCAL-[A-Z0-9-]+$/.test(a.basis||'')?{basis:'',recordedBasis:a.basis}:{})}))
  };
