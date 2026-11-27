@@ -1,0 +1,202 @@
+{
+  "light": [
+    {
+      "background": "rgb(13, 122, 93)",
+      "checked": true,
+      "disabled": false,
+      "handleShadow": "rgba(0, 0, 0, 0.05) 0px 1px 10px 0px, rgba(0, 0, 0, 0.08) 0px 4px 5px 0px, rgba(0, 0, 0, 0.12) 0px 2px 4px -1px",
+      "hover": false,
+      "name": "人员启用状态"
+    },
+    {
+      "background": "rgb(155, 217, 196)",
+      "checked": true,
+      "disabled": true,
+      "handleShadow": "none",
+      "hover": false,
+      "name": "订单查看与监督"
+    },
+    {
+      "background": "rgb(13, 122, 93)",
+      "checked": true,
+      "disabled": false,
+      "handleShadow": "rgba(0, 0, 0, 0.05) 0px 1px 10px 0px, rgba(0, 0, 0, 0.08) 0px 4px 5px 0px, rgba(0, 0, 0, 0.12) 0px 2px 4px -1px",
+      "hover": false,
+      "name": "订单审核"
+    },
+    {
+      "background": "rgb(13, 122, 93)",
+      "checked": true,
+      "disabled": false,
+      "handleShadow": "rgba(0, 0, 0, 0.05) 0px 1px 10px 0px, rgba(0, 0, 0, 0.08) 0px 4px 5px 0px, rgba(0, 0, 0, 0.12) 0px 2px 4px -1px",
+      "hover": false,
+      "name": "任务分配"
+    },
+    {
+      "background": "rgb(238, 238, 238)",
+      "checked": false,
+      "disabled": true,
+      "handleShadow": "none",
+      "hover": false,
+      "name": "医生资质审核"
+    },
+    {
+      "background": "rgb(238, 238, 238)",
+      "checked": false,
+      "disabled": true,
+      "handleShadow": "none",
+      "hover": false,
+      "name": "医院与人员管理"
+    },
+    {
+      "background": "rgb(238, 238, 238)",
+      "checked": false,
+      "disabled": true,
+      "handleShadow": "none",
+      "hover": false,
+      "name": "账号审核"
+    },
+    {
+      "background": "rgb(238, 238, 238)",
+      "checked": false,
+      "disabled": true,
+      "handleShadow": "none",
+      "hover": false,
+      "name": "权限授权与审核"
+    },
+    {
+      "background": "rgb(231, 231, 231)",
+      "checked": false,
+      "disabled": false,
+      "handleShadow": "rgba(0, 0, 0, 0.05) 0px 1px 10px 0px, rgba(0, 0, 0, 0.08) 0px 4px 5px 0px, rgba(0, 0, 0, 0.12) 0px 2px 4px -1px",
+      "hover": false,
+      "name": "资产查询"
+    },
+    {
+      "background": "rgb(238, 238, 238)",
+      "checked": false,
+      "disabled": true,
+      "handleShadow": "none",
+      "hover": false,
+      "name": "受控元数据导出"
+    },
+    {
+      "background": "rgb(238, 238, 238)",
+      "checked": false,
+      "disabled": true,
+      "handleShadow": "none",
+      "hover": false,
+      "name": "审计查询"
+    },
+    {
+      "background": "rgb(231, 231, 231)",
+      "checked": false,
+      "disabled": false,
+      "handleShadow": "rgba(0, 0, 0, 0.05) 0px 1px 10px 0px, rgba(0, 0, 0, 0.08) 0px 4px 5px 0px, rgba(0, 0, 0, 0.12) 0px 2px 4px -1px",
+      "hover": false,
+      "name": "成果分享管理"
+    }
+  ],
+  "dark": [
+    {
+      "background": "rgb(69, 169, 134)",
+      "checked": true,
+      "disabled": false,
+      "name": "人员启用状态",
+      "officialDisabled": "#2c2c2c",
+      "officialUnchecked": "#4b4b4b"
+    },
+    {
+      "background": "rgb(22, 66, 53)",
+      "checked": true,
+      "disabled": true,
+      "name": "订单查看与监督",
+      "officialDisabled": "#2c2c2c",
+      "officialUnchecked": "#4b4b4b"
+    },
+    {
+      "background": "rgb(69, 169, 134)",
+      "checked": true,
+      "disabled": false,
+      "name": "订单审核",
+      "officialDisabled": "#2c2c2c",
+      "officialUnchecked": "#4b4b4b"
+    },
+    {
+      "background": "rgb(69, 169, 134)",
+      "checked": true,
+      "disabled": false,
+      "name": "任务分配",
+      "officialDisabled": "#2c2c2c",
+      "officialUnchecked": "#4b4b4b"
+    },
+    {
+      "background": "rgb(44, 44, 44)",
+      "checked": false,
+      "disabled": true,
+      "name": "医生资质审核",
+      "officialDisabled": "#2c2c2c",
+      "officialUnchecked": "#4b4b4b"
+    },
+    {
+      "background": "rgb(44, 44, 44)",
+      "checked": false,
+      "disabled": true,
+      "name": "医院与人员管理",
+      "officialDisabled": "#2c2c2c",
+      "officialUnchecked": "#4b4b4b"
+    },
+    {
+      "background": "rgb(44, 44, 44)",
+      "checked": false,
+      "disabled": true,
+      "name": "账号审核",
+      "officialDisabled": "#2c2c2c",
+      "officialUnchecked": "#4b4b4b"
+    },
+    {
+      "background": "rgb(44, 44, 44)",
+      "checked": false,
+      "disabled": true,
+      "name": "权限授权与审核",
+      "officialDisabled": "#2c2c2c",
+      "officialUnchecked": "#4b4b4b"
+    },
+    {
+      "background": "rgb(75, 75, 75)",
+      "checked": false,
+      "disabled": false,
+      "name": "资产查询",
+      "officialDisabled": "#2c2c2c",
+      "officialUnchecked": "#4b4b4b"
+    },
+    {
+      "background": "rgb(44, 44, 44)",
+      "checked": false,
+      "disabled": true,
+      "name": "受控元数据导出",
+      "officialDisabled": "#2c2c2c",
+      "officialUnchecked": "#4b4b4b"
+    },
+    {
+      "background": "rgb(44, 44, 44)",
+      "checked": false,
+      "disabled": true,
+      "name": "审计查询",
+      "officialDisabled": "#2c2c2c",
+      "officialUnchecked": "#4b4b4b"
+    },
+    {
+      "background": "rgb(75, 75, 75)",
+      "checked": false,
+      "disabled": false,
+      "name": "成果分享管理",
+      "officialDisabled": "#2c2c2c",
+      "officialUnchecked": "#4b4b4b"
+    }
+  ],
+  "preferences": {
+    "unchecked": "rgb(231, 231, 231)",
+    "restored": true
+  }
+}
