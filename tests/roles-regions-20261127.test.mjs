@@ -65,7 +65,7 @@ test('an engineer can receive and lose a management role without losing the same
 });
 test('administrator role cannot be self-applied, cannot be granted by sales and the last administrator is protected',t=>{
  const {admin,auth}=setup(t);seedSuperAdmin(auth,{enabled:true,password:'LocalExample2026'});const administrator=auth.accounts.find(a=>a.id==='super-admin');
- const p=admin.snapshot(administrator).people.find(p=>p.id==='super-admin');assert.equal(p.role,'-');assert.equal(p.accessRoleName,'管理员');
+ const p=admin.snapshot(administrator).people.find(p=>p.id==='super-admin');assert.equal(p.role,'无专业岗位');assert.equal(p.accessRoleName,'管理员');
  assert.throws(()=>admin.command(administrator,{action:'member-access-save',id:p.id,version:p.version,accountVersion:p.accountVersion,positionId:'sales',accessRoles:[]}),/最后一个/);
  assert.deepEqual(auth.applicationRoles().items.map(r=>r.id),['designer','sales','doctor']);
  const engineer=admin.snapshot(administrator).people.find(p=>p.id==='chen-yu');admin.command(administrator,{action:'member-access-save',id:engineer.id,version:engineer.version,accountVersion:engineer.accountVersion,positionId:'designer',accessRoles:['administrator']});

@@ -1,3 +1,4 @@
+export const NO_POSITION:'none';
 export type AccessRole='leader'|'administrator';
 export const memberRoles:{id:string;name:string}[];
 export function accessRoles(person:{role?:string|null;accessRoles?:string[]}):AccessRole[];

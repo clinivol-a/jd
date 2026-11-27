@@ -1,3 +1,4 @@
+import {NO_POSITION} from '../../src/auth/memberAccess.mjs';
 import {AuthFailure,random,hash} from './service.mjs'
 import {RoleDirectory} from './roleDirectory.mjs'
 import {OrganizationDirectory} from './organizationDirectory.mjs'
@@ -6,7 +7,7 @@ import {installRegistrationRevision} from './registrationRevision.mjs'
 export function installRegistrationSupport(s){
  s.riskPermits=new Map();s.challenges=new Map();s.phoneSendAttempts=new Map()
  s.roleDirectory=new RoleDirectory({directory:s.directory,now:()=>s.now()})
- s.applicationRoles=function(){this.assertEnabled();return {items:this.roleDirectory.options()}}
+ s.applicationRoles=function(){this.assertEnabled();return {items:this.roleDirectory.options(),registrationOptions:[...this.roleDirectory.options(),this.roleDirectory.find(NO_POSITION)]}}
  s.organizationDirectory=new OrganizationDirectory({directory:s.directory,now:()=>s.now()})
  s.organizations=function(){this.assertEnabled();if(this.mode!=='local')throw new AuthFailure('组织目录暂不可用。',503);return {source:'isolated-organizations',items:this.organizationDirectory.options()}}
  s.requestOrganization=function(d,input){this.assertEnabled();return this.organizationDirectory.request(d,input)}

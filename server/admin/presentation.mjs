@@ -15,7 +15,7 @@ const demoReasons=new Map([
 const isolated=source=>typeof source==='string'&&/^(isolated-|local-auth$)/.test(source);
 
 export function presentAdminState(state,{accounts=[],currentActor}={}){
- const memberPosition=p=>{const id=positionId(p);return id?state.applicationRoles?.find(r=>r.id===id)?.name||'-':'-'};
+ const memberPosition=p=>{const id=positionId(p);return id?state.applicationRoles?.find(r=>r.id===id)?.name||'-':p.role==='member'||accessRoles(p).length||accounts.some(a=>a.id===p.id&&a.positionId===null)?'无专业岗位':'-'};
  const identities=new Map([...state.people,...accounts,...(currentActor?[currentActor]:[])].map(p=>[p.id,p]));
  const actorLabel=e=>auditActorLabel(e,identities.get(e.actorId));
  const event=e=>{

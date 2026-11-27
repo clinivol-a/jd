@@ -1,3 +1,4 @@
+export const NO_POSITION='none';
 // Career position, management responsibility and professional ability are separate facts.
 export const memberRoles=[{id:'employee',name:'普通员工'},{id:'leader',name:'业务组长'},{id:'administrator',name:'管理员'}];
 export function accessRoles(person){

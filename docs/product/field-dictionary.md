@@ -432,13 +432,15 @@ CliniVol A方案当前采用“一单一主项目、多专业任务”的业务�
 
 | 字段 | 语义与约束 |
 |---|---|
-| Account / Person.positionId | 关联申请岗位目录稳定ID；当前designer=工程设计师、sales=销售、doctor=医生；缺少可信职业岗位可为null，前台“-” |
+| Account / Person.positionId | 关联职业岗位目录稳定ID；当前designer=工程设计师、sales=销售、doctor=医生；无职业岗位为null，管理成员前台明确显示“无专业岗位”，不猜定职业 |
 | Account / Person.accessRoles | 独立管理角色键leader、administrator；空数组前台“普通员工”；支持同一职业账号附加管理职责 |
 | positionPermissions | 角色授权前的岗位基础权限；撤销管理角色时保留职业工作能力 |
 | authorizationVersion / Person.version | 成员授权和编辑的并发校验版本，过期写入拒绝 |
-| PublicAccount.managementRole | 服务端派生管理入口权限；不改变原职业工作台role；不能接受客户端自报角色 |
+| PublicAccount.managementRole | 服务端派生管理入口权限；职业账号保留原工作台role；无专业岗位账号role为member，仅进入实际核准的管理工作台；不能接受客户端自报角色 |
+| Registration.requestedRole=none | 内部成员明确申请无专业岗位，仍需账号审核，不等于申请管理角色；Account.positionId持久化为null，none不作为职业岗位ID |
+| Person.regions | 业务组长负责的安徽城市集合；与regionConfiguration.assignments同源，保存同时校验成员及区域配置版本，不改既有医院或订单责任人 |
 | regionConfiguration.assignments | region及leaderIds的稳定关联，按安徽16市配置 |
 | regionConfiguration.version | 区域配置并发版本；另校验每位组长当前版本、状态与真实权限 |
 | RoleDirectory.aliases / retiredItems / migrationHistory | 旧工程岗位归并映射与原记录备份；不删除历史账号、申请或审计 |
 
-成员表：姓名｜岗位｜角色｜所属组织｜生效范围｜具体权限｜当前状态｜操作。新增管理角色不自动改变医院或历史订单负责组长。赵启明、许文清的职业岗位尚待确认；不得因角色为业务组长而填成销售。注册及补正读取同一岗位目录，只申请职业岗位。管理员须通过受控初始化或已有管理员对核准内部成员授权获得，不从普通注册申请直接开通。
+成员表：姓名｜岗位｜角色｜所属组织｜生效范围｜具体权限｜当前状态｜操作。新增管理角色不自动改变医院或历史订单负责组长。赵启明、许文清未配置职业岗位，不得因角色为业务组长而填成销售。注册及补正读取同一职业岗位目录，并向内部成员提供“无专业岗位”选项；无岗位注册审核通过后，未授权管理角色时不能进入销售或工程师业务。管理员须通过受控初始化或已有管理员对核准内部成员授权获得，不从普通注册申请直接开通。

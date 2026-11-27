@@ -13,7 +13,7 @@ export function HospitalForm({ initial, data, onClose, onSaved }: {
     const [errors, setErrors] = useState<Record<string, string>>({}), [busy, setBusy] = useState(false);
     const update = (key: keyof typeof value, next: unknown) => { setValue(v => ({ ...v, [key]: next })); setErrors(e => ({ ...e, [key]: '' })); };
     const leaders = eligibleHospitalLeaders(data.people, { id: initial?.id, region: value.region, leaderId: initial?.leaderId });
-    const leaderHint = !value.region ? '请先选择区域。' : !leaders.length ? '该区域暂无具备管理资格的组长，请先在医院管理中配置区域组长。' : initial?.leaderId && !value.leaderId ? '请重新选择具备管理资格的组长。' : undefined;
+    const leaderHint = !value.region ? '请先选择区域。' : !leaders.length ? '该区域暂无具备管理资格的组长，请先在成员管理中配置负责区域。' : initial?.leaderId && !value.leaderId ? '请重新选择具备管理资格的组长。' : undefined;
     const save = async () => { if (busy)
         return; const e: Record<string, string> = {}; for (const key of ['name', 'region', 'leaderId'] as const)
         if (!value[key].trim())

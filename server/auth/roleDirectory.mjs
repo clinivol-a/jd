@@ -1,3 +1,4 @@
+import {NO_POSITION} from '../../src/auth/memberAccess.mjs';
 import {randomUUID} from 'node:crypto';
 import {existsSync,mkdirSync,readFileSync,renameSync,writeFileSync} from 'node:fs';
 import {join} from 'node:path';
@@ -19,7 +20,7 @@ export class RoleDirectory{
  reload(){if(this.file&&existsSync(this.file))this.state=JSON.parse(readFileSync(this.file,'utf8'))}
  persist(){if(this.file){writeFileSync(this.file+'.tmp',JSON.stringify(this.state),{mode:0o600});renameSync(this.file+'.tmp',this.file)}}
  all(){this.reload();return clone(this.state)}
- find(id){const state=this.all();return state.items.find(r=>r.id===(state.aliases?.[id]||id))}
+ find(id){if(id===NO_POSITION)return {id:NO_POSITION,name:'无专业岗位',status:'已启用',version:1};const state=this.all();return state.items.find(r=>r.id===(state.aliases?.[id]||id))}
  options(){return this.all().items.filter(r=>r.status==='已启用')}
  selected(id){const r=this.find(id);if(!r||r.status!=='已启用')throw new RoleFailure('请选择有效的申请岗位。');return r}
  save(actor,{id,name,status,version}){
