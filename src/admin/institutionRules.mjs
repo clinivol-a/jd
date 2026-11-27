@@ -4,7 +4,7 @@ export const coversRegion=(regions=[],region)=>{
  return !!city&&(regions.some(r=>String(r).replace(/市$/,'')===city)||(regions.includes('安徽')&&anhuiCities.includes(city)));
 };
 export function eligibleHospitalLeaders(people,hospital={}){
- return people.filter(p=>p.role==='业务组长'&&p.status==='已启用'&&['orders:read','orders:review','tasks:assign'].every(permission=>p.permissions?.includes(permission))&&(p.regions?.length?coversRegion(p.regions,hospital.region):hospital.id&&(p.scope?.includes(hospital.id)||p.id===hospital.leaderId)));
+ return people.filter(p=>p.role==='业务组长'&&p.status==='已启用'&&['orders:read','orders:review','tasks:assign'].every(permission=>p.permissions?.includes(permission))&&(Array.isArray(p.regions)?coversRegion(p.regions,hospital.region):hospital.id&&(p.scope?.includes(hospital.id)||p.id===hospital.leaderId)));
 }
 export const eligibleHospitalSales=people=>people.filter(p=>p.role==='销售'&&p.status==='已启用');
 export function hospitalMatches(hospital,{name='',region='',status=''}={}){
