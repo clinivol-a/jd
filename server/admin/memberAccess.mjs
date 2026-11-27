@@ -41,8 +41,8 @@ export function saveMemberAccess(service,actor,{id,version,accountVersion,positi
   if(roles[0]==='leader'){
    if(!regions?.length)fail('请至少选择一个负责区域。');
    if(requestedPermissions.some(id=>!leaderPermissionIds.includes(id)))fail('业务组长不能授予系统管理权限。',403);
-   if(!requestedPermissions.includes('orders:read'))fail('业务组长必须保留订单查看权限。');
-   if(requestedPermissions.includes('shares:manage')&&!requestedPermissions.includes('assets:read'))fail('成果分享管理须同时具有资产查询权限。');
+   if(!requestedPermissions.includes('orders:read'))fail('业务组长必须保留订单管理权限。');
+   if(requestedPermissions.includes('shares:manage')&&!requestedPermissions.includes('assets:read'))fail('成果分享管理须同时具有专业成果查看权限。');
   }
   if(roles[0]==='administrator'&&(requestedPermissions.length!==managementPermissionIds.length||managementPermissionIds.some(id=>!requestedPermissions.includes(id))))fail('管理员须保留全部平台管理权限。');
   if(memberPolicyIssues(currentPerson).length&&!confirmRoleNormalization)fail('现有角色与权限需要核对，请确认待保存配置。',409);

@@ -1,6 +1,7 @@
 import type {AccessRole} from '../auth/memberAccess.mjs';
 export type MemberRole='employee'|'leader'|'administrator';
 export const memberPermissionCatalog:{id:string;name:string}[];
+export const managementPermissionNames:Record<string,string>;
 export const managementPermissionIds:string[];
 export const leaderPermissionIds:string[];
 export const leaderDefaultPermissions:string[];

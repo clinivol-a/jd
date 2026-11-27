@@ -1,3 +1,4 @@
+import {managementPermissionNames} from './memberPolicy.mjs';
 import {isBusinessLeader} from '../auth/memberAccess.mjs';
 import {AssetResultViewer} from './AssetResultViewer';
 import {AssetOrderDetails,AssetVersionDetail} from './AssetOrderDetails';
@@ -301,4 +302,4 @@ export default function AdminWorkspace(){
  </Form></Dialog>
  </div>;
 }
-function permissionName(value:string){return ({'orders:read':'订单查看与监督','orders:review':'订单审核','tasks:assign':'任务分配','doctors:review':'医生资质审核','people:manage':'医院与人员管理','accounts:approve':'账号审核','permissions:grant':'权限授权与审核','assets:read':'资产查询','assets:export-metadata':'受控元数据导出','audit:read':'审计查询','shares:manage':'成果分享管理','professional:review':'专业成果审核','projects:own':'本人专业任务',reconstruction:'三维重建',cad:'CAD设计','sales:landing':'销售工作台'} as Record<string,string>)[value]||value}
+function permissionName(value:string){return managementPermissionNames[value]||({'professional:review':'专业成果审核','projects:own':'本人专业任务',reconstruction:'三维重建',cad:'CAD设计','sales:landing':'销售工作台'} as Record<string,string>)[value]||value}

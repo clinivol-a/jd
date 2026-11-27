@@ -1,3 +1,4 @@
+import {managementPermissionNames} from './memberPolicy.mjs';
 // Read-only presentation and filtering. Stable IDs resolve relations; raw records stay intact.
 export const businessLabel=value=>String(value??'').replaceAll('审批','审核').replaceAll('机构与人员','机构与成员');
 const orderNo=(state,id)=>state.orders.find(o=>o.id===id)?.businessNo||'-';
@@ -23,7 +24,7 @@ export function auditMatches(event,state,filters={}){
 export const chronologicalRecords=rows=>[...new Map(rows.map(r=>[r.id,r])).values()].sort((a,b)=>(Date.parse(b.at||b.submittedAt)||0)-(Date.parse(a.at||a.submittedAt)||0)||a.id.localeCompare(b.id));
 const fields={name:'名称',status:'当前状态',role:'岗位',positionId:'岗位',accessRoles:'角色',positionPermissions:'岗位基础权限',requestedRole:'申请岗位',organizationId:'所属组织',hospitalId:'医院',doctorId:'医生',leaderId:'负责组长',assignee:'任务负责人',permissions:'具体权限',scope:'生效范围',regions:'区域',region:'区域',contact:'联系电话',phone:'联系电话',quantity:'需求数量',plannedDate:'计划时间',requestedDueDate:'预计交付时间',confirmedDeliveryDate:'预计交付时间',reviewStatus:'审核状态',publishStatus:'发布状态',count:'记录条数',reviewNote:'审核意见'};
 const roles={super_admin:'管理员',admin:'管理员',administrator:'管理员',employee:'普通员工',none:'无专业岗位',member:'无专业岗位',sales:'销售',doctor:'医生',designer:'工程设计师',leader:'业务组长'};
-const permissions={'orders:read':'订单查看与监督','orders:review':'订单审核','tasks:assign':'任务分配','doctors:review':'医生档案审核','people:manage':'机构与成员管理','accounts:approve':'账号注册审核','permissions:grant':'权限授权','assets:read':'数据资产查看','assets:export-metadata':'资产信息导出','audit:read':'审计日志查看','shares:manage':'成果分享管理','sales:landing':'销售工作台','projects:own':'本人专业任务'};
+const permissions={...managementPermissionNames,'sales:landing':'销售工作台','projects:own':'本人专业任务'};
 export function auditChanges(event,state){
  const resolve=(key,value)=>{
   if(value===undefined||value===null||value==='')return '-';
